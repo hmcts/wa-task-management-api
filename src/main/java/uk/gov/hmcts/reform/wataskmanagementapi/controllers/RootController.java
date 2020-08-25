@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wa-task-management-api.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wa-task-management-api.config;
+package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +7,7 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-import uk.gov.hmcts.reform.wa-task-management-api.Application;
+import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 
 @Configuration
 @EnableSwagger2

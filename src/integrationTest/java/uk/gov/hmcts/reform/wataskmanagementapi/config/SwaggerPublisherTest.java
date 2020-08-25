@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wa-task-management-api.config;
+package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
