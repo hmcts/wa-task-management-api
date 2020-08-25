@@ -1,0 +1,11 @@
+#!groovy
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "wa"
+def component = "task-management-api"
+
+withPipeline(type, product, component) {
+    disableLegacyDeployment()
+}
