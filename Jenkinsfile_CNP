@@ -7,5 +7,9 @@ def product = "wa"
 def component = "task-management-api"
 
 withPipeline(type, product, component) {
-    disableLegacyDeployment()
+  disableLegacyDeployment()
+
+  after('functionalTest') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+  }
 }
