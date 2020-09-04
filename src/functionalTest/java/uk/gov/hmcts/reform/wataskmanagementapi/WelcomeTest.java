@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskconfigurationapi;
+package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import io.restassured.RestAssured;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
