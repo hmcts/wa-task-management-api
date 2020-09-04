@@ -1,0 +1,8 @@
+spring:
+  cloud:
+    propertiesvolume:
+      enabled: true
+      prefixed: false
+      paths: /mnt/secrets/wa
+      aliases:
+        testsecret: A_SECRET
