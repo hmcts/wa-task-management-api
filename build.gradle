@@ -122,14 +122,16 @@ jacocoTestReport {
 }
 
 pitest {
+  junit5PluginVersion = '0.12'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
+    'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
     'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
   threads = 10
   outputFormats = ['XML', 'HTML']
   timestampedReports = false
-  mutationThreshold = 90
+  mutationThreshold = 80
 }
 
 project.tasks['pitest'].group = "Verification"
