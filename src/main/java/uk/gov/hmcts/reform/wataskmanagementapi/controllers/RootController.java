@@ -36,6 +36,6 @@ public class RootController {
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body("Welcome to wa-management-api [\"" + testProperty + "\"]");
+            .body("Welcome to wa-task-management-api [\"" + testProperty + "\"]");
     }
 }
