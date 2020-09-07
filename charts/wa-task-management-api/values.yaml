@@ -7,4 +7,5 @@ java:
     wa:
       secrets:
         - testsecret
+        - AppInsightsInstrumentationKey
   environment:

@@ -6,3 +6,4 @@ spring:
       paths: /mnt/secrets/wa
       aliases:
         testsecret: A_SECRET
+        AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
