@@ -5,13 +5,15 @@ import org.junit.Test;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestType.NO;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestType.YES;
 
 public class TestTypeTest {
 
     @Test
     public void has_correct_asylum_appeal_types() {
-        assertEquals(TestType.from("yes").get(), TestType.YES);
-        assertEquals(TestType.from("no").get(), TestType.NO);
+        assertEquals(TestType.from("yes").get(), YES);
+        assertEquals(TestType.from("no").get(), NO);
     }
 
     @Test
