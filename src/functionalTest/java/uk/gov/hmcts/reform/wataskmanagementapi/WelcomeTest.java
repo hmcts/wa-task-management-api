@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,23 +15,17 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.hamcrest.Matchers.containsString;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @ActiveProfiles("functional")
 @SuppressWarnings({"PMD.JUnitTestsShouldIncludeAssert", "PMD.LawOfDemeter", "PMD.BeanMembersShouldSerialize"})
 public class WelcomeTest {
 
-    @Value("${targetInstance}") private String testUrl;
 
-    @LocalServerPort private int port;
+    @Value("${targetInstance}") private String testUrl;
 
     @Before
     public void setUp() {
-
-        if ("http://localhost".equals(testUrl)) {
-            RestAssured.port = port;
-        } else {
-            RestAssured.baseURI = testUrl;
-        }
+        RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
     }
 
