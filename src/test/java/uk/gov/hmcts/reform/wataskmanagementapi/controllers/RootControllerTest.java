@@ -23,7 +23,7 @@ public class RootControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertThat(
             responseEntity.getBody(),
-            containsString("Welcome to wa-task-management-api [\"demoSecret\"]")
+            containsString("Welcome to wa-task-management-api [\"" + demoSecret +"\"]")
         );
     }
 }

@@ -10,6 +10,8 @@ management:
       base-path: /
       exposure:
         include: health, info, prometheus
+config:
+  stacktraceEnabled:  ${STACKTRACE_ENABLED:false}
 
 testProperty: ${A_SECRET:defaultValue}
 
