@@ -13,15 +13,54 @@ management:
 config:
   stacktraceEnabled:  ${STACKTRACE_ENABLED:false}
 
+enableSwagger: ${ENABLE_SWAGGER:true}
 testProperty: ${A_SECRET:defaultValue}
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: wa-task-management-api
+
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/readiness"
+    - "/health/liveness"
+    - "/loggers/**"
+    - "/swagger-ui.html"
+    - "/swagger-resources/**"
+    - "/v2/api-docs"
+    - "/webjars/springfox-swagger-ui/**"
+    - "/favicon.ico"
+  authorisedServices:
+    - "wa_task_configuration_api"
+    - "wa_workflow-api"
+auth:
+  idam:
+    client:
+      baseUrl: ${IDAM_URL:http://sidam-api}
+      detailsUri: "/details"
+      id: ${WA_IDAM_CLIENT_ID:wa}
+      secret: ${WA_IDAM_SECRET:something}
+      redirectUri: ${WA_IDAM_REDIRECT_URI:http://localhost}
+  provider:
+    service:
+      client:
+        baseUrl: ${S2S_URL:http://service-auth-provider-api}
+
+idam:
+  s2s-auth:
+    url: ${S2S_URL:http://service-auth-provider-api}
+    secret: ${S2S_SECRET_TASK_MANAGEMENT:AAAAAAAAAAAAAAAC}
+    name: ${WA_S2S_NAME:wa_task_management_api}
 
 camunda:
   url: ${CAMUNDA_URL:http://localhost:8080/engine-rest}
-  getTaskDmnId: getTask
 
-#If you use a database then uncomment below lines and update db properties accordingly
-spring:
-  application:
-    name: WA Task Management
-  jackson:
-    property-naming-strategy: SNAKE_CASE
+credentials:
+  wa:
+    system:
+      user: ${WA_SYSTEM_USERNAME:system-user}
+      password: ${WA_SYSTEM_PASSWORD:system-password}

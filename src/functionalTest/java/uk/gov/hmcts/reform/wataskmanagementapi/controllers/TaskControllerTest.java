@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import java.util.UUID;
 
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 public class TaskControllerTest {
@@ -18,7 +17,7 @@ public class TaskControllerTest {
         "TEST_URL");
 
     @Test
-    public void should_return_404_if_task_does_not_exist() {
+    public void should_return_403_if_task_does_not_exist() {
         String taskId = "78c9fc54-f1fb-11ea-a751-527f3fb68fa8";
         given()
             .relaxedHTTPSValidation()
@@ -28,16 +27,13 @@ public class TaskControllerTest {
             .when()
             .get("task/{task-id}")
             .then()
-            .statusCode(HttpStatus.NOT_FOUND_404)
-            .and()
-            .body(equalTo("There was a problem fetching the task with id: " + taskId));
+            .statusCode(HttpStatus.FORBIDDEN_403);
     }
 
 
     @Test
-    public void should_return_503_for_work_in_progress_endpoints() {
+    public void should_return_403_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
-        String responseMessage = "Code is not implemented";
         given()
             .relaxedHTTPSValidation()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -46,8 +42,7 @@ public class TaskControllerTest {
             .post("/task")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .statusCode(HttpStatus.FORBIDDEN_403);
 
         given()
             .relaxedHTTPSValidation()
@@ -58,8 +53,7 @@ public class TaskControllerTest {
             .post("/task/{task-id}/claim")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .statusCode(HttpStatus.FORBIDDEN_403);
 
         given()
             .relaxedHTTPSValidation()
@@ -70,8 +64,7 @@ public class TaskControllerTest {
             .post("/task/{task-id}/claim")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .statusCode(HttpStatus.FORBIDDEN_403);
 
         given()
             .relaxedHTTPSValidation()
@@ -82,8 +75,7 @@ public class TaskControllerTest {
             .post("/task/{task-id}/unclaim")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo("Code is not implemented"));
+            .statusCode(HttpStatus.FORBIDDEN_403);
 
         given()
             .relaxedHTTPSValidation()
@@ -94,8 +86,7 @@ public class TaskControllerTest {
             .post("/task/{task-id}/assign")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .statusCode(HttpStatus.FORBIDDEN_403);
 
         given()
             .relaxedHTTPSValidation()
@@ -106,7 +97,6 @@ public class TaskControllerTest {
             .post("/task/{task-id}/complete")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .statusCode(HttpStatus.FORBIDDEN_403);
     }
 }
