@@ -20,14 +20,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ContextConfiguration(classes = {RootController.class, ErrorLogger.class})
 @ActiveProfiles("integration")
-public class GetWelcomeTest {
+class GetWelcomeTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @DisplayName("Should welcome upon root request with 200 response code")
     @Test
-    public void welcomeRootEndpoint() throws Exception {
+    void welcomeRootEndpoint() throws Exception {
         MvcResult response = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
 
         assertThat(response.getResponse().getContentAsString()).startsWith("Welcome");
