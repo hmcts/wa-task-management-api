@@ -36,4 +36,23 @@ class ErrorLoggerTest {
         assertEquals(Level.ERROR, logsList.get(0).getLevel());
 
     }
+
+    @Test
+    void should_not_log_exception() {
+
+        logger = (Logger) LoggerFactory.getLogger(ErrorLogger.class);
+        listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
+
+        ErrorLogger errorLogger = new ErrorLogger(false);
+        String exceptionMessage = "some exception message";
+        Exception ex = new Exception(exceptionMessage);
+
+        errorLogger.maybeLogException(ex);
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0 , logsList.size());
+
+    }
 }
