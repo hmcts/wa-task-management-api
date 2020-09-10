@@ -52,7 +52,7 @@ class ErrorLoggerTest {
         errorLogger.maybeLogException(ex);
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(0 , logsList.size());
+        assertEquals(0, logsList.size());
 
     }
 }
