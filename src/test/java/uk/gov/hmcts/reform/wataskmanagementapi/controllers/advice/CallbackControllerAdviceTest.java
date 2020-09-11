@@ -13,6 +13,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CallbackControllerAdviceTest {
@@ -33,12 +34,14 @@ public class CallbackControllerAdviceTest {
     public void should_handle_generic_exception() {
 
         final String exceptionMessage = "Some exception message";
+        final Exception exception = new Exception(exceptionMessage);
 
         ResponseEntity<String> response = callbackControllerAdvice
-            .handleGenericException(request, new Exception(exceptionMessage));
+            .handleGenericException(request, exception);
 
         assertEquals(response.getStatusCode().value(), HttpStatus.SERVICE_UNAVAILABLE.value());
         assertEquals(response.getBody(), exceptionMessage);
+        verify(errorLogger, times(1)).maybeLogException(exception);
+        verifyNoMoreInteractions(errorLogger);
     }
-
 }
