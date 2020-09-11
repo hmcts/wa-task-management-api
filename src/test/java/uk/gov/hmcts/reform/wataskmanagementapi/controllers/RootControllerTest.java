@@ -11,8 +11,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class RootControllerTest {
 
-    private static final String demoSecret = "demoSecret";
-    private final RootController rootController = new RootController(demoSecret);
+    private final RootController rootController = new RootController();
 
     @Test
     public void should_return_welcome_response() {
@@ -23,7 +22,7 @@ public class RootControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertThat(
             responseEntity.getBody(),
-            containsString("Welcome to wa-task-management-api [\"" + demoSecret + "\"]")
+            containsString("Welcome to wa-task-management-api")
         );
     }
 }

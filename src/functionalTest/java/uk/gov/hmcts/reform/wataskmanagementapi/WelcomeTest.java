@@ -17,7 +17,6 @@ import static org.hamcrest.Matchers.containsString;
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
 @ActiveProfiles("functional")
-@SuppressWarnings({"PMD.JUnitTestsShouldIncludeAssert", "PMD.LawOfDemeter", "PMD.BeanMembersShouldSerialize"})
 public class WelcomeTest {
 
 
