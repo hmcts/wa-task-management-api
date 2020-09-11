@@ -20,6 +20,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
     @Autowired
     public CallbackControllerAdvice(@Autowired ErrorLogger errorLogger) {
+        super();
         this.errorLogger = errorLogger;
     }
 
