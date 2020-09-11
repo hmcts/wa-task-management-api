@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +21,6 @@ public class RootController {
     private static final String INSTANCE_ID = UUID.randomUUID().toString();
     private static final String MESSAGE = "Welcome to wa-task-management-api";
 
-    private final String testProperty;
-
-    public RootController(@Value("${testProperty}") String testProperty) {
-        this.testProperty = testProperty;
-    }
-
     /**
      * Root GET endpoint.
      *
@@ -47,6 +40,6 @@ public class RootController {
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body("Welcome to wa-task-management-api [\"" + testProperty + "\"]");
+            .body(MESSAGE);
     }
 }
