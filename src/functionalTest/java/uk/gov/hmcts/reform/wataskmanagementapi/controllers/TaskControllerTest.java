@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 public class TaskControllerTest {
@@ -25,6 +25,7 @@ public class TaskControllerTest {
             .get("task/{task-id}")
             .then()
             .statusCode(HttpStatus.NOT_FOUND_404)
-            .and().body(contains("There was a problem fetching the task with id: " + taskId));
+            .and()
+            .body(equalTo("There was a problem fetching the task with id: " + taskId));
     }
 }
