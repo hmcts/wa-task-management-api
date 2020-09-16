@@ -6,6 +6,8 @@ def type = "java"
 def product = "wa"
 def component = "task-management-api"
 
+def camundaUrl = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+
 withPipeline(type, product, component) {
   disableLegacyDeployment()
 
@@ -13,9 +15,17 @@ withPipeline(type, product, component) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
   }
 
+  before("functionalTest:preview") {
+    env.CAMUNDA_URL = camundaUrl
+  }
+
   after('functionalTest:preview') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+  }
+
+  before("functionalTest:aat") {
+    env.CAMUNDA_URL = camundaUrl
   }
 
   after('functionalTest:aat') {

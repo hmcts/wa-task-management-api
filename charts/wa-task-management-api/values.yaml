@@ -9,3 +9,5 @@ java:
         - testsecret
         - AppInsightsInstrumentationKey
   environment:
+    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
+
