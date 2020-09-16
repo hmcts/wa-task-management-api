@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.ResourceNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,5 +34,14 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    protected ResponseEntity<String> handleResourceNotFoundException(
+        HttpServletRequest request,
+        Exception ex
+    ) {
+        errorLogger.maybeLogException(ex);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+    }
 
 }
