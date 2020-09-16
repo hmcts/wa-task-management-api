@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.ResourceNotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -42,6 +43,22 @@ public class CallbackControllerAdviceTest {
             .handleGenericException(request, exception);
 
         assertEquals(response.getStatusCode().value(), HttpStatus.SERVICE_UNAVAILABLE.value());
+        assertEquals(response.getBody(), exceptionMessage);
+        verify(errorLogger, times(1)).maybeLogException(exception);
+        verifyNoMoreInteractions(errorLogger);
+    }
+
+
+    @Test
+    public void should_handle_resource_not_found_exception() {
+
+        final String exceptionMessage = "Some exception message";
+        final ResourceNotFoundException exception = new ResourceNotFoundException(exceptionMessage, new Exception());
+
+        ResponseEntity<String> response = callbackControllerAdvice
+            .handleResourceNotFoundException(request, exception);
+
+        assertEquals(response.getStatusCode().value(), HttpStatus.NOT_FOUND.value());
         assertEquals(response.getBody(), exceptionMessage);
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);

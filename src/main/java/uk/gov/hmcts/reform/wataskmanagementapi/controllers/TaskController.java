@@ -7,21 +7,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 @RestController
 public class TaskController {
 
-    private final CamundaTaskService camundaTaskService;
+    private final CamundaService camundaService;
 
     @Autowired
-    public TaskController(CamundaTaskService camundaTaskService) {
-        this.camundaTaskService = camundaTaskService;
+    public TaskController(CamundaService camundaService) {
+        this.camundaService = camundaService;
     }
 
     @GetMapping(path = "/task/{task-id}", produces = { MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity<String> getTask(@PathVariable("task-id") String id)  {
-        String apiResponse = camundaTaskService.getTask(id);
+        String apiResponse = camundaService.getTask(id);
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

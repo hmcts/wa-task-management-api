@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
     url = "${camunda.url}"
 )
 @Service
-public interface CamundaTaskServiceApi {
+public interface CamundaServiceApi {
 
     @GetMapping(value = "/task/{task-id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody String getTask(@PathVariable("task-id") String id);

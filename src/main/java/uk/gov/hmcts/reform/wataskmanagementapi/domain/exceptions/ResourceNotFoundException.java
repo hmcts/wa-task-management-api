@@ -1,7 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions;
 
 public class ResourceNotFoundException extends RuntimeException {
-    public ResourceNotFoundException(String message) {
-        super(message);
+
+    private static final long serialVersionUID = -1899364441389962749L;
+
+    public ResourceNotFoundException(
+        String message,
+        Throwable cause
+    ) {
+        super(message, cause);
     }
 }
