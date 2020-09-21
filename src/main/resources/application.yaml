@@ -22,4 +22,6 @@ camunda:
 #If you use a database then uncomment below lines and update db properties accordingly
 spring:
   application:
-    name: Spring Boot Template
+    name: WA Task Management
+  jackson:
+    property-naming-strategy: SNAKE_CASE
