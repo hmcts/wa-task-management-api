@@ -1,7 +1,7 @@
 java:
-  applicationPort: 8090
-  image: 'hmctspublic.azurecr.io/wa/task-management-api:latest'
-  ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  applicationPort: 8091
+  image: 'hmctspublic.azurecr.io/wa/task-configuration-api:latest'
+  ingressHost: wa-task-configuration-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
   keyVaults:
     wa:
@@ -10,4 +10,6 @@ java:
         - AppInsightsInstrumentationKey
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
-
+    IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
+    S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"

@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.ResourceNotFoun
 import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -39,11 +40,14 @@ public class CallbackControllerAdviceTest {
         final String exceptionMessage = "Some exception message";
         final Exception exception = new Exception(exceptionMessage);
 
-        ResponseEntity<String> response = callbackControllerAdvice
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
             .handleGenericException(request, exception);
 
-        assertEquals(response.getStatusCode().value(), HttpStatus.SERVICE_UNAVAILABLE.value());
-        assertEquals(response.getBody(), exceptionMessage);
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody().getTimestamp());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);
     }
@@ -55,11 +59,14 @@ public class CallbackControllerAdviceTest {
         final String exceptionMessage = "Some exception message";
         final ResourceNotFoundException exception = new ResourceNotFoundException(exceptionMessage, new Exception());
 
-        ResponseEntity<String> response = callbackControllerAdvice
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
             .handleResourceNotFoundException(request, exception);
 
-        assertEquals(response.getStatusCode().value(), HttpStatus.NOT_FOUND.value());
-        assertEquals(response.getBody(), exceptionMessage);
+        assertEquals(HttpStatus.NOT_FOUND.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody().getTimestamp());
+        assertEquals(HttpStatus.NOT_FOUND.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.NOT_FOUND.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);
     }

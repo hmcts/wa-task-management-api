@@ -42,9 +42,19 @@ public class TaskController {
             .body(apiResponse);
     }
 
+
     @PostMapping(path = "/{task-id}/claim")
     public ResponseEntity<String> claimTask(@PathVariable("task-id") String taskId) {
-        throw new NotImplementedException();
+
+        //TODO Remove: this demo user as user id will come from JWT token
+        String demoUserId = "demo-user";
+
+        camundaService.claimTask(taskId, demoUserId);
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
+
     }
 
     @PostMapping(path = "/{task-id}/unclaim")

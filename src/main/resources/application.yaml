@@ -16,8 +16,7 @@ config:
 testProperty: ${A_SECRET:defaultValue}
 
 camunda:
-  url: ${CAMUNDA_URL:http://localhost:8080/engine-rest}
-  getTaskDmnId: getTask
+  url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
 
 #If you use a database then uncomment below lines and update db properties accordingly
 spring:
@@ -25,3 +24,4 @@ spring:
     name: WA Task Management
   jackson:
     property-naming-strategy: SNAKE_CASE
+

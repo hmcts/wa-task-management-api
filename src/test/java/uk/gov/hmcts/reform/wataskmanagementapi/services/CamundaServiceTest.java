@@ -20,11 +20,14 @@ public class CamundaServiceTest {
     @Mock
     private CamundaServiceApi camundaServiceApi;
 
+    @Mock
+    private CamundaErrorDecoder camundaErrorDecoder;
+
     private CamundaService camundaService;
 
     @Before
     public void setUp() {
-        camundaService = new CamundaService(camundaServiceApi);
+        camundaService = new CamundaService(camundaServiceApi, camundaErrorDecoder);
     }
 
     @Test
