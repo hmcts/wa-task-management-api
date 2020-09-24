@@ -9,13 +9,13 @@ import pl.pojo.tester.api.assertion.Method;
 import pl.pojo.tester.internal.field.DefaultFieldValueChanger;
 import pl.pojo.tester.internal.instantiator.ObjectGenerator;
 import pl.pojo.tester.internal.utils.ThoroughFieldPermutator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleAssignmentRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Assignee;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.CaseData;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Location;
 
 import java.util.List;
 
@@ -32,9 +32,9 @@ class PojoTest {
         UserInfo.class,
         HistoryVariableInstance.class,
         AddLocalVariableRequest.class,
-        CaseData.class,
-        Location.class,
-        Assignee.class
+        GetRoleAssignmentResponse.class,
+        RoleAssignmentRequest.class,
+        RoleRequest.class
     };
 
     // Cannot test equals for generic classes

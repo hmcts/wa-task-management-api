@@ -6,11 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -22,7 +25,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             nonExistentTaskId,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         //FIXME: Better error message
@@ -31,7 +34,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
+            .body("timestamp", greaterThanOrEqualTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(
@@ -46,7 +49,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -61,7 +64,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -70,7 +73,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response resultAfterClaimedBySameUser = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         resultAfterClaimedBySameUser.then().assertThat()
@@ -80,25 +83,25 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
-
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmBAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.CONFLICT.value())
             .and()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.CONFLICT.value()))
             .body("message", equalTo(String.format(

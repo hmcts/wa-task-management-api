@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

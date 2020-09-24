@@ -52,7 +52,9 @@ public class CamundaSearchQuery {
         }
 
         public CamundaAndQueryBuilder andQuery(Map<String, List<String>> searchExpression) {
-            orQueries.add(searchExpression);
+            if (searchExpression != null && !searchExpression.isEmpty()) {
+                orQueries.add(searchExpression);
+            }
             return this;
         }
 
