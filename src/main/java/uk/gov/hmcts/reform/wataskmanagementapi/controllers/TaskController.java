@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @RequestMapping(
     path = "/task",
     consumes = MediaType.APPLICATION_JSON_VALUE,
