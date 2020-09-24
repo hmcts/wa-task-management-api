@@ -104,5 +104,4 @@ class CallbackControllerAdviceTest {
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);
     }
-
 }
