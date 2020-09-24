@@ -14,13 +14,17 @@ config:
   stacktraceEnabled:  ${STACKTRACE_ENABLED:false}
 
 enableSwagger: ${ENABLE_SWAGGER:true}
-testProperty: ${A_SECRET:defaultValue}
+
+camunda:
+  url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
 
 spring:
   main:
     allow-bean-definition-overriding: true
   application:
-    name: wa-task-management-api
+    name: WA Task Management
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
 security:
   anonymousPaths:
@@ -48,13 +52,3 @@ idam:
     url: ${S2S_URL:http://service-auth-provider-api}
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
-
-camunda:
-  url: ${CAMUNDA_URL:http://localhost:8080/engine-rest}
-#
-#credentials:
-#  wa:
-#    system:
-#      user: ${WA_SYSTEM_USERNAME:system-user}
-#      password: ${WA_SYSTEM_PASSWORD:system-password}
-#

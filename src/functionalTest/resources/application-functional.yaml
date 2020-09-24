@@ -1,3 +1,3 @@
 targets:
   instance: ${TEST_URL:http://localhost:8090}
-  camunda: ${CAMUNDA_URL:http://localhost:8080/engine-rest}
+  camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}

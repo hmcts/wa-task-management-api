@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.ServerErrorException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -26,22 +27,34 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<String> handleGenericException(
+    protected ResponseEntity<ErrorMessage> handleGenericException(
         HttpServletRequest request,
         Exception ex
     ) {
         errorLogger.maybeLogException(ex);
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(new ErrorMessage(ex, HttpStatus.SERVICE_UNAVAILABLE));
     }
 
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<String> handleResourceNotFoundException(
+    protected ResponseEntity<ErrorMessage> handleResourceNotFoundException(
         HttpServletRequest request,
         Exception ex
     ) {
         errorLogger.maybeLogException(ex);
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(new ErrorMessage(ex, HttpStatus.NOT_FOUND));
     }
 
+
+    @ExceptionHandler(ServerErrorException.class)
+    protected ResponseEntity<ErrorMessage> handleServerException(
+        HttpServletRequest request,
+        Exception ex
+    ) {
+        errorLogger.maybeLogException(ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new ErrorMessage(ex, HttpStatus.INTERNAL_SERVER_ERROR));
+    }
 }
