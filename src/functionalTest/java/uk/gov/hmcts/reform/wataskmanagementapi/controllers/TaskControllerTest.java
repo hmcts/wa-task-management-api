@@ -98,63 +98,62 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_503_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
         String responseMessage = "Code is not implemented";
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .when()
-            .post("/task")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body("message", equalTo(responseMessage));
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/claim")
-            .then()
-            .assertThat()
+        expect()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body("message", equalTo(responseMessage));
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
+            .when()
+            .post("/task");
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/unclaim")
-            .then()
-            .assertThat()
+        expect()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body("message", equalTo(responseMessage));
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
+            .when()
+            .post("/task/{task-id}/claim", taskId);
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/assign")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body("message", equalTo(responseMessage));
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/complete")
-            .then()
-            .assertThat()
+        expect()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body("message", equalTo(responseMessage));
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
+            .when()
+            .post("/task/{task-id}/unclaim", taskId);
+
+        expect()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
+            .when()
+            .post("/task/{task-id}/assign", taskId);
+
+        expect()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
+            .when()
+            .post("/task/{task-id}/complete", taskId);
+
     }
 }
