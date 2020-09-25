@@ -16,7 +16,6 @@ import java.util.UUID;
 
 import static net.serenitybdd.rest.SerenityRest.expect;
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -98,6 +97,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_503_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
+        String responseMessage = "Code is not implemented";
 
         expect()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
@@ -106,6 +106,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
             .when()
             .post("/task");
 
@@ -116,17 +117,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .when()
-            .post("/task/{task-id}/claim", taskId);
-
-
-        expect()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
             .when()
             .post("/task/{task-id}/unclaim", taskId);
 
@@ -137,6 +128,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
             .when()
             .post("/task/{task-id}/assign", taskId);
 
@@ -147,6 +139,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage))
             .when()
             .post("/task/{task-id}/complete", taskId);
 
