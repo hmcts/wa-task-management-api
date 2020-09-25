@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
 public final class CamundaObjectMapper {
     private CamundaObjectMapper() {
-        //No-op construcutor
+        //Hide constructor
     }
 
     public static String asJsonString(final Object obj) {
@@ -24,3 +24,4 @@ public final class CamundaObjectMapper {
         }
     }
 }
+
