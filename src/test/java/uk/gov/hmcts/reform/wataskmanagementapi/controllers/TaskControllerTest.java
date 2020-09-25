@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -8,15 +7,14 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -37,41 +35,25 @@ public class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        when(camundaService.getTask(taskId)).thenReturn("aTask");
+        CamundaTask mockedTask = mock(CamundaTask.class);
+        when(camundaService.getTask(taskId)).thenReturn(mockedTask);
 
-        ResponseEntity<String> response = taskController.getTask(taskId);
+        ResponseEntity<CamundaTask> response = taskController.getTask(taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertThat(
-            response.getBody(),
-            containsString("aTask")
-        );
+        assertEquals(mockedTask, response.getBody());
     }
 
+
     @Test
-    public void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
+    public void should_succeed_and_return_a_204_no_content() {
 
-        assertThatThrownBy(() -> taskController.searchWithCriteria())
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
+        String taskId = UUID.randomUUID().toString();
 
-        String someTaskId = UUID.randomUUID().toString();
+        ResponseEntity<String> response = taskController.claimTask(taskId);
 
-        assertThatThrownBy(() -> taskController.claimTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
-
-        assertThatThrownBy(() -> taskController.unclaimTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
-
-        assertThatThrownBy(() -> taskController.assignTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
-
-        assertThatThrownBy(() -> taskController.completeTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -52,7 +53,6 @@ public class CallbackControllerAdviceTest {
         verifyNoMoreInteractions(errorLogger);
     }
 
-
     @Test
     public void should_handle_resource_not_found_exception() {
 
@@ -70,4 +70,23 @@ public class CallbackControllerAdviceTest {
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);
     }
+
+    @Test
+    public void should_handle_server_error_exception() {
+
+        final String exceptionMessage = "Some exception message";
+        final ServerErrorException exception = new ServerErrorException(exceptionMessage, new Exception());
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleServerException(request, exception);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody().getTimestamp());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
+        verify(errorLogger, times(1)).maybeLogException(exception);
+        verifyNoMoreInteractions(errorLogger);
+    }
+
 }

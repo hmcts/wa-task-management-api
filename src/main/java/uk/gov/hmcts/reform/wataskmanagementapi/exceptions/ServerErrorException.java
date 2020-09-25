@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions;
+package uk.gov.hmcts.reform.wataskmanagementapi.exceptions;
 
 public class ServerErrorException extends RuntimeException {
 

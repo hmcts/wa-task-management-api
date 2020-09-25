@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
@@ -34,8 +35,8 @@ public class TaskController {
     }
 
     @GetMapping(path = "/{task-id}")
-    public ResponseEntity<String> getTask(@PathVariable("task-id") String id) {
-        String apiResponse = camundaService.getTask(id);
+    public ResponseEntity<CamundaTask> getTask(@PathVariable("task-id") String id) {
+        CamundaTask apiResponse = camundaService.getTask(id);
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
