@@ -50,7 +50,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId))
             .when()
-            .get("/task/{task-id}", nonExistentTaskId);
+            .get("task/{task-id}", nonExistentTaskId);
 
     }
 
@@ -128,23 +128,11 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
             .when()
-            .post("/task/{task-id}/claim")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body(equalTo(responseMessage));
-
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
             .post("/task/{task-id}/unclaim")
             .then()
             .assertThat()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .body(equalTo("Code is not implemented"));
+            .body("message", equalTo(responseMessage));
 
         given()
             .relaxedHTTPSValidation()
@@ -152,7 +140,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
             .when()
-            .post("/task/{task-id}/assign")
+            .post("/task/{task-id}/complete")
             .then()
             .assertThat()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
@@ -163,7 +151,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
-            .and().log().all(true)
             .body(new AssignTaskRequest("some-user-id"))
             .when()
             .post("/task/{task-id}/assign")
