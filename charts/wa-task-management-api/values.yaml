@@ -1,5 +1,5 @@
 java:
-  applicationPort: 8091
+  applicationPort: 8090
   image: 'hmctspublic.azurecr.io/wa/task-configuration-api:latest'
   ingressHost: wa-task-configuration-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
