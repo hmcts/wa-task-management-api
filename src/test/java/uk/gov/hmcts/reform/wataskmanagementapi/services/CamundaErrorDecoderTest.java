@@ -2,26 +2,26 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 
-@RunWith(MockitoJUnitRunner.class)
-public class CamundaErrorDecoderTest {
+@ExtendWith(MockitoExtension.class)
+class CamundaErrorDecoderTest {
 
     CamundaErrorDecoder camundaErrorDecoder;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         camundaErrorDecoder = new CamundaErrorDecoder();
     }
 
     @Test
-    public void should_decode_and_extract_message_from_camunda_exception() {
+    void should_decode_and_extract_message_from_camunda_exception() {
 
         String exception = "{\"type\": \"NullPointerException\", \"message\": \"exception message\"}";
         String result = camundaErrorDecoder.decode(exception);
@@ -30,7 +30,7 @@ public class CamundaErrorDecoderTest {
     }
 
     @Test
-    public void should_throw_an_unrecognized_property_exception() {
+    void should_throw_an_unrecognized_property_exception() {
 
         String exception = "{\"invalid\": \"NullPointerException\", \"message\": \"exception message\"}";
 
@@ -40,7 +40,7 @@ public class CamundaErrorDecoderTest {
     }
 
     @Test
-    public void should_throw_a_json_parse_exception() {
+    void should_throw_a_json_parse_exception() {
 
         String exception = "{\"invalid\"}";
 

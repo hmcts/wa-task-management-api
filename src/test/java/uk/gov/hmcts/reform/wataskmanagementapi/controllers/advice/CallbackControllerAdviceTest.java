@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -20,15 +20,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-@RunWith(MockitoJUnitRunner.class)
-public class CallbackControllerAdviceTest {
+@ExtendWith(MockitoExtension.class)
+class CallbackControllerAdviceTest {
 
     @Mock HttpServletRequest request;
     @Mock ErrorLogger errorLogger;
 
     private CallbackControllerAdvice callbackControllerAdvice;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         callbackControllerAdvice = new CallbackControllerAdvice(errorLogger);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
@@ -36,7 +36,7 @@ public class CallbackControllerAdviceTest {
     }
 
     @Test
-    public void should_handle_generic_exception() {
+    void should_handle_generic_exception() {
 
         final String exceptionMessage = "Some exception message";
         final Exception exception = new Exception(exceptionMessage);
@@ -54,7 +54,7 @@ public class CallbackControllerAdviceTest {
     }
 
     @Test
-    public void should_handle_resource_not_found_exception() {
+    void should_handle_resource_not_found_exception() {
 
         final String exceptionMessage = "Some exception message";
         final ResourceNotFoundException exception = new ResourceNotFoundException(exceptionMessage, new Exception());
@@ -72,7 +72,7 @@ public class CallbackControllerAdviceTest {
     }
 
     @Test
-    public void should_handle_server_error_exception() {
+    void should_handle_server_error_exception() {
 
         final String exceptionMessage = "Some exception message";
         final ServerErrorException exception = new ServerErrorException(exceptionMessage, new Exception());

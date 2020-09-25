@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.NotImplementedException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -26,21 +26,21 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class TaskControllerTest {
+@ExtendWith(MockitoExtension.class)
+class TaskControllerTest {
 
     @Mock
     private CamundaService camundaService;
 
     private TaskController taskController;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         taskController = new TaskController(camundaService);
     }
 
     @Test
-    public void should_return_a_fetched_task() {
+    void should_return_a_fetched_task() {
 
         String taskId = UUID.randomUUID().toString();
 
@@ -57,7 +57,7 @@ public class TaskControllerTest {
 
 
     @Test
-    public void should_succeed_and_return_a_204_no_content() {
+    void should_succeed_and_return_a_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
 
@@ -68,7 +68,7 @@ public class TaskControllerTest {
     }
 
     @Test
-    public void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
+    void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
 
         assertThatThrownBy(() -> taskController.searchWithCriteria())
             .isInstanceOf(NotImplementedException.class)

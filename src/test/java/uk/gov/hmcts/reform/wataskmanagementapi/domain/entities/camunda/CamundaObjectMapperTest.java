@@ -1,17 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
-@RunWith(MockitoJUnitRunner.class)
-public class CamundaObjectMapperTest {
+class CamundaObjectMapperTest {
 
     @Test
-    public void should_convert_object_to_camunda_json() {
+    void should_convert_object_to_camunda_json() {
 
         CamundaExceptionMessage testObject = new CamundaExceptionMessage("someType", "someMessage");
 
@@ -22,7 +19,7 @@ public class CamundaObjectMapperTest {
     }
 
     @Test
-    public void should_convert_object_to_camunda_json_camel_case() {
+    void should_convert_object_to_camunda_json_camel_case() {
 
         CamundaProcessVariables testObject = processVariables()
             .withProcessVariable("ccdId", "0000000")
@@ -47,7 +44,7 @@ public class CamundaObjectMapperTest {
 
 
     @Test
-    public void should_convert_object_to_json() {
+    void should_convert_object_to_json() {
 
         CamundaExceptionMessage testObject = new CamundaExceptionMessage("someType", "someMessage");
 
@@ -58,7 +55,7 @@ public class CamundaObjectMapperTest {
     }
 
     @Test
-    public void should_convert_object_to_json_snake_case() {
+    void should_convert_object_to_json_snake_case() {
 
         CamundaProcessVariables testObject = processVariables()
             .withProcessVariable("ccdId", "0000000")
