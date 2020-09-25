@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import static net.serenitybdd.rest.SerenityRest.expect;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -106,7 +107,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
+            .body("message", containsString(responseMessage))
             .when()
             .post("/task");
 
@@ -117,7 +118,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
+            .body("message", containsString(responseMessage))
             .when()
             .post("/task/{task-id}/claim", taskId);
 
@@ -129,7 +130,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
+            .body("message", containsString(responseMessage))
             .when()
             .post("/task/{task-id}/unclaim", taskId);
 
@@ -140,7 +141,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
+            .body("message", containsString(responseMessage))
             .when()
             .post("/task/{task-id}/assign", taskId);
 
@@ -151,7 +152,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
+            .body("message", containsString(responseMessage))
             .when()
             .post("/task/{task-id}/complete", taskId);
 
