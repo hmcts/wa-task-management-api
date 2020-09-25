@@ -106,7 +106,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .post("/task")
             .then()
             .assertThat()
-            .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .body("message", equalTo(responseMessage));
 
         given()
@@ -118,7 +118,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/claim")
             .then()
             .assertThat()
-            .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .body("message", equalTo(responseMessage));
 
         given()
@@ -130,7 +130,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/unclaim")
             .then()
             .assertThat()
-            .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .body("message", equalTo(responseMessage));
 
         given()
@@ -142,7 +142,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/assign")
             .then()
             .assertThat()
-            .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .body("message", equalTo(responseMessage));
 
         given()
@@ -154,7 +154,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/complete")
             .then()
             .assertThat()
-            .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .body("message", equalTo(responseMessage));
     }
 }
