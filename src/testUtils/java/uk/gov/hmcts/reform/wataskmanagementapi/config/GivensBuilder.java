@@ -6,7 +6,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 
 import java.util.List;
-import java.util.UUID;
 
 import static java.time.ZonedDateTime.now;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -49,47 +48,6 @@ public class GivensBuilder {
             .then()
             .statusCode(HttpStatus.NO_CONTENT_204);
         return this;
-    }
-
-    public GivensBuilder iHaveCreatedATask() {
-
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("ccdId", UUID.randomUUID().toString())
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("group", "TCW")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .build();
-
-        CamundaSendMessageRequest request = sendCamundaMessageRequest()
-            .withMessageName(CREATE_TASK_MESSAGE.toString())
-            .withProcessVariables(processVariables.getProcessVariablesMap())
-            .build();
-
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/message")
-            .body(asCamundaJsonString(request))
-            .when()
-            .post()
-            .then()
-            .statusCode(HttpStatus.NO_CONTENT_204);
-        return this;
-    }
-
-    public List<CamundaTask> iGetAllAvailableTasks() {
-
-        return given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .when()
-            .get()
-            .then()
-            .statusCode(HttpStatus.OK_200)
-            .and()
-            .extract()
-            .jsonPath().getList("", CamundaTask.class);
     }
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
