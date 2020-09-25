@@ -6,20 +6,21 @@ public class CamundaValue<T> {
     private T value;
     private String type;
 
+    private CamundaValue() {
+        //Hidden constructor
+    }
+
+    public CamundaValue(T value, String type) {
+        this.value = value;
+        this.type = type;
+    }
+
     public static CamundaValue<String> stringValue(String value) {
         return new CamundaValue<>(value, "String");
     }
 
     public static CamundaValue<String> jsonValue(String value) {
         return new CamundaValue<>(value, "json");
-    }
-
-    private CamundaValue() {
-    }
-
-    public CamundaValue(T value, String type) {
-        this.value = value;
-        this.type = type;
     }
 
     public T getValue() {

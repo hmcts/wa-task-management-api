@@ -9,6 +9,6 @@ public final class CamundaTime {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern(CAMUNDA_DATA_TIME_FORMAT);
 
     private CamundaTime() {
-        throw new IllegalStateException("CamundaTime is an utils class");
+        //Hidden constructor
     }
 }

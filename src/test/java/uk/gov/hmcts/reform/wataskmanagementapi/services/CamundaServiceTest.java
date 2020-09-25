@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -27,8 +27,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class CamundaServiceTest {
+@ExtendWith(MockitoExtension.class)
+class CamundaServiceTest {
 
     @Mock
     private CamundaServiceApi camundaServiceApi;
@@ -38,13 +38,13 @@ public class CamundaServiceTest {
 
     private CamundaService camundaService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         camundaService = new CamundaService(camundaServiceApi, camundaErrorDecoder);
     }
 
     @Test
-    public void getTask_should_succeed() {
+    void getTask_should_succeed() {
 
         String taskId = UUID.randomUUID().toString();
 
@@ -60,7 +60,7 @@ public class CamundaServiceTest {
     }
 
     @Test
-    public void getTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown() {
+    void getTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
 
@@ -73,7 +73,7 @@ public class CamundaServiceTest {
     }
 
     @Test
-    public void claimTask_should_succeed() {
+    void claimTask_should_succeed() {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
@@ -84,7 +84,7 @@ public class CamundaServiceTest {
     }
 
     @Test
-    public void claimTask_should_throw_resource_not_found_exception_when_other_exception_is_thrown() {
+    void claimTask_should_throw_resource_not_found_exception_when_other_exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
@@ -105,7 +105,7 @@ public class CamundaServiceTest {
     }
 
     @Test
-    public void claimTask_should_throw_server_error_exception_when_other__exception_is_thrown() {
+    void claimTask_should_throw_server_error_exception_when_other__exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
