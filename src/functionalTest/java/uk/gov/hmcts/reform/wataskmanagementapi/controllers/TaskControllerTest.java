@@ -107,7 +107,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .then()
             .assertThat()
             .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .body("message", equalTo(responseMessage));
 
         given()
             .relaxedHTTPSValidation()
@@ -119,7 +119,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .then()
             .assertThat()
             .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .body("message", equalTo(responseMessage));
 
         given()
             .relaxedHTTPSValidation()
@@ -131,7 +131,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .then()
             .assertThat()
             .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo("Code is not implemented"));
+            .body("message", equalTo(responseMessage));
 
         given()
             .relaxedHTTPSValidation()
@@ -143,7 +143,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .then()
             .assertThat()
             .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .body("message", equalTo(responseMessage));
 
         given()
             .relaxedHTTPSValidation()
@@ -155,6 +155,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .then()
             .assertThat()
             .statusCode(org.eclipse.jetty.http.HttpStatus.SERVICE_UNAVAILABLE_503)
-            .body(equalTo(responseMessage));
+            .body("message", equalTo(responseMessage));
     }
 }
