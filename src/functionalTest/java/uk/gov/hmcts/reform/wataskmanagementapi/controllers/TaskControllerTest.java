@@ -95,6 +95,27 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_return_a_204_when_unclaiming_a_task_by_id() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        String taskId = tasks.get(0).getId();
+
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .when()
+            .post("task/{id}/unclaim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+    }
+
+    @Test
     public void should_return_503_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
         String responseMessage = "Code is not implemented";
@@ -109,17 +130,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("message", equalTo(responseMessage))
             .when()
             .post("/task");
-
-        expect()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
-            .when()
-            .post("/task/{task-id}/unclaim", taskId);
 
         expect()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())

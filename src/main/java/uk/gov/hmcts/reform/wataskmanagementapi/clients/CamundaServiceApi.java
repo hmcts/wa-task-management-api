@@ -33,4 +33,11 @@ public interface CamundaServiceApi {
     void claimTask(@PathVariable("task-id") String id,
                    @RequestBody Map<String, String> body);
 
+    @PostMapping(
+        value = "/task/{id}/unclaim",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    String unclaimTask(@PathVariable("id") String id);
+
+
 }

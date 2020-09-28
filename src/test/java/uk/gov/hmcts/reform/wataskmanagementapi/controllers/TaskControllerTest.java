@@ -59,6 +59,16 @@ class TaskControllerTest {
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
+    @Test
+    void should_unclaim_a_task_204_no_content() {
+
+        String taskId = UUID.randomUUID().toString();
+
+        ResponseEntity<String> response = taskController.unclaimTask(taskId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT,response.getStatusCode());
+    }
 
     @Test
     void should_throw_a_non_implemented_exception_and_return_500() {
@@ -66,10 +76,6 @@ class TaskControllerTest {
         String taskId = UUID.randomUUID().toString();
 
         assertThatThrownBy(() -> taskController.searchWithCriteria())
-            .isInstanceOf(NotImplementedException.class)
-            .hasNoCause();
-
-        assertThatThrownBy(() -> taskController.unclaimTask(taskId))
             .isInstanceOf(NotImplementedException.class)
             .hasNoCause();
 

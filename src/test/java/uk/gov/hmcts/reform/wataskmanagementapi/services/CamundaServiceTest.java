@@ -132,4 +132,62 @@ class CamundaServiceTest {
 
 
     }
+
+    @Test
+    void unclaimTask_should_succeed() {
+
+        String taskId = UUID.randomUUID().toString();
+
+        camundaService.unclaimTask(taskId);
+        verify(camundaServiceApi, times(1)).unclaimTask(eq(taskId));
+        verifyNoMoreInteractions(camundaServiceApi);
+    }
+
+    @Test
+    void unclaimTask_should_throw_resource_not_found_exception_when_other_exception_is_thrown() {
+
+        String taskId = UUID.randomUUID().toString();
+
+        TestFeignClientException exception =
+            new TestFeignClientException(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase()
+            );
+
+        doThrow(exception)
+            .when(camundaServiceApi).unclaimTask(eq(taskId));
+
+        assertThatThrownBy(() -> camundaService.unclaimTask(taskId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasCauseInstanceOf(FeignException.class);
+
+    }
+
+    @Test
+    void unclaimTask_should_throw_server_error_exception_when_other__exception_is_thrown() {
+
+        String id = UUID.randomUUID().toString();
+        String exceptionMessage = "some exception message";
+
+        TestFeignClientException exception =
+            new TestFeignClientException(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                exceptionMessage
+            );
+
+        doThrow(exception)
+            .when(camundaServiceApi).unclaimTask(eq(id));
+
+        when(camundaErrorDecoder.decode(anyString())).thenReturn(exceptionMessage);
+
+        assertThatThrownBy(() -> camundaService.unclaimTask(id))
+            .isInstanceOf(ServerErrorException.class)
+            .hasCauseInstanceOf(FeignException.class)
+            .hasMessage(String.format(
+                "Could not unclaim the task with id: %s. %s", id, exceptionMessage
+            ));
+
+
+    }
 }

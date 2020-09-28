@@ -57,4 +57,23 @@ public class CamundaService {
         }
 
     }
+
+    public String unclaimTask(String id) {
+        try {
+            return camundaServiceApi.unclaimTask(id);
+        } catch (FeignException ex) {
+            if (HttpStatus.NOT_FOUND.value() == ex.status()) {
+                throw new ResourceNotFoundException(String.format(
+                    "There was a problem unclaiming the task with id: %s",
+                    id
+                ), ex);
+            } else {
+                String message = camundaErrorDecoder.decode(ex.contentUTF8());
+                throw new ServerErrorException(String.format(
+                    "Could not unclaim the task with id: %s. %s", id, message
+                ), ex);
+            }
+        }
+
+    }
 }

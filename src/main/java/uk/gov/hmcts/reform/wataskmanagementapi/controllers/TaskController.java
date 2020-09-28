@@ -57,9 +57,13 @@ public class TaskController {
 
     }
 
-    @PostMapping(path = "/{task-id}/unclaim")
-    public ResponseEntity<String> unclaimTask(@PathVariable("task-id") String taskId) {
-        throw new NotImplementedException();
+    @PostMapping(path = "/{id}/unclaim")
+    public ResponseEntity<String> unclaimTask(@PathVariable("id") String id) {
+        String responseApi = camundaService.unclaimTask(id);
+        return ResponseEntity
+            .status(204)
+            .cacheControl(CacheControl.noCache())
+            .body(responseApi);
     }
 
     @PostMapping(path = "/{task-id}/assign")
