@@ -19,6 +19,8 @@ def component = "task-management-api"
 
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
+  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+
   enableMutationTest()
   enableSlackNotifications('#wa-build')
 }
