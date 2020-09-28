@@ -231,7 +231,7 @@ dependencies {
   compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.38'
 
   compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
-  compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.4.RELEASE'
+  compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
