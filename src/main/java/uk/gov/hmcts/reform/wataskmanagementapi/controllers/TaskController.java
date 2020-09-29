@@ -189,9 +189,6 @@ public class TaskController {
     public ResponseEntity<String> assignTask(@PathVariable("task-id") String taskId,
                                              @RequestBody AssignTaskRequest assignTaskRequest) {
 
-        Objects.requireNonNull(assignTaskRequest);
-        Objects.requireNonNull(assignTaskRequest.getUserId());
-
         throw new NotImplementedException();
     }
 
