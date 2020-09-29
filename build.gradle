@@ -146,7 +146,6 @@ sonarqube {
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
-                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/SystemDateProvider.java," +
                                  "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java"
 
   }
