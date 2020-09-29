@@ -1,7 +1,4 @@
 java:
-  environment:
-    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
-    STACKTRACE_ENABLED: "true"
-  # Don't modify below here
+    # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}

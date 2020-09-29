@@ -43,7 +43,7 @@ class CamundaValueTest {
         assertNotEquals(testObject1, testObject2);
         assertNotEquals(testObject2.hashCode(), testObject1.hashCode());
     }
-    
+
     @Test
     void hashCode_should_be_equal() {
 
