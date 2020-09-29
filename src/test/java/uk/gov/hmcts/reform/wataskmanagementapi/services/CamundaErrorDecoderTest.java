@@ -35,8 +35,8 @@ class CamundaErrorDecoderTest {
         String exception = "{\"invalid\": \"NullPointerException\", \"message\": \"exception message\"}";
 
         assertThatThrownBy(() -> camundaErrorDecoder.decode(exception))
-            .isInstanceOf(UnrecognizedPropertyException.class)
-            .hasNoCause();
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasRootCauseInstanceOf(UnrecognizedPropertyException.class);
     }
 
     @Test
@@ -45,7 +45,7 @@ class CamundaErrorDecoderTest {
         String exception = "{\"invalid\"}";
 
         assertThatThrownBy(() -> camundaErrorDecoder.decode(exception))
-            .isInstanceOf(JsonParseException.class)
-            .hasNoCause();
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasRootCauseInstanceOf(JsonParseException.class);
     }
 }
