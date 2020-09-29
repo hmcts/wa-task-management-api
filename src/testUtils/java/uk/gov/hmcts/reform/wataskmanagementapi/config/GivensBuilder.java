@@ -13,7 +13,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper.asCamundaJsonString;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest.SendMessageBuilder.sendCamundaMessageRequest;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 public class GivensBuilder {
@@ -33,10 +32,10 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .build();
 
-        CamundaSendMessageRequest request = sendCamundaMessageRequest()
-            .withMessageName(CREATE_TASK_MESSAGE.toString())
-            .withProcessVariables(processVariables.getProcessVariablesMap())
-            .build();
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables.getProcessVariablesMap()
+        );
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
