@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,11 +20,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
     private final ErrorLogger errorLogger;
+    private final SystemDateProvider systemDateProvider;
 
     @Autowired
-    public CallbackControllerAdvice(@Autowired ErrorLogger errorLogger) {
+    public CallbackControllerAdvice(
+        ErrorLogger errorLogger,
+        SystemDateProvider systemDateProvider
+    ) {
         super();
         this.errorLogger = errorLogger;
+        this.systemDateProvider = systemDateProvider;
     }
 
     @ExceptionHandler(Exception.class)
@@ -33,7 +39,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     ) {
         errorLogger.maybeLogException(ex);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(new ErrorMessage(ex, HttpStatus.SERVICE_UNAVAILABLE));
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.SERVICE_UNAVAILABLE,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
     }
 
 
@@ -44,7 +55,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     ) {
         errorLogger.maybeLogException(ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ErrorMessage(ex, HttpStatus.NOT_FOUND));
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.NOT_FOUND,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
     }
 
 
@@ -55,6 +71,11 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     ) {
         errorLogger.maybeLogException(ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ErrorMessage(ex, HttpStatus.INTERNAL_SERVER_ERROR));
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.INTERNAL_SERVER_ERROR,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
     }
 }
