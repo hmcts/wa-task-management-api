@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 
@@ -19,7 +20,7 @@ public final class CamundaObjectMapper {
     private static String jsonString(Object obj, ObjectMapper mapper) {
         try {
             return mapper.writeValueAsString(obj);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
     }
