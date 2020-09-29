@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -27,7 +27,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
     private CcdIdGenerator ccdIdGenerator;
 
-    @BeforeEach
+    @Before
     public void setUp() {
 
         ccdIdGenerator = new CcdIdGenerator();
