@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
-import lombok.Data;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.Builder;
 
 import java.util.Map;
@@ -8,13 +7,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
-@Data
 public class CamundaProcessVariables {
 
     Map<String, CamundaValue<?>> processVariablesMap;
 
     public CamundaProcessVariables(Map<String, CamundaValue<?>> processVariablesMap) {
         this.processVariablesMap = processVariablesMap;
+    }
+
+    public Map<String, CamundaValue<?>> getProcessVariablesMap() {
+        return processVariablesMap;
     }
 
     public static class ProcessVariablesBuilder implements Builder<CamundaProcessVariables> {
