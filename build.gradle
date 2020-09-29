@@ -145,6 +145,10 @@ sonarqube {
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+    property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
+                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/SystemDateProvider.java," +
+                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java"
+
   }
 }
 
@@ -167,10 +171,22 @@ dependencyCheck {
   failBuildOnCVSS = System.getProperty('dependencyCheck.failBuild') == 'true' ? 0 : 11
   suppressionFile = 'config/owasp/suppressions.xml'
 
+  // excludes *Test* source configurations from scan
+  skipConfigurations = configurations.collect { it.name }.findAll { it.contains('Test') }
+
   analyzers {
     // Disable scanning of .NET related binaries
     assemblyEnabled = false
   }
+}
+
+configurations {
+  integrationTestCompile.extendsFrom testCompile
+  integrationTestRuntime.extendsFrom testRuntime
+  functionalTestCompile.extendsFrom testCompile
+  functionalTestRuntime.extendsFrom testRuntime
+  contractTestCompile.extendsFrom testCompile
+  contractTestRuntime.extendsFrom testRuntime
 }
 
 dependencyManagement {
