@@ -19,8 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
-import java.util.Objects;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @SuppressWarnings({
