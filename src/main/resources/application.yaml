@@ -35,16 +35,9 @@ security:
     - "/webjars/springfox-swagger-ui/**"
     - "/favicon.ico"
   authorisedServices:
-    - "wa_task_configuration_api"
-    - "wa_workflow-api"
+    - "wa_task_management_api"
+
 auth:
-  idam:
-    client:
-      baseUrl: ${IDAM_URL:http://sidam-api}
-      detailsUri: "/details"
-      id: ${WA_IDAM_CLIENT_ID:wa}
-      secret: ${WA_IDAM_SECRET:something}
-      redirectUri: ${WA_IDAM_REDIRECT_URI:http://localhost}
   provider:
     service:
       client:
@@ -53,14 +46,15 @@ auth:
 idam:
   s2s-auth:
     url: ${S2S_URL:http://service-auth-provider-api}
-    secret: ${S2S_SECRET_TASK_MANAGEMENT:AAAAAAAAAAAAAAAC}
-    name: ${WA_S2S_NAME:wa_task_management_api}
+    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
+    name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
 
 camunda:
   url: ${CAMUNDA_URL:http://localhost:8080/engine-rest}
-
-credentials:
-  wa:
-    system:
-      user: ${WA_SYSTEM_USERNAME:system-user}
-      password: ${WA_SYSTEM_PASSWORD:system-password}
+#
+#credentials:
+#  wa:
+#    system:
+#      user: ${WA_SYSTEM_USERNAME:system-user}
+#      password: ${WA_SYSTEM_PASSWORD:system-password}
+#

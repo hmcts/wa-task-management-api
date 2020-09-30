@@ -24,10 +24,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final RequestAuthorizer<Service> serviceRequestAuthorizer;
     private final AuthenticationManager authenticationManager;
 
-    public SecurityConfiguration(
-        RequestAuthorizer<Service> serviceRequestAuthorizer,
-        AuthenticationManager authenticationManager
-    ) {
+    public SecurityConfiguration(RequestAuthorizer<Service> serviceRequestAuthorizer,
+                                 AuthenticationManager authenticationManager) {
         super();
         this.serviceRequestAuthorizer = serviceRequestAuthorizer;
         this.authenticationManager = authenticationManager;
@@ -40,7 +38,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.ignoring().mvcMatchers(
-            anonymousPaths.toArray(String[]::new)
+            anonymousPaths.stream().toArray(String[]::new)
         );
     }
 
@@ -56,7 +54,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .csrf().disable()
             .formLogin().disable()
             .logout().disable()
-            .authorizeRequests().anyRequest().authenticated()
-        ;
+            .authorizeRequests().anyRequest().authenticated();
     }
 }

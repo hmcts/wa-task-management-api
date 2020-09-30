@@ -20,7 +20,7 @@ import static org.hamcrest.Matchers.containsString;
 public class WelcomeTest {
 
 
-    @Value("${targetInstance}") private String testUrl;
+    @Value("${targets.instance}") private String testUrl;
 
     @Before
     public void setUp() {
