@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 
 import java.util.UUID;
 
@@ -53,7 +53,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK_200);
     }
     @Test
-    public void should_return_403_if_task_does_not_exist() {
+    public void should_respond_with_200_with_dummy_task_id() {
         String taskId = "78c9fc54-f1fb-11ea-a751-527f3fb68fa8";
         given()
             .relaxedHTTPSValidation()
@@ -63,13 +63,14 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .when()
             .get("task/{task-id}")
             .then()
-            .statusCode(HttpStatus.FORBIDDEN_403);
+            .statusCode(HttpStatus.OK_200);
     }
 
 
     @Test
     public void should_return_403_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
+
         given()
             .relaxedHTTPSValidation()
             .contentType(APPLICATION_JSON_VALUE)
@@ -119,7 +120,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
             .when()
-            .post("/task/{task-id}/assign")
+            .post("/task/{task-id}/complete")
             .then()
             .assertThat()
             .statusCode(HttpStatus.FORBIDDEN_403);
@@ -129,10 +130,14 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
+            .and().log().all(true)
+            .body(new AssignTaskRequest("some-user-id"))
             .when()
-            .post("/task/{task-id}/complete")
+            .post("/task/{task-id}/assign")
             .then()
+            .and().log().all(true)
             .assertThat()
             .statusCode(HttpStatus.FORBIDDEN_403);
     }
+
 }
