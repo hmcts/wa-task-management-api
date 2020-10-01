@@ -112,6 +112,14 @@ pmd {
   ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
+jacocoTestCoverageVerification {
+  violationRules {
+    rule {
+      excludes = ["com.gargoylesoftware.htmlunit.javascript.host.css.StyleAttributes"]
+    }
+  }
+}
+
 jacocoTestReport {
   executionData(test, integration)
   reports {
