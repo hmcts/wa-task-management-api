@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
@@ -25,11 +26,14 @@ class TaskControllerTest {
     @Mock
     private CamundaService camundaService;
 
+    @Mock
+    private IdamService idamService;
+
     private TaskController taskController;
 
     @BeforeEach
     void setUp() {
-        taskController = new TaskController(camundaService);
+        taskController = new TaskController(camundaService, idamService);
     }
 
     @Test
@@ -47,18 +51,20 @@ class TaskControllerTest {
         assertEquals(mockedTask, response.getBody());
     }
 
-
     @Test
     void should_succeed_and_return_a_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
+        String authToken = "someAuthToken";
+        String userId = UUID.randomUUID().toString();
 
-        ResponseEntity<String> response = taskController.claimTask(taskId);
+        when(idamService.getUserId(authToken)).thenReturn(userId);
+
+        ResponseEntity<String> response = taskController.claimTask(authToken, taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
-
 
     @Test
     void should_throw_a_non_implemented_exception_and_return_500() {

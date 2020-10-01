@@ -262,6 +262,10 @@ dependencies {
   testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testCompile "org.junit.vintage:junit-vintage-engine:${versions.junit}"
 
+  testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
+  testCompile group: 'com.google.guava', name: 'guava-testlib', version: '29.0-jre'
+  testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
+
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath
 

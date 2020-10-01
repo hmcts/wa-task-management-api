@@ -5,6 +5,7 @@ java:
   aadIdentityName: wa
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
+    IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
   keyVaults:
     wa:
       secrets:

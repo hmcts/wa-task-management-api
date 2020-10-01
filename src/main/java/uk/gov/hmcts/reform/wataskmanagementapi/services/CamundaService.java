@@ -34,13 +34,12 @@ public class CamundaService {
                 id
             ), ex);
         }
-
     }
 
-    public void claimTask(String taskId, String subjectId) {
+    public void claimTask(String taskId, String userId) {
         try {
             Map<String, String> body = new ConcurrentHashMap<>();
-            body.put("userId", subjectId);
+            body.put("userId", userId);
             camundaServiceApi.claimTask(taskId, body);
         } catch (FeignException ex) {
             if (HttpStatus.NOT_FOUND.value() == ex.status()) {

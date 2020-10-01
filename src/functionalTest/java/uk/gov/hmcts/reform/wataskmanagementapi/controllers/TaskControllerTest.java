@@ -1,14 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.RestAssured;
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 
 import java.util.List;
@@ -24,6 +28,9 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
     private String testUrl;
+
+    @Autowired
+    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     private CcdIdGenerator ccdIdGenerator;
 
@@ -74,7 +81,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_204_when_claiming_a_task_by_id() {
+    public void should_return_a_204_when_claiming_a_task_by_id() throws JsonProcessingException {
 
         String ccdId = ccdIdGenerator.generate();
 
@@ -85,8 +92,10 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         String taskId = tasks.get(0).getId();
 
+        Headers headers = authorizationHeadersProvider.getCaseOfficerAuthorization();
         Response response = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
             .when()
             .post("task/{task-id}/claim", taskId);
 

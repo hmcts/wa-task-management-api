@@ -40,10 +40,9 @@ public class GivensBuilder {
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
-            .basePath("/message")
             .body(asCamundaJsonString(request))
             .when()
-            .post()
+            .post("/message")
             .then()
             .statusCode(HttpStatus.NO_CONTENT_204);
         return this;
@@ -56,9 +55,8 @@ public class GivensBuilder {
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
-            .basePath("/task" + filter)
             .when()
-            .get()
+            .get("/task" + filter)
             .then()
             .statusCode(HttpStatus.OK_200)
             .and()

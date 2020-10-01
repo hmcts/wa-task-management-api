@@ -6,8 +6,27 @@ def type = "java"
 def product = "wa"
 def component = "task-management-api"
 
+def secrets = [
+  'wa-${env}' : [
+    secret('test-law-firm-a-username', 'TEST_LAW_FIRM_A_USERNAME'),
+    secret('test-law-firm-a-password', 'TEST_LAW_FIRM_A_PASSWORD'),
+    secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+    secret('idam-secret', 'IA_IDAM_SECRET')
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
+
 withPipeline(type, product, component) {
   disableLegacyDeployment()
+  loadVaultSecrets(secrets)
 
   env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
 
