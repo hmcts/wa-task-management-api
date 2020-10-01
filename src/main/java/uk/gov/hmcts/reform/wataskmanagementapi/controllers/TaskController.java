@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRespo
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -31,10 +33,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class TaskController {
 
     private final CamundaService camundaService;
+    private final IdamService idamService;
 
     @Autowired
-    public TaskController(CamundaService camundaService) {
+    public TaskController(CamundaService camundaService, IdamService idamService) {
         this.camundaService = camundaService;
+        this.idamService = idamService;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -125,12 +129,10 @@ public class TaskController {
     })
     @PostMapping(path = "/{task-id}/claim",
         produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> claimTask(@PathVariable("task-id") String taskId) {
-
-        //TODO Remove: this demo user as user id will come from JWT token
-        String demoUserId = "demo-user";
-
-        camundaService.claimTask(taskId, demoUserId);
+    public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
+                                            @PathVariable("task-id") String taskId) {
+        String userId = idamService.getUserId(authToken);
+        camundaService.claimTask(taskId, userId);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
