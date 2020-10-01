@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath("net.serenity-bdd:serenity-gradle-plugin:2.2.12")
+    classpath("net.serenity-bdd:serenity-gradle-plugin:2.3.4")
   }
 }
 
@@ -13,11 +13,11 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.10.RELEASE'
-  id 'org.springframework.boot' version '2.3.3.RELEASE'
+  id 'org.springframework.boot' version '2.3.4.RELEASE'
   id 'org.owasp.dependencycheck' version '5.3.2.1'
   id 'com.github.ben-manes.versions' version '0.29.0'
   id 'org.sonarqube' version '3.0'
-  id 'info.solidsoft.pitest' version '1.5.1'
+  id 'info.solidsoft.pitest' version '1.5.2'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -145,6 +145,9 @@ sonarqube {
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
+    property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
+                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java"
+
   }
 }
 
@@ -167,10 +170,22 @@ dependencyCheck {
   failBuildOnCVSS = System.getProperty('dependencyCheck.failBuild') == 'true' ? 0 : 11
   suppressionFile = 'config/owasp/suppressions.xml'
 
+  // excludes *Test* source configurations from scan
+  skipConfigurations = configurations.collect { it.name }.findAll { it.contains('Test') }
+
   analyzers {
     // Disable scanning of .NET related binaries
     assemblyEnabled = false
   }
+}
+
+configurations {
+  integrationTestCompile.extendsFrom testCompile
+  integrationTestRuntime.extendsFrom testRuntime
+  functionalTestCompile.extendsFrom testCompile
+  functionalTestRuntime.extendsFrom testRuntime
+  contractTestCompile.extendsFrom testCompile
+  contractTestRuntime.extendsFrom testRuntime
 }
 
 dependencyManagement {
@@ -191,7 +206,7 @@ repositories {
 
 def versions = [
   junit           : '5.6.2',
-  junitPlatform   : '1.6.2',
+  junitPlatform   : '1.7.0',
   reformLogging   : '5.1.5',
   springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '2.9.2',
@@ -228,10 +243,10 @@ dependencies {
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
 
   compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.37'
-  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.37'
+  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.38'
 
   compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
-  compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.4.RELEASE'
+  compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {

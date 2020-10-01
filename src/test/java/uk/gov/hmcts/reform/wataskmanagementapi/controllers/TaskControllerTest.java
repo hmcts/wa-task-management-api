@@ -8,16 +8,19 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TaskControllerTest {
@@ -37,16 +40,13 @@ public class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        when(camundaService.getTask(taskId)).thenReturn("aTask");
-
-        ResponseEntity<String> response = taskController.getTask(taskId);
+        ResponseEntity<GetTaskResponse<CamundaTask>> response = taskController.getTask(taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertThat(
-            response.getBody(),
-            containsString("aTask")
-        );
+        assertThat(response.getBody(), instanceOf(GetTaskResponse.class));
+        assertEquals(Optional.ofNullable(response.getBody())
+                         .orElseThrow(AssertionError::new).getTask().getId(), taskId);
     }
 
     @Test
@@ -66,7 +66,10 @@ public class TaskControllerTest {
             .isInstanceOf(NotImplementedException.class)
             .hasMessage("Code is not implemented");
 
-        assertThatThrownBy(() -> taskController.assignTask(someTaskId))
+        assertThatThrownBy(() -> taskController.assignTask(
+            someTaskId,
+            new AssignTaskRequest("some-user")
+        ))
             .isInstanceOf(NotImplementedException.class)
             .hasMessage("Code is not implemented");
 
