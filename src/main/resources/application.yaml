@@ -10,19 +10,25 @@ management:
       base-path: /
       exposure:
         include: health, info, prometheus
+
 config:
   stacktraceEnabled: ${STACKTRACE_ENABLED:false}
-
-testProperty: ${A_SECRET:defaultValue}
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
 
-auth:
-  provider:
-    service:
-      client:
-        baseUrl: ${S2S_URL:http://service-auth-provider-api}
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/loggers/**"
+    - "/swagger-ui.html"
+    - "/swagger-resources/**"
+    - "/v2/api-docs"
+    - "/webjars/springfox-swagger-ui/**"
+    - "/favicon.ico"
 
 idam:
   baseUrl: ${IDAM_URL:http://sidam-api}
@@ -32,17 +38,37 @@ idam:
     url: ${S2S_URL:http://service-auth-provider-api}
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAC}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
+  s2s-authorised:
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api}
+
+oidc:
+  issuer: ${IDAM_URL:http://sidam-api}/o
 
 spring:
   application:
     name: WA Task Management
+  main:
+    allow-bean-definition-overriding: true
   jackson:
     property-naming-strategy: SNAKE_CASE
   security:
     oauth2:
       client:
+        provider:
+          oidc:
+            issuer-uri: ${IDAM_URL:http://sidam-api}/o
         registration:
           oidc:
-            client-id: ${IA_IDAM_CLIENT_ID:iac}
+            client-id: ${IA_IDAM_CLIENT_ID:ia}
             client-secret: ${IA_IDAM_SECRET:something}
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${IDAM_URL:http://sidam-api}/o/jwks
 
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic

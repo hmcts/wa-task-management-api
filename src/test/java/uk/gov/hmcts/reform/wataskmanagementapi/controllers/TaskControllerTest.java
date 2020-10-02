@@ -86,6 +86,5 @@ class TaskControllerTest {
         assertThatThrownBy(() -> taskController.completeTask(taskId))
             .isInstanceOf(NotImplementedException.class)
             .hasNoCause();
-
     }
 }

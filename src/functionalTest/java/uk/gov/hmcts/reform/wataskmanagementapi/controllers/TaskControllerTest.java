@@ -47,17 +47,20 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_404_if_task_does_not_exist() {
         String nonExistentTaskId = "78c9fc54-f1fb-11ea-a751-527f3fb68fa8";
 
-        expect()
-            .statusCode(HttpStatus.NOT_FOUND.value())
-            .and()
+        Headers headers = authorizationHeadersProvider.getCaseOfficerAuthorization();
+
+        Response response = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId))
+            .headers(headers)
             .when()
             .get("task/{task-id}", nonExistentTaskId);
 
+        response.then().assertThat()
+            .statusCode(HttpStatus.NOT_FOUND.value())
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
+            .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId));
     }
 
     @Test
