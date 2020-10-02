@@ -6,8 +6,6 @@ provider "azurerm" {
 data "azurerm_key_vault" "wa_key_vault" {
   name                = "${var.product}-${var.env}"
   resource_group_name = "${var.product}-${var.env}"
-  vault_uri           = "https://wa-${var.env}.vault.azure.net/"
-
 }
 
 data "azurerm_key_vault_secret" "test_law_firm_a_username" {
