@@ -17,8 +17,32 @@ def type = "java"
 def product = "wa"
 def component = "task-management-api"
 
+def secrets = [
+  'wa-${env}' : [
+  ],
+  's2s-${env}' : [
+    secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
+
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
+
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
+  env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
+  env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+
+  loadVaultSecrets(secrets)
+
   enableMutationTest()
   enableSlackNotifications('#wa-build')
 }
