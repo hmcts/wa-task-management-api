@@ -32,7 +32,13 @@ public class CamundaTask {
         this.id = id;
     }
 
-    public CamundaTask(String id, String name, String assignee, ZonedDateTime created, ZonedDateTime due, String description, String owner) {
+    public CamundaTask(String id,
+                       String name,
+                       String assignee,
+                       ZonedDateTime created,
+                       ZonedDateTime due,
+                       String description,
+                       String owner) {
         this.id = id;
         this.name = name;
         this.assignee = assignee;
