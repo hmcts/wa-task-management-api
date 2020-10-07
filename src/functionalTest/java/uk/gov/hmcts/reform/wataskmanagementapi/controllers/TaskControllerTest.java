@@ -41,7 +41,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_404_if_task_does_not_exist() {
-        String nonExistentTaskId = "78c9fc54-f1fb-11ea-a751-527f3fb68fa8";
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
