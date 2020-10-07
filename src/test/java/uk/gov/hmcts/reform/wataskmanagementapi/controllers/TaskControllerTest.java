@@ -53,7 +53,6 @@ class TaskControllerTest {
         assertEquals(mockedTask, response.getBody().getTask());
     }
 
-
     @Test
     void should_succeed_and_return_a_204_no_content() {
 
