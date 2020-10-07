@@ -116,4 +116,19 @@ public class CamundaService {
             ), ex);
         }
     }
+
+    public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
+        CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
+        List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(query.getQueries());
+
+        List<Task> response = new ArrayList<>();
+        searchResults.forEach(camundaTask -> {
+            Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(camundaTask.getId());
+            Task task = taskMapper.mapToTaskObject(camundaTask, variables);
+            response.add(task);
+        });
+
+        return response;
+
+    }
 }

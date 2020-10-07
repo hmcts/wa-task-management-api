@@ -43,11 +43,17 @@ class CamundaServiceTest {
     @Mock
     private CamundaErrorDecoder camundaErrorDecoder;
 
+    @Mock
+    private CamundaQueryBuilder camundaQueryBuilder;
+
+    @Mock
+    private TaskMapper taskMapper;
+
     private CamundaService camundaService;
 
     @BeforeEach
     public void setUp() {
-        camundaService = new CamundaService(camundaServiceApi, camundaErrorDecoder);
+        camundaService = new CamundaService(camundaServiceApi, camundaQueryBuilder, taskMapper, camundaErrorDecoder);
     }
 
     @Test
