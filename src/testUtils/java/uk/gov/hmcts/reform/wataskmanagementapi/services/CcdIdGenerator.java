@@ -7,6 +7,7 @@ public class CcdIdGenerator {
     public String generate() {
         time++;
         String ccdId = String.valueOf(time);
+
         return "test-" + ccdId;
     }
 }

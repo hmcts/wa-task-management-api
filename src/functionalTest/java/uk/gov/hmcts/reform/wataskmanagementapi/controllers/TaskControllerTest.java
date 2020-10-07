@@ -20,6 +20,7 @@ import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -33,7 +34,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
 
-        ccdIdGenerator = new CcdIdGenerator();
         ccdIdGenerator = new CcdIdGenerator();
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
@@ -57,8 +57,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId));
-
-
     }
 
     @Test
@@ -94,6 +92,10 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .iCreateATaskWithCcdId(ccdId)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        if (tasks.size() > 1) {
+            fail("Search was not an exact match and returned more than one task");
+        }
 
         String taskId = tasks.get(0).getId();
 
