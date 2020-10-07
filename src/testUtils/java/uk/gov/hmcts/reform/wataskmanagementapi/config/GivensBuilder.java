@@ -42,9 +42,13 @@ public class GivensBuilder {
             .baseUri(camundaUrl)
             .basePath("/message")
             .body(asCamundaJsonString(request))
+            .and().log().all(true)
             .when()
             .post()
             .then()
+            .log().all(true)
+            .and()
+            .assertThat()
             .statusCode(HttpStatus.NO_CONTENT_204);
         return this;
     }
@@ -60,6 +64,9 @@ public class GivensBuilder {
             .when()
             .get()
             .then()
+            .log().all(true)
+            .and()
+            .assertThat()
             .statusCode(HttpStatus.OK_200)
             .and()
             .extract()
