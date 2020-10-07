@@ -2,8 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 public class CcdIdGenerator {
 
+    long time = System.currentTimeMillis();
+
     public String generate() {
-        String ccdId = String.valueOf(System.currentTimeMillis());
+        time++;
+        String ccdId = String.valueOf(time);
         return "test-" + ccdId;
     }
 }
