@@ -203,22 +203,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
             .body("message", equalTo(responseMessage));
-
-
-        result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .when()
-            .post("/task/{task-id}/complete", taskId);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage));
     }
 
     @Test
@@ -270,6 +254,49 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.CONFLICT.value()))
             .body("message", equalTo(String.format("Task '%s' is already claimed by someone else.", taskId)));
+    }
 
+    @Test
+    public void should_return_a_204_when_completing_a_task_by_id() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        if (tasks.size() > 1) {
+            fail("Search was not an exact match and returned more than one task:" + "used:" + ccdId);
+        }
+
+        String taskId = tasks.get(0).getId();
+
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .when()
+            .post("task/{task-id}/complete", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        List<HistoryVariableInstance> historyVariableInstances = given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/variable-instance?taskIdIn=" + taskId)
+            .prettyPeek()
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .extract()
+            .jsonPath().getList("", HistoryVariableInstance.class);
+
+        List<HistoryVariableInstance> taskState = historyVariableInstances.stream()
+            .filter(historyVariableInstance -> historyVariableInstance.getName().equals("taskState"))
+            .collect(Collectors.toList());
+
+        assertThat(taskState, is(singletonList(new HistoryVariableInstance("taskState", "completed"))));
     }
 }

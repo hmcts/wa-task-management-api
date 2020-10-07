@@ -130,8 +130,30 @@ class CamundaServiceTest {
         assertThatThrownBy(() -> camundaService.unclaimTask(taskId))
             .isInstanceOf(ResourceNotFoundException.class)
             .hasCauseInstanceOf(FeignException.class);
+    }
 
+    @Test
+    void should_throw_an_exception_when_completing_task_and_feign_exception_is_thrown() {
 
+        String taskId = UUID.randomUUID().toString();
+
+        doThrow(mock(FeignException.class)).when(camundaServiceApi).completeTask(taskId, new CompleteTaskVariables());
+
+        assertThatThrownBy(() -> camundaService.completeTask(taskId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasCauseInstanceOf(FeignException.class);
+
+    }
+
+    @Test
+    void should_complete_task() {
+        String taskId = UUID.randomUUID().toString();
+        camundaService.completeTask(taskId);
+
+        HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
+        modifications.put("taskState", CamundaValue.stringValue("completed"));
+        Mockito.verify(camundaServiceApi).addLocalVariablesToTask(taskId, new AddLocalVariableRequest(modifications));
+        Mockito.verify(camundaServiceApi).completeTask(taskId, new CompleteTaskVariables());
     }
 }
 

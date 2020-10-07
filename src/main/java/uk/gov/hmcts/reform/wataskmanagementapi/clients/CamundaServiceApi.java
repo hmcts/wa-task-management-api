@@ -55,4 +55,10 @@ public interface CamundaServiceApi {
     @GetMapping(value = "/history/variable-instance", produces = MediaType.APPLICATION_JSON_VALUE)
     List<HistoryVariableInstance> getTaskVariables(@RequestParam("taskIdIn") String taskId);
 
+    @PostMapping(value = "/task/{task-id}/complete", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody void completeTask(@PathVariable("task-id") String id, CompleteTaskVariables variables);
+
+    @PostMapping(value = "/task/{id}/localVariables", produces = MediaType.APPLICATION_JSON_VALUE)
+    void addLocalVariablesToTask(@PathVariable("id") String taskId, AddLocalVariableRequest addLocalVariableRequest);
+
 }
