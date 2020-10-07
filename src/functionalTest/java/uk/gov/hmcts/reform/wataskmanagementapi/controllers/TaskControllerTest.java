@@ -94,7 +94,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
 
         if (tasks.size() > 1) {
-            fail("Search was not an exact match and returned more than one task");
+            fail("Search was not an exact match and returned more than one task:"+ "used:" + ccdId);
         }
 
         String taskId = tasks.get(0).getId();
