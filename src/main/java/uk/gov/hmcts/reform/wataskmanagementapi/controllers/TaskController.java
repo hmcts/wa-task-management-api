@@ -193,7 +193,6 @@ public class TaskController {
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<String> assignTask(@PathVariable("task-id") String taskId,
                                              @RequestBody AssignTaskRequest assignTaskRequest) {
-
         throw new NotImplementedException();
     }
 

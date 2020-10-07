@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.util.Objects;
 
 public class ErrorMessage {
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
     private final LocalDateTime timestamp;
     private final String error;
     private final int status;

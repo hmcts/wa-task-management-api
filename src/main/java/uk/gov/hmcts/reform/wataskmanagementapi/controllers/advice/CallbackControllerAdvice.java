@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -78,4 +79,20 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
                   )
             );
     }
+
+    @ExceptionHandler(NotImplementedException.class)
+    protected ResponseEntity<ErrorMessage> handleNotImplementedException(
+        HttpServletRequest request,
+        Exception ex
+    ) {
+        errorLogger.maybeLogException(ex);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.SERVICE_UNAVAILABLE,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
+    }
+
 }

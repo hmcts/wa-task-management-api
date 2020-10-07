@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.NotImplementedException;
+import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,16 +9,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -52,7 +49,8 @@ class TaskControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat(response.getBody(), instanceOf(GetTaskResponse.class));
-        assertEquals(mockedTask, response.getBody());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTask, response.getBody().getTask());
     }
 
 
@@ -75,10 +73,6 @@ class TaskControllerTest {
             .hasMessage("Code is not implemented");
 
         String someTaskId = UUID.randomUUID().toString();
-
-        assertThatThrownBy(() -> taskController.claimTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
 
         assertThatThrownBy(() -> taskController.unclaimTask(someTaskId))
             .isInstanceOf(NotImplementedException.class)
