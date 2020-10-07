@@ -16,16 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@SuppressWarnings({
-    "PMD.AvoidDuplicateLiterals",
-    "PMD.UnusedPrivateField",
-    "PMD.SingularField"
-})
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @RequestMapping(
     path = "/task",
     consumes = APPLICATION_JSON_VALUE,
@@ -70,6 +66,7 @@ public class TaskController {
         throw new NotImplementedException();
     }
 
+
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
     @ApiResponses({
         @ApiResponse(
@@ -96,10 +93,11 @@ public class TaskController {
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTaskResponse<CamundaTask>> getTask(@PathVariable("task-id") String id) {
+        CamundaTask task = camundaService.getTask(id);
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(new GetTaskResponse<>(new CamundaTask(id)));
+            .body(new GetTaskResponse<>(task));
     }
 
     @ApiOperation("Claim the identified Task for the currently logged in user.")
@@ -128,7 +126,16 @@ public class TaskController {
     @PostMapping(path = "/{task-id}/claim",
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> claimTask(@PathVariable("task-id") String taskId) {
-        throw new NotImplementedException();
+
+        //TODO Remove: this demo user as user id will come from JWT token
+        String demoUserId = "demo-user";
+
+        camundaService.claimTask(taskId, demoUserId);
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
+
     }
 
     @ApiOperation("Unclaim the identified Task for the currently logged in user.")
@@ -186,7 +193,6 @@ public class TaskController {
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<String> assignTask(@PathVariable("task-id") String taskId,
                                              @RequestBody AssignTaskRequest assignTaskRequest) {
-
         throw new NotImplementedException();
     }
 

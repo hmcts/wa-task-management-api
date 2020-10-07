@@ -5,5 +5,4 @@ spring:
       prefixed: false
       paths: /mnt/secrets/wa
       aliases:
-        testsecret: AN_ALIASED_VALUE
         AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
