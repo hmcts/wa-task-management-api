@@ -15,12 +15,13 @@ import java.util.stream.Collectors;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOrQuery.CamundaOrQueryBuilder.orQuery;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
 
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
 @Service
 public class CamundaQueryBuilder {
 
     public CamundaSearchQuery createQuery(SearchTaskRequest searchTaskRequest) {
 
-        String operator = CamundaOperators.EQUAL.toString();
+        final String operator = CamundaOperators.EQUAL.toString();
 
         SearchParameters searchParameters = searchTaskRequest.getSearchParameters().get(0);
 

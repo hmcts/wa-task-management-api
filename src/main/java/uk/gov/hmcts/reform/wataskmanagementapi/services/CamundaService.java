@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@SuppressWarnings("PMD.LawOfDemeter")
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
 public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;

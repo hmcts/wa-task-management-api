@@ -2,23 +2,23 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 public class Location {
     private String id;
-    private String location;
+    private String locationName;
 
     public Location() {
         //Default constructor for deserialization
         super();
     }
 
-    public Location(String id, String location) {
+    public Location(String id, String locationName) {
         this.id = id;
-        this.location = location;
+        this.locationName = locationName;
     }
 
     public String getId() {
         return id;
     }
 
-    public String getLocation() {
-        return location;
+    public String getLocationName() {
+        return locationName;
     }
 }

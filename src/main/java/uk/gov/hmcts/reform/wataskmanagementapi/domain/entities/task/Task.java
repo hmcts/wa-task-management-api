@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 
 import java.time.ZonedDateTime;
 
+@SuppressWarnings("PMD.ShortClassName")
 @ApiModel("Task")
 public class Task {
 
