@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOrQuery.CamundaOrQueryBuilder.orQuery;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
 
 @Service
 public class CamundaQueryBuilder {
@@ -24,22 +24,30 @@ public class CamundaQueryBuilder {
 
         SearchParameters searchParameters = searchTaskRequest.getSearchParameters().get(0);
 
-        Set<CamundaSearchExpression> jurisdictionExpressions = asMultipleExpressions("jurisdiction", operator, searchParameters.getJurisdiction());
+        Set<CamundaSearchExpression> jurisdictionExpressions =
+            asMultipleExpressions("jurisdiction", operator, searchParameters.getJurisdiction());
         CamundaOrQuery.CamundaOrQueryBuilder jurisdictionQueries = asOrQuery(jurisdictionExpressions);
 
-        Set<CamundaSearchExpression> userExpressions = asMultipleExpressions("userId", operator, searchParameters.getUser());
+        Set<CamundaSearchExpression> userExpressions =
+            asMultipleExpressions("userId", operator, searchParameters.getUser());
         CamundaOrQuery.CamundaOrQueryBuilder userQueries = asOrQuery(userExpressions);
 
-        Set<CamundaSearchExpression> locationExpressions = asMultipleExpressions("location", operator, searchParameters.getLocation());
+        Set<CamundaSearchExpression> locationExpressions =
+            asMultipleExpressions("location", operator, searchParameters.getLocation());
         CamundaOrQuery.CamundaOrQueryBuilder locationQueries = asOrQuery(locationExpressions);
 
-        Set<CamundaSearchExpression> stateQueriesExpressions = asMultipleExpressions("state", operator, searchParameters.getState());
+        Set<CamundaSearchExpression> stateQueriesExpressions =
+            asMultipleExpressions("state", operator, searchParameters.getState());
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = asOrQuery(stateQueriesExpressions);
 
-        CamundaSearchExpression ccdIdQuery = asCamundaExpression("ccdId", operator, searchParameters.getCcdId());
-        CamundaSearchExpression eventIdQuery = asCamundaExpression("eventId", operator, searchParameters.getEventId());
-        CamundaSearchExpression preEventQuery = asCamundaExpression("preEventState", operator, searchParameters.getPreEventState());
-        CamundaSearchExpression postEventQuery = asCamundaExpression("postEventState", operator, searchParameters.getPostEventState());
+        CamundaSearchExpression ccdIdQuery =
+            asCamundaExpression("ccdId", operator, searchParameters.getCcdId());
+        CamundaSearchExpression eventIdQuery =
+            asCamundaExpression("eventId", operator, searchParameters.getEventId());
+        CamundaSearchExpression preEventQuery =
+            asCamundaExpression("preEventState", operator, searchParameters.getPreEventState());
+        CamundaSearchExpression postEventQuery =
+            asCamundaExpression("postEventState", operator, searchParameters.getPostEventState());
 
 
         return camundaQuery()

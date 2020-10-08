@@ -53,7 +53,10 @@ class CamundaServiceTest {
 
     @BeforeEach
     public void setUp() {
-        camundaService = new CamundaService(camundaServiceApi, camundaQueryBuilder, taskMapper, camundaErrorDecoder);
+        camundaService = new CamundaService(camundaServiceApi,
+                                            camundaQueryBuilder,
+                                            taskMapper,
+                                            camundaErrorDecoder);
     }
 
     @Test

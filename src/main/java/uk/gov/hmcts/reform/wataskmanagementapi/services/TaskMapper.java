@@ -21,9 +21,9 @@ public class TaskMapper {
         CaseData caseData = null;
         Location location = null;
         Assignee assignee = null;
-        String taskName = camundaTask.getName();
-        ZonedDateTime dueDate = camundaTask.getDue();
-        String state = getVariableValue(variables.get("state"));
+        final String taskName = camundaTask.getName();
+        final ZonedDateTime dueDate = camundaTask.getDue();
+        final String state = getVariableValue(variables.get("state"));
 
         if (camundaTask.getAssignee() != null) {
             assignee = new Assignee(camundaTask.getAssignee(), "username");

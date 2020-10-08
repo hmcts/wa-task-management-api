@@ -18,7 +18,14 @@ public class SearchParameters {
         super();
     }
 
-    public SearchParameters(List<String> jurisdiction, List<String> user, List<String> location, List<String> state, String ccdId, String eventId, String preEventState, String postEventState) {
+    public SearchParameters(List<String> jurisdiction,
+                            List<String> user,
+                            List<String> location,
+                            List<String> state,
+                            String ccdId,
+                            String eventId,
+                            String preEventState,
+                            String postEventState) {
         this.jurisdiction = jurisdiction;
         this.user = user;
         this.location = location;

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -77,9 +75,9 @@ class TaskControllerTest {
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
-        ResponseEntity<String> response = taskController.unclaimTask(authToken,taskId);
+        ResponseEntity<String> response = taskController.unclaimTask(authToken, taskId);
 
-        assertEquals(HttpStatus.NO_CONTENT,response.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
@@ -95,13 +93,6 @@ class TaskControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    }
-
-    @Test
-    void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
-        assertThatThrownBy(() -> taskController.searchWithCriteria())
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
     }
 
     @Test
