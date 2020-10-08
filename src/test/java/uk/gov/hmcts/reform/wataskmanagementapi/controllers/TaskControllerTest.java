@@ -7,8 +7,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
@@ -38,7 +41,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void should_return_a_fetched_task() {
+    void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
 
@@ -55,7 +58,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void should_succeed_and_return_a_204_no_content() {
+    void should_succeed_when_claiming_a_task_and_return_a_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
@@ -67,6 +70,15 @@ class TaskControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void should_succeed_when_performing_search_and_return_a_200_ok() {
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(new SearchTaskRequest());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -98,9 +110,7 @@ class TaskControllerTest {
     @Test
     void should_complete_a_task() {
         String taskId = UUID.randomUUID().toString();
-
         ResponseEntity response = taskController.completeTask(taskId);
-
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }

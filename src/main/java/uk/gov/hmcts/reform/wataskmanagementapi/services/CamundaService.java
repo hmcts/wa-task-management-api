@@ -132,14 +132,21 @@ public class CamundaService {
 
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-        List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(query.getQueries());
 
         List<Task> response = new ArrayList<>();
-        searchResults.forEach(camundaTask -> {
-            Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(camundaTask.getId());
-            Task task = taskMapper.mapToTaskObject(camundaTask, variables);
-            response.add(task);
-        });
+
+        try {
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(query.getQueries());
+
+            searchResults.forEach(camundaTask -> {
+                Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(camundaTask.getId());
+                Task task = taskMapper.mapToTaskObject(camundaTask, variables);
+                response.add(task);
+            });
+
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem performing the search", ex);
+        }
 
         return response;
 
