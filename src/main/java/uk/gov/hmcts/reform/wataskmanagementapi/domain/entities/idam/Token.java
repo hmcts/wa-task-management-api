@@ -14,6 +14,7 @@ public class Token {
     private String scope;
 
     private Token() {
+        //No-op constructor for deserialization
     }
 
     public Token(String accessToken, String scope) {

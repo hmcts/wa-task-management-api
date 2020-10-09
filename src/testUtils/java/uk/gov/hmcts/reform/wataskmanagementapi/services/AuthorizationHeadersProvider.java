@@ -7,13 +7,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.ServiceTokenGeneratorConfiguration.SERVICE_AUTHORIZATION;
+
 @Service
 public class AuthorizationHeadersProvider {
+
+    public static final String AUTHORIZATION = "Authorization";
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
@@ -23,6 +28,18 @@ public class AuthorizationHeadersProvider {
 
     @Autowired
     private IdamServiceApi idamServiceApi;
+
+    @Autowired
+    private AuthTokenGenerator serviceAuthTokenGenerator;
+
+    public Header getServiceAuthorizationHeader() {
+        String serviceToken = tokens.computeIfAbsent(
+            SERVICE_AUTHORIZATION,
+            user -> serviceAuthTokenGenerator.generate()
+        );
+
+        return new Header(SERVICE_AUTHORIZATION, serviceToken);
+    }
 
     public Headers getLawFirmAAuthorization() {
 
@@ -38,10 +55,10 @@ public class AuthorizationHeadersProvider {
         );
 
         return new Headers(
-            new Header("Authorization", accessToken)
+            new Header(AUTHORIZATION, accessToken),
+            getServiceAuthorizationHeader()
         );
     }
-
 
     public Headers getLawFirmBAuthorization() {
 
@@ -56,7 +73,8 @@ public class AuthorizationHeadersProvider {
         );
 
         return new Headers(
-            new Header("Authorization", accessToken)
+            new Header(AUTHORIZATION, accessToken),
+            getServiceAuthorizationHeader()
         );
     }
 

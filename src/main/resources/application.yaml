@@ -62,15 +62,3 @@ security:
     - "/favicon.ico"
   authorisedServices:
     - "wa_task_management_api"
-
-auth:
-  provider:
-    service:
-      client:
-        baseUrl: ${S2S_URL:http://service-auth-provider-api}
-
-idam:
-  s2s-auth:
-    url: ${S2S_URL:http://service-auth-provider-api}
-    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
-    name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
