@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

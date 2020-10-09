@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
@@ -257,8 +258,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_204_when_completing_a_task_by_id() {
-
+    public void should_return_a_204_when_completing_an_already_completed_task() {
         String ccdId = ccdIdGenerator.generate();
 
         List<CamundaTask> tasks = given
@@ -286,7 +286,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .baseUri(camundaUrl)
             .when()
             .get("/history/variable-instance?taskIdIn=" + taskId)
-            .prettyPeek()
             .then()
             .statusCode(HttpStatus.OK.value())
             .and()
@@ -298,5 +297,14 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .collect(Collectors.toList());
 
         assertThat(taskState, is(singletonList(new HistoryVariableInstance("taskState", "completed"))));
+
+        Response resultWhenTaskAlreadyCompleted = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .when()
+            .post("task/{task-id}/complete", taskId);
+
+        resultWhenTaskAlreadyCompleted.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
     }
 }

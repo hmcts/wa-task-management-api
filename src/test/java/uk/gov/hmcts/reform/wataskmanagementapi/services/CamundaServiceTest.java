@@ -8,12 +8,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 
 import java.util.UUID;
 
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -154,6 +158,20 @@ class CamundaServiceTest {
         modifications.put("taskState", CamundaValue.stringValue("completed"));
         Mockito.verify(camundaServiceApi).addLocalVariablesToTask(taskId, new AddLocalVariableRequest(modifications));
         Mockito.verify(camundaServiceApi).completeTask(taskId, new CompleteTaskVariables());
+    }
+
+    @Test
+    void does_not_call_camunda_complete_if_task_already_complete() {
+        String taskId = UUID.randomUUID().toString();
+        when(camundaServiceApi.getTaskVariables(taskId)).thenReturn(singletonList(
+            new HistoryVariableInstance("taskState", "completed")
+        ));
+
+        camundaService.completeTask(taskId);
+
+        HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
+        modifications.put("taskState", CamundaValue.stringValue("completed"));
+        Mockito.verifyNoMoreInteractions(camundaServiceApi);
     }
 }
 
