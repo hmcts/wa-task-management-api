@@ -5,11 +5,12 @@
 def type = "java"
 def product = "wa"
 def component = "task-management-api"
-
 def secrets = [
   'wa-${env}' : [
     secret('test-law-firm-a-username', 'TEST_LAW_FIRM_A_USERNAME'),
     secret('test-law-firm-a-password', 'TEST_LAW_FIRM_A_PASSWORD'),
+    secret('test-law-firm-b-username', 'TEST_LAW_FIRM_B_USERNAME'),
+    secret('test-law-firm-b-password', 'TEST_LAW_FIRM_B_PASSWORD'),
     secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
     secret('idam-secret', 'IA_IDAM_SECRET')
   ],
@@ -17,6 +18,7 @@ def secrets = [
     secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
   ]
 ]
+
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   [$class     : 'AzureKeyVaultSecret',

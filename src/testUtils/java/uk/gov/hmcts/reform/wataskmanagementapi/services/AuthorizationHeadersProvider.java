@@ -24,11 +24,44 @@ public class AuthorizationHeadersProvider {
     @Autowired
     private IdamServiceApi idamServiceApi;
 
-    public Headers getCaseOfficerAuthorization() {
+    public Headers getLawFirmAAuthorization() {
 
         String username = System.getenv("TEST_LAW_FIRM_A_USERNAME");
         String password = System.getenv("TEST_LAW_FIRM_A_PASSWORD");
 
+
+        MultiValueMap<String, String> body = createIdamRequest(username, password);
+
+        String accessToken = tokens.computeIfAbsent(
+            "LawFirmA",
+            user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
+        );
+
+        return new Headers(
+            new Header("Authorization", accessToken)
+        );
+    }
+
+
+    public Headers getLawFirmBAuthorization() {
+
+        String username = System.getenv("TEST_LAW_FIRM_B_USERNAME");
+        String password = System.getenv("TEST_LAW_FIRM_B_PASSWORD");
+
+        MultiValueMap<String, String> body = createIdamRequest(username, password);
+
+        String accessToken = tokens.computeIfAbsent(
+            "LawFirmB",
+            user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
+        );
+
+        return new Headers(
+            new Header("Authorization", accessToken)
+        );
+    }
+
+
+    private MultiValueMap<String, String> createIdamRequest(String username, String password) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "password");
         body.add("redirect_uri", idamRedirectUrl);
@@ -38,14 +71,6 @@ public class AuthorizationHeadersProvider {
         body.add("password", password);
         body.add("scope", userScope);
 
-        String accessToken = tokens.computeIfAbsent(
-            "CaseOfficer",
-            user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
-        );
-
-        return new Headers(
-            new Header("Authorization", accessToken)
-        );
+        return body;
     }
-
 }

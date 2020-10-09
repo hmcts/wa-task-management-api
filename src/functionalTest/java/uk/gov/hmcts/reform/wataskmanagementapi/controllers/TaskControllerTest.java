@@ -161,4 +161,59 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
             .body("message", equalTo(responseMessage));
     }
+
+    @Test
+    public void should_return_a_404_when_claiming_a_non_existent_task_() {
+
+        String taskId = "00000000-0000-0000-0000-000000000000";
+
+        Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
+    public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        String taskId = tasks.get(0).getId();
+
+        given
+            .iClaimATaskWithIdAndAuthorization(taskId, authorizationHeadersProvider.getLawFirmAAuthorization());
+
+        Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
+
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.prettyPrint();
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.CONFLICT.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.CONFLICT.value()))
+            .body("message", equalTo(String.format("Task '%s' is already claimed by someone else.", taskId)));
+
+    }
+
+
+}
 }

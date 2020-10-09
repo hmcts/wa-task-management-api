@@ -30,7 +30,7 @@ idam:
   scope: "openid profile roles"
   s2s-auth:
     url: ${S2S_URL:http://service-auth-provider-api}
-    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAC}
+    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
 
 spring:

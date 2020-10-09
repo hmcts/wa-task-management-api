@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -78,6 +79,29 @@ class CallbackControllerAdviceTest {
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
         assertEquals(HttpStatus.NOT_FOUND.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
+        verify(errorLogger, times(1)).maybeLogException(exception);
+        verifyNoMoreInteractions(errorLogger);
+    }
+
+
+    @Test
+    void should_handle_conflict_exception() {
+
+        final String exceptionMessage = "Some exception message";
+        final ConflictException exception = new ConflictException(exceptionMessage, new Exception());
+
+        LocalDateTime mockedTimestamp = LocalDateTime.now();
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleConflictException(request, exception);
+
+        assertEquals(HttpStatus.CONFLICT.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.CONFLICT.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.CONFLICT.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);
