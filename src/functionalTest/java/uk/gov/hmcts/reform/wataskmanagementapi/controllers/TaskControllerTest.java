@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.RestAssured;
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,8 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.UUID;
@@ -40,12 +41,12 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_404_if_task_does_not_exist() {
+    public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", nonExistentTaskId);
 
@@ -73,7 +74,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", taskId);
 
@@ -101,7 +102,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("task/{task-id}/claim", taskId);
 
@@ -110,7 +111,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_503_for_work_in_progress_endpoints() {
+    public void should_return_a_503_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
         String responseMessage = "Code is not implemented";
 
@@ -118,7 +119,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("/task");
 
@@ -133,7 +134,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("/task/{task-id}/unclaim", taskId);
 
@@ -148,7 +149,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("/task/{task-id}/complete", taskId);
 
@@ -160,5 +161,57 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
             .body("message", equalTo(responseMessage));
+    }
+
+    @Test
+    public void should_return_a_404_when_claiming_a_non_existent_task_() {
+
+        String taskId = "00000000-0000-0000-0000-000000000000";
+
+        Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
+    public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        String taskId = tasks.get(0).getId();
+
+        given
+            .iClaimATaskWithIdAndAuthorization(taskId, authorizationHeadersProvider.getLawFirmAAuthorization());
+
+        Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
+
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.prettyPrint();
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.CONFLICT.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.CONFLICT.value()))
+            .body("message", equalTo(String.format("Task '%s' is already claimed by someone else.", taskId)));
+
     }
 }

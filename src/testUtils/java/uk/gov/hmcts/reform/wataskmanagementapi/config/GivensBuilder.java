@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import org.eclipse.jetty.http.HttpStatus;
+import io.restassured.http.Headers;
+import io.restassured.response.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -40,13 +43,12 @@ public class GivensBuilder {
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
-            .basePath("/message")
             .body(asCamundaJsonString(request))
             .when()
-            .post()
+            .post("/message")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.NO_CONTENT_204);
+            .statusCode(HttpStatus.NO_CONTENT.value());
         return this;
     }
 
@@ -61,7 +63,7 @@ public class GivensBuilder {
             .get("/task" + filter)
             .then()
             .assertThat()
-            .statusCode(HttpStatus.OK_200)
+            .statusCode(HttpStatus.OK.value())
             .and()
             .extract()
             .jsonPath().getList("", CamundaTask.class);
@@ -69,5 +71,17 @@ public class GivensBuilder {
 
     public GivensBuilder and() {
         return this;
+    }
+
+
+    public void iClaimATaskWithIdAndAuthorization(String taskId, Headers headers) {
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
     }
 }

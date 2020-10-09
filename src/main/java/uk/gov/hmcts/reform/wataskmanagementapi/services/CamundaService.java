@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,13 +33,12 @@ public class CamundaService {
                 id
             ), ex);
         }
-
     }
 
-    public void claimTask(String taskId, String subjectId) {
+    public void claimTask(String taskId, String userId) {
         try {
             Map<String, String> body = new ConcurrentHashMap<>();
-            body.put("userId", subjectId);
+            body.put("userId", userId);
             camundaServiceApi.claimTask(taskId, body);
         } catch (FeignException ex) {
             if (HttpStatus.NOT_FOUND.value() == ex.status()) {
@@ -49,10 +47,7 @@ public class CamundaService {
                     taskId
                 ), ex);
             } else {
-                String message = camundaErrorDecoder.decode(ex.contentUTF8());
-                throw new ServerErrorException(String.format(
-                    "Could not claim the task with id: %s. %s", taskId, message
-                ), ex);
+                camundaErrorDecoder.decodeException(ex);
             }
         }
 
