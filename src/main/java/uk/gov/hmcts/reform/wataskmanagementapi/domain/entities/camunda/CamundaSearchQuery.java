@@ -37,19 +37,22 @@ public class CamundaSearchQuery {
         }
 
         public CamundaAndQueryBuilder andQuery(CamundaOrQuery.CamundaOrQueryBuilder searchQuery) {
-            orQueries.add(searchQuery.build());
+            CamundaOrQuery query = searchQuery.build();
+            if (!query.getProcessVariables().isEmpty()) {
+                orQueries.add(query);
+            }
             return this;
         }
 
         public CamundaAndQueryBuilder andQuery(CamundaSearchExpression searchExpression) {
-            List<CamundaSearchExpression> processVariables = new ArrayList<>(singleton(searchExpression));
-
-            orQueries.add(new CamundaOrQuery(processVariables));
+            if (searchExpression != null) {
+                List<CamundaSearchExpression> processVariables = new ArrayList<>(singleton(searchExpression));
+                orQueries.add(new CamundaOrQuery(processVariables));
+            }
             return this;
         }
 
         public CamundaSearchQuery build() {
-
             map.put("orQueries", orQueries);
             return new CamundaSearchQuery(map);
         }

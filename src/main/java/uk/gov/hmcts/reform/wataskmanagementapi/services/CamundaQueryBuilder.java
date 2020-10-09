@@ -79,6 +79,6 @@ public class CamundaQueryBuilder {
     }
 
     private CamundaSearchExpression asCamundaExpression(String key, String operator, String value) {
-        return new CamundaSearchExpression(key, operator, value);
+        return value == null ? null : new CamundaSearchExpression(key, operator, value);
     }
 }

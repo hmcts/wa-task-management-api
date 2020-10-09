@@ -10,15 +10,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.SearchParameters;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -81,14 +83,14 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = response.get(0).getId();
 
         Response result = given()
-            .contentType(APPLICATION_JSON_VALUE)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", taskId);
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and().contentType(APPLICATION_JSON_VALUE)
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId));
     }
 
@@ -109,7 +111,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = tasks.get(0).getId();
 
         Response result = given()
-            .contentType(APPLICATION_JSON_VALUE)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("task/{task-id}/claim", taskId);
@@ -117,7 +119,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
-
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
@@ -180,31 +181,41 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
-
-
     @Test
-    public void should_return_a_503_for_work_in_progress_endpoints() {
-        String taskId = UUID.randomUUID().toString();
-        String responseMessage = "Code is not implemented";
+    public void should_return_a_200_with_search_results() {
 
-        Response result;
+        String ccdId1 = ccdIdGenerator.generate();
+        String ccdId2 = ccdIdGenerator.generate();
 
+        given
+            .iCreateATaskWithCcdId(ccdId1)
+            .and()
+            .iCreateATaskWithCcdId(ccdId2);
 
-        result = given()
-            .contentType(APPLICATION_JSON_VALUE)
+        SearchParameters searchParameters = new SearchParameters(
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            emptyList(),
+            ccdId2,
+            null,
+            null,
+            null
+        );
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .body(new SearchTaskRequest(singletonList(searchParameters)))
             .when()
-            .post("/task");
+            .post("task");
 
         result.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage));
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].caseData.reference", equalTo(ccdId2))
+        ;
     }
+
 
     @Test
     public void should_return_a_404_when_claiming_a_non_existent_task_() {
@@ -368,5 +379,4 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         response.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
-
 }

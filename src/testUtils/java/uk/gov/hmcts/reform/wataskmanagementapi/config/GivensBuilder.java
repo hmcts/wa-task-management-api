@@ -35,6 +35,7 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("name", "task name")
             .build();
+
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
             processVariables.getProcessVariablesMap()
