@@ -9,12 +9,12 @@ import org.springframework.http.MediaType;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
 
-public class SmokeTest {
+class SmokeTest {
 
     private final String targetInstance = System.getProperty("TEST_URL", "http://localhost:8090");
 
     @Test
-    public void should_check_service_and_return_welcome_message() {
+    void should_check_service_and_return_welcome_message() {
 
         RequestSpecification requestSpecification = new RequestSpecBuilder()
             .setBaseUri(targetInstance)
