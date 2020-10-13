@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,8 +12,12 @@ import static org.hamcrest.Matchers.containsString;
 
 class SmokeTest {
 
-    private final String targetInstance = System.getProperty("TEST_URL", "http://localhost:8090");
-
+    private final String targetInstance =
+        StringUtils.defaultIfBlank(
+            System.getenv("TEST_URL"),
+            "http://localhost:8099"
+        );
+    
     @Test
     void should_check_service_and_return_welcome_message() {
 
