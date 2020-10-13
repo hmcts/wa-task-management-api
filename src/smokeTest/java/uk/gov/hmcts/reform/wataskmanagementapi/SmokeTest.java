@@ -17,7 +17,7 @@ class SmokeTest {
             System.getenv("TEST_URL"),
             "http://localhost:8099"
         );
-    
+
     @Test
     void should_check_service_and_return_welcome_message() {
 
