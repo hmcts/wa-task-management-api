@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.RestAssured;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -18,21 +17,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 import java.util.List;
 import java.util.UUID;
 
-import static net.serenitybdd.rest.SerenityRest.expect;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
     private String testUrl;
 
+    private CcdIdGenerator ccdIdGenerator;
     @Autowired
     private AuthorizationHeadersProvider authorizationHeadersProvider;
-
-    private CcdIdGenerator ccdIdGenerator;
 
     @Before
     public void setUp() {
@@ -40,23 +38,22 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         ccdIdGenerator = new CcdIdGenerator();
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
-        given().contentType(MediaType.APPLICATION_JSON_VALUE);
     }
 
     @Test
-    public void should_return_404_if_task_does_not_exist() {
-        String nonExistentTaskId = "78c9fc54-f1fb-11ea-a751-527f3fb68fa8";
+    public void should_return_a_404_if_task_does_not_exist() {
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        Headers headers = authorizationHeadersProvider.getCaseOfficerAuthorization();
-
-        Response response = given()
+        Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(headers)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", nonExistentTaskId);
 
-        response.then().assertThat()
+        result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
@@ -75,16 +72,115 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         String taskId = response.get(0).getId();
 
-        expect()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("id", equalTo(taskId))
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId));
     }
 
     @Test
-    public void should_return_a_204_when_claiming_a_task_by_id() throws JsonProcessingException {
+    public void should_return_a_204_when_claiming_a_task_by_id() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        if (tasks.size() > 1) {
+            fail("Search was not an exact match and returned more than one task:" + "used:" + ccdId);
+        }
+
+        String taskId = tasks.get(0).getId();
+
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+    }
+
+    @Test
+    public void should_return_a_503_for_work_in_progress_endpoints() {
+        String taskId = UUID.randomUUID().toString();
+        String responseMessage = "Code is not implemented";
+
+        Response result;
+
+        result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("/task");
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage));
+
+        result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("/task/{task-id}/unclaim", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage));
+
+        result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("/task/{task-id}/complete", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage));
+    }
+
+    @Test
+    public void should_return_a_404_when_claiming_a_non_existent_task_() {
+
+        String taskId = "00000000-0000-0000-0000-000000000000";
+
+        Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+    @Test
+    public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
         String ccdId = ccdIdGenerator.generate();
 
@@ -95,65 +191,27 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         String taskId = tasks.get(0).getId();
 
-        Headers headers = authorizationHeadersProvider.getCaseOfficerAuthorization();
+        given
+            .iClaimATaskWithIdAndAuthorization(taskId, authorizationHeadersProvider.getLawFirmAAuthorization());
+
+        Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
+
         Response response = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/claim", taskId);
 
+        response.prettyPrint();
+
         response.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-    }
-
-    @Test
-    public void should_return_503_for_work_in_progress_endpoints() {
-        String taskId = UUID.randomUUID().toString();
-        String responseMessage = "Code is not implemented";
-
-        expect()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .statusCode(HttpStatus.CONFLICT.value())
             .and()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
-            .when()
-            .post("/task");
-
-        expect()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
-            .when()
-            .post("/task/{task-id}/unclaim", taskId);
-
-        expect()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
-            .when()
-            .post("/task/{task-id}/assign", taskId);
-
-        expect()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage))
-            .when()
-            .post("/task/{task-id}/complete", taskId);
+            .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.CONFLICT.value()))
+            .body("message", equalTo(String.format("Task '%s' is already claimed by someone else.", taskId)));
 
     }
 }

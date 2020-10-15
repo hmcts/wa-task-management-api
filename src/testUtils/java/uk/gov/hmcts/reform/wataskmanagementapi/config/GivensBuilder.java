@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import org.eclipse.jetty.http.HttpStatus;
+import io.restassured.http.Headers;
+import io.restassured.response.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -30,8 +33,8 @@ public class GivensBuilder {
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("name", "task name")
             .build();
-
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
             processVariables.getProcessVariablesMap()
@@ -44,7 +47,8 @@ public class GivensBuilder {
             .when()
             .post("/message")
             .then()
-            .statusCode(HttpStatus.NO_CONTENT_204);
+            .assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
         return this;
     }
 
@@ -58,7 +62,8 @@ public class GivensBuilder {
             .when()
             .get("/task" + filter)
             .then()
-            .statusCode(HttpStatus.OK_200)
+            .assertThat()
+            .statusCode(HttpStatus.OK.value())
             .and()
             .extract()
             .jsonPath().getList("", CamundaTask.class);
@@ -66,5 +71,17 @@ public class GivensBuilder {
 
     public GivensBuilder and() {
         return this;
+    }
+
+
+    public void iClaimATaskWithIdAndAuthorization(String taskId, Headers headers) {
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/claim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
     }
 }

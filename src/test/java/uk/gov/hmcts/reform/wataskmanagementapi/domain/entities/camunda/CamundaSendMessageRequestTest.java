@@ -15,6 +15,7 @@ class CamundaSendMessageRequestTest {
             .withProcessVariable("taskId", "someTaskId")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
+            .withProcessVariable("name", "taskName")
             .build();
 
         CamundaSendMessageRequest testObject = new CamundaSendMessageRequest(
@@ -24,7 +25,7 @@ class CamundaSendMessageRequestTest {
 
         assertEquals("someMessageName", testObject.getMessageName());
         assertEquals(testProcessVariables.getProcessVariablesMap(), testObject.getProcessVariables());
-        assertEquals(4, testObject.getProcessVariables().size());
+        assertEquals(5, testObject.getProcessVariables().size());
     }
 
     @Test
@@ -47,8 +48,8 @@ class CamundaSendMessageRequestTest {
             .withProcessVariable("taskId", "someTaskId")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
+            .withProcessVariable("name", "taskName")
             .build();
-
 
         CamundaSendMessageRequest testObject = new CamundaSendMessageRequest(
             null,
@@ -57,6 +58,6 @@ class CamundaSendMessageRequestTest {
 
         assertEquals(null, testObject.getMessageName());
         assertEquals(testProcessVariables.getProcessVariablesMap(), testObject.getProcessVariables());
-        assertEquals(4, testObject.getProcessVariables().size());
+        assertEquals(5, testObject.getProcessVariables().size());
     }
 }

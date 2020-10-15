@@ -8,13 +8,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 
 import java.util.Map;
 
 @FeignClient(
     name = "tasks",
-    url = "${camunda.url}"
+    url = "${camunda.url}",
+    configuration = CamundaFeignConfiguration.class
 )
 @Service
 public interface CamundaServiceApi {

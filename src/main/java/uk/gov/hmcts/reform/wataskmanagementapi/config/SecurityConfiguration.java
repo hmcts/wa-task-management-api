@@ -22,7 +22,6 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.springframework.security.config.http.SessionCreationPolicy.STATELESS;
@@ -50,6 +49,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         this.serviceAuthFiler = serviceAuthFiler;
     }
 
+
     public List<String> getAnonymousPaths() {
         return anonymousPaths;
     }
@@ -57,14 +57,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
         web.ignoring().mvcMatchers(
-            anonymousPaths
-                .stream()
-                .toArray(String[]::new)
+            anonymousPaths.stream().toArray(String[]::new)
         );
     }
 
     @Override
-    protected void configure(final HttpSecurity http) throws Exception {
+    protected void configure(HttpSecurity http) throws Exception {
 
         http
             .addFilterBefore(serviceAuthFiler, BearerTokenAuthenticationFilter.class)
@@ -83,7 +81,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .and()
             .oauth2Client();
     }
-
 
     @Bean
     @Primary

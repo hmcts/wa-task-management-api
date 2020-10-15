@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -63,6 +65,20 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             );
     }
 
+    @ExceptionHandler(ConflictException.class)
+    protected ResponseEntity<ErrorMessage> handleConflictException(
+        HttpServletRequest request,
+        Exception ex
+    ) {
+        errorLogger.maybeLogException(ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.CONFLICT,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
+    }
 
     @ExceptionHandler(ServerErrorException.class)
     protected ResponseEntity<ErrorMessage> handleServerException(
@@ -78,4 +94,20 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
                   )
             );
     }
+
+    @ExceptionHandler(NotImplementedException.class)
+    protected ResponseEntity<ErrorMessage> handleNotImplementedException(
+        HttpServletRequest request,
+        Exception ex
+    ) {
+        errorLogger.maybeLogException(ex);
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.SERVICE_UNAVAILABLE,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
+    }
+
 }

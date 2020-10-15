@@ -11,12 +11,16 @@ import java.util.Objects;
 public class UserInfo {
 
     @JsonProperty("sub")
-    private final String email;
-    private final String uid;
-    private final List<String> roles;
-    private final String name;
-    private final String givenName;
-    private final String familyName;
+    private String email;
+    private String uid;
+    private List<String> roles;
+    private String name;
+    private String givenName;
+    private String familyName;
+
+    public UserInfo() {
+        //No-op constructor for deserialization
+    }
 
     public UserInfo(String email, String uid, List<String> roles, String name, String givenName, String familyName) {
         this.email = email;
