@@ -11,14 +11,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -27,6 +31,9 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
     private String testUrl;
+
+    @Value("${targets.camunda}")
+    private String camundaUrl;
 
     private CcdIdGenerator ccdIdGenerator;
     @Autowired
@@ -110,12 +117,77 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
+
+    @Test
+    public void should_return_a_204_when_unclaiming_a_task_by_id() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        String taskId = tasks.get(0).getId();
+
+        given
+            .iClaimATaskWithIdAndAuthorization(taskId, authorizationHeadersProvider.getLawFirmAAuthorization());
+
+        Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
+
+        Response responseToClaim = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/unclaim", taskId);
+
+        responseToClaim.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        List<HistoryVariableInstance> historyVariableInstances = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/variable-instance?taskIdIn=" + taskId)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .extract()
+            .jsonPath().getList("", HistoryVariableInstance.class);
+
+        List<HistoryVariableInstance> taskState = historyVariableInstances.stream()
+            .filter(historyVariableInstance -> historyVariableInstance.getName().equals("taskState"))
+            .collect(Collectors.toList());
+
+        assertThat(taskState, is(singletonList(new HistoryVariableInstance("taskState", "unassigned"))));
+
+    }
+
+    @Test
+    public void should_return_a_404_when_unclaiming_a_non_existent_task_() {
+
+        String taskId = "00000000-0000-0000-0000-000000000000";
+
+        Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/unclaim", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
+
+
     @Test
     public void should_return_a_503_for_work_in_progress_endpoints() {
         String taskId = UUID.randomUUID().toString();
         String responseMessage = "Code is not implemented";
 
         Response result;
+
 
         result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -132,20 +204,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
             .body("message", equalTo(responseMessage));
 
-        result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .when()
-            .post("/task/{task-id}/unclaim", taskId);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage));
 
         result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)

@@ -73,6 +73,17 @@ class TaskControllerTest {
     }
 
     @Test
+    void should_unclaim_a_task_204_no_content() {
+
+        String taskId = UUID.randomUUID().toString();
+        String authToken = "someAuthToken";
+
+        ResponseEntity<String> response = taskController.unclaimTask(authToken,taskId);
+
+        assertEquals(HttpStatus.NO_CONTENT,response.getStatusCode());
+    }
+
+    @Test
     void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
 
         assertThatThrownBy(() -> taskController.searchWithCriteria())
@@ -80,10 +91,6 @@ class TaskControllerTest {
             .hasMessage("Code is not implemented");
 
         String someTaskId = UUID.randomUUID().toString();
-
-        assertThatThrownBy(() -> taskController.unclaimTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
 
         assertThatThrownBy(() -> taskController.assignTask(
             someTaskId,
