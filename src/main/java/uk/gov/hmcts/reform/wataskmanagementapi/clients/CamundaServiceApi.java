@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 
 import java.util.List;
