@@ -8,9 +8,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
@@ -27,6 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -53,7 +52,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", nonExistentTaskId);
@@ -61,7 +60,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
@@ -81,14 +80,14 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = response.get(0).getId();
 
         Response result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .get("task/{task-id}", taskId);
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().contentType(APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId));
     }
 
@@ -109,7 +108,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = tasks.get(0).getId();
 
         Response result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("task/{task-id}/claim", taskId);
@@ -137,7 +136,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
 
         Response responseToClaim = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/unclaim", taskId);
@@ -146,7 +145,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         List<HistoryVariableInstance> historyVariableInstances = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .when()
             .get("/history/variable-instance?taskIdIn=" + taskId)
@@ -171,7 +170,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
         Response response = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/unclaim", taskId);
@@ -191,7 +190,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
 
         result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("/task");
@@ -199,7 +198,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
@@ -213,7 +212,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
         Response response = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/claim", taskId);
@@ -240,7 +239,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
 
         Response response = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/claim", taskId);
@@ -250,7 +249,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         response.then().assertThat()
             .statusCode(HttpStatus.CONFLICT.value())
             .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.CONFLICT.value()))
@@ -273,8 +272,8 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = tasks.get(0).getId();
 
         Response result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .contentType(APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("task/{task-id}/complete", taskId);
 
@@ -299,8 +298,8 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         assertThat(taskState, is(singletonList(new HistoryVariableInstance("taskState", "completed"))));
 
         Response resultWhenTaskAlreadyCompleted = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getAuthorizationHeaders())
+            .contentType(APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
             .when()
             .post("task/{task-id}/complete", taskId);
 

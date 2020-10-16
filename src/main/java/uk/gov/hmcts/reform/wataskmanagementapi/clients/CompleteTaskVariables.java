@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
