@@ -5,9 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,5 +54,20 @@ public class CamundaService {
             }
         }
 
+    }
+
+    public void unclaimTask(String id) {
+        try {
+            HashMap<String, CamundaValue<String>> variable = new HashMap<>();
+            variable.put("taskState", CamundaValue.stringValue("unassigned"));
+            AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
+            camundaServiceApi.addLocalVariables(id, camundaLocalVariables);
+            camundaServiceApi.unclaimTask(id);
+        } catch (FeignException ex) {
+            throw new ResourceNotFoundException(String.format(
+                "There was a problem unclaiming the task with id: %s",
+                id
+            ), ex);
+        }
     }
 }
