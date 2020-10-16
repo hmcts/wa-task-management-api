@@ -28,9 +28,8 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
         RestAssured.useRelaxedHTTPSValidation();
     }
 
-
     /**
-     * Open Id verification should trigger first therefore it should return a 401
+     * Open Id verification should trigger first therefore it should return a 401.
      * if no bearer token is provided
      */
     @Test
@@ -105,7 +104,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
     }
 
     /**
-     * Service authentication should trigger after therefore it should still return a 401
+     * Service authentication should trigger after therefore it should still return a 401.
      * if no service authorization token is provided
      */
     @Test
