@@ -32,6 +32,7 @@ allprojects {
 }
 
 sourceSets {
+
   testUtils {
     java {
       compileClasspath += main.output
@@ -40,6 +41,7 @@ sourceSets {
     }
     resources.srcDir file('src/testUtils/resources')
   }
+
   functionalTest {
     java {
       compileClasspath += testUtils.output
@@ -67,21 +69,6 @@ sourceSets {
     resources.srcDir file('src/smokeTest/resources')
   }
 }
-
-
-idea {
-  module {
-    sourceDirs += project.sourceSets.testUtils.java.srcDirs
-    resourceDirs += project.sourceSets.testUtils.resources.srcDirs
-    testSourceDirs += project.sourceSets.integrationTest.java.srcDirs
-    testResourceDirs += project.sourceSets.integrationTest.resources.srcDirs
-    testSourceDirs += project.sourceSets.functionalTest.java.srcDirs
-    testResourceDirs += project.sourceSets.functionalTest.resources.srcDirs
-    testSourceDirs += project.sourceSets.smokeTest.java.srcDirs
-    testResourceDirs += project.sourceSets.smokeTest.resources.srcDirs
-  }
-}
-
 
 tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
@@ -170,7 +157,8 @@ sonarqube {
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
                                  "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
-                                 "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**"
+                                 "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
+                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
   }
 }
 
@@ -219,13 +207,12 @@ def versions = [
   junit           : '5.7.0',
   junitPlatform   : '1.7.0',
   reformLogging   : '5.1.5',
-  springBoot      : '5.2.9',
+  springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '2.9.2',
   serenity        : '2.2.12',
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
-  camunda         : '7.13.0'
 ]
 
 ext.libraries = [
@@ -239,10 +226,10 @@ ext.libraries = [
 ]
 
 dependencies {
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.3.4.RELEASE'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.3.4.RELEASE'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '2.3.4.RELEASE'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: '2.3.4.RELEASE'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
 
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
@@ -259,11 +246,11 @@ dependencies {
   compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.38'
 
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
-  compile group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '1.3.1'
 
   compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.1'
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
-  compile group: 'com.sun.xml.bind', name: 'jaxb-impl', version: '3.0.0-M4'
+
+  compile group: 'com.auth0', name: 'java-jwt', version: '3.10.3'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
@@ -275,19 +262,18 @@ dependencies {
   testCompile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
   testCompile 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
 
-  testUtilsImplementation sourceSets.main.runtimeClasspath
-  testUtilsImplementation sourceSets.test.runtimeClasspath
-
   testCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testCompile "org.junit.vintage:junit-vintage-engine:${versions.junit}"
 
-  integrationTestImplementation group: 'org.camunda.bpm.dmn', name: 'camunda-engine-dmn', version: "${versions.camunda}"
-  integrationTestImplementation group: 'org.camunda.bpm.assert', name: 'camunda-bpm-assert', version: '7.0.0'
-  integrationTestImplementation group: 'org.camunda.bpm', name: 'camunda-engine', version: '7.13.0'
-  integrationTestImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
+  testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
+  testCompile group: 'com.google.guava', name: 'guava-testlib', version: '29.0-jre'
+  testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
+
+  testUtilsImplementation sourceSets.main.runtimeClasspath
+  testUtilsImplementation sourceSets.test.runtimeClasspath
 
   integrationTestImplementation sourceSets.main.runtimeClasspath
   integrationTestImplementation sourceSets.test.runtimeClasspath

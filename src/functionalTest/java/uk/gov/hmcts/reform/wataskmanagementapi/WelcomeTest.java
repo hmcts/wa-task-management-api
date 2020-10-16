@@ -1,42 +1,35 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import io.restassured.RestAssured;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import net.serenitybdd.rest.SerenityRest;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 
+import static net.serenitybdd.rest.SerenityRest.expect;
 import static org.hamcrest.Matchers.containsString;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
-@SpringBootTest
-@ActiveProfiles("functional")
-public class WelcomeTest {
+public class WelcomeTest extends SpringBootFunctionalBaseTest {
 
-
-    @Value("${targets.instance}") private String testUrl;
+    @Value("${targets.instance}")
+    private String testUrl;
 
     @Before
     public void setUp() {
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
+        RestAssured.with().contentType(MediaType.APPLICATION_JSON_VALUE);
     }
 
     @Test
     public void should_welcome_with_200_response_code() {
 
-        SerenityRest.given()
-            .when()
-            .get("/")
-            .then()
+        expect()
             .statusCode(HttpStatus.OK.value())
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body(containsString("Welcome to wa-task-management-api"));
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body(containsString("Welcome to wa-task-management-api"))
+            .when()
+            .get("/");
     }
 }

@@ -11,16 +11,42 @@ management:
       exposure:
         include: health, info, prometheus
 config:
-  stacktraceEnabled:  ${STACKTRACE_ENABLED:false}
+  stacktraceEnabled: ${STACKTRACE_ENABLED:false}
 
 enableSwagger: ${ENABLE_SWAGGER:true}
-testProperty: ${A_SECRET:defaultValue}
+
+camunda:
+  url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
+auth:
+  provider:
+    service:
+      client:
+        baseUrl: ${S2S_URL:http://service-auth-provider-api}
+
+idam:
+  baseUrl: ${IDAM_URL:http://sidam-api}
+  redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
+  scope: "openid profile roles"
+  s2s-auth:
+    url: ${S2S_URL:http://service-auth-provider-api}
+    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
+    name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
 
 spring:
   main:
     allow-bean-definition-overriding: true
   application:
-    name: wa-task-management-api
+    name: WA Task Management
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  security:
+    oauth2:
+      client:
+        registration:
+          oidc:
+            client-id: ${IA_IDAM_CLIENT_ID:iac}
+            client-secret: ${IA_IDAM_SECRET:something}
 
 security:
   anonymousPaths:
@@ -36,25 +62,3 @@ security:
     - "/favicon.ico"
   authorisedServices:
     - "wa_task_management_api"
-
-auth:
-  provider:
-    service:
-      client:
-        baseUrl: ${S2S_URL:http://service-auth-provider-api}
-
-idam:
-  s2s-auth:
-    url: ${S2S_URL:http://service-auth-provider-api}
-    secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
-    name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
-
-camunda:
-  url: ${CAMUNDA_URL:http://localhost:8080/engine-rest}
-#
-#credentials:
-#  wa:
-#    system:
-#      user: ${WA_SYSTEM_USERNAME:system-user}
-#      password: ${WA_SYSTEM_PASSWORD:system-password}
-#
