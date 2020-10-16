@@ -38,7 +38,8 @@ class TaskMapperTest {
             ZonedDateTime.now(),
             dueDate,
             null,
-            null
+            null,
+            "formKey"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
@@ -76,7 +77,8 @@ class TaskMapperTest {
             ZonedDateTime.now(),
             dueDate,
             null,
-            null
+            null,
+            "formKey"
         );
 
         Task result = taskMapper.mapToTaskObject(camundaTask, new HashMap<>());
@@ -101,7 +103,8 @@ class TaskMapperTest {
             ZonedDateTime.now(),
             dueDate,
             null,
-            null
+            null,
+            "formKey"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
@@ -134,7 +137,8 @@ class TaskMapperTest {
             ZonedDateTime.now(),
             dueDate,
             null,
-            null
+            null,
+            "formKey"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();

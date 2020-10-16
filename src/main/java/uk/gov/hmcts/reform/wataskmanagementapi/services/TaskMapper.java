@@ -57,12 +57,15 @@ public class TaskMapper {
             );
         }
 
+        String title = getVariableValue(variables.get("title"));
+
         return new Task(
             taskName,
             state,
             dueDate,
             caseData,
-            assignee
+            assignee,
+            title
         );
     }
 

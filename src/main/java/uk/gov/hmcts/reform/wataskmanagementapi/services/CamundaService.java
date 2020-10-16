@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -14,9 +15,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.MappedTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.CreateHmctsTaskVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.CreateHmctsTaskVariable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +37,7 @@ public class CamundaService {
     private final CamundaErrorDecoder camundaErrorDecoder;
     private final CamundaQueryBuilder camundaQueryBuilder;
     private final TaskMapper taskMapper;
+    private final CreateHmctsTaskVariable createHmctsTaskVariable;
     private final AuthTokenGenerator authTokenGenerator;
 
     @Autowired
@@ -39,17 +45,25 @@ public class CamundaService {
                           CamundaQueryBuilder camundaQueryBuilder,
                           TaskMapper taskMapper,
                           CamundaErrorDecoder camundaErrorDecoder,
-                          AuthTokenGenerator authTokenGenerator) {
+                          CreateHmctsTaskVariable createHmctsTaskVariable,
+                          AuthTokenGenerator authTokenGenerator
+
+    ) {
         this.camundaServiceApi = camundaServiceApi;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.taskMapper = taskMapper;
         this.camundaErrorDecoder = camundaErrorDecoder;
+        this.createHmctsTaskVariable = createHmctsTaskVariable;
         this.authTokenGenerator = authTokenGenerator;
     }
 
-    public CamundaTask getTask(String id) {
+    public MappedTask getTask(String id) {
         try {
-            return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
+
+            //Create a hashMap which returns all localVariables
+            Map<String, CamundaVariable> localVariableResponse = camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
+            CamundaTask camundaTask = camundaServiceApi.getTask(authTokenGenerator.generate(), id);
+            return createHmctsTaskVariable.addVariables(localVariableResponse, camundaTask);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the task with id: %s",

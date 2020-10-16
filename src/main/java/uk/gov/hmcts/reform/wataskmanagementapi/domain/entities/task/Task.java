@@ -14,18 +14,21 @@ public class Task {
     private ZonedDateTime dueDate;
     private CaseData caseData;
     private Assignee assignee;
+    private String title;
 
     private Task() {
         //Default constructor for deserialization
         super();
     }
 
-    public Task(String name, String state, ZonedDateTime dueDate, CaseData caseData, Assignee assignee) {
+    public Task(String name, String state, ZonedDateTime dueDate, CaseData caseData, Assignee assignee, String title) {
         this.name = name;
         this.state = state;
         this.dueDate = dueDate;
         this.caseData = caseData;
         this.assignee = assignee;
+        this.title = title;
+
     }
 
     public String getName() {
@@ -48,6 +51,10 @@ public class Task {
         return assignee;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
     @Override
     public boolean equals(Object object) {
         if (this == object) {
@@ -62,6 +69,7 @@ public class Task {
                && Objects.equals(dueDate, task.dueDate)
                && Objects.equals(caseData, task.caseData)
                && Objects.equals(assignee, task.assignee);
+               && Objects.equals(title, task.title);
     }
 
     @Override
@@ -77,6 +85,7 @@ public class Task {
                + ", dueDate=" + dueDate
                + ", caseData=" + caseData
                + ", assignee=" + assignee
+               + ", title=" + title
                + '}';
     }
 }
