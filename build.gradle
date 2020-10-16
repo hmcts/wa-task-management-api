@@ -229,6 +229,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-security'
   compile "org.springframework.boot:spring-boot-starter-oauth2-resource-server"
   compile "org.springframework.boot:spring-boot-starter-oauth2-client"
 
@@ -249,7 +250,7 @@ dependencies {
 
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
 
-  compile group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '8.19'
+  compile group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '9.0.1'
 
   compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.2'
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
