@@ -8,4 +8,16 @@
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
   </suppress>
+  <suppress until="2020-11-01">
+    <notes><![CDATA[
+     Suppressing as it doesn't seem to have a solution yet, needs to reviewed
+   ]]></notes>
+    <cve>CVE-2007-1651</cve>
+  </suppress>
+  <suppress until="2020-11-01">
+    <notes><![CDATA[
+     Suppressing as it doesn't seem to have a solution yet, needs to reviewed
+   ]]></notes>
+    <cve>CVE-2007-1652</cve>
+  </suppress>
 </suppressions>
