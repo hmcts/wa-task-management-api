@@ -202,8 +202,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .when()
             .post("task/{task-id}/claim", taskId);
 
-        response.prettyPrint();
-
         response.then().assertThat()
             .statusCode(HttpStatus.CONFLICT.value())
             .and()
