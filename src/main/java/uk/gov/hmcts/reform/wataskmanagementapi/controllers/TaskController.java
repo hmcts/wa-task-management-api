@@ -144,7 +144,7 @@ public class TaskController {
     @ApiResponses({
         @ApiResponse(
             code = 204,
-            message = "No Content"
+            message = "Task unclaimed"
         ),
         @ApiResponse(
             code = 400,
@@ -165,8 +165,13 @@ public class TaskController {
     })
     @PostMapping(path = "/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> unclaimTask(@PathVariable("task-id") String taskId) {
-        throw new NotImplementedException();
+    public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
+                                              @PathVariable("task-id") String taskId) {
+        camundaService.unclaimTask(taskId);
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
     }
 
     @ApiOperation("Assign the identified Task to a specified user.")

@@ -102,4 +102,36 @@ class CamundaServiceTest {
 
     }
 
+    @Test
+    void unclaimTask_should_succeed() {
+
+        String taskId = UUID.randomUUID().toString();
+
+        camundaService.unclaimTask(taskId);
+        verify(camundaServiceApi, times(1)).unclaimTask(eq(taskId));
+    }
+
+    @Test
+    void unclaimTask_should_throw_resource_not_found_exception_when_other_exception_is_thrown() {
+
+        String taskId = UUID.randomUUID().toString();
+        String exceptionMessage = "some exception message";
+
+        TestFeignClientException exception =
+            new TestFeignClientException(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                exceptionMessage
+            );
+
+        doThrow(exception)
+            .when(camundaServiceApi).unclaimTask(eq(taskId));
+
+        assertThatThrownBy(() -> camundaService.unclaimTask(taskId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasCauseInstanceOf(FeignException.class);
+
+
+    }
 }
+
