@@ -64,7 +64,9 @@ public class DomainObjectsTest {
                     .collect(toList());
                 for (Object reallyDifferentObject : reallyDifferentObjects) {
                     assertThat(
-                        "Check instance does not equal another instance that is different \n" + newInstance + "\n" + reallyDifferentObject,
+                        "Check instance does not equal another instance that is different \n"
+                        + newInstance + "\n"
+                        + reallyDifferentObject,
                         newInstance.equals(reallyDifferentObject),
                         is(false)
                     );
