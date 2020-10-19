@@ -46,13 +46,6 @@ public interface CamundaServiceApi {
     )
     void unclaimTask(@PathVariable("task-id") String id);
 
-    @PostMapping(
-        value = "/task/{task-id}/localVariables",
-        consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    void addLocalVariables(@PathVariable("task-id") String id,
-                   @RequestBody AddLocalVariableRequest addLocalVariableRequest);
-
     @GetMapping(value = "/history/variable-instance", produces = MediaType.APPLICATION_JSON_VALUE)
     List<HistoryVariableInstance> getTaskVariables(@RequestParam("taskIdIn") String taskId);
 
@@ -61,4 +54,13 @@ public interface CamundaServiceApi {
 
     @PostMapping(value = "/task/{id}/localVariables", produces = MediaType.APPLICATION_JSON_VALUE)
     void addLocalVariablesToTask(@PathVariable("id") String taskId, AddLocalVariableRequest addLocalVariableRequest);
+
+    @PostMapping(
+        value = "/task/{task-id}/assignee",
+        consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    void assigneeTask(@PathVariable("task-id") String id,
+                      @RequestBody Map<String, String> body);
+
+
 }

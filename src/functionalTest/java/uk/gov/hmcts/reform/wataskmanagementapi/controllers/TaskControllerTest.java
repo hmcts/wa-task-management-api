@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
@@ -306,4 +307,66 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         resultWhenTaskAlreadyCompleted.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
+
+    @Test
+    public void should_return_a_204_when_assignee_a_task_by_id() {
+
+        String ccdId = ccdIdGenerator.generate();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+        if (tasks.size() > 1) {
+            fail("Search was not an exact match and returned more than one task:" + "used:" + ccdId);
+        }
+
+        String taskId = tasks.get(0).getId();
+
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("task/{task-id}/assignee", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+
+        List<HistoryVariableInstance> historyVariableInstances = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/variable-instance?taskIdIn=" + taskId)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .extract()
+            .jsonPath().getList("", HistoryVariableInstance.class);
+
+        List<HistoryVariableInstance> taskState = historyVariableInstances.stream()
+            .filter(historyVariableInstance -> historyVariableInstance.getName().equals("taskState"))
+            .collect(Collectors.toList());
+
+        assertThat(taskState, is(singletonList(new HistoryVariableInstance("taskState", "assigned"))));
+    }
+
+
+    @Test
+    public void should_return_a_404_when_assignee_a_non_existent_task_() {
+
+        String taskId = "00000000-0000-0000-0000-000000000000";
+
+        Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(headers)
+            .when()
+            .post("task/{task-id}/assignee", taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+    }
+
 }

@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@SuppressWarnings("PMD.LawOfDemeter")
+@SuppressWarnings({"PMD.LawOfDemeter","PMD.AvoidDuplicateLiterals"})
 public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
@@ -56,7 +56,27 @@ public class CamundaService {
                 camundaErrorDecoder.decodeException(ex);
             }
         }
+    }
 
+    public void assigneeTask(String taskId, String userId) {
+        try {
+            Map<String, String> body = new ConcurrentHashMap<>();
+            body.put("userId", userId);
+            HashMap<String, CamundaValue<String>> variable = new HashMap<>();
+            variable.put("taskState", CamundaValue.stringValue("assigned"));
+            AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
+            camundaServiceApi.addLocalVariablesToTask(taskId, camundaLocalVariables);
+            camundaServiceApi.assigneeTask(taskId, body);
+        } catch (FeignException ex) {
+            if (HttpStatus.NOT_FOUND.value() == ex.status()) {
+                throw new ResourceNotFoundException(String.format(
+                    "There was a problem assigning the task with id: %s",
+                    taskId
+                ), ex);
+            } else {
+                camundaErrorDecoder.decodeException(ex);
+            }
+        }
     }
 
     public void unclaimTask(String id) {
@@ -64,7 +84,7 @@ public class CamundaService {
             HashMap<String, CamundaValue<String>> variable = new HashMap<>();
             variable.put("taskState", CamundaValue.stringValue("unassigned"));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariables(id, camundaLocalVariables);
+            camundaServiceApi.addLocalVariablesToTask(id, camundaLocalVariables);
             camundaServiceApi.unclaimTask(id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(

@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -84,18 +83,23 @@ class TaskControllerTest {
     }
 
     @Test
+    void should_succeed_and_return_a_204_no_content_when_assigning_task() {
+
+        String taskId = UUID.randomUUID().toString();
+        String authToken = "someAuthToken";
+        String userId = UUID.randomUUID().toString();
+
+        when(idamService.getUserId(authToken)).thenReturn(userId);
+
+        ResponseEntity<String> response = taskController.assignTask(authToken, taskId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
     void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
-
         assertThatThrownBy(() -> taskController.searchWithCriteria())
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
-
-        String someTaskId = UUID.randomUUID().toString();
-
-        assertThatThrownBy(() -> taskController.assignTask(
-            someTaskId,
-            new AssignTaskRequest("some-user")
-        ))
             .isInstanceOf(NotImplementedException.class)
             .hasMessage("Code is not implemented");
     }
