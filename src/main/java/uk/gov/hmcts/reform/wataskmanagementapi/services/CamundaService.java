@@ -8,9 +8,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,6 +69,29 @@ public class CamundaService {
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem unclaiming the task with id: %s",
+                id
+            ), ex);
+        }
+    }
+
+    public void completeTask(String id) {
+        try {
+            List<HistoryVariableInstance> taskVariables = camundaServiceApi.getTaskVariables(id);
+
+            boolean taskHasCompleted = taskVariables.stream()
+                .anyMatch(taskVariable -> taskVariable.getName().equals("taskState")
+                                          && taskVariable.getValue().equals("completed"));
+
+            if (!taskHasCompleted) {
+                HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
+                modifications.put("taskState", CamundaValue.stringValue("completed"));
+                camundaServiceApi.addLocalVariablesToTask(id, new AddLocalVariableRequest(modifications));
+                camundaServiceApi.completeTask(id, new CompleteTaskVariables());
+            }
+        } catch (FeignException ex) {
+            // This endpoint throws a 500 when the task doesn't exist.
+            throw new ResourceNotFoundException(String.format(
+                "There was a problem completing the task with id: %s",
                 id
             ), ex);
         }

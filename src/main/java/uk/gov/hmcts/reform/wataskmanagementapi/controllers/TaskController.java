@@ -25,9 +25,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @RequestMapping(
-    path = "/task",
-    consumes = APPLICATION_JSON_VALUE,
-    produces = APPLICATION_JSON_VALUE
+    path = "/task"
 )
 @RestController
 public class TaskController {
@@ -207,7 +205,7 @@ public class TaskController {
     @ApiResponses({
         @ApiResponse(
             code = 204,
-            message = "No Content"
+            message = "Task has been completed"
         ),
         @ApiResponse(
             code = 400,
@@ -226,9 +224,13 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/complete",
-        produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> completeTask(@PathVariable("task-id") String taskId) {
-        throw new NotImplementedException();
+    @PostMapping(path = "/{task-id}/complete")
+    public ResponseEntity<Void> completeTask(@PathVariable("task-id") String taskId) {
+        camundaService.completeTask(taskId);
+
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
     }
 }

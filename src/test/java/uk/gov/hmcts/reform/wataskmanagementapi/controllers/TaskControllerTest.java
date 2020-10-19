@@ -98,9 +98,15 @@ class TaskControllerTest {
         ))
             .isInstanceOf(NotImplementedException.class)
             .hasMessage("Code is not implemented");
+    }
 
-        assertThatThrownBy(() -> taskController.completeTask(someTaskId))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
+    @Test
+    void should_complete_a_task() {
+        String taskId = UUID.randomUUID().toString();
+
+        ResponseEntity response = taskController.completeTask(taskId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }
