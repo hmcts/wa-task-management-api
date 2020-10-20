@@ -30,11 +30,11 @@ public class TaskMapper {
             assignee = new Assignee(camundaTask.getAssignee(), "username");
         }
 
-        String staffLocation = getVariableValue(variables.get("staffLocationId"));
+        String staffLocation = getVariableValue(variables.get("location"));
         if (staffLocation != null) {
             location = new Location(
-                getVariableValue(variables.get("staffLocationId")),
-                getVariableValue(variables.get("staffLocation"))
+                getVariableValue(variables.get("location")),
+                getVariableValue(variables.get("locationName"))
             );
         }
 

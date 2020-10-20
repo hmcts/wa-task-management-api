@@ -43,8 +43,8 @@ class TaskMapperTest {
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("caseType", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
-        variables.put("staffLocationId", new CamundaVariable("someStaffLocationId", "String"));
-        variables.put("staffLocation", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
+        variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
 
         Task result = taskMapper.mapToTaskObject(camundaTask, variables);
         assertEquals("configured", result.getState());
@@ -139,8 +139,8 @@ class TaskMapperTest {
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("caseType", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
-        variables.put("staffLocationId", new CamundaVariable("someStaffLocationId", "String"));
-        variables.put("staffLocation", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
+        variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
 
         Task result = taskMapper.mapToTaskObject(camundaTask, variables);
 

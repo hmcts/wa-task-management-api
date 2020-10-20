@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteT
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -132,7 +133,6 @@ public class CamundaService {
 
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-
         List<Task> response = new ArrayList<>();
 
         try {

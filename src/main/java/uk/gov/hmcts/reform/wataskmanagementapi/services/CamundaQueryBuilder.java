@@ -38,7 +38,7 @@ public class CamundaQueryBuilder {
         CamundaOrQuery.CamundaOrQueryBuilder locationQueries = asOrQuery(locationExpressions);
 
         Set<CamundaSearchExpression> stateQueriesExpressions =
-            asMultipleExpressions("state", operator, searchParameters.getState());
+            asMultipleExpressions("taskState", operator, searchParameters.getState());
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = asOrQuery(stateQueriesExpressions);
 
         CamundaSearchExpression ccdIdQuery =

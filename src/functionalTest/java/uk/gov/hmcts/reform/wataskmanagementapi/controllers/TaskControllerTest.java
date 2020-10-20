@@ -12,12 +12,14 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.SearchParameters;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -25,10 +27,14 @@ import static java.util.Collections.singletonList;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
 public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -216,6 +222,157 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         ;
     }
 
+    @Test
+    public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_state_filters() {
+
+        String ccdId1 = ccdIdGenerator.generate();
+
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("location", "17595")
+            .withProcessVariable("locationName", "A Hearing Centre")
+            .withProcessVariable("taskState", "unassigned")
+            .build();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId1)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId1);
+
+        String taskId = tasks.get(0).getId();
+
+
+        given
+            .iAddVariablesToTaskWithId(taskId, processVariables);
+
+        SearchParameters searchParameters = new SearchParameters(
+            singletonList("IA"),
+            emptyList(),
+            singletonList("17595"),
+            singletonList("unassigned"),
+            null,
+            null,
+            null,
+            null
+        );
+
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .body(new SearchTaskRequest(singletonList(searchParameters)))
+            .when()
+            .post("task");
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.state", everyItem(equalTo("unassigned")))
+            .body("tasks.caseData.reference", hasItem(ccdId1))
+            .body("tasks.caseData.location.id", everyItem(equalTo("17595")))
+        ;
+    }
+
+
+    @Test
+    public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
+
+        String ccdId1 = ccdIdGenerator.generate();
+
+        CamundaProcessVariables processVariables1 = processVariables()
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("location", "17595")
+            .withProcessVariable("locationName", "A Hearing Centre")
+            .withProcessVariable("taskState", "assigned")
+            .build();
+
+        List<CamundaTask> tasks = given
+            .iCreateATaskWithCcdId(ccdId1)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId1);
+
+        String taskId = tasks.get(0).getId();
+
+
+        given
+            .iAddVariablesToTaskWithId(taskId, processVariables1);
+
+        SearchParameters searchParameters = new SearchParameters(
+            singletonList("IA"),
+            emptyList(),
+            singletonList("17595"),
+            emptyList(),
+            null,
+            null,
+            null,
+            null
+        );
+
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .body(new SearchTaskRequest(singletonList(searchParameters)))
+            .when()
+            .post("task");
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.caseData.reference", hasItem(ccdId1))
+            .body("tasks.caseData.location.id", everyItem(equalTo("17595")));
+    }
+
+
+    @Test
+    public void should_return_a_503_for_work_in_progress_endpoints() {
+        String taskId = UUID.randomUUID().toString();
+        String responseMessage = "Code is not implemented";
+
+        Response result;
+
+        result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("/task");
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage));
+
+        result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("/task/{task-id}/unclaim", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage));
+
+        result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .when()
+            .post("/task/{task-id}/complete", taskId);
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+            .and()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("timestamp", is(notNullValue()))
+            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
+            .body("message", equalTo(responseMessage));
+    }
 
     @Test
     public void should_return_a_404_when_claiming_a_non_existent_task_() {
@@ -224,7 +381,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
         Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
         Response response = given()
-            .contentType(APPLICATION_JSON_VALUE)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/claim", taskId);
@@ -251,7 +408,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
 
         Response response = given()
-            .contentType(APPLICATION_JSON_VALUE)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(headers)
             .when()
             .post("task/{task-id}/claim", taskId);
@@ -261,7 +418,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         response.then().assertThat()
             .statusCode(HttpStatus.CONFLICT.value())
             .and()
-            .contentType(APPLICATION_JSON_VALUE)
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.CONFLICT.value()))

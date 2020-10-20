@@ -46,7 +46,6 @@ public class AuthorizationHeadersProvider {
         String username = System.getenv("TEST_LAW_FIRM_A_USERNAME");
         String password = System.getenv("TEST_LAW_FIRM_A_PASSWORD");
 
-
         MultiValueMap<String, String> body = createIdamRequest(username, password);
 
         String accessToken = tokens.computeIfAbsent(

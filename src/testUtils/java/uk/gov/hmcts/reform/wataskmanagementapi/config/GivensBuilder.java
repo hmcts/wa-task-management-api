@@ -7,8 +7,10 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.time.ZonedDateTime.now;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -84,5 +86,32 @@ public class GivensBuilder {
 
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+    }
+
+    public GivensBuilder iAddVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .body(new Modifications(processVariables.getProcessVariablesMap()))
+            .when()
+            .post("/task/{task-id}/variables", taskId)
+            .then()
+            .log().all(true)
+            .assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        return this;
+    }
+
+    private class Modifications {
+        private Map<String, CamundaValue<?>> modifications;
+
+        public Modifications(Map<String, CamundaValue<?>> processVariablesMap) {
+            super();
+            this.modifications = processVariablesMap;
+        }
+
+        public Map<String, CamundaValue<?>> getModifications() {
+            return modifications;
+        }
     }
 }

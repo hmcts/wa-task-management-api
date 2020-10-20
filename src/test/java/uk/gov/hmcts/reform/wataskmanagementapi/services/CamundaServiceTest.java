@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -150,18 +148,14 @@ class CamundaServiceTest {
         doThrow(exception)
             .when(camundaServiceApi).claimTask(eq(taskId), anyMap());
 
-        when(camundaErrorDecoder.decode(anyString())).thenReturn(exceptionMessage);
+        camundaService.claimTask(taskId, userId);
 
-        assertThatThrownBy(() -> camundaService.claimTask(taskId, userId))
-            .isInstanceOf(ServerErrorException.class)
-            .hasCauseInstanceOf(FeignException.class)
-            .hasMessage(String.format(
-                "Could not claim the task with id: %s. %s", taskId, exceptionMessage
-            ));
+        verify(camundaErrorDecoder, times(1)).decodeException(exception);
+        verifyNoMoreInteractions(camundaErrorDecoder);
     }
 
     @Test
-    void searchWithCriteria_should_succeed() throws JsonProcessingException {
+    void searchWithCriteria_should_succeed() {
 
 
         SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
@@ -360,8 +354,8 @@ class CamundaServiceTest {
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("caseType", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
-        variables.put("staffLocationId", new CamundaVariable("someStaffLocationId", "String"));
-        variables.put("staffLocation", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
+        variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
 
         return variables;
     }
