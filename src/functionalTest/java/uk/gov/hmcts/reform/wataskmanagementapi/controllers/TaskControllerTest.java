@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -318,60 +317,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.caseData.reference", hasItem(ccdId1))
             .body("tasks.caseData.location.id", everyItem(equalTo("17595")));
-    }
-
-
-    @Test
-    public void should_return_a_503_for_work_in_progress_endpoints() {
-        String taskId = UUID.randomUUID().toString();
-        String responseMessage = "Code is not implemented";
-
-        Response result;
-
-        result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .when()
-            .post("/task");
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage));
-
-        result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .when()
-            .post("/task/{task-id}/unclaim", taskId);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage));
-
-        result = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .when()
-            .post("/task/{task-id}/complete", taskId);
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-            .and()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
-            .body("error", equalTo(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.SERVICE_UNAVAILABLE.value()))
-            .body("message", equalTo(responseMessage));
     }
 
     @Test
