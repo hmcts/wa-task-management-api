@@ -104,4 +104,12 @@ public interface CamundaServiceApi {
     Map<String, CamundaVariable> getVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                               @PathVariable("task-id") String id);
 
+    @GetMapping(
+        value = "/task/{task-id}/localVariables",
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    Map<String, CamundaVariable> getLocalVariables(@PathVariable("task-id") String id);
+
+
 }

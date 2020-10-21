@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.response;
 
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.MappedTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 
-public class GetTaskResponse<T extends MappedTask> {
+public class GetTaskResponse<T extends Task> {
 
     private final T task;
 

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.MappedTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -12,15 +12,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GetTaskResponseTest {
 
     @Mock
-    private MappedTask mappedTask;
+    private Task task;
 
     @Test
     void should_create_object_and_get_value() {
 
-        assertThat(mappedTask).isNotNull();
-        final GetTaskResponse<MappedTask> camundaTaskGetTaskResponse =
-            new GetTaskResponse<>(mappedTask);
-        assertThat(camundaTaskGetTaskResponse.getTask()).isEqualTo(mappedTask);
+        assertThat(task).isNotNull();
+        final GetTaskResponse<Task> camundaTaskGetTaskResponse =
+            new GetTaskResponse<>(task);
+        assertThat(camundaTaskGetTaskResponse.getTask()).isEqualTo(task);
 
     }
 

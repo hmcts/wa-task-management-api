@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.MappedTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 
 import java.util.Map;
 
@@ -17,7 +17,7 @@ public class CreateHmctsTaskVariable {
     //Default constructor
     }
 
-    public MappedTask addVariables(Map<String, CamundaVariable> localVariableResponse, CamundaTask camundaTask) {
+    public Task mapToTaskObject(Map<String, CamundaVariable> localVariableResponse, CamundaTask camundaTask) {
         // Camunda Attributes
         String id = camundaTask.getId();
         String name = camundaTask.getName();
@@ -41,7 +41,7 @@ public class CreateHmctsTaskVariable {
         String caseName = getValueFromObject(localVariableResponse, "caseName");
         String caseCategory = getValueFromObject(localVariableResponse, "appealType");
 
-        return new MappedTask(
+        return new Task(
             id,
             name,
             task,

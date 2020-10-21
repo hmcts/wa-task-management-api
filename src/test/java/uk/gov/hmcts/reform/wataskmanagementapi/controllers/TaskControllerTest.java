@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.MappedTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
@@ -49,10 +50,10 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        MappedTask mockedTask = mock(MappedTask.class);
+        Task mockedTask = mock(Task.class);
         when(camundaService.getTask(taskId)).thenReturn(mockedTask);
 
-        ResponseEntity<GetTaskResponse<MappedTask>> response = taskController.getTask(taskId);
+        ResponseEntity<GetTaskResponse<Task>> response = taskController.getTask(taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());

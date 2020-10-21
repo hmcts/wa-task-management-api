@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.MappedTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
@@ -68,7 +67,8 @@ public class TaskController {
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
+        @RequestBody SearchTaskRequest searchTaskRequest) {
 
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -106,8 +106,8 @@ public class TaskController {
         )
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTaskResponse<MappedTask>> getTask(@PathVariable("task-id") String id) {
-        MappedTask task = camundaService.getTask(id);
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@PathVariable("task-id") String id) {
+        Task task = camundaService.getTask(id);
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

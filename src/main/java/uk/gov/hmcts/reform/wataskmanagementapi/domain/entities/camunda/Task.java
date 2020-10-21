@@ -2,69 +2,138 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
-@SuppressWarnings({"PMD.LawOfDemeter","PMD.TooManyFields","PMD.ExcessiveParameterList"})
+@SuppressWarnings({"PMD.LawOfDemeter","PMD.TooManyFields","PMD.ExcessiveParameterList","PMD.ShortClassName"})
 @ApiModel("Task")
-public class MappedTask {
-
+public class Task {
+    @ApiModelProperty(
+        required = true,
+        notes = "Unique identifier for the task"
+    )
     private String id;
+    @ApiModelProperty(
+        required = true,
+        notes = "Name of the task assigned in the process model"
+    )
     private String name;
+    @ApiModelProperty(
+        required = true,
+        notes = "The single user who has been assigned this task i.e. IDAM ID"
+    )
     private String assignee;
+    @ApiModelProperty(
+        required = true,
+        notes = "Unique identifier for the conceptual business task"
+    )
     private String type;
+    @ApiModelProperty(
+        required = true,
+        notes = "unconfigured, unassigned, configured, assigned, referred, completed, cancelled"
+    )
     private String taskState;
+    @ApiModelProperty(
+        required = true,
+        notes = " Code indicating the system which is responsible for this task. For MVP will be always SELF"
+    )
     private String taskSystem;
+    @ApiModelProperty(
+        required = true,
+        notes = "The security classification of the main business entity this task relates to."
+                + " Can be PUBLIC, PRIVATE, RESTRICTED"
+    )
     private String securityClassification;
+    @ApiModelProperty(
+        required = true,
+        notes = "Task title to display in task list UI"
+    )
     private String taskTitle;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
+    @ApiModelProperty(
+        example = "2020-09-05T14:47:01.250542+01:00",
+        notes = "Optional due date for the task that will be created"
+    )
     private String createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
+    @ApiModelProperty(
+        example = "2020-09-05T14:47:01.250542+01:00",
+        notes = "Optional due date for the task that will be created"
+    )
     private String dueDate;
+    @ApiModelProperty(required = true,
+        notes = "`location to display in task list UI"
+    )
     private String locationName;
+    @ApiModelProperty(required = true,
+        notes = "The ePims ID for the physical location"
+    )
     private String location;
+    @ApiModelProperty(required = true,
+        notes = "Indicator to the user interface of how this task is to be executed. "
+                + "For MVP, this will always be \"Case Management Task\""
+    )
     private String executionType;
+    @ApiModelProperty(required = true,
+        notes = "For MVP, will always be \"IA\""
+    )
     private String jurisdiction;
+    @ApiModelProperty(required = true,
+        notes = " The region ID. For IAC is always \"1\" (national)"
+    )
     private String region;
+    @ApiModelProperty(required = true,
+        notes = " The CCD case type ID"
+    )
     private String caseTypeId;
+    @ApiModelProperty(required = true,
+        notes = " Case ID to display in task list UI"
+    )
     private String caseId;
+    @ApiModelProperty(required = true,
+        notes = " Case category  to display in task list UI"
+    )
     private String caseCategory;
+    @ApiModelProperty(required = true,
+        notes = " Case name to display in task list UI\t"
+    )
     private String caseName;
+    @ApiModelProperty(required = true,
+        notes = "If TRUE then task was auto-assigned, otherwise FALSE"
+    )
     private Boolean autoAssigned;
 
-    public MappedTask() {
+    public Task() {
         //Default constructor for deserialization
         super();
     }
 
-    public MappedTask(String id,
-                      String name,
-                      String type,
-                      String taskState,
-                      String taskSystem,
-                      String securityClassification,
-                      String taskTitle,
-                      String createdDate,
-                      String dueDate,
-                      String assignee,
-                      Boolean autoAssigned,
-                      String executionType,
-                      String jurisdiction,
-                      String region,
-                      String location,
-                      String locationName,
-                      String caseTypeId,
-                      String caseId,
-                      String caseCategory,
-                      String caseName
+    public Task(String id,
+                String name,
+                String type,
+                String taskState,
+                String taskSystem,
+                String securityClassification,
+                String taskTitle,
+                String createdDate,
+                String dueDate,
+                String assignee,
+                Boolean autoAssigned,
+                String executionType,
+                String jurisdiction,
+                String region,
+                String location,
+                String locationName,
+                String caseTypeId,
+                String caseId,
+                String caseCategory,
+                String caseName
     ) {
         this.id = id;
         this.executionType = executionType;

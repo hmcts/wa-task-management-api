@@ -117,7 +117,7 @@ public class GivensBuilder {
             .baseUri(camundaUrl)
             .body(new Modifications(processVariables.getProcessVariablesMap()))
             .when()
-            .post("/task/{task-id}/variables", taskId)
+            .post("/task/{task-id}/localVariables", taskId)
             .then()
             .log().all(true)
             .assertThat()
