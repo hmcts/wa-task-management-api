@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
+import java.util.Objects;
+
 public class CaseData {
 
     private String reference;
@@ -39,5 +41,37 @@ public class CaseData {
 
     public Location getLocation() {
         return location;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        CaseData caseData = (CaseData) object;
+        return Objects.equals(reference, caseData.reference)
+               && Objects.equals(jurisdiction, caseData.jurisdiction)
+               && Objects.equals(name, caseData.name)
+               && Objects.equals(category, caseData.category)
+               && Objects.equals(location, caseData.location);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(reference, jurisdiction, name, category, location);
+    }
+
+    @Override
+    public String toString() {
+        return "CaseData{"
+               + "reference='" + reference + '\''
+               + ", jurisdiction='" + jurisdiction + '\''
+               + ", name='" + name + '\''
+               + ", category='" + category + '\''
+               + ", location=" + location
+               + '}';
     }
 }

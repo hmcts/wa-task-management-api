@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
+import java.util.Objects;
+
 public class Assignee {
     private String id;
     private String userName;
@@ -20,5 +22,31 @@ public class Assignee {
 
     public String getUserName() {
         return userName;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
+        Assignee assignee = (Assignee) object;
+        return Objects.equals(id, assignee.id)
+               && Objects.equals(userName, assignee.userName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, userName);
+    }
+
+    @Override
+    public String toString() {
+        return "Assignee{"
+               + "id='" + id + '\''
+               + ", userName='" + userName + '\''
+               + '}';
     }
 }
