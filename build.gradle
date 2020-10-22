@@ -3,7 +3,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath("net.serenity-bdd:serenity-gradle-plugin:2.3.4")
+    classpath("net.serenity-bdd:serenity-gradle-plugin:2.3.5")
   }
 }
 
@@ -122,6 +122,14 @@ pmd {
   ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
+jacocoTestCoverageVerification {
+  violationRules {
+    rule {
+      excludes = ["com.gargoylesoftware.htmlunit.javascript.host.css.StyleAttributes"]
+    }
+  }
+}
+
 jacocoTestReport {
   executionData(test, integration)
   reports {
@@ -157,7 +165,8 @@ sonarqube {
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
                                  "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
-                                 "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**"
+                                 "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
+                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
   }
 }
 
@@ -206,7 +215,7 @@ def versions = [
   junit           : '5.7.0',
   junitPlatform   : '1.7.0',
   reformLogging   : '5.1.5',
-  springBoot      : '2.2.4.RELEASE',
+  springBoot      : springBoot.class.package.implementationVersion,
   springfoxSwagger: '2.9.2',
   serenity        : '2.2.12',
   gradlePitest    : '1.5.1',
@@ -244,15 +253,15 @@ dependencies {
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
 
-  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.38'
-  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.38'
+  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.39'
+  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.39'
 
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
-  
+
   compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.2'
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
 
-  compile group: 'com.auth0', name: 'java-jwt', version: '3.10.3'
+  compile group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {

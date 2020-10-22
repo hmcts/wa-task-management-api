@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,10 +11,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @FeignClient(
     name = "tasks",
@@ -25,34 +28,65 @@ import java.util.Map;
 @Service
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public interface CamundaServiceApi {
+
+    @PostMapping(value = "/task",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    List<CamundaTask> searchWithCriteria(@RequestBody Map<String, Object> body);
+
     @GetMapping(
         value = "/task/{task-id}",
-        produces = MediaType.APPLICATION_JSON_VALUE
+        produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
     CamundaTask getTask(@PathVariable("task-id") String id);
 
     @PostMapping(
         value = "/task/{task-id}/claim",
-        consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
     )
     void claimTask(@PathVariable("task-id") String id,
                    @RequestBody Map<String, String> body);
 
     @PostMapping(
         value = "/task/{task-id}/unclaim",
-        produces = MediaType.APPLICATION_JSON_VALUE
+        produces = APPLICATION_JSON_VALUE
     )
     void unclaimTask(@PathVariable("task-id") String id);
 
-    @PostMapping(
-        value = "/task/{task-id}/localVariables",
-        consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE
+    @GetMapping(
+        value = "/history/variable-instance",
+        produces = APPLICATION_JSON_VALUE
     )
-    void addLocalVariables(@PathVariable("task-id") String id,
-                   @RequestBody AddLocalVariableRequest addLocalVariableRequest);
-
-    @GetMapping(value = "/history/variable-instance", produces = MediaType.APPLICATION_JSON_VALUE)
     List<HistoryVariableInstance> getTaskVariables(@RequestParam("taskIdIn") String taskId);
+
+    @PostMapping(
+        value = "/task/{task-id}/complete",
+        produces = APPLICATION_JSON_VALUE
+    )
+    void completeTask(@PathVariable("task-id") String id, CompleteTaskVariables variables);
+
+    @PostMapping(
+        value = "/task/{id}/localVariables",
+        produces = APPLICATION_JSON_VALUE
+    )
+    void addLocalVariablesToTask(@PathVariable("id") String taskId, AddLocalVariableRequest addLocalVariableRequest);
+
+    @PostMapping(
+        value = "/task/{task-id}/assignee",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    void assigneeTask(@PathVariable("task-id") String id,
+                      @RequestBody Map<String, String> body);
+
+    @GetMapping(
+        value = "/task/{task-id}/variables",
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    Map<String, CamundaVariable> getVariables(@PathVariable("task-id") String id);
 
 }
