@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import static java.util.Arrays.stream;
 
-public enum CamundaOperators {
+public enum CamundaOperator {
 
     EQUAL("eq"),
     NOT_EQUAL("neq"),
@@ -17,11 +17,11 @@ public enum CamundaOperators {
     @JsonValue
     private String value;
 
-    CamundaOperators(String value) {
+    CamundaOperator(String value) {
         this.value = value;
     }
 
-    public static CamundaOperators from(String value) {
+    public static CamundaOperator from(String value) {
         return stream(values())
             .filter(v -> v.getValue().equals(value))
             .findFirst()

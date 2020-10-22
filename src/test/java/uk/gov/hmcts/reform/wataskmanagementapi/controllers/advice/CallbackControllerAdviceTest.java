@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -124,6 +125,52 @@ class CallbackControllerAdviceTest {
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
+        verify(errorLogger, times(1)).maybeLogException(exception);
+        verifyNoMoreInteractions(errorLogger);
+    }
+
+
+    @Test
+    void should_handle_not_implemented_exception() {
+
+        final String exceptionMessage = "Some exception message";
+        final NotImplementedException exception = new NotImplementedException(exceptionMessage, new Exception());
+
+        LocalDateTime mockedTimestamp = LocalDateTime.now();
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleNotImplementedException(request, exception);
+
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
+        verify(errorLogger, times(1)).maybeLogException(exception);
+        verifyNoMoreInteractions(errorLogger);
+    }
+
+    @Test
+    void should_handle_unsupported_operation_exception() {
+
+        final String exceptionMessage = "Some exception message";
+        final UnsupportedOperationException exception =
+            new UnsupportedOperationException(exceptionMessage, new Exception());
+
+        LocalDateTime mockedTimestamp = LocalDateTime.now();
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleUnsupportedOperationException(request, exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.BAD_REQUEST.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
         verify(errorLogger, times(1)).maybeLogException(exception);
         verifyNoMoreInteractions(errorLogger);

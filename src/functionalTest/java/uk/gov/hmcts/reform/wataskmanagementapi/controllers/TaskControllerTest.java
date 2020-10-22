@@ -11,21 +11,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.SearchParameters;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -34,6 +36,9 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 
 public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -193,31 +198,25 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String ccdId2 = ccdIdGenerator.generate();
 
         given
-            .iCreateATaskWithCcdId(ccdId1)
+            .iCreateATaskWithCcdId(ccdId2)
             .and()
             .iCreateATaskWithCcdId(ccdId2);
 
-        SearchParameters searchParameters = new SearchParameters(
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            emptyList(),
-            ccdId2,
-            null,
-            null,
-            null
-        );
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .body(new SearchTaskRequest(singletonList(searchParameters)))
+            .body(searchTaskRequest)
             .when()
             .post("task");
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(1))
-            .body("tasks[0].caseData.reference", equalTo(ccdId2))
+            .body("tasks.caseData.jurisdiction", everyItem(is("IA")))
+            .body("tasks.caseData.reference", contains(ccdId2, ccdId1))
         ;
     }
 
@@ -244,21 +243,16 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         given
             .iAddVariablesToTaskWithId(taskId, processVariables);
 
-        SearchParameters searchParameters = new SearchParameters(
-            singletonList("IA"),
-            emptyList(),
-            singletonList("17595"),
-            singletonList("unassigned"),
-            null,
-            null,
-            null,
-            null
-        );
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("17595")),
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+        ));
 
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .body(new SearchTaskRequest(singletonList(searchParameters)))
+            .body(searchTaskRequest)
             .when()
             .post("task");
 
@@ -294,21 +288,16 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         given
             .iAddVariablesToTaskWithId(taskId, processVariables1);
 
-        SearchParameters searchParameters = new SearchParameters(
-            singletonList("IA"),
-            emptyList(),
-            singletonList("17595"),
-            emptyList(),
-            null,
-            null,
-            null,
-            null
-        );
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("17595"))
+        ));
 
         Response result = given()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
-            .body(new SearchTaskRequest(singletonList(searchParameters)))
+            .body(searchTaskRequest)
             .when()
             .post("task");
 

@@ -4,7 +4,7 @@ public class Assignee {
     private String id;
     private String userName;
 
-    public Assignee() {
+    private Assignee() {
         //Default constructor for deserialization
         super();
     }

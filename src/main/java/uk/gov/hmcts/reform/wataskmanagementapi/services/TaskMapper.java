@@ -27,6 +27,7 @@ public class TaskMapper {
         final String state = getVariableValue(variables.get("taskState"));
 
         if (camundaTask.getAssignee() != null) {
+            //TODO: Query Idam to get username from assignee Id
             assignee = new Assignee(camundaTask.getAssignee(), "username");
         }
 
@@ -42,6 +43,7 @@ public class TaskMapper {
         if (caseReference != null) {
             caseData = new CaseData(
                 caseReference,
+                getVariableValue(variables.get("jurisdiction")),
                 getVariableValue(variables.get("caseName")),
                 getVariableValue(variables.get("caseType")),
                 location

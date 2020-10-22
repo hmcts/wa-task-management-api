@@ -31,6 +31,7 @@ public class GivensBuilder {
     public GivensBuilder iCreateATaskWithCcdId(String ccdId) {
 
         CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("ccdId", ccdId)
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")

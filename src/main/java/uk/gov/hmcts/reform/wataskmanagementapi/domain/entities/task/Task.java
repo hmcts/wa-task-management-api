@@ -14,7 +14,7 @@ public class Task {
     private CaseData caseData;
     private Assignee assignee;
 
-    public Task() {
+    private Task() {
         //Default constructor for deserialization
         super();
     }

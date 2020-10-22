@@ -2,12 +2,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING;
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
@@ -30,8 +33,12 @@ public class JacksonConfiguration {
     @Primary
     public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
         ObjectMapper objectMapper = builder.createXmlMapper(false).build();
+        // Set default date to RFC3339 standards
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
+        objectMapper.setDateFormat(df);
+
         objectMapper.registerModule(new Jdk8Module());
-        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         return objectMapper;
     }
 
