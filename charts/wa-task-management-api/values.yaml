@@ -7,7 +7,7 @@ java:
     wa:
       secrets:
         - AppInsightsInstrumentationKey
-        - wa-idam-client_id
+        - wa-idam-client-id
         - wa-idam-client-secret
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
