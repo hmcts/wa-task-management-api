@@ -1,11 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 
 import java.util.Map;
+import java.util.Optional;
 
 
 @SuppressWarnings("PMD.UnnecessaryConstructor")
@@ -13,8 +16,11 @@ import java.util.Map;
 public class CreateHmctsTaskVariable {
 
 
-    public CreateHmctsTaskVariable() {
-    //Default constructor
+    private final CamundaObjectMapper camundaObjectMapper;
+
+    @Autowired
+    public CreateHmctsTaskVariable(CamundaObjectMapper camundaObjectMapper) {
+        this.camundaObjectMapper = camundaObjectMapper;
     }
 
     public Task mapToTaskObject(Map<String, CamundaVariable> localVariableResponse, CamundaTask camundaTask) {
@@ -26,20 +32,21 @@ public class CreateHmctsTaskVariable {
         String dueDate = camundaTask.getDue().toString();
         String assignee = camundaTask.getAssignee();
         // Local Variables
-        String taskState = getValueFromObject(localVariableResponse, "taskState");
-        String securityClassification = getValueFromObject(localVariableResponse, "securityClassification");
-        String taskTitle = getValueFromObject(localVariableResponse, "title");
-        String executionType = getValueFromObject(localVariableResponse, "executionType");
+        String taskState = getValueFromObject(localVariableResponse.get("taskState"), String.class);
+        String securityClassification = getValueFromObject(localVariableResponse
+                                                               .get("securityClassification"), String.class);
+        String taskTitle = getValueFromObject(localVariableResponse.get("title"), String.class);
+        String executionType = getValueFromObject(localVariableResponse.get("executionType"), String.class);
         Boolean autoAssigned = false;
-        String taskSystem = getValueFromObject(localVariableResponse, "taskSystem");
-        String jurisdiction = getValueFromObject(localVariableResponse, "jurisdiction");
-        String region = getValueFromObject(localVariableResponse, "region");
-        String location = getValueFromObject(localVariableResponse, "location");
-        String locationName = getValueFromObject(localVariableResponse, "locationName");
-        String caseTypeId = getValueFromObject(localVariableResponse, "caseTypeId");
-        String caseId = getValueFromObject(localVariableResponse, "ccdId");
-        String caseName = getValueFromObject(localVariableResponse, "caseName");
-        String caseCategory = getValueFromObject(localVariableResponse, "appealType");
+        String taskSystem = getValueFromObject(localVariableResponse.get("taskSystem"), String.class);
+        String jurisdiction = getValueFromObject(localVariableResponse.get("jurisdiction"), String.class);
+        String region = getValueFromObject(localVariableResponse.get("region"), String.class);
+        String location = getValueFromObject(localVariableResponse.get("location"), String.class);
+        String locationName = getValueFromObject(localVariableResponse.get("locationName"), String.class);
+        String caseTypeId = getValueFromObject(localVariableResponse.get("caseTypeId"), String.class);
+        String caseId = getValueFromObject(localVariableResponse.get("ccdId"), String.class);
+        String caseName = getValueFromObject(localVariableResponse.get("caseName"), String.class);
+        String caseCategory = getValueFromObject(localVariableResponse.get("appealType"), String.class);
 
         return new Task(
             id,
@@ -66,11 +73,8 @@ public class CreateHmctsTaskVariable {
         );
     }
 
-    private String getValueFromObject(Map<String, CamundaVariable> localVariableResponse, String key) {
-        return localVariableResponse.entrySet().stream()
-            .filter(e -> key.equals(e.getKey()))
-            .map(i -> i.getValue().getValue())
-            .findFirst()
-            .orElse(null);
+    private <T> T getValueFromObject(CamundaVariable variable, Class<T> type) {
+        Optional<T> value = camundaObjectMapper.read(variable, type);
+        return value.orElse(null);
     }
 }

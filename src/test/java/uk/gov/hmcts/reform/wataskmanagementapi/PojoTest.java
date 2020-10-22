@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Assignee;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.CaseData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Location;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.util.List;
 
@@ -33,7 +32,6 @@ class PojoTest {
         UserInfo.class,
         HistoryVariableInstance.class,
         AddLocalVariableRequest.class,
-        Task.class,
         CaseData.class,
         Location.class,
         Assignee.class

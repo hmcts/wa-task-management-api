@@ -3,10 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.utils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import org.springframework.beans.factory.annotation.Autowired;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.*;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.CreateHmctsTaskVariable;
 
 import java.time.ZonedDateTime;
@@ -17,6 +15,9 @@ class CreateTaskVariableTest {
 
     private CamundaTask camundaTask;
     Map<String, CamundaVariable> localVariables;
+
+    private  CreateHmctsTaskVariable createHmctsTaskVariable;
+
 
     @BeforeEach
     void setup() {
@@ -40,7 +41,9 @@ class CreateTaskVariableTest {
 
     @Test
     void should_create_hmcts_object() {
-        Task task = new CreateHmctsTaskVariable().mapToTaskObject(localVariables, camundaTask);
+        CamundaObjectMapper camundaObjectMapper = new CamundaObjectMapper();
+        createHmctsTaskVariable = new CreateHmctsTaskVariable(camundaObjectMapper);
+        Task task = createHmctsTaskVariable.mapToTaskObject(localVariables, camundaTask);
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
         Assertions.assertThat(task.getName()).isEqualTo("some-name");

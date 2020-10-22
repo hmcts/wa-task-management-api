@@ -57,7 +57,6 @@ class CamundaServiceTest {
     @Mock
     private CamundaErrorDecoder camundaErrorDecoder;
 
-    @Mock
     private CreateHmctsTaskVariable createHmctsTaskVariable;
 
     @Mock
@@ -70,8 +69,7 @@ class CamundaServiceTest {
 
     @BeforeEach
     public void setUp() {
-
-        createHmctsTaskVariable = new CreateHmctsTaskVariable();
+        createHmctsTaskVariable = new CreateHmctsTaskVariable(new CamundaObjectMapper());
         camundaService = new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
@@ -105,8 +103,6 @@ class CamundaServiceTest {
             .thenReturn(mockvariables);
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, camundaTask.getId()))
             .thenReturn(camundaTask);
-        when(createHmctsTaskVariable.mapToTaskObject(mockvariables, camundaTask))
-            .thenCallRealMethod();
 
         final Task task = camundaService.getTask(taskId);
         verify(camundaServiceApi, times(1)).getTask(eq(BEARER_SERVICE_TOKEN),eq(taskId));
@@ -223,8 +219,6 @@ class CamundaServiceTest {
             .thenReturn(singletonList(camundaTask));
         when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
             .thenReturn(variables);
-        when(createHmctsTaskVariable.mapToTaskObject(variables, camundaTask))
-            .thenCallRealMethod();
 
         List<Task> results = camundaService.searchWithCriteria(searchTaskRequest);
 
