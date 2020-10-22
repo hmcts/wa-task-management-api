@@ -67,8 +67,8 @@ spring:
             issuer-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o
         registration:
           oidc:
-            client-id: ${IA_IDAM_CLIENT_ID:iac}
-            client-secret: ${IA_IDAM_SECRET:something}
+            client-id: ${WA_IDAM_CLIENT_ID:wa}
+            client-secret: ${WA_IDAM_CLIENT_SECRET:something}
       resourceserver:
         jwt:
           jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks

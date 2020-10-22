@@ -6,3 +6,5 @@ spring:
       paths: /mnt/secrets/wa
       aliases:
         AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
+        wa_idam_client_id: WA_IDAM_CLIENT_ID
+        wa_idam_client_secret: WA_IDAM_CLIENT_SECRET

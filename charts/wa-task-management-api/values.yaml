@@ -7,6 +7,8 @@ java:
     wa:
       secrets:
         - AppInsightsInstrumentationKey
+        - wa_idam_client_id
+        - wa_idam_client_secret
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
