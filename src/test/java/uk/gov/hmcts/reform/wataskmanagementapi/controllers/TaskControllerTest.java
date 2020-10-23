@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,15 +7,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -41,7 +41,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void should_return_a_fetched_task() {
+    void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
 
@@ -58,7 +58,7 @@ class TaskControllerTest {
     }
 
     @Test
-    void should_succeed_and_return_a_204_no_content() {
+    void should_succeed_when_claiming_a_task_and_return_a_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
@@ -73,39 +73,44 @@ class TaskControllerTest {
     }
 
     @Test
+    void should_succeed_when_performing_search_and_return_a_200_ok() {
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(new SearchTaskRequest());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
     void should_unclaim_a_task_204_no_content() {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
-        ResponseEntity<String> response = taskController.unclaimTask(authToken,taskId);
+        ResponseEntity<String> response = taskController.unclaimTask(authToken, taskId);
 
-        assertEquals(HttpStatus.NO_CONTENT,response.getStatusCode());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
-    void should_throw_not_implemented_exception_for_work_in_progress_endpoints() {
+    void should_succeed_and_return_a_204_no_content_when_assigning_task() {
 
-        assertThatThrownBy(() -> taskController.searchWithCriteria())
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
+        String taskId = UUID.randomUUID().toString();
+        String authToken = "someAuthToken";
+        String userId = UUID.randomUUID().toString();
 
-        String someTaskId = UUID.randomUUID().toString();
+        when(idamService.getUserId(authToken)).thenReturn(userId);
 
-        assertThatThrownBy(() -> taskController.assignTask(
-            someTaskId,
-            new AssignTaskRequest("some-user")
-        ))
-            .isInstanceOf(NotImplementedException.class)
-            .hasMessage("Code is not implemented");
+        ResponseEntity<String> response = taskController.assignTask(authToken, taskId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
     void should_complete_a_task() {
         String taskId = UUID.randomUUID().toString();
-
         ResponseEntity response = taskController.completeTask(taskId);
-
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }

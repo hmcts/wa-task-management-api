@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.response;
 
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.util.List;
 
-public class GetTasksResponse<T extends CamundaTask> {
+public class GetTasksResponse<T extends Task> {
 
     private final List<T> tasks;
 

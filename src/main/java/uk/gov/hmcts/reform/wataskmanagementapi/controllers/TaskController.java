@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -14,18 +13,23 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
+
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @RequestMapping(
-    path = "/task"
+    path = "/task",
+    consumes = APPLICATION_JSON_VALUE,
+    produces = APPLICATION_JSON_VALUE
 )
 @RestController
 public class TaskController {
@@ -64,10 +68,14 @@ public class TaskController {
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse<CamundaTask>> searchWithCriteria() {
-        throw new NotImplementedException();
-    }
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
 
+        List<Task> tasks = camundaService.searchWithCriteria(searchTaskRequest);
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(new GetTasksResponse<>(tasks));
+    }
 
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
     @ApiResponses({
@@ -176,7 +184,7 @@ public class TaskController {
     @ApiResponses({
         @ApiResponse(
             code = 204,
-            message = "No Content"
+            message = "Task assigned"
         ),
         @ApiResponse(
             code = 400,
@@ -195,10 +203,16 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<String> assignTask(@PathVariable("task-id") String taskId,
-                                             @RequestBody AssignTaskRequest assignTaskRequest) {
-        throw new NotImplementedException();
+    @PostMapping(path = "/{task-id}/assignee")
+    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
+                                             @PathVariable("task-id") String taskId) {
+
+        String userId = idamService.getUserId(authToken);
+        camundaService.assigneeTask(taskId, userId);
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
     }
 
     @ApiOperation("Completes a Task identified by an id.")
