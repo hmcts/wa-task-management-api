@@ -14,30 +14,30 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CallbackControllerAdviceTest {
 
     @Mock HttpServletRequest request;
-    @Mock ErrorLogger errorLogger;
     @Mock SystemDateProvider systemDateProvider;
 
     private CallbackControllerAdvice callbackControllerAdvice;
+    private Timestamp mockedTimestamp;
 
     @BeforeEach
     public void setUp() {
-        callbackControllerAdvice = new CallbackControllerAdvice(errorLogger, systemDateProvider);
+        callbackControllerAdvice = new CallbackControllerAdvice(systemDateProvider);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
+        mockedTimestamp = Timestamp.valueOf(LocalDateTime.now());
+        when(systemDateProvider.getTimestamp()).thenReturn(mockedTimestamp);
     }
 
     @Test
@@ -46,20 +46,15 @@ class CallbackControllerAdviceTest {
         final String exceptionMessage = "Some exception message";
         final Exception exception = new Exception(exceptionMessage);
 
-        LocalDateTime mockedTimestamp = LocalDateTime.now();
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
-
         ResponseEntity<ErrorMessage> response = callbackControllerAdvice
             .handleGenericException(request, exception);
 
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getStatusCode().value());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(), response.getBody().getError());
-        assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getBody().getStatus());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-        verify(errorLogger, times(1)).maybeLogException(exception);
-        verifyNoMoreInteractions(errorLogger);
     }
 
     @Test
@@ -67,9 +62,6 @@ class CallbackControllerAdviceTest {
 
         final String exceptionMessage = "Some exception message";
         final ResourceNotFoundException exception = new ResourceNotFoundException(exceptionMessage, new Exception());
-
-        LocalDateTime mockedTimestamp = LocalDateTime.now();
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
 
         ResponseEntity<ErrorMessage> response = callbackControllerAdvice
             .handleResourceNotFoundException(request, exception);
@@ -80,8 +72,6 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.NOT_FOUND.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.NOT_FOUND.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-        verify(errorLogger, times(1)).maybeLogException(exception);
-        verifyNoMoreInteractions(errorLogger);
     }
 
 
@@ -90,9 +80,6 @@ class CallbackControllerAdviceTest {
 
         final String exceptionMessage = "Some exception message";
         final ConflictException exception = new ConflictException(exceptionMessage, new Exception());
-
-        LocalDateTime mockedTimestamp = LocalDateTime.now();
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
 
         ResponseEntity<ErrorMessage> response = callbackControllerAdvice
             .handleConflictException(request, exception);
@@ -103,8 +90,6 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.CONFLICT.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.CONFLICT.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-        verify(errorLogger, times(1)).maybeLogException(exception);
-        verifyNoMoreInteractions(errorLogger);
     }
 
     @Test
@@ -112,9 +97,6 @@ class CallbackControllerAdviceTest {
 
         final String exceptionMessage = "Some exception message";
         final ServerErrorException exception = new ServerErrorException(exceptionMessage, new Exception());
-
-        LocalDateTime mockedTimestamp = LocalDateTime.now();
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
 
         ResponseEntity<ErrorMessage> response = callbackControllerAdvice
             .handleServerException(request, exception);
@@ -125,7 +107,5 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-        verify(errorLogger, times(1)).maybeLogException(exception);
-        verifyNoMoreInteractions(errorLogger);
     }
 }

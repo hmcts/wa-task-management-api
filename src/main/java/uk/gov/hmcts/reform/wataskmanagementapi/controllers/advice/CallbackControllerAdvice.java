@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,22 +16,22 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @ControllerAdvice(basePackages = "uk.gov.hmcts.reform.wataskmanagementapi.controllers")
 @RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
-    private final ErrorLogger errorLogger;
     private final SystemDateProvider systemDateProvider;
+
+    private static final Logger log = getLogger(CallbackControllerAdvice.class);
 
     @Autowired
     public CallbackControllerAdvice(
-        ErrorLogger errorLogger,
         SystemDateProvider systemDateProvider
     ) {
         super();
-        this.errorLogger = errorLogger;
         this.systemDateProvider = systemDateProvider;
     }
 
@@ -39,12 +40,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        errorLogger.maybeLogException(ex);
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+        log.error("Exception occurred: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
                       ex,
-                      HttpStatus.SERVICE_UNAVAILABLE,
-                      systemDateProvider.nowWithTime()
+                      HttpStatus.INTERNAL_SERVER_ERROR,
+                      systemDateProvider.getTimestamp()
                   )
             );
     }
@@ -55,12 +56,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        errorLogger.maybeLogException(ex);
+        log.error("Exception occurred: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.NOT_FOUND,
-                      systemDateProvider.nowWithTime()
+                      systemDateProvider.getTimestamp()
                   )
             );
     }
@@ -70,12 +71,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        errorLogger.maybeLogException(ex);
+        log.error("Exception occurred: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.CONFLICT,
-                      systemDateProvider.nowWithTime()
+                      systemDateProvider.getTimestamp()
                   )
             );
     }
@@ -85,12 +86,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        errorLogger.maybeLogException(ex);
+        log.error("Exception occurred: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.INTERNAL_SERVER_ERROR,
-                      systemDateProvider.nowWithTime()
+                      systemDateProvider.getTimestamp()
                   )
             );
     }
@@ -100,12 +101,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        errorLogger.maybeLogException(ex);
+        log.error("Exception occurred: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.SERVICE_UNAVAILABLE,
-                      systemDateProvider.nowWithTime()
+                      systemDateProvider.getTimestamp()
                   )
             );
     }

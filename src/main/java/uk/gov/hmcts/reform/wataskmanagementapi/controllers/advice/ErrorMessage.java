@@ -1,21 +1,19 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 import java.util.Objects;
 
 public class ErrorMessage {
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.TIME)
-    private final LocalDateTime timestamp;
+    private final Timestamp timestamp;
     private final String error;
     private final int status;
     private final String message;
 
-    public ErrorMessage(Exception ex, HttpStatus error, LocalDateTime timestamp) {
+    public ErrorMessage(Exception ex, HttpStatus error, Timestamp timestamp) {
         Objects.requireNonNull(ex, "Exception must not be null");
         Objects.requireNonNull(error, "HttpStatus error must not be null");
         Objects.requireNonNull(timestamp, "Timestamp must not be null");
@@ -25,7 +23,7 @@ public class ErrorMessage {
         this.message = ex.getMessage();
     }
 
-    public LocalDateTime getTimestamp() {
+    public Timestamp getTimestamp() {
         return timestamp;
     }
 
