@@ -11,15 +11,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class GetWelcomeTest extends SpringBootIntegrationBaseTest {
+class GetWelcomeTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private MockMvc mvc;
 
     @DisplayName("Should welcome upon root request with 200 response code")
     @Test
     void welcomeRootEndpoint() throws Exception {
-        MvcResult response = mockMvc.perform(get("/")).andExpect(status().isOk()).andReturn();
+        MvcResult response = mvc.perform(get("/")).andExpect(status().isOk()).andReturn();
 
         assertThat(response.getResponse().getContentAsString()).startsWith("Welcome");
     }
