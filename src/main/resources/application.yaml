@@ -62,3 +62,11 @@ security:
     - "/favicon.ico"
   authorisedServices:
     - "wa_task_management_api"
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
