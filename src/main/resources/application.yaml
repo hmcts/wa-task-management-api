@@ -48,9 +48,6 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api}
 
-oidc:
-  issuer: ${OPEN_ID_IDAM_ISSUER_URL_OVERRIDE:http://fr-am:8080/openam/oauth2/hmcts}
-
 spring:
   application:
     name: WA Task Management
