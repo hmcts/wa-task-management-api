@@ -477,6 +477,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
             .post("task/{task-id}/assignee", taskId);
 
         response.then().assertThat()
-            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value());
+            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 }
