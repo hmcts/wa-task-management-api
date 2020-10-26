@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -28,4 +29,10 @@ class SystemDateProviderTest {
         assertFalse(actualDateTime.isAfter(LocalDateTime.now()));
     }
 
+    @Test
+    void returns_timestamp() {
+        Timestamp actualTimestamp = systemDateProvider.getTimestamp();
+        assertNotNull(actualTimestamp);
+        assertFalse(actualTimestamp.after(Timestamp.valueOf(LocalDateTime.now())));
+    }
 }
