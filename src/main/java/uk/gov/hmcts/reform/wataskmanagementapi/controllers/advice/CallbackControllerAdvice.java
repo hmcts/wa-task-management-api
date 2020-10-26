@@ -23,9 +23,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
+    public static final String EXCEPTION_OCCURRED = "Exception occurred: {}";
+    private static final Logger LOG = getLogger(CallbackControllerAdvice.class);
     private final SystemDateProvider systemDateProvider;
 
-    private static final Logger log = getLogger(CallbackControllerAdvice.class);
 
     @Autowired
     public CallbackControllerAdvice(
@@ -40,7 +41,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        log.error("Exception occurred: {}", ex.getMessage(), ex);
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
                       ex,
@@ -56,7 +57,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        log.error("Exception occurred: {}", ex.getMessage(), ex);
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(new ErrorMessage(
                       ex,
@@ -71,7 +72,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        log.error("Exception occurred: {}", ex.getMessage(), ex);
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(new ErrorMessage(
                       ex,
@@ -86,7 +87,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        log.error("Exception occurred: {}", ex.getMessage(), ex);
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
                       ex,
@@ -101,7 +102,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         HttpServletRequest request,
         Exception ex
     ) {
-        log.error("Exception occurred: {}", ex.getMessage(), ex);
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
             .body(new ErrorMessage(
                       ex,
