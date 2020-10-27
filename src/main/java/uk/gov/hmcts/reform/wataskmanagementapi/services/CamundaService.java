@@ -4,6 +4,7 @@ import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -31,17 +32,19 @@ public class CamundaService {
     private final CamundaErrorDecoder camundaErrorDecoder;
     private final CamundaQueryBuilder camundaQueryBuilder;
     private final TaskMapper taskMapper;
+    private final AuthTokenGenerator authTokenGenerator;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           CamundaQueryBuilder camundaQueryBuilder,
                           TaskMapper taskMapper,
-                          CamundaErrorDecoder camundaErrorDecoder
-    ) {
+                          CamundaErrorDecoder camundaErrorDecoder,
+                          AuthTokenGenerator authTokenGenerator) {
         this.camundaServiceApi = camundaServiceApi;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.taskMapper = taskMapper;
         this.camundaErrorDecoder = camundaErrorDecoder;
+        this.authTokenGenerator = authTokenGenerator;
     }
 
     public CamundaTask getTask(String id) {
@@ -114,7 +117,7 @@ public class CamundaService {
 
             boolean taskHasCompleted = taskVariables.stream()
                 .anyMatch(taskVariable -> taskVariable.getName().equals("taskState")
-                                          && taskVariable.getValue().equals("completed"));
+                    && taskVariable.getValue().equals("completed"));
 
             if (!taskHasCompleted) {
                 HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
@@ -136,7 +139,10 @@ public class CamundaService {
         List<Task> response = new ArrayList<>();
 
         try {
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(query.getQueries());
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            );
 
             searchResults.forEach(camundaTask -> {
                 Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(camundaTask.getId());

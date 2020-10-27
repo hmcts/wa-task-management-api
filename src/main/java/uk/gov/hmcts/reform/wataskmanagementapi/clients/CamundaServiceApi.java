@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
@@ -29,12 +30,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public interface CamundaServiceApi {
 
+    String SERVICE_AUTHORIZATION = "ServiceAuthorization";
+
     @PostMapping(value = "/task",
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    List<CamundaTask> searchWithCriteria(@RequestBody Map<String, Object> body);
+    List<CamundaTask> searchWithCriteria(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                         @RequestBody Map<String, Object> body);
 
     @GetMapping(
         value = "/task/{task-id}",
