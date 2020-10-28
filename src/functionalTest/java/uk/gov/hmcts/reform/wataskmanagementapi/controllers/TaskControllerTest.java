@@ -262,7 +262,6 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
 
             String taskId = tasks.get(0).getId();
 
-
             given
                 .iAddVariablesToTaskWithId(taskId, processVariables);
 
