@@ -15,7 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.Application;
 public class SwaggerConfiguration {
     private final boolean enableSwagger;
 
-    public SwaggerConfiguration(@Value("${enableSwagger}") boolean enableSwagger) {
+    public SwaggerConfiguration(@Value("${config.enableSwagger}") boolean enableSwagger) {
         this.enableSwagger = enableSwagger;
     }
 
