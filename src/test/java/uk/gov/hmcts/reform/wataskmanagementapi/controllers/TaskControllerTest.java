@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
@@ -82,6 +83,16 @@ class TaskControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void should_return_a_400_when_performing_search_with_no_parameters() {
+
+        ResponseEntity<GetTasksResponse<Task>> response =
+            taskController.searchWithCriteria(new SearchTaskRequest(emptyList()));
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test

@@ -23,8 +23,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -221,31 +223,54 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_return_a_400_if_search_request_is_empty() {
+
+        Response result = given()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .headers(authorizationHeadersProvider.getLawFirmAAuthorization())
+            .body(new SearchTaskRequest(emptyList()))
+            .when()
+            .post("task");
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_state_filters() {
 
-        String ccdId1 = ccdIdGenerator.generate();
+        int tasksToConfigure = 2;
+        String[] ccdIds = new String[tasksToConfigure];
 
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("location", "17595")
-            .withProcessVariable("locationName", "A Hearing Centre")
-            .withProcessVariable("taskState", "unassigned")
-            .build();
+        String[] locationIds = {"17595", "17594"};
 
-        List<CamundaTask> tasks = given
-            .iCreateATaskWithCcdId(ccdId1)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId1);
+        for (int i = 0; i < tasksToConfigure; i++) {
+            String ccdId = ccdIdGenerator.generate();
+            ccdIds[i] = ccdId;
 
-        String taskId = tasks.get(0).getId();
+            CamundaProcessVariables processVariables = processVariables()
+                .withProcessVariable("jurisdiction", "IA")
+                .withProcessVariable("location", locationIds[i])
+                .withProcessVariable("locationName", "A Hearing Centre")
+                .withProcessVariable("taskState", "unassigned")
+                .build();
+
+            List<CamundaTask> tasks = given
+                .iCreateATaskWithCcdId(ccdId)
+                .and()
+                .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+
+            String taskId = tasks.get(0).getId();
 
 
-        given
-            .iAddVariablesToTaskWithId(taskId, processVariables);
+            given
+                .iAddVariablesToTaskWithId(taskId, processVariables);
+
+        }
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("17595")),
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("17595", "17594")),
             new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
@@ -259,9 +284,8 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.state", everyItem(equalTo("unassigned")))
-            .body("tasks.caseData.reference", hasItem(ccdId1))
-            .body("tasks.caseData.location.id", everyItem(equalTo("17595")))
-        ;
+            .body("tasks.caseData.reference", hasItems(ccdIds[0], ccdIds[1]))
+            .body("tasks.caseData.location.id", everyItem(either(is("17595")).or(is("17594"))));
     }
 
 

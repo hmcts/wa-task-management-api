@@ -70,6 +70,10 @@ public class TaskController {
     @PostMapping(produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
 
+        if (searchTaskRequest.getSearchParameters().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
         List<Task> tasks = camundaService.searchWithCriteria(searchTaskRequest);
         return ResponseEntity
             .ok()
