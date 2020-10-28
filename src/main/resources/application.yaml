@@ -53,6 +53,8 @@ spring:
     name: WA Task Management
   main:
     allow-bean-definition-overriding: true
+  jackson:
+    property-naming-strategy: SNAKE_CASE
   security:
     oauth2:
       resourceserver:

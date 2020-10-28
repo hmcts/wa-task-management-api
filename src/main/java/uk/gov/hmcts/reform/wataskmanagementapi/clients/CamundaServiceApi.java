@@ -71,7 +71,7 @@ public interface CamundaServiceApi {
 
     @PostMapping(
         value = "/task/{id}/localVariables",
-        produces = APPLICATION_JSON_VALUE
+        consumes = APPLICATION_JSON_VALUE
     )
     void addLocalVariablesToTask(@PathVariable("id") String taskId, AddLocalVariableRequest addLocalVariableRequest);
 

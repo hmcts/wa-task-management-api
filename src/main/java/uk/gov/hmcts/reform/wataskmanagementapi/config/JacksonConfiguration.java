@@ -36,9 +36,7 @@ public class JacksonConfiguration {
         // Set default date to RFC3339 standards
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
         objectMapper.setDateFormat(df);
-
         objectMapper.registerModule(new Jdk8Module());
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         return objectMapper;
     }
 

@@ -29,7 +29,6 @@ import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -147,11 +146,10 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         given
             .iClaimATaskWithIdAndAuthorization(taskId, authorizationHeadersProvider.getLawFirmAAuthorization());
 
-        Headers headers = authorizationHeadersProvider.getLawFirmBAuthorization();
 
         Response responseToClaim = given()
             .contentType(APPLICATION_JSON_VALUE)
-            .headers(headers)
+            .headers(authorizationHeadersProvider.getLawFirmBAuthorization())
             .when()
             .post("task/{task-id}/unclaim", taskId);
 
@@ -200,11 +198,11 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         String ccdId2 = ccdIdGenerator.generate();
 
         given
-            .iCreateATaskWithCcdId(ccdId2)
+            .iCreateATaskWithCcdId(ccdId1)
             .and()
             .iCreateATaskWithCcdId(ccdId2);
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
@@ -218,8 +216,7 @@ public class TaskControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.caseData.jurisdiction", everyItem(is("IA")))
-            .body("tasks.caseData.reference", contains(ccdId2, ccdId1))
-        ;
+            .body("tasks.caseData.reference", hasItems(ccdId2, ccdId1));
     }
 
     @Test

@@ -41,7 +41,10 @@ public class CamundaQueryBuilder {
         CamundaOrQuery.CamundaOrQueryBuilder jurisdictionQueries = asOrQuery(jurisdictionExpressions);
 
         Map<String, List<String>> userQueries = new ConcurrentHashMap<>();
-        userQueries.put("assigneeIn", searchParametersMap.get(USER).getValues());
+
+        if (searchParametersMap.get(USER) != null) {
+            userQueries.put("assigneeIn", searchParametersMap.get(USER).getValues());
+        }
 
         Set<CamundaSearchExpression> locationExpressions =
             asMultipleExpressions("location", searchParametersMap.get(LOCATION));
