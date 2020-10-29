@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

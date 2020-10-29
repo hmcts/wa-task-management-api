@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -54,13 +55,13 @@ class CamundaServiceTest {
     @Mock
     private CamundaQueryBuilder camundaQueryBuilder;
 
-    @Mock
     private TaskMapper taskMapper;
 
     private CamundaService camundaService;
 
     @BeforeEach
     public void setUp() {
+        taskMapper = new TaskMapper(new CamundaObjectMapper());
         camundaService = new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
@@ -179,8 +180,6 @@ class CamundaServiceTest {
             .thenReturn(singletonList(camundaTask));
         when(camundaServiceApi.getVariables(camundaTask.getId()))
             .thenReturn(variables);
-        when(taskMapper.mapToTaskObject(camundaTask, variables))
-            .thenCallRealMethod();
 
         List<Task> results = camundaService.searchWithCriteria(searchTaskRequest);
 
