@@ -70,7 +70,7 @@ public class TaskController {
     @PostMapping(produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
 
-        if (searchTaskRequest.getSearchParameters().isEmpty()) {
+        if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
