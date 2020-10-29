@@ -16,16 +16,17 @@ import static java.time.ZonedDateTime.now;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper.asCamundaJsonString;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 public class GivensBuilder {
 
     private final String camundaUrl;
+    private final CamundaObjectMapper camundaObjectMapper;
 
-    public GivensBuilder(String camundaUrl) {
+    public GivensBuilder(String camundaUrl, CamundaObjectMapper camundaObjectMapper) {
         this.camundaUrl = camundaUrl;
+        this.camundaObjectMapper = camundaObjectMapper;
     }
 
     public GivensBuilder iCreateATaskWithCcdId(String ccdId) {
@@ -47,7 +48,7 @@ public class GivensBuilder {
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
-            .body(asCamundaJsonString(request))
+            .body(camundaObjectMapper.asCamundaJsonString(request))
             .when()
             .post("/message")
             .then()
@@ -104,7 +105,7 @@ public class GivensBuilder {
     }
 
     private class Modifications {
-        private Map<String, CamundaValue<?>> modifications;
+        private final Map<String, CamundaValue<?>> modifications;
 
         public Modifications(Map<String, CamundaValue<?>> processVariablesMap) {
             super();

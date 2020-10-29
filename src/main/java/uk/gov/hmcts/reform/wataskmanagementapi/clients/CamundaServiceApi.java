@@ -65,6 +65,7 @@ public interface CamundaServiceApi {
 
     @PostMapping(
         value = "/task/{task-id}/complete",
+        consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
     void completeTask(@PathVariable("task-id") String id, CompleteTaskVariables variables);

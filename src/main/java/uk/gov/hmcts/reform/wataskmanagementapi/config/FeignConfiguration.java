@@ -14,9 +14,7 @@ public class FeignConfiguration {
 
     @Bean
     @Primary
-    public Encoder feignFormEncoder(
-        ObjectFactory<HttpMessageConverters> messageConverters
-    ) {
+    public Encoder feignFormEncoder(ObjectFactory<HttpMessageConverters> messageConverters) {
         return new SpringFormEncoder(new SpringEncoder(messageConverters));
     }
 
