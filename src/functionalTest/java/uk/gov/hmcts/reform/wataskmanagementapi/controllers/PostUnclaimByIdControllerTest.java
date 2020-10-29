@@ -45,11 +45,10 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
-        given
-            .iClaimATaskWithIdAndAuthorization(
-                task.get("taskId"),
-                authorizationHeadersProvider.getLawFirmAAuthorization()
-            );
+        given.iClaimATaskWithIdAndAuthorization(
+            task.get("taskId"),
+            authorizationHeadersProvider.getLawFirmAAuthorization()
+        );
 
         Response result = restApiActions.post(
             "task/{task-id}/unclaim",
@@ -69,11 +68,10 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
 
-        given
-            .iClaimATaskWithIdAndAuthorization(
-                task.get("taskId"),
-                authorizationHeadersProvider.getLawFirmAAuthorization()
-            );
+        given.iClaimATaskWithIdAndAuthorization(
+            task.get("taskId"),
+            authorizationHeadersProvider.getLawFirmAAuthorization()
+        );
 
         Response result = restApiActions.post(
             "task/{task-id}/unclaim",

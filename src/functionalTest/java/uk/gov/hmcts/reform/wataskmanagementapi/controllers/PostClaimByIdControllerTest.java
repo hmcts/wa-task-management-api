@@ -93,11 +93,10 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
-        given
-            .iClaimATaskWithIdAndAuthorization(
-                task.get("taskId"),
-                authorizationHeadersProvider.getLawFirmAAuthorization()
-            );
+        given.iClaimATaskWithIdAndAuthorization(
+            task.get("taskId"),
+            authorizationHeadersProvider.getLawFirmAAuthorization()
+        );
 
         Response result = restApiActions.post(
             "task/{task-id}/claim",
@@ -112,9 +111,10 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.CONFLICT.value()))
-            .body("message", equalTo(
-                String.format("Task '%s' is already claimed by someone else.", task.get("taskId")))
-            );
+            .body("message", equalTo(String.format(
+                "Task '%s' is already claimed by someone else.",
+                task.get("taskId")
+            )));
     }
 
 }

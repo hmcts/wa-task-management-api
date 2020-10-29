@@ -61,13 +61,23 @@ public class RestApiActions {
         return post(path, null, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
     }
 
-    public Response post(String path, String resourceId, Object body, String contentType, String accept, Headers headers) {
+    public Response post(String path,
+                         String resourceId,
+                         Object body,
+                         String contentType,
+                         String accept,
+                         Headers headers) {
         return (body != null)
             ? postWithBody(path, resourceId, body, contentType, accept, headers)
             : postWithoutBody(path, resourceId, contentType, accept, headers);
     }
 
-    private Response postWithBody(String path, String resourceId, Object body, String contentType, String accept, Headers headers) {
+    private Response postWithBody(String path,
+                                  String resourceId,
+                                  Object body,
+                                  String contentType,
+                                  String accept,
+                                  Headers headers) {
         return (resourceId != null)
             ? given()
             .contentType(contentType)
@@ -85,7 +95,11 @@ public class RestApiActions {
             .post(path);
     }
 
-    private Response postWithoutBody(String path, String resourceId, String contentType, String accept, Headers headers) {
+    private Response postWithoutBody(String path,
+                                     String resourceId,
+                                     String contentType,
+                                     String accept,
+                                     Headers headers) {
         return (resourceId != null)
             ? given()
             .contentType(contentType)

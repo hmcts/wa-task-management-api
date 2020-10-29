@@ -40,15 +40,12 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-            .body(
-                "message",
-                equalTo(String.format(
-                    "Cannot modify variables for task %s: task %s doesn't exist: task is null",
-                    nonExistentTaskId,
-                    nonExistentTaskId,
-                    nonExistentTaskId
-                ))
-            );
+            .body("message", equalTo(String.format(
+                "Cannot modify variables for task %s: task %s doesn't exist: task is null",
+                nonExistentTaskId,
+                nonExistentTaskId,
+                nonExistentTaskId
+            )));
     }
 
     @Test
