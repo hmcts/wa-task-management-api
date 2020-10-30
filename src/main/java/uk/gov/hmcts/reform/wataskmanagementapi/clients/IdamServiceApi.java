@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 
@@ -16,7 +17,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @FeignClient(
     name = "idam-api",
-    url = "${idam.baseUrl}"
+    url = "${idam.baseUrl}",
+    configuration = FeignConfiguration.class
 )
 public interface IdamServiceApi {
     @GetMapping(
