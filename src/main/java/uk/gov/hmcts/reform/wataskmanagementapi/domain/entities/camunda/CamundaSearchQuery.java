@@ -21,7 +21,6 @@ public class CamundaSearchQuery {
         return queries;
     }
 
-
     public static class CamundaAndQueryBuilder {
 
         private final Map<String, Object> map = new ConcurrentHashMap<>();
@@ -49,6 +48,11 @@ public class CamundaSearchQuery {
                 List<CamundaSearchExpression> processVariables = new ArrayList<>(singleton(searchExpression));
                 orQueries.add(new CamundaOrQuery(processVariables));
             }
+            return this;
+        }
+
+        public CamundaAndQueryBuilder andQuery(Map<String, List<String>> searchExpression) {
+            orQueries.add(searchExpression);
             return this;
         }
 

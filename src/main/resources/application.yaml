@@ -53,10 +53,11 @@ spring:
     name: WA Task Management
   main:
     allow-bean-definition-overriding: true
-  jackson:
-    property-naming-strategy: SNAKE_CASE
   security:
     oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks
       client:
         provider:
           oidc:
@@ -65,9 +66,6 @@ spring:
           oidc:
             client-id: ${WA_IDAM_CLIENT_ID:wa}
             client-secret: ${WA_IDAM_CLIENT_SECRET:something}
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks
 
 feign:
   client:

@@ -11,12 +11,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -75,10 +78,21 @@ class TaskControllerTest {
     @Test
     void should_succeed_when_performing_search_and_return_a_200_ok() {
 
-        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(new SearchTaskRequest());
+        ResponseEntity<GetTasksResponse<Task>> response =
+            taskController.searchWithCriteria(new SearchTaskRequest(singletonList(mock(SearchParameter.class))));
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void should_return_a_400_when_performing_search_with_no_parameters() {
+
+        ResponseEntity<GetTasksResponse<Task>> response =
+            taskController.searchWithCriteria(new SearchTaskRequest(emptyList()));
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
