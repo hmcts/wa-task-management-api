@@ -57,8 +57,6 @@ class CamundaServiceTest {
     @Mock
     private CamundaQueryBuilder camundaQueryBuilder;
 
-    private TaskMapper taskMapper;
-
     @Mock
     AuthTokenGenerator authTokenGenerator;
 
@@ -66,7 +64,7 @@ class CamundaServiceTest {
 
     @BeforeEach
     public void setUp() {
-        taskMapper = new TaskMapper(new CamundaObjectMapper());
+        TaskMapper taskMapper = new TaskMapper(new CamundaObjectMapper());
         camundaService = new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
@@ -183,7 +181,7 @@ class CamundaServiceTest {
             .thenReturn(camundaSearchQueryMock);
         when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
             .thenReturn(singletonList(camundaTask));
-        when(camundaServiceApi.getVariables(camundaTask.getId()))
+        when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
             .thenReturn(variables);
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -210,7 +208,8 @@ class CamundaServiceTest {
             BEARER_SERVICE_TOKEN,
             camundaSearchQueryMock.getQueries()
         );
-        verify(camundaServiceApi, times(1)).getVariables(camundaTask.getId());
+        verify(camundaServiceApi, times(1))
+            .getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId());
         verifyNoMoreInteractions(camundaServiceApi);
     }
 
@@ -249,7 +248,7 @@ class CamundaServiceTest {
             camundaSearchQueryMock.getQueries()
         )).thenReturn(singletonList(mock(
             CamundaTask.class)));
-        when(camundaServiceApi.getVariables(any())).thenThrow(FeignException.class);
+        when(camundaServiceApi.getVariables(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(FeignException.class);
 
 
         assertThatThrownBy(() -> camundaService.searchWithCriteria(searchTaskRequest))

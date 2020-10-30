@@ -43,7 +43,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         Response result = restApiActions.get(
             "task/{task-id}",

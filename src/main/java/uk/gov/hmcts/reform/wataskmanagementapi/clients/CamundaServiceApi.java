@@ -92,6 +92,7 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    Map<String, CamundaVariable> getVariables(@PathVariable("task-id") String id);
+    Map<String, CamundaVariable> getVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                              @PathVariable("task-id") String id);
 
 }

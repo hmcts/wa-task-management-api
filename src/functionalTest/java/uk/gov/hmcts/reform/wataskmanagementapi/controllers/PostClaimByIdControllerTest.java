@@ -46,7 +46,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_204_when_claiming_a_task_by_id() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         Response result = restApiActions.post(
             "task/{task-id}/claim",
@@ -61,7 +62,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void endpoint_should_be_idempotent_should_return_a_204_when_claiming_a_task_by_id() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         Response result = restApiActions.post(
             "task/{task-id}/claim",
@@ -86,7 +88,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),

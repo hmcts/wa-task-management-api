@@ -53,7 +53,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         Response result = restApiActions.post(
             "task/{task-id}/complete",
@@ -70,7 +71,8 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void endpoint_should_be_idempotent_should_return_a_204_when_completing_an_already_completed_task() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
         Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
 
         Response result = restApiActions.post(

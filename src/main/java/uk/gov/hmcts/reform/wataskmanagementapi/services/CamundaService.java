@@ -144,7 +144,10 @@ public class CamundaService {
             );
 
             searchResults.forEach(camundaTask -> {
-                Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(camundaTask.getId());
+                Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(
+                    authTokenGenerator.generate(),
+                    camundaTask.getId()
+                );
                 Task task = taskMapper.mapToTaskObject(camundaTask, variables);
                 response.add(task);
             });

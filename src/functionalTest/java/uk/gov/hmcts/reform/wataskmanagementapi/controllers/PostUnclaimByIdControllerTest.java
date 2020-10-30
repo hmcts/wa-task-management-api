@@ -36,14 +36,16 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("timestamp", is(notNullValue()))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo("There was a problem unclaiming the task with id: " + nonExistentTaskId));
+            .body("message",
+                  equalTo("There was a problem unclaiming the task with id: " + nonExistentTaskId));
     }
 
     @Test
     public void should_return_a_404_when_unclaiming_a_task_by_id_with_different_credentials() {
 
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),
@@ -65,7 +67,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
 
         given.iClaimATaskWithIdAndAuthorization(

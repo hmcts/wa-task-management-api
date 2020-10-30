@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,7 @@ public class GivensBuilder {
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
-    public GivensBuilder iCreateATaskWithCcdId(String ccdId) {
+    public GivensBuilder iCreateATaskWithCcdId(String ccdId, Header serviceAuthorizationHeader) {
 
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
@@ -47,6 +48,7 @@ public class GivensBuilder {
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(serviceAuthorizationHeader)
             .baseUri(camundaUrl)
             .body(camundaObjectMapper.asCamundaJsonString(request))
             .when()
@@ -57,12 +59,14 @@ public class GivensBuilder {
         return this;
     }
 
-    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
+    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value,
+                                                                     Header serviceAuthorizationHeader) {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         return given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(serviceAuthorizationHeader)
             .baseUri(camundaUrl)
             .when()
             .get("/task" + filter)

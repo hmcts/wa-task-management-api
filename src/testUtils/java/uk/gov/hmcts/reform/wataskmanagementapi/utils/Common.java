@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import io.restassured.http.Header;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
@@ -21,13 +22,13 @@ public class Common {
         this.given = given;
     }
 
-    public Map<String, String> setupTaskAndRetrieveIds() {
+    public Map<String, String> setupTaskAndRetrieveIds(Header serviceAuthorizationHeader) {
         String ccdId = ccdIdGenerator.generate();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCcdId(ccdId)
+            .iCreateATaskWithCcdId(ccdId, serviceAuthorizationHeader)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId, serviceAuthorizationHeader);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task:" + "used:" + ccdId);

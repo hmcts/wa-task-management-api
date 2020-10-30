@@ -43,7 +43,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("message", equalTo(String.format(
                 "Cannot modify variables for task %s: task %s doesn't exist: task is null",
                 nonExistentTaskId,
-                nonExistentTaskId,
                 nonExistentTaskId
             )));
     }
@@ -52,7 +51,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void should_return_a_204_when_assigning_a_task_by_id() {
 
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         Response result = restApiActions.post(
             "task/{task-id}/assignee",

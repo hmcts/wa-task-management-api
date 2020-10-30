@@ -50,8 +50,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results() {
 
-        Map<String, String> task1 = common.setupTaskAndRetrieveIds();
-        Map<String, String> task2 = common.setupTaskAndRetrieveIds();
+        Map<String, String> task1 =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
+        Map<String, String> task2 =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -119,9 +121,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 .build();
 
             List<CamundaTask> tasks = given
-                .iCreateATaskWithCcdId(ccdId)
+                .iCreateATaskWithCcdId(
+                    ccdId,
+                    authorizationHeadersProvider.getServiceAuthorizationHeader()
+                )
                 .and()
-                .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
+                .iRetrieveATaskWithProcessVariableFilter(
+                    "ccdId",
+                    ccdId,
+                    authorizationHeadersProvider.getServiceAuthorizationHeader()
+                );
 
             String taskId = tasks.get(0).getId();
 
@@ -150,7 +159,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     private Map<String, String> setUpTaskWithCustomVariables(CamundaProcessVariables processVariables) {
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
         given.iAddVariablesToTaskWithId(task.get("taskId"), processVariables);
         return task;
     }
