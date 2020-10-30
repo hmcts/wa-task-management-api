@@ -5,13 +5,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
@@ -25,6 +30,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
 @ExtendWith(MockitoExtension.class)
 class TaskControllerTest {
@@ -35,22 +41,34 @@ class TaskControllerTest {
     @Mock
     private IdamService idamService;
 
+    @Mock
+    private AccessControlService accessControlService;
+
     private TaskController taskController;
 
     @BeforeEach
     void setUp() {
-        taskController = new TaskController(camundaService, idamService);
+
+        taskController = new TaskController(
+            camundaService,
+            idamService,
+            accessControlService
+        );
     }
 
     @Test
-    void should_return_a_fetched_task() {
+    void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
 
+        final RoleAssignments mockedRoleAssignments = mock(RoleAssignments.class);
+        final HttpHeaders httpHeaders = mock(HttpHeaders.class);
         String taskId = UUID.randomUUID().toString();
 
         Task mockedTask = mock(Task.class);
-        when(camundaService.getTask(taskId)).thenReturn(mockedTask);
+        when(accessControlService.getRoles(httpHeaders)).thenReturn(mockedRoleAssignments);
+        when(camundaService.getTask(taskId, mockedRoleAssignments, singletonList(PermissionTypes.READ)))
+            .thenReturn(mockedTask);
 
-        ResponseEntity<GetTaskResponse<Task>> response = taskController.getTask(taskId);
+        ResponseEntity<GetTaskResponse<Task>> response = taskController.getTask(httpHeaders, taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -77,8 +95,10 @@ class TaskControllerTest {
     @Test
     void should_succeed_when_performing_search_and_return_a_200_ok() {
 
-        ResponseEntity<GetTasksResponse<Task>> response =
-            taskController.searchWithCriteria(new SearchTaskRequest(singletonList(mock(SearchParameter.class))));
+        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
+            new SearchTaskRequest(
+                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+            ));
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());

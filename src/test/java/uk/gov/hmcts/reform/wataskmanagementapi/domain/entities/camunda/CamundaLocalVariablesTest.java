@@ -15,7 +15,7 @@ class CamundaLocalVariablesTest {
             .withLocalVariable("taskId", "someTaskId")
             .withLocalVariable("group", "TCW")
             .withLocalVariable("dueDate", "2020-09-27")
-            .withLocalVariable("taskState","unassigned")
+            .withLocalVariable("taskState", "unassigned")
             .build();
 
         assertEquals(new CamundaValue<>("0000000", "String"), testObject.getLocalVariablesMap().get("ccdId"));

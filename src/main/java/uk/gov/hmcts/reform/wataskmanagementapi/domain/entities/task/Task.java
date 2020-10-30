@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -139,9 +139,9 @@ public class Task {
                 String caseName
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
+        Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
         this.executionType = executionType;
-        Objects.requireNonNull(name, "name cannot be null");
         this.name = name;
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;

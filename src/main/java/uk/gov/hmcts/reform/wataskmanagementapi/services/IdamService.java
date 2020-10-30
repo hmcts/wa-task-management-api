@@ -18,6 +18,7 @@ public class IdamService {
     }
 
     public UserInfo getUserInfo(String accessToken) {
+        requireNonNull(accessToken, "access token must not be null");
         return idamServiceApi.userInfo(accessToken);
     }
 

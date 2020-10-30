@@ -1,0 +1,58 @@
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.access;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+
+@ExtendWith(MockitoExtension.class)
+class AccessControlServiceTest {
+
+    @Mock
+    private IdamService idamService;
+
+    @Mock
+    private RoleManagementService roleManagementService;
+
+    private AccessControlService accessControlService;
+
+    @BeforeEach
+    public void setUp() {
+        accessControlService = new AccessControlService(idamService, roleManagementService);
+    }
+
+    @Test
+    void should_succeed_and_return_role_assignments() {
+
+        final RoleAssignments mockedRoleAssignments = mock(RoleAssignments.class);
+        final HttpHeaders httpHeaders = mock(HttpHeaders.class);
+        final UserInfo mockedUserInfo = mock(UserInfo.class);
+        final String idamToken = "someToken";
+
+        when(httpHeaders.getFirst(AUTHORIZATION)).thenReturn(idamToken);
+        when(idamService.getUserInfo(idamToken)).thenReturn(mockedUserInfo);
+        when(roleManagementService.getRolesForUser(mockedUserInfo.getUid(), httpHeaders)).thenReturn(
+            mockedRoleAssignments);
+        RoleAssignments result = accessControlService.getRoles(httpHeaders);
+
+        assertEquals(mockedRoleAssignments, result);
+        verify(idamService, times(1)).getUserInfo(idamToken);
+        verifyNoMoreInteractions(idamService);
+        verify(roleManagementService, times(1)).getRolesForUser(mockedUserInfo.getUid(), httpHeaders);
+        verifyNoMoreInteractions(roleManagementService);
+    }
+}

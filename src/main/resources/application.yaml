@@ -13,9 +13,13 @@ management:
 
 config:
   enableSwagger: ${ENABLE_SWAGGER:true}
+  permissionsSecurityEnabled: ${PERMISSIONS_SECURITY_ENABLED:true}
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
+role-assignment:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
 
 security:
   anonymousPaths:
