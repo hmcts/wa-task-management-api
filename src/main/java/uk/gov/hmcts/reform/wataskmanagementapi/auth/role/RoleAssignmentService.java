@@ -19,12 +19,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 
 @Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class RoleManagementService {
+public class RoleAssignmentService {
 
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
 
     @Autowired
-    public RoleManagementService(RoleAssignmentServiceApi roleAssignmentServiceApi) {
+    public RoleAssignmentService(RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
 

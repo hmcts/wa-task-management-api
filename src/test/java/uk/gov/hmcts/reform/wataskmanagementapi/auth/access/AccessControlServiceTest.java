@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
@@ -26,13 +26,13 @@ class AccessControlServiceTest {
     private IdamService idamService;
 
     @Mock
-    private RoleManagementService roleManagementService;
+    private RoleAssignmentService roleAssignmentService;
 
     private AccessControlService accessControlService;
 
     @BeforeEach
     public void setUp() {
-        accessControlService = new AccessControlService(idamService, roleManagementService);
+        accessControlService = new AccessControlService(idamService, roleAssignmentService);
     }
 
     @Test
@@ -45,14 +45,14 @@ class AccessControlServiceTest {
 
         when(httpHeaders.getFirst(AUTHORIZATION)).thenReturn(idamToken);
         when(idamService.getUserInfo(idamToken)).thenReturn(mockedUserInfo);
-        when(roleManagementService.getRolesForUser(mockedUserInfo.getUid(), httpHeaders)).thenReturn(
+        when(roleAssignmentService.getRolesForUser(mockedUserInfo.getUid(), httpHeaders)).thenReturn(
             mockedRoleAssignments);
         RoleAssignments result = accessControlService.getRoles(httpHeaders);
 
         assertEquals(mockedRoleAssignments, result);
         verify(idamService, times(1)).getUserInfo(idamToken);
         verifyNoMoreInteractions(idamService);
-        verify(roleManagementService, times(1)).getRolesForUser(mockedUserInfo.getUid(), httpHeaders);
-        verifyNoMoreInteractions(roleManagementService);
+        verify(roleAssignmentService, times(1)).getRolesForUser(mockedUserInfo.getUid(), httpHeaders);
+        verifyNoMoreInteractions(roleAssignmentService);
     }
 }
