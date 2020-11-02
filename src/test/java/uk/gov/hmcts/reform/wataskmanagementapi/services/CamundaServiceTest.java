@@ -365,7 +365,11 @@ class CamundaServiceTest {
 
         camundaService.assigneeTask(taskId, userId);
 
-        verify(camundaServiceApi, times(1)).assigneeTask(eq(taskId), anyMap());
+        verify(camundaServiceApi, times(1)).assigneeTask(
+            eq(BEARER_SERVICE_TOKEN),
+            eq(taskId),
+            anyMap()
+        );
         verify(camundaServiceApi, times(1)).addLocalVariablesToTask(
             eq(BEARER_SERVICE_TOKEN),
             eq(taskId),
@@ -387,7 +391,9 @@ class CamundaServiceTest {
             );
 
         doThrow(exception)
-            .when(camundaServiceApi).assigneeTask(eq(taskId), anyMap());
+            .when(camundaServiceApi).assigneeTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
+
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> camundaService.assigneeTask(taskId, userId))
             .isInstanceOf(ResourceNotFoundException.class)

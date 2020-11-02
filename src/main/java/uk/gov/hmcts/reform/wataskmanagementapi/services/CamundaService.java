@@ -83,7 +83,7 @@ public class CamundaService {
             variable.put("taskState", CamundaValue.stringValue("assigned"));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
             camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
-            camundaServiceApi.assigneeTask(taskId, body);
+            camundaServiceApi.assigneeTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             if (HttpStatus.NOT_FOUND.value() == ex.status()) {
                 throw new ResourceNotFoundException(String.format(
