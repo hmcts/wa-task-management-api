@@ -56,8 +56,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", everyItem(is("test-1603790147897")));
+            .body("tasks.jurisdiction", everyItem(is("IA")));
     }
 
     @Test
