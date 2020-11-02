@@ -126,7 +126,7 @@ public class CamundaService {
                 HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
                 modifications.put("taskState", CamundaValue.stringValue("completed"));
                 camundaServiceApi.addLocalVariablesToTask(id, new AddLocalVariableRequest(modifications));
-                camundaServiceApi.completeTask(id, new CompleteTaskVariables());
+                camundaServiceApi.completeTask(authTokenGenerator.generate(), id, new CompleteTaskVariables());
             }
         } catch (FeignException ex) {
             // This endpoint throws a 500 when the task doesn't exist.

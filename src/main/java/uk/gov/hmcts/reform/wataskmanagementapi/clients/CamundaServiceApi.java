@@ -76,7 +76,9 @@ public interface CamundaServiceApi {
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
-    void completeTask(@PathVariable("task-id") String id, CompleteTaskVariables variables);
+    void completeTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                      @PathVariable("task-id") String id,
+                      CompleteTaskVariables variables);
 
     @PostMapping(
         value = "/task/{id}/localVariables",

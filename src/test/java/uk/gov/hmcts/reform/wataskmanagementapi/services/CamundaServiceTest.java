@@ -312,7 +312,10 @@ class CamundaServiceTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        doThrow(mock(FeignException.class)).when(camundaServiceApi).completeTask(taskId, new CompleteTaskVariables());
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+
+        doThrow(mock(FeignException.class))
+            .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
         assertThatThrownBy(() -> camundaService.completeTask(taskId))
             .isInstanceOf(ResourceNotFoundException.class)
@@ -323,12 +326,14 @@ class CamundaServiceTest {
     @Test
     void should_complete_task() {
         String taskId = UUID.randomUUID().toString();
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+
         camundaService.completeTask(taskId);
 
         Map<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("taskState", CamundaValue.stringValue("completed"));
         Mockito.verify(camundaServiceApi).addLocalVariablesToTask(taskId, new AddLocalVariableRequest(modifications));
-        Mockito.verify(camundaServiceApi).completeTask(taskId, new CompleteTaskVariables());
+        Mockito.verify(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
     }
 
     @Test
