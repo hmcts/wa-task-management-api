@@ -62,7 +62,7 @@ public class CamundaService {
         try {
             Map<String, String> body = new ConcurrentHashMap<>();
             body.put("userId", userId);
-            camundaServiceApi.claimTask(taskId, body);
+            camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             if (HttpStatus.NOT_FOUND.value() == ex.status()) {
                 throw new ResourceNotFoundException(String.format(

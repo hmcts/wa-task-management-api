@@ -53,7 +53,8 @@ public interface CamundaServiceApi {
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
-    void claimTask(@PathVariable("task-id") String id,
+    void claimTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                   @PathVariable("task-id") String id,
                    @RequestBody Map<String, String> body);
 
     @PostMapping(
