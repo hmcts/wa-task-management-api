@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.util.Objects;
+
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -101,13 +103,13 @@ public class Task {
     )
     private String caseCategory;
     @ApiModelProperty(required = true,
-        notes = " Case name to display in task list UI\t"
+        notes = " Case name to display in task list UI"
     )
     private String caseName;
     @ApiModelProperty(required = true,
         notes = "If TRUE then task was auto-assigned, otherwise FALSE"
     )
-    private Boolean autoAssigned;
+    private boolean autoAssigned;
 
     public Task() {
         //Default constructor for deserialization
@@ -124,7 +126,7 @@ public class Task {
                 String createdDate,
                 String dueDate,
                 String assignee,
-                Boolean autoAssigned,
+                boolean autoAssigned,
                 String executionType,
                 String jurisdiction,
                 String region,
@@ -135,13 +137,16 @@ public class Task {
                 String caseCategory,
                 String caseName
     ) {
+        Objects.requireNonNull(id, "taskId cannot be null");
         this.id = id;
         this.executionType = executionType;
+        Objects.requireNonNull(name, "name cannot be null");
         this.name = name;
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;
         this.caseCategory = caseCategory;
         this.caseId = caseId;
+        Objects.requireNonNull(type, "type cannot be null");
         this.type = type;
         this.taskState = taskState;
         this.taskSystem = taskSystem;

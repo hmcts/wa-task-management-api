@@ -23,7 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.CreateHmctsTaskVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -57,7 +57,7 @@ class CamundaServiceTest {
     @Mock
     private CamundaErrorDecoder camundaErrorDecoder;
 
-    private CreateHmctsTaskVariable createHmctsTaskVariable;
+    private TaskMapper taskMapper;
 
     @Mock
     private CamundaQueryBuilder camundaQueryBuilder;
@@ -69,12 +69,12 @@ class CamundaServiceTest {
 
     @BeforeEach
     public void setUp() {
-        createHmctsTaskVariable = new CreateHmctsTaskVariable(new CamundaObjectMapper());
+        taskMapper = new TaskMapper(new CamundaObjectMapper());
         camundaService = new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
             camundaErrorDecoder,
-            createHmctsTaskVariable,
+            taskMapper,
             authTokenGenerator
         );
 

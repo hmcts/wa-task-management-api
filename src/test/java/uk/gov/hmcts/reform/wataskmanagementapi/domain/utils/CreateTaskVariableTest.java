@@ -3,9 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.utils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.*;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.CreateHmctsTaskVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -16,7 +19,7 @@ class CreateTaskVariableTest {
     private CamundaTask camundaTask;
     Map<String, CamundaVariable> localVariables;
 
-    private  CreateHmctsTaskVariable createHmctsTaskVariable;
+    private TaskMapper taskMapper;
 
 
     @BeforeEach
@@ -40,10 +43,10 @@ class CreateTaskVariableTest {
     }
 
     @Test
-    void should_create_hmcts_object() {
+    void should_create_hmcts_objects() {
         CamundaObjectMapper camundaObjectMapper = new CamundaObjectMapper();
-        createHmctsTaskVariable = new CreateHmctsTaskVariable(camundaObjectMapper);
-        Task task = createHmctsTaskVariable.mapToTaskObject(localVariables, camundaTask);
+        taskMapper = new TaskMapper(camundaObjectMapper);
+        Task task = taskMapper.mapToTaskObject(localVariables, camundaTask);
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
         Assertions.assertThat(task.getName()).isEqualTo("some-name");

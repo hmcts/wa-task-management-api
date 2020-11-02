@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOb
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.CreateHmctsTaskVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -19,12 +19,12 @@ class TaskMapperTest {
 
     CamundaObjectMapper camundaObjectMapper;
 
-    private CreateHmctsTaskVariable taskMapper;
+    private TaskMapper taskMapper;
 
     @BeforeEach
     public void setUp() {
         camundaObjectMapper = new CamundaObjectMapper();
-        taskMapper = new CreateHmctsTaskVariable(camundaObjectMapper);
+        taskMapper = new TaskMapper(camundaObjectMapper);
     }
 
     @Test
@@ -46,48 +46,50 @@ class TaskMapperTest {
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("ccdId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
-        variables.put("caseType", new CamundaVariable("someCaseType", "String"));
+        variables.put("caseTypeId", new CamundaVariable("someCaseTypeId", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
         variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
         variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
 
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
         assertEquals("configured", result.getTaskState());
-        assertEquals(dueDate, result.getDueDate());
+        assertEquals(dueDate.toString(), result.getDueDate());
         assertEquals("someTaskName", result.getName());
-        assertEquals("someCaseType", result.getCaseTypeId());
-        assertEquals("someCaseName", result.getName());
+        assertEquals("someCaseName", result.getCaseName());
         assertNotNull(result.getLocation());
         assertEquals("someStaffLocationId", result.getLocation());
         assertEquals("someStaffLocationName", result.getLocationName());
         assertNotNull(result.getAssignee());
         assertEquals("someAssignee", result.getAssignee());
-        assertEquals("username", result.getName());
+        assertEquals("someCaseTypeId", result.getCaseTypeId());
+        assertEquals("someClassification", result.getSecurityClassification());
     }
 
-    //@Test
-    //void should_create_object_with_no_variables() {
-    //
-    //    ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
-    //
-    //    CamundaTask camundaTask = new CamundaTask(
-    //        "someId",
-    //        "someTaskName",
-    //        "someAssignee",
-    //        ZonedDateTime.now(),
-    //        dueDate,
-    //        null,
-    //        null,
-    //        "some-key"
-    //    );
-    //
-    //    Task result = taskMapper.mapToTaskObject(camundaTask, new HashMap<String, CamundaVariable>());
-    //    assertEquals(dueDate, result.getDueDate());
-    //    assertEquals("someTaskName", result.getName());
-    //    assertNotNull(result.getAssignee());
-    //    assertEquals("someAssignee", result.getAssignee());
-    //    assertEquals("username", result.getName());
-    //}
+    @Test
+    void should_create_object_with_no_variables() {
+
+        ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+
+        CamundaTask camundaTask = new CamundaTask(
+            "someId",
+            "someTaskName",
+            "someAssignee",
+            ZonedDateTime.now(),
+            dueDate,
+            null,
+            null,
+            "some-key"
+        );
+
+        Task result = taskMapper.mapToTaskObject(new HashMap<String, CamundaVariable>(), camundaTask);
+        assertEquals(dueDate.toString(), result.getDueDate());
+        assertEquals("someTaskName", result.getName());
+        assertNotNull(result.getAssignee());
+        assertEquals("someAssignee", result.getAssignee());
+        assertEquals("someTaskName", result.getName());
+
+    }
 
     @Test
     void should_create_object_with_case_data() {
@@ -108,18 +110,22 @@ class TaskMapperTest {
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("ccdId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
-        variables.put("caseType", new CamundaVariable("someCaseType", "String"));
+        variables.put("appealType", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
+        variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
+
 
         Task result = taskMapper.mapToTaskObject(variables,camundaTask);
         assertEquals("configured", result.getTaskState());
-        assertEquals(dueDate, result.getDueDate());
+        assertEquals(dueDate.toString(), result.getDueDate());
         assertEquals("someTaskName", result.getName());
         assertEquals("someCaseType", result.getCaseCategory());
-        assertEquals("someCaseName", result.getName());
+        assertEquals("someTaskName", result.getName());
         assertNotNull(result.getAssignee());
         assertEquals("someAssignee", result.getAssignee());
-        assertEquals("username", result.getName());
+        assertEquals("someCaseName", result.getCaseName());
+        assertEquals("someClassification", result.getSecurityClassification());
+
     }
 
     @Test
@@ -141,21 +147,25 @@ class TaskMapperTest {
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("ccdId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
-        variables.put("caseType", new CamundaVariable("someCaseType", "String"));
+        variables.put("caseTypeId", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
         variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
         variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
+
 
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
 
         assertEquals("configured", result.getTaskState());
-        assertEquals(dueDate, result.getDueDate());
+        assertEquals(dueDate.toString(), result.getDueDate());
         assertEquals("someTaskName", result.getName());
-        assertEquals("someCaseType", result.getCaseCategory());
-        assertEquals("someCaseName", result.getName());
+        assertEquals("someCaseType", result.getCaseTypeId());
+        assertEquals("someCaseName", result.getCaseName());
         assertNotNull(result.getLocation());
         assertEquals("someStaffLocationId", result.getLocation());
         assertEquals("someStaffLocationName", result.getLocationName());
+        assertEquals("someClassification", result.getSecurityClassification());
+
         assertNotNull(result.getAssignee());
     }
 

@@ -16,7 +16,6 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
@@ -45,9 +44,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results() {
 
-        Map<String, String> task1 = common.setupTaskAndRetrieveIds();
-        Map<String, String> task2 = common.setupTaskAndRetrieveIds();
-
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -60,8 +56,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.case_data.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_data.reference", hasItems(task1.get("ccdId"), task2.get("ccdId")));
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", everyItem(is("test-1603790147897")));
     }
 
     @Test
@@ -89,9 +85,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.state", everyItem(either(is("unassigned")).or(is("assigned"))))
-            .body("tasks.case_data.reference", hasItem(task.get("ccdId")))
-            .body("tasks.case_data.location.id", everyItem(equalTo("17595")));
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.case_id", hasItem(task.get("ccdId")))
+            .body("tasks.location", everyItem(equalTo("17595")));
     }
 
     @Test
@@ -139,9 +135,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.state", everyItem(equalTo("unassigned")))
-            .body("tasks.case_data.reference", hasItems(ccdIds[0], ccdIds[1]))
-            .body("tasks.case_data.location.id", everyItem(either(is("17595")).or(is("17594"))));
+            .body("tasks.task_state", everyItem(equalTo("unassigned")))
+            .body("tasks.location", everyItem(either(is("17595")).or(is("17594"))));
     }
 
     private Map<String, String> setUpTaskWithCustomVariables(CamundaProcessVariables processVariables) {

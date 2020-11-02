@@ -13,13 +13,13 @@ import java.util.Optional;
 
 @SuppressWarnings("PMD.UnnecessaryConstructor")
 @Service
-public class CreateHmctsTaskVariable {
+public class TaskMapper {
 
 
     private final CamundaObjectMapper camundaObjectMapper;
 
     @Autowired
-    public CreateHmctsTaskVariable(CamundaObjectMapper camundaObjectMapper) {
+    public TaskMapper(CamundaObjectMapper camundaObjectMapper) {
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
@@ -37,7 +37,7 @@ public class CreateHmctsTaskVariable {
                                                                .get("securityClassification"), String.class);
         String taskTitle = getValueFromObject(localVariableResponse.get("title"), String.class);
         String executionType = getValueFromObject(localVariableResponse.get("executionType"), String.class);
-        Boolean autoAssigned = false;
+        boolean autoAssigned = false;
         String taskSystem = getValueFromObject(localVariableResponse.get("taskSystem"), String.class);
         String jurisdiction = getValueFromObject(localVariableResponse.get("jurisdiction"), String.class);
         String region = getValueFromObject(localVariableResponse.get("region"), String.class);
