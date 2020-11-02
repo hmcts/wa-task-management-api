@@ -44,6 +44,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results() {
 
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
+
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -56,7 +59,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.jurisdiction", everyItem(is("IA")));
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(task.get("ccdId")))
+            .body("tasks.id", hasItem(task.get("taskId")));
     }
 
     @Test
@@ -67,6 +72,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .withProcessVariable("location", "17595")
             .withProcessVariable("locationName", "A Hearing Centre")
             .withProcessVariable("taskState", "assigned")
+            .withProcessVariable("taskSystem", "A task system")
+            .withProcessVariable("region", "A region")
+            .withProcessVariable("appealType", "A appeal type")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("executionType", "A Execution type")
             .build();
 
         Map<String, String> task = setUpTaskWithCustomVariables(processVariables);
@@ -84,9 +94,18 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItem(task.get("taskId")))
+            .body("tasks.name", everyItem(is("task name")))
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
-            .body("tasks.case_id", hasItem(task.get("ccdId")))
-            .body("tasks.location", everyItem(equalTo("17595")));
+            .body("tasks.task_system", hasItem("A task system"))
+            .body("tasks.location_name", everyItem(is("A Hearing Centre")))
+            .body("tasks.location", everyItem(equalTo("17595")))
+            .body("tasks.security_classification", hasItem("PUBLIC"))
+            .body("tasks.execution_type", hasItem("A Execution type"))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.region", hasItem(("A region")))
+            .body("tasks.case_category", hasItem(("A appeal type")))
+            .body("tasks.case_id", hasItem(task.get("ccdId")));
     }
 
     @Test
@@ -134,8 +153,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.task_state", everyItem(equalTo("unassigned")));
-            //.body("tasks.location_id", everyItem(either(is("17595")).or(is("17594"))));
+            .body("tasks.task_state", everyItem(equalTo("unassigned")))
+            .body("tasks.location", everyItem(either(is("17595")).or(is("17594"))));
     }
 
     private Map<String, String> setUpTaskWithCustomVariables(CamundaProcessVariables processVariables) {

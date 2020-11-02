@@ -119,7 +119,6 @@ public class GivensBuilder {
             .when()
             .post("/task/{task-id}/localVariables", taskId)
             .then()
-            .log().all(true)
             .assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
         return this;

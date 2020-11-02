@@ -25,4 +25,10 @@ class AssigneeEnumTest {
         assertEquals("unconfigured",unconfigured);
         assertEquals("referred",referred);
     }
+
+    @Test
+    void update_test_whenever_additions_to_assign_enum_are_made() {
+        int assigneeEnumLength = TaskState.values().length;
+        assertEquals(7, assigneeEnumLength);
+    }
 }

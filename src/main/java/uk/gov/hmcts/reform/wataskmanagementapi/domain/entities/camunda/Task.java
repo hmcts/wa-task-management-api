@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
@@ -55,20 +56,20 @@ public class Task {
         notes = "Task title to display in task list UI"
     )
     private String taskTitle;
+    @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @ApiModelProperty(
+        example = "2020-09-05T14:47:01.250542+01:00",
+        notes = "Optional due date for the task that will be created"
+    )
+    private ZonedDateTime createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
     @ApiModelProperty(
         example = "2020-09-05T14:47:01.250542+01:00",
         notes = "Optional due date for the task that will be created"
     )
-    private String createdDate;
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
-    @ApiModelProperty(
-        example = "2020-09-05T14:47:01.250542+01:00",
-        notes = "Optional due date for the task that will be created"
-    )
-    private String dueDate;
+    private ZonedDateTime dueDate;
     @ApiModelProperty(required = true,
         notes = "`location to display in task list UI"
     )
@@ -123,8 +124,8 @@ public class Task {
                 String taskSystem,
                 String securityClassification,
                 String taskTitle,
-                String createdDate,
-                String dueDate,
+                ZonedDateTime createdDate,
+                ZonedDateTime dueDate,
                 String assignee,
                 boolean autoAssigned,
                 String executionType,
@@ -146,7 +147,6 @@ public class Task {
         this.autoAssigned = autoAssigned;
         this.caseCategory = caseCategory;
         this.caseId = caseId;
-        Objects.requireNonNull(type, "type cannot be null");
         this.type = type;
         this.taskState = taskState;
         this.taskSystem = taskSystem;
@@ -217,11 +217,11 @@ public class Task {
         return taskTitle;
     }
 
-    public String getCreatedDate() {
+    public ZonedDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public String getDueDate() {
+    public ZonedDateTime getDueDate() {
         return dueDate;
     }
 

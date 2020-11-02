@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskMapper;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;

@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -37,7 +36,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -106,7 +104,7 @@ class CamundaServiceTest {
 
         final Task task = camundaService.getTask(taskId);
         verify(camundaServiceApi, times(1)).getTask(eq(BEARER_SERVICE_TOKEN),eq(taskId));
-        verify(camundaServiceApi, times(1)).getLocalVariables(camundaTask.getId());
+        verify(camundaServiceApi, times(1)).getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId());
 
         verifyNoMoreInteractions(camundaServiceApi);
         assertNotNull(task);
@@ -225,7 +223,7 @@ class CamundaServiceTest {
         assertNotNull(results);
         assertEquals(1, results.size());
         assertEquals("configured", results.get(0).getTaskState());
-        assertEquals(dueDate.toString(), results.get(0).getDueDate());
+        assertEquals(dueDate, results.get(0).getDueDate());
         assertEquals("someCaseName", results.get(0).getCaseName());
         assertEquals("someCaseType", results.get(0).getCaseTypeId());
         assertEquals("someTaskName", results.get(0).getName());

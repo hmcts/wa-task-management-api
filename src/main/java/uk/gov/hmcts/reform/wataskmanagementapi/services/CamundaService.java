@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -163,7 +162,8 @@ public class CamundaService {
             );
 
             searchResults.forEach(camundaTask -> {
-                Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(authTokenGenerator.generate(), camundaTask.getId());
+                Map<String, CamundaVariable> variables = camundaServiceApi
+                    .getVariables(authTokenGenerator.generate(), camundaTask.getId());
                 Task task = taskMapper.mapToTaskObject(variables, camundaTask);
                 response.add(task);
             });

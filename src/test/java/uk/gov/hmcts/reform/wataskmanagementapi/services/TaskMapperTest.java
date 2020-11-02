@@ -6,7 +6,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOb
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.TaskMapper;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -54,7 +53,7 @@ class TaskMapperTest {
 
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
         assertEquals("configured", result.getTaskState());
-        assertEquals(dueDate.toString(), result.getDueDate());
+        assertEquals(dueDate, result.getDueDate());
         assertEquals("someTaskName", result.getName());
         assertEquals("someCaseName", result.getCaseName());
         assertNotNull(result.getLocation());
@@ -83,7 +82,7 @@ class TaskMapperTest {
         );
 
         Task result = taskMapper.mapToTaskObject(new HashMap<String, CamundaVariable>(), camundaTask);
-        assertEquals(dueDate.toString(), result.getDueDate());
+        assertEquals(dueDate, result.getDueDate());
         assertEquals("someTaskName", result.getName());
         assertNotNull(result.getAssignee());
         assertEquals("someAssignee", result.getAssignee());
@@ -117,7 +116,7 @@ class TaskMapperTest {
 
         Task result = taskMapper.mapToTaskObject(variables,camundaTask);
         assertEquals("configured", result.getTaskState());
-        assertEquals(dueDate.toString(), result.getDueDate());
+        assertEquals(dueDate, result.getDueDate());
         assertEquals("someTaskName", result.getName());
         assertEquals("someCaseType", result.getCaseCategory());
         assertEquals("someTaskName", result.getName());
@@ -157,7 +156,7 @@ class TaskMapperTest {
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
 
         assertEquals("configured", result.getTaskState());
-        assertEquals(dueDate.toString(), result.getDueDate());
+        assertEquals(dueDate, result.getDueDate());
         assertEquals("someTaskName", result.getName());
         assertEquals("someCaseType", result.getCaseTypeId());
         assertEquals("someCaseName", result.getCaseName());
