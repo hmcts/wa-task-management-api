@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -10,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -31,16 +29,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
-
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
         Response result = restApiActions.post(
             "task",
             new SearchTaskRequest(emptyList()),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            super.authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -51,9 +46,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_search_results() {
 
         Map<String, String> task1 =
-            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
+            common.setupTaskAndRetrieveIds();
         Map<String, String> task2 =
-            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
+            common.setupTaskAndRetrieveIds();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -62,7 +57,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             searchTaskRequest,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            super.authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -91,7 +86,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             searchTaskRequest,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            super.authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -121,15 +116,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 .build();
 
             List<CamundaTask> tasks = given
-                .iCreateATaskWithCcdId(
-                    ccdId,
-                    authorizationHeadersProvider.getServiceAuthorizationHeader()
-                )
+                .iCreateATaskWithCcdId(ccdId)
                 .and()
                 .iRetrieveATaskWithProcessVariableFilter(
                     "ccdId",
-                    ccdId,
-                    authorizationHeadersProvider.getServiceAuthorizationHeader()
+                    ccdId
                 );
 
             String taskId = tasks.get(0).getId();
@@ -148,7 +139,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             searchTaskRequest,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            super.authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -159,8 +150,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     private Map<String, String> setUpTaskWithCustomVariables(CamundaProcessVariables processVariables) {
-        Map<String, String> task =
-            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
         given.iAddVariablesToTaskWithId(task.get("taskId"), processVariables);
         return task;
     }

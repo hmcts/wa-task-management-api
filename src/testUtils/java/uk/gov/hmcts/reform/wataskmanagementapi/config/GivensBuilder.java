@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
@@ -9,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -24,13 +24,17 @@ public class GivensBuilder {
 
     private final String camundaUrl;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public GivensBuilder(String camundaUrl, CamundaObjectMapper camundaObjectMapper) {
+    public GivensBuilder(String camundaUrl,
+                         CamundaObjectMapper camundaObjectMapper,
+                         AuthorizationHeadersProvider authorizationHeadersProvider) {
         this.camundaUrl = camundaUrl;
         this.camundaObjectMapper = camundaObjectMapper;
+        this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
-    public GivensBuilder iCreateATaskWithCcdId(String ccdId, Header serviceAuthorizationHeader) {
+    public GivensBuilder iCreateATaskWithCcdId(String ccdId) {
 
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
@@ -48,7 +52,7 @@ public class GivensBuilder {
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
-            .header(serviceAuthorizationHeader)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
             .body(camundaObjectMapper.asCamundaJsonString(request))
             .when()
@@ -59,14 +63,13 @@ public class GivensBuilder {
         return this;
     }
 
-    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value,
-                                                                     Header serviceAuthorizationHeader) {
+    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         return given()
             .contentType(APPLICATION_JSON_VALUE)
-            .header(serviceAuthorizationHeader)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
             .when()
             .get("/task" + filter)

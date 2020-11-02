@@ -3,11 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.Map;
 
@@ -24,9 +22,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Value("${targets.camunda}")
     private String camundaUrl;
-
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
@@ -53,8 +48,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
 
-        Map<String, String> task =
-            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.post(
             "task/{task-id}/complete",
@@ -71,8 +65,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void endpoint_should_be_idempotent_should_return_a_204_when_completing_an_already_completed_task() {
 
-        Map<String, String> task =
-            common.setupTaskAndRetrieveIds(authorizationHeadersProvider.getServiceAuthorizationHeader());
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
         Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
 
         Response result = restApiActions.post(
