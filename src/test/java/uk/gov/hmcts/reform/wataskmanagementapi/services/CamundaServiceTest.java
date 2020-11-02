@@ -72,6 +72,8 @@ class CamundaServiceTest {
             camundaErrorDecoder,
             authTokenGenerator
         );
+
+
     }
 
     @Test
@@ -80,11 +82,13 @@ class CamundaServiceTest {
         String taskId = UUID.randomUUID().toString();
 
         CamundaTask mockedTask = mock(CamundaTask.class);
-        when(camundaServiceApi.getTask(taskId)).thenReturn(mockedTask);
+        when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedTask);
+
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         CamundaTask response = camundaService.getTask(taskId);
 
-        verify(camundaServiceApi, times(1)).getTask(taskId);
+        verify(camundaServiceApi, times(1)).getTask(BEARER_SERVICE_TOKEN, taskId);
         verifyNoMoreInteractions(camundaServiceApi);
 
         assertEquals(mockedTask, response);
@@ -95,8 +99,9 @@ class CamundaServiceTest {
     void getTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
-        when(camundaServiceApi.getTask(taskId)).thenThrow(FeignException.class);
+        when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenThrow(FeignException.class);
 
         assertThatThrownBy(() -> camundaService.getTask(taskId))
             .isInstanceOf(ResourceNotFoundException.class)

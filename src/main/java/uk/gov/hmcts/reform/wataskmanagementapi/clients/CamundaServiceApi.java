@@ -45,7 +45,8 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    CamundaTask getTask(@PathVariable("task-id") String id);
+    CamundaTask getTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                        @PathVariable("task-id") String id);
 
     @PostMapping(
         value = "/task/{task-id}/claim",

@@ -49,7 +49,7 @@ public class CamundaService {
 
     public CamundaTask getTask(String id) {
         try {
-            return camundaServiceApi.getTask(id);
+            return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the task with id: %s",
