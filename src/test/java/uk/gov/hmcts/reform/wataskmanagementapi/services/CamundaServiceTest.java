@@ -73,6 +73,7 @@ class CamundaServiceTest {
             authTokenGenerator
         );
 
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
     }
 
@@ -83,8 +84,6 @@ class CamundaServiceTest {
 
         CamundaTask mockedTask = mock(CamundaTask.class);
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedTask);
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         CamundaTask response = camundaService.getTask(taskId);
 
@@ -99,7 +98,6 @@ class CamundaServiceTest {
     void getTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenThrow(FeignException.class);
 
@@ -114,8 +112,6 @@ class CamundaServiceTest {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.claimTask(taskId, userId);
         verify(camundaServiceApi, times(1)).claimTask(
@@ -141,8 +137,6 @@ class CamundaServiceTest {
         doThrow(exception)
             .when(camundaServiceApi).claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
         assertThatThrownBy(() -> camundaService.claimTask(taskId, userId))
             .isInstanceOf(ResourceNotFoundException.class)
             .hasCauseInstanceOf(FeignException.class);
@@ -165,8 +159,6 @@ class CamundaServiceTest {
 
         doThrow(exception)
             .when(camundaServiceApi).claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.claimTask(taskId, userId);
 
@@ -198,8 +190,6 @@ class CamundaServiceTest {
             .thenReturn(singletonList(camundaTask));
         when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
             .thenReturn(variables);
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         List<Task> results = camundaService.searchWithCriteria(searchTaskRequest);
 
@@ -238,8 +228,6 @@ class CamundaServiceTest {
 
         when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
         when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(FeignException.class);
 
         assertThatThrownBy(() -> camundaService.searchWithCriteria(searchTaskRequest))
@@ -255,8 +243,6 @@ class CamundaServiceTest {
         CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
 
         when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         when(camundaServiceApi.searchWithCriteria(
             BEARER_SERVICE_TOKEN,
@@ -277,7 +263,6 @@ class CamundaServiceTest {
     void unclaimTask_should_succeed() {
 
         String taskId = UUID.randomUUID().toString();
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.unclaimTask(taskId);
 
@@ -300,8 +285,6 @@ class CamundaServiceTest {
         doThrow(exception)
             .when(camundaServiceApi).unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId));
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
         assertThatThrownBy(() -> camundaService.unclaimTask(taskId))
             .isInstanceOf(ResourceNotFoundException.class)
             .hasCauseInstanceOf(FeignException.class);
@@ -311,8 +294,6 @@ class CamundaServiceTest {
     void should_throw_an_exception_when_completing_task_and_feign_exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         doThrow(mock(FeignException.class))
             .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
@@ -326,7 +307,6 @@ class CamundaServiceTest {
     @Test
     void should_complete_task() {
         String taskId = UUID.randomUUID().toString();
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.completeTask(taskId);
 
@@ -347,8 +327,6 @@ class CamundaServiceTest {
             new HistoryVariableInstance("taskState", "completed")
         ));
 
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
-
         camundaService.completeTask(taskId);
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
@@ -361,7 +339,6 @@ class CamundaServiceTest {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.assigneeTask(taskId, userId);
 
@@ -392,8 +369,6 @@ class CamundaServiceTest {
 
         doThrow(exception)
             .when(camundaServiceApi).assigneeTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> camundaService.assigneeTask(taskId, userId))
             .isInstanceOf(ResourceNotFoundException.class)
