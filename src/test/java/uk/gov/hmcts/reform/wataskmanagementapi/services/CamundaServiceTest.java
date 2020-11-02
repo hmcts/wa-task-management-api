@@ -334,9 +334,11 @@ class CamundaServiceTest {
     @Test
     void does_not_call_camunda_complete_if_task_already_complete() {
         String taskId = UUID.randomUUID().toString();
-        when(camundaServiceApi.getTaskVariables(taskId)).thenReturn(singletonList(
+        when(camundaServiceApi.getTaskVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(singletonList(
             new HistoryVariableInstance("taskState", "completed")
         ));
+
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.completeTask(taskId);
 

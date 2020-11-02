@@ -113,7 +113,10 @@ public class CamundaService {
 
     public void completeTask(String id) {
         try {
-            List<HistoryVariableInstance> taskVariables = camundaServiceApi.getTaskVariables(id);
+            List<HistoryVariableInstance> taskVariables = camundaServiceApi.getTaskVariables(
+                authTokenGenerator.generate(),
+                id
+            );
 
             boolean taskHasCompleted = taskVariables.stream()
                 .anyMatch(taskVariable -> taskVariable.getName().equals("taskState")

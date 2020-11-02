@@ -68,7 +68,8 @@ public interface CamundaServiceApi {
         value = "/history/variable-instance",
         produces = APPLICATION_JSON_VALUE
     )
-    List<HistoryVariableInstance> getTaskVariables(@RequestParam("taskIdIn") String taskId);
+    List<HistoryVariableInstance> getTaskVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                   @RequestParam("taskIdIn") String taskId);
 
     @PostMapping(
         value = "/task/{task-id}/complete",
