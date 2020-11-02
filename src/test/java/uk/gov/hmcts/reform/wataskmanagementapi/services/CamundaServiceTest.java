@@ -277,9 +277,11 @@ class CamundaServiceTest {
     void unclaimTask_should_succeed() {
 
         String taskId = UUID.randomUUID().toString();
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.unclaimTask(taskId);
-        verify(camundaServiceApi, times(1)).unclaimTask(eq(taskId));
+
+        verify(camundaServiceApi, times(1)).unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId));
     }
 
     @Test
@@ -296,7 +298,9 @@ class CamundaServiceTest {
             );
 
         doThrow(exception)
-            .when(camundaServiceApi).unclaimTask(eq(taskId));
+            .when(camundaServiceApi).unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> camundaService.unclaimTask(taskId))
             .isInstanceOf(ResourceNotFoundException.class)

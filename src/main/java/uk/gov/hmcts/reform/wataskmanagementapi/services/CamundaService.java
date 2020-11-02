@@ -102,7 +102,7 @@ public class CamundaService {
             variable.put("taskState", CamundaValue.stringValue("unassigned"));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
             camundaServiceApi.addLocalVariablesToTask(id, camundaLocalVariables);
-            camundaServiceApi.unclaimTask(id);
+            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem unclaiming the task with id: %s",
