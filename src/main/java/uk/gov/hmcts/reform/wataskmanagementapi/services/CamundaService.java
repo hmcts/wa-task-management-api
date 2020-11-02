@@ -82,7 +82,7 @@ public class CamundaService {
             HashMap<String, CamundaValue<String>> variable = new HashMap<>();
             variable.put("taskState", CamundaValue.stringValue("assigned"));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariablesToTask(taskId, camundaLocalVariables);
+            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
             camundaServiceApi.assigneeTask(taskId, body);
         } catch (FeignException ex) {
             if (HttpStatus.NOT_FOUND.value() == ex.status()) {
@@ -101,7 +101,7 @@ public class CamundaService {
             HashMap<String, CamundaValue<String>> variable = new HashMap<>();
             variable.put("taskState", CamundaValue.stringValue("unassigned"));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariablesToTask(id, camundaLocalVariables);
+            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
@@ -125,7 +125,11 @@ public class CamundaService {
             if (!taskHasCompleted) {
                 HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
                 modifications.put("taskState", CamundaValue.stringValue("completed"));
-                camundaServiceApi.addLocalVariablesToTask(id, new AddLocalVariableRequest(modifications));
+                camundaServiceApi.addLocalVariablesToTask(
+                    authTokenGenerator.generate(),
+                    id,
+                    new AddLocalVariableRequest(modifications)
+                );
                 camundaServiceApi.completeTask(authTokenGenerator.generate(), id, new CompleteTaskVariables());
             }
         } catch (FeignException ex) {

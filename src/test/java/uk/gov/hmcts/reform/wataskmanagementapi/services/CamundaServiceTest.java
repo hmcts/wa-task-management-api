@@ -332,7 +332,11 @@ class CamundaServiceTest {
 
         Map<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("taskState", CamundaValue.stringValue("completed"));
-        Mockito.verify(camundaServiceApi).addLocalVariablesToTask(taskId, new AddLocalVariableRequest(modifications));
+        Mockito.verify(camundaServiceApi).addLocalVariablesToTask(
+            BEARER_SERVICE_TOKEN,
+            taskId,
+            new AddLocalVariableRequest(modifications)
+        );
         Mockito.verify(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
     }
 
@@ -357,10 +361,16 @@ class CamundaServiceTest {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         camundaService.assigneeTask(taskId, userId);
+
         verify(camundaServiceApi, times(1)).assigneeTask(eq(taskId), anyMap());
-        verify(camundaServiceApi, times(1)).addLocalVariablesToTask(eq(taskId), any());
+        verify(camundaServiceApi, times(1)).addLocalVariablesToTask(
+            eq(BEARER_SERVICE_TOKEN),
+            eq(taskId),
+            any()
+        );
         verifyNoMoreInteractions(camundaServiceApi);
     }
 

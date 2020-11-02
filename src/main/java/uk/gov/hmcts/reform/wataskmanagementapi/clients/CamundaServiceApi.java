@@ -84,7 +84,9 @@ public interface CamundaServiceApi {
         value = "/task/{id}/localVariables",
         consumes = APPLICATION_JSON_VALUE
     )
-    void addLocalVariablesToTask(@PathVariable("id") String taskId, AddLocalVariableRequest addLocalVariableRequest);
+    void addLocalVariablesToTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                 @PathVariable("id") String taskId,
+                                 AddLocalVariableRequest addLocalVariableRequest);
 
     @PostMapping(
         value = "/task/{task-id}/assignee",
