@@ -85,7 +85,6 @@ public class AuthorizationHeadersProvider {
         return new Header(AUTHORIZATION, accessToken);
     }
 
-
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "password");

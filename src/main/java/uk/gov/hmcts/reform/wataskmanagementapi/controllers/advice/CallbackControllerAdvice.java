@@ -110,4 +110,19 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             );
     }
 
+    @ExceptionHandler(UnsupportedOperationException.class)
+    protected ResponseEntity<ErrorMessage> handleUnsupportedOperationException(
+        HttpServletRequest request,
+        Exception ex
+    ) {
+        errorLogger.maybeLogException(ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.BAD_REQUEST,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
+    }
+
 }

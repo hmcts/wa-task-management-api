@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -7,12 +8,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 class CamundaObjectMapperTest {
 
+    CamundaObjectMapper camundaObjectMapper;
+
+    @BeforeEach
+    public void setUp() {
+        camundaObjectMapper = new CamundaObjectMapper();
+    }
+
     @Test
     void should_convert_object_to_camunda_json() {
 
         CamundaExceptionMessage testObject = new CamundaExceptionMessage("someType", "someMessage");
 
-        String result = CamundaObjectMapper.asCamundaJsonString(testObject);
+        String result = camundaObjectMapper.asCamundaJsonString(testObject);
 
         String expected = "{\"type\":\"someType\",\"message\":\"someMessage\"}";
         assertEquals(expected, result);
@@ -28,7 +36,7 @@ class CamundaObjectMapperTest {
             .withProcessVariable("dueDate", "2020-09-27")
             .build();
 
-        String result = CamundaObjectMapper.asCamundaJsonString(testObject);
+        String result = camundaObjectMapper.asCamundaJsonString(testObject);
 
         String expected = "{\"processVariablesMap\":"
                           + "{\"dueDate\":{\"value\":\"2020-09-27\","
@@ -48,7 +56,7 @@ class CamundaObjectMapperTest {
 
         CamundaExceptionMessage testObject = new CamundaExceptionMessage("someType", "someMessage");
 
-        String result = CamundaObjectMapper.asJsonString(testObject);
+        String result = camundaObjectMapper.asJsonString(testObject);
 
         String expected = "{\"type\":\"someType\",\"message\":\"someMessage\"}";
         assertEquals(expected, result);
@@ -64,7 +72,7 @@ class CamundaObjectMapperTest {
             .withProcessVariable("dueDate", "2020-09-27")
             .build();
 
-        String result = CamundaObjectMapper.asJsonString(testObject);
+        String result = camundaObjectMapper.asJsonString(testObject);
 
         String expected = "{\"process_variables_map\":"
                           + "{\"dueDate\":{\"value\":\"2020-09-27\","

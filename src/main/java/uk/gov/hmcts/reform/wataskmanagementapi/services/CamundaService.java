@@ -134,7 +134,6 @@ public class CamundaService {
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
         List<Task> response = new ArrayList<>();
-
         try {
             List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(query.getQueries());
 
