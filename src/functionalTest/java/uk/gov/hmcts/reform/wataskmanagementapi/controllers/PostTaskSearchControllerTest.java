@@ -35,7 +35,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             new SearchTaskRequest(emptyList()),
-            super.authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -45,10 +45,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results() {
 
-        Map<String, String> task1 =
-            common.setupTaskAndRetrieveIds();
-        Map<String, String> task2 =
-            common.setupTaskAndRetrieveIds();
+        Map<String, String> task1 = common.setupTaskAndRetrieveIds();
+        Map<String, String> task2 = common.setupTaskAndRetrieveIds();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -57,7 +55,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             searchTaskRequest,
-            super.authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -86,7 +84,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             searchTaskRequest,
-            super.authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
@@ -118,10 +116,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             List<CamundaTask> tasks = given
                 .iCreateATaskWithCcdId(ccdId)
                 .and()
-                .iRetrieveATaskWithProcessVariableFilter(
-                    "ccdId",
-                    ccdId
-                );
+                .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
 
             String taskId = tasks.get(0).getId();
 
@@ -139,7 +134,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task",
             searchTaskRequest,
-            super.authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
         result.then().assertThat()
