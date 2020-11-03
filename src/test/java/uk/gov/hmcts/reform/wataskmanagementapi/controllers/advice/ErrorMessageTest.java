@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -18,7 +17,7 @@ class ErrorMessageTest {
         ErrorMessage testErrorMessage = new ErrorMessage(
             new Exception("some message"),
             HttpStatus.INTERNAL_SERVER_ERROR,
-            Timestamp.valueOf(LocalDateTime.now())
+            LocalDateTime.now()
         );
 
         assertEquals("Internal Server Error", testErrorMessage.getError());
@@ -33,7 +32,7 @@ class ErrorMessageTest {
         assertThatThrownBy(() -> new ErrorMessage(
             null,
             HttpStatus.INTERNAL_SERVER_ERROR,
-            Timestamp.valueOf(LocalDateTime.now())
+            LocalDateTime.now()
         ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("Exception must not be null")
@@ -42,7 +41,7 @@ class ErrorMessageTest {
         assertThatThrownBy(() -> new ErrorMessage(
             new Exception("some message"),
             null,
-            Timestamp.valueOf(LocalDateTime.now())
+            LocalDateTime.now()
         ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("HttpStatus error must not be null")

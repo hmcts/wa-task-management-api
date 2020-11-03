@@ -45,7 +45,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.INTERNAL_SERVER_ERROR,
-                      systemDateProvider.getTimestamp()
+                      systemDateProvider.nowWithTime()
                   )
             );
     }
@@ -61,7 +61,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.NOT_FOUND,
-                      systemDateProvider.getTimestamp()
+                      systemDateProvider.nowWithTime()
                   )
             );
     }
@@ -75,7 +75,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.CONFLICT,
-                      systemDateProvider.getTimestamp()
+                      systemDateProvider.nowWithTime()
                   )
             );
     }
@@ -89,7 +89,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.INTERNAL_SERVER_ERROR,
-                      systemDateProvider.getTimestamp()
+                      systemDateProvider.nowWithTime()
                   )
             );
     }
@@ -103,7 +103,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.SERVICE_UNAVAILABLE,
-                      systemDateProvider.getTimestamp()
+                      systemDateProvider.nowWithTime()
                   )
             );
     }
@@ -117,7 +117,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.BAD_REQUEST,
-                      systemDateProvider.getTimestamp()
+                      systemDateProvider.nowWithTime()
                   )
             );
     }

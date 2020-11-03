@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import javax.servlet.http.HttpServletRequest;
 
@@ -30,15 +29,15 @@ class CallbackControllerAdviceTest {
     @Mock SystemDateProvider systemDateProvider;
 
     private CallbackControllerAdvice callbackControllerAdvice;
-    private Timestamp mockedTimestamp;
+    private LocalDateTime mockedTimestamp;
 
     @BeforeEach
     public void setUp() {
         callbackControllerAdvice = new CallbackControllerAdvice(systemDateProvider);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
 
-        mockedTimestamp = Timestamp.valueOf(LocalDateTime.now());
-        when(systemDateProvider.getTimestamp()).thenReturn(mockedTimestamp);
+        mockedTimestamp = LocalDateTime.now();
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
     }
 
     @Test
@@ -129,8 +128,6 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-        verify(errorLogger, times(1)).maybeLogException(exception);
-        verifyNoMoreInteractions(errorLogger);
     }
 
     @Test
@@ -152,7 +149,5 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.BAD_REQUEST.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-        verify(errorLogger, times(1)).maybeLogException(exception);
-        verifyNoMoreInteractions(errorLogger);
     }
 }
