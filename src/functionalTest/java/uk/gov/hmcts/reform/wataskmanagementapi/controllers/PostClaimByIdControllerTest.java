@@ -8,9 +8,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -31,7 +31,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
+            .body("timestamp", is(instanceOf(String.class)))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(
@@ -98,7 +98,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CONFLICT.value())
             .and()
             .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
+            .body("timestamp", is(instanceOf(String.class)))
             .body("error", equalTo(HttpStatus.CONFLICT.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.CONFLICT.value()))
             .body("message", equalTo(String.format(

@@ -117,7 +117,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String[] locationIds = {"17595", "17594"};
 
         for (int i = 0; i < tasksToConfigure; i++) {
-            String ccdId = ccdIdGenerator.generate();
+            String ccdId = caseIdGenerator.generate();
             ccdIds[i] = ccdId;
 
             CamundaProcessVariables processVariables = processVariables()
@@ -128,7 +128,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 .build();
 
             List<CamundaTask> tasks = given
-                .iCreateATaskWithCcdId(ccdId)
+                .iCreateATaskWithCaseId(ccdId)
                 .and()
                 .iRetrieveATaskWithProcessVariableFilter("ccdId", ccdId);
 

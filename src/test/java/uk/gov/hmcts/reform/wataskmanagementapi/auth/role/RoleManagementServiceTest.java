@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
@@ -20,18 +21,19 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
 @ExtendWith(MockitoExtension.class)
 class RoleManagementServiceTest {
 
+    @Mock
+    private AuthTokenGenerator authTokenGenerator;
     @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     private RoleAssignmentService roleAssignmentService;
 
     @BeforeEach
     public void setUp() {
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentServiceApi);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentServiceApi, authTokenGenerator);
     }
 
     @Test
@@ -43,7 +45,7 @@ class RoleManagementServiceTest {
 
         List<Assignment> mockedRoleAssignments = createMockRoleAssignments(idamUserId);
         when(headers.getFirst(AUTHORIZATION)).thenReturn(mockedAuthToken);
-        when(headers.getFirst(SERVICE_AUTHORIZATION)).thenReturn(mockedServiceToken);
+        when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
         when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
             .thenReturn(new RoleAssignmentResponse(mockedRoleAssignments));
 

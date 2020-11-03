@@ -40,6 +40,14 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
+    public Headers getTribunalCaseworkerAAuthorization() {
+        return new Headers(
+            getCaseworkerAAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+
     public Headers getLawFirmAAuthorization() {
         return new Headers(
             getLawFirmAAuthorizationOnly(),
@@ -54,6 +62,16 @@ public class AuthorizationHeadersProvider {
             getServiceAuthorizationHeader()
         );
     }
+
+    public Header getCaseworkerAAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_CASEOFFICER_A_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_A_PASSWORD");
+
+        return getAuthorization("CaseworkerA", username, password);
+
+    }
+
 
     public Header getLawFirmAAuthorizationOnly() {
 

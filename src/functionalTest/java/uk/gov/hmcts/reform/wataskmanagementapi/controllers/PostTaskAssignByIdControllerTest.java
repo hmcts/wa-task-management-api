@@ -7,9 +7,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -28,7 +28,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
+            .body("timestamp", is(instanceOf(String.class)))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(

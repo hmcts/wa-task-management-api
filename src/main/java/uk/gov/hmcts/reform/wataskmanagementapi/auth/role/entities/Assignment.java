@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Objects;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -30,11 +29,32 @@ public class Assignment {
     private LocalDateTime beginTime;
     private LocalDateTime endTime;
     private LocalDateTime created;
-    private Map<String, JsonNode> attributes;
+    private Map<String, String> attributes;
     private List<String> authorisations;
 
     private Assignment() {
         //Hidden constructor
+    }
+
+    public Assignment(ActorIdType actorIdType,
+                      String actorId,
+                      RoleType roleType,
+                      String roleName,
+                      Classification classification,
+                      GrantType grantType,
+                      RoleCategory roleCategory,
+                      boolean readOnly,
+                      Map<String, String> attributes
+    ) {
+        this.actorIdType = actorIdType;
+        this.actorId = actorId;
+        this.roleType = roleType;
+        this.roleName = roleName;
+        this.classification = classification;
+        this.grantType = grantType;
+        this.roleCategory = roleCategory;
+        this.readOnly = readOnly;
+        this.attributes = attributes;
     }
 
     public Assignment(UUID id,
@@ -49,7 +69,7 @@ public class Assignment {
                       LocalDateTime beginTime,
                       LocalDateTime endTime,
                       LocalDateTime created,
-                      Map<String, JsonNode> attributes,
+                      Map<String, String> attributes,
                       List<String> authorisations) {
         this.id = id;
         this.actorIdType = actorIdType;
@@ -66,6 +86,7 @@ public class Assignment {
         this.attributes = attributes;
         this.authorisations = authorisations;
     }
+
 
     public UUID getId() {
         return id;
@@ -115,7 +136,7 @@ public class Assignment {
         return created;
     }
 
-    public Map<String, JsonNode> getAttributes() {
+    public Map<String, String> getAttributes() {
         return attributes;
     }
 
