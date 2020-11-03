@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CamundaServiceTest {
 
-    public static final String BEARER_SERVICE_TOKEN = "Bearer service token";
+    private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     @Mock
     private CamundaServiceApi camundaServiceApi;
 
