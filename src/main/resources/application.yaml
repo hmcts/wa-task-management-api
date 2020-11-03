@@ -12,7 +12,6 @@ management:
         include: health, info, prometheus
 
 config:
-  stacktraceEnabled: ${STACKTRACE_ENABLED:false}
   enableSwagger: ${ENABLE_SWAGGER:true}
 
 camunda:
@@ -71,6 +70,6 @@ feign:
   client:
     config:
       default:
-        connectTimeout: 5000
-        readTimeout: 5000
+        connectTimeout: 30000
+        readTimeout: 30000
         loggerLevel: basic
