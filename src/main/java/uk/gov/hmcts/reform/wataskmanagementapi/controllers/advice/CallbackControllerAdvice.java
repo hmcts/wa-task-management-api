@@ -27,7 +27,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     private static final Logger LOG = getLogger(CallbackControllerAdvice.class);
     private final SystemDateProvider systemDateProvider;
 
-
     @Autowired
     public CallbackControllerAdvice(
         SystemDateProvider systemDateProvider
@@ -69,7 +68,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConflictException.class)
     protected ResponseEntity<ErrorMessage> handleConflictException(
-        HttpServletRequest request,
         Exception ex
     ) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
@@ -84,7 +82,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ServerErrorException.class)
     protected ResponseEntity<ErrorMessage> handleServerException(
-        HttpServletRequest request,
         Exception ex
     ) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
@@ -99,7 +96,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(NotImplementedException.class)
     protected ResponseEntity<ErrorMessage> handleNotImplementedException(
-        HttpServletRequest request,
         Exception ex
     ) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
@@ -107,6 +103,20 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.SERVICE_UNAVAILABLE,
+                      systemDateProvider.getTimestamp()
+                  )
+            );
+    }
+
+    @ExceptionHandler(UnsupportedOperationException.class)
+    protected ResponseEntity<ErrorMessage> handleUnsupportedOperationException(
+        Exception ex
+    ) {
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.BAD_REQUEST,
                       systemDateProvider.getTimestamp()
                   )
             );

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -16,11 +17,13 @@ import static org.junit.Assert.assertNull;
 
 class TaskMapperTest {
 
+    CamundaObjectMapper camundaObjectMapper;
     private TaskMapper taskMapper;
 
     @BeforeEach
     public void setUp() {
-        taskMapper = new TaskMapper();
+        camundaObjectMapper = new CamundaObjectMapper();
+        taskMapper = new TaskMapper(camundaObjectMapper);
     }
 
     @Test

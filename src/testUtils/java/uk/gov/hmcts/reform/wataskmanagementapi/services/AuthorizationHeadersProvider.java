@@ -13,12 +13,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.ServiceTokenGeneratorConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
 @Service
 public class AuthorizationHeadersProvider {
-
-    public static final String AUTHORIZATION = "Authorization";
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
@@ -42,41 +41,49 @@ public class AuthorizationHeadersProvider {
     }
 
     public Headers getLawFirmAAuthorization() {
+        return new Headers(
+            getLawFirmAAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+
+    public Headers getLawFirmBAuthorization() {
+        return new Headers(
+            getLawFirmBAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Header getLawFirmAAuthorizationOnly() {
 
         String username = System.getenv("TEST_LAW_FIRM_A_USERNAME");
         String password = System.getenv("TEST_LAW_FIRM_A_PASSWORD");
 
-        MultiValueMap<String, String> body = createIdamRequest(username, password);
+        return getAuthorization("LawFirmA", username, password);
 
-        String accessToken = tokens.computeIfAbsent(
-            "LawFirmA",
-            user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
-        );
-
-        return new Headers(
-            new Header(AUTHORIZATION, accessToken),
-            getServiceAuthorizationHeader()
-        );
     }
 
-    public Headers getLawFirmBAuthorization() {
+    public Header getLawFirmBAuthorizationOnly() {
 
         String username = System.getenv("TEST_LAW_FIRM_B_USERNAME");
         String password = System.getenv("TEST_LAW_FIRM_B_PASSWORD");
 
+        return getAuthorization("LawFirmB", username, password);
+    }
+
+
+    private Header getAuthorization(String key, String username, String password) {
+
         MultiValueMap<String, String> body = createIdamRequest(username, password);
 
         String accessToken = tokens.computeIfAbsent(
-            "LawFirmB",
+            key,
             user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
         );
 
-        return new Headers(
-            new Header(AUTHORIZATION, accessToken),
-            getServiceAuthorizationHeader()
-        );
+        return new Header(AUTHORIZATION, accessToken);
     }
-
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
