@@ -14,8 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
-import javax.servlet.http.HttpServletRequest;
-
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -35,9 +33,8 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         this.systemDateProvider = systemDateProvider;
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler({Exception.class, ServerErrorException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(
-        HttpServletRequest request,
         Exception ex
     ) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
@@ -53,7 +50,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     protected ResponseEntity<ErrorMessage> handleResourceNotFoundException(
-        HttpServletRequest request,
         Exception ex
     ) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
@@ -75,20 +71,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                       ex,
                       HttpStatus.CONFLICT,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
-    }
-
-    @ExceptionHandler(ServerErrorException.class)
-    protected ResponseEntity<ErrorMessage> handleServerException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.INTERNAL_SERVER_ERROR,
                       systemDateProvider.nowWithTime()
                   )
             );
