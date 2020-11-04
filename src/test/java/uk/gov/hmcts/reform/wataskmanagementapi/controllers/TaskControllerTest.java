@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
@@ -59,14 +60,14 @@ class TaskControllerTest {
     @Test
     void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
 
-        final RoleAssignments mockedRoleAssignments = mock(RoleAssignments.class);
+        final Assignment mockedRoleAssignment = mock(Assignment.class);
         final HttpHeaders httpHeaders = mock(HttpHeaders.class);
         String taskId = UUID.randomUUID().toString();
 
         Task mockedTask = mock(Task.class);
-        when(accessControlService.getRoles(httpHeaders)).thenReturn(mockedRoleAssignments);
-        when(camundaService.getTask(taskId, mockedRoleAssignments, singletonList(PermissionTypes.READ)))
-            .thenReturn(mockedTask);
+        when(accessControlService.getRoles(httpHeaders)).thenReturn(singletonList(mockedRoleAssignment));
+        when(camundaService.getTask(taskId, singletonList(mockedRoleAssignment), singletonList(PermissionTypes.READ))).thenReturn(
+            mockedTask);
 
         ResponseEntity<GetTaskResponse<Task>> response = taskController.getTask(httpHeaders, taskId);
 

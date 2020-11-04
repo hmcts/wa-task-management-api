@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
@@ -120,8 +121,8 @@ public class TaskController {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
 
-        RoleAssignments roles = accessControlService.getRoles(headers);
-        Task task = camundaService.getTask(id, roles, endpointPermissionsRequired);
+        List<Assignment> roleAssignments = accessControlService.getRoles(headers);
+        Task task = camundaService.getTask(id, roleAssignments, endpointPermissionsRequired);
 
         return ResponseEntity
             .ok()
@@ -152,7 +153,8 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/claim", produces = APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{task-id}/claim",
+        produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
                                             @PathVariable("task-id") String taskId) {
         String userId = idamService.getUserId(authToken);
@@ -187,7 +189,8 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/unclaim", produces = APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/{task-id}/unclaim",
+        produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
                                               @PathVariable("task-id") String taskId) {
         camundaService.unclaimTask(taskId);
@@ -220,12 +223,12 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/assign")
+    @PostMapping(path = "/{task-id}/assignee")
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId) {
 
         String userId = idamService.getUserId(authToken);
-        camundaService.assignTask(taskId, userId);
+        camundaService.assigneeTask(taskId, userId);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

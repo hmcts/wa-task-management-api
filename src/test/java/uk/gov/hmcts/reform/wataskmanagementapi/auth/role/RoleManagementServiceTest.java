@@ -9,14 +9,15 @@ import org.springframework.http.HttpHeaders;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.either;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,7 +38,7 @@ class RoleManagementServiceTest {
     }
 
     @Test
-    void getRolesForUser_should_succeed_and_classify_roles_based_on_role_typ() {
+    void getRolesForUser_should_succeed_and_return_role_assignments() {
         String idamUserId = "someIdamUserId";
         String mockedAuthToken = "authToken";
         String mockedServiceToken = "serviceToken";
@@ -49,22 +50,17 @@ class RoleManagementServiceTest {
         when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
             .thenReturn(new RoleAssignmentResponse(mockedRoleAssignments));
 
-        RoleAssignments result = roleAssignmentService.getRolesForUser(idamUserId, headers);
+        List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, headers);
 
-        result.getCaseRoles().forEach(caseRole -> {
-            assertEquals(RoleType.CASE, caseRole.getRoleType());
-            assertEquals(idamUserId, caseRole.getActorId());
+        result.forEach(roleAssignment -> {
+
+            assertThat(
+                roleAssignment.getRoleName(),
+                either(is("someCaseRoleName")).or(is("someOrganisationalRoleName"))
+            );
+            assertThat(roleAssignment.getRoleType(), either(is(RoleType.ORGANISATION)).or(is(RoleType.CASE)));
+            assertEquals(idamUserId, roleAssignment.getActorId());
         });
-
-        result.getOrganisationalRoles().forEach(orgRole -> {
-            assertEquals(RoleType.ORGANISATION, orgRole.getRoleType());
-            assertEquals(idamUserId, orgRole.getActorId());
-        });
-
-        assertThat(result.getRoles())
-            .hasSize(2)
-            .containsExactlyInAnyOrder("someCaseRoleName", "someOrganisationalRoleName");
-
     }
 
     private List<Assignment> createMockRoleAssignments(String idamUserId) {

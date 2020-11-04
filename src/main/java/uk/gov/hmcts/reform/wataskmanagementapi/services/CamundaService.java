@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -171,7 +171,7 @@ public class CamundaService {
     }
 
     public Task getTask(String id,
-                        RoleAssignments roles,
+                        List<Assignment> roleAssignments,
                         List<PermissionTypes> permissionsRequired) {
         /*
          * Optimizations: This method retrieves the variables first and assesses them
@@ -182,7 +182,18 @@ public class CamundaService {
          */
         Map<String, CamundaVariable> variables = getVariables(id);
 
-        if (permissionEvaluatorService.hasAccess(variables, roles.getRoles(), permissionsRequired)) {
+        boolean hasAccess = false;
+
+        // Loop through the roleAssignments and attempt to find a role that s
+        for (Assignment roleAssignment : roleAssignments) {
+            //Safe-guard
+            if (hasAccess) {
+                break;
+            }
+            hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignment, permissionsRequired);
+        }
+
+        if (hasAccess) {
             CamundaTask camundaTask = getCamundaTask(id);
             return taskMapper.mapToTaskObject(variables, camundaTask);
         }

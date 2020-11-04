@@ -20,19 +20,7 @@ public enum PermissionTypes {
         this.value = value;
     }
 
-    public static PermissionTypes from(String value) {
-        return stream(values())
-            .filter(v -> v.getValue().equals(value))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException(value + " is an unsupported operator"));
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    @Override
-    public String toString() {
+    public String value() {
         return value;
     }
 }
