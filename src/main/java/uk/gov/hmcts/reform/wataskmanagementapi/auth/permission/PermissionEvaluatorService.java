@@ -106,7 +106,7 @@ public class PermissionEvaluatorService {
 
     private boolean hasSecurityClassificationPermission(Classification roleAssignmentClassification, Map<String, CamundaVariable> variables) {
         /*
-         * If RESTRICTED on role assignment classification, then matches all levels on task (no need to change query)
+         * If RESTRICTED on role assignment classification, then matches all levels on task
          * If PRIVATE on role assignment classification then matches "PRIVATE" and "PUBLIC" on task
          * If PUBLIC on role assignment classification then matches "PUBLIC on task.
          */
