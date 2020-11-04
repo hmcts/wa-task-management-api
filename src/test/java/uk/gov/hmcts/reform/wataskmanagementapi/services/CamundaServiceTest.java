@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -319,8 +320,8 @@ class CamundaServiceTest {
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
 
-        camundaService.assigneeTask(taskId, userId);
-        verify(camundaServiceApi, times(1)).assigneeTask(eq(taskId), anyMap());
+        camundaService.assignTask(taskId, userId);
+        verify(camundaServiceApi, times(1)).assignTask(eq(taskId), anyMap());
         verify(camundaServiceApi, times(1)).addLocalVariablesToTask(eq(taskId), any());
         verifyNoMoreInteractions(camundaServiceApi);
     }
@@ -338,12 +339,51 @@ class CamundaServiceTest {
             );
 
         doThrow(exception)
-            .when(camundaServiceApi).assigneeTask(eq(taskId), anyMap());
+            .when(camundaServiceApi).assignTask(eq(taskId), anyMap());
 
-        assertThatThrownBy(() -> camundaService.assigneeTask(taskId, userId))
-            .isInstanceOf(ResourceNotFoundException.class)
+        assertThatThrownBy(() -> camundaService.assignTask(taskId, userId))
+            .isInstanceOf(ServerErrorException.class)
             .hasCauseInstanceOf(FeignException.class);
 
+    }
+
+    @Test
+    void assignTask_should_throw_decoded_exception_when_other_exception_is_thrown() {
+
+        String taskId = UUID.randomUUID().toString();
+        String userId = UUID.randomUUID().toString();
+        String exceptionMessage = "some exception message";
+
+        TestFeignClientException exception =
+            new TestFeignClientException(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                exceptionMessage
+            );
+
+        doThrow(exception)
+            .when(camundaServiceApi).addLocalVariablesToTask(eq(taskId), anyObject());
+
+        assertThatThrownBy(() -> camundaService.assignTask(taskId, userId))
+            .isInstanceOf(ResourceNotFoundException.class)
+            .hasCauseInstanceOf(FeignException.class);
+    }
+
+    @Test
+    void assignTask_should_throw_resource_not_found_exception_when_other_exception_is_thrown() {
+        String taskId = UUID.randomUUID().toString();
+        String userId = UUID.randomUUID().toString();
+
+        TestFeignClientException exception =
+            new TestFeignClientException(
+                HttpStatus.NOT_FOUND.value(),
+                HttpStatus.NOT_FOUND.getReasonPhrase()
+            );
+        doThrow(exception)
+            .when(camundaServiceApi).assignTask(eq(taskId), anyMap());
+        assertThatThrownBy(() -> camundaService.assignTask(taskId, userId))
+            .isInstanceOf(ServerErrorException.class)
+            .hasCauseInstanceOf(FeignException.class);
     }
 
     private Map<String, CamundaVariable> mockVariables() {
@@ -358,6 +398,4 @@ class CamundaServiceTest {
 
         return variables;
     }
-
-
 }

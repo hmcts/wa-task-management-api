@@ -72,24 +72,27 @@ public class CamundaService {
         }
     }
 
-    public void assigneeTask(String taskId, String userId) {
+    public void assignTask(String taskId, String userId) {
+        Map<String, String> body = new ConcurrentHashMap<>();
+        body.put("userId", userId);
+        HashMap<String, CamundaValue<String>> variable = new HashMap<>();
+        variable.put("taskState", CamundaValue.stringValue("assigned"));
+        AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
         try {
-            Map<String, String> body = new ConcurrentHashMap<>();
-            body.put("userId", userId);
-            HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-            variable.put("taskState", CamundaValue.stringValue("assigned"));
-            AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
             camundaServiceApi.addLocalVariablesToTask(taskId, camundaLocalVariables);
-            camundaServiceApi.assigneeTask(taskId, body);
         } catch (FeignException ex) {
-            if (HttpStatus.NOT_FOUND.value() == ex.status()) {
-                throw new ResourceNotFoundException(String.format(
-                    "There was a problem assigning the task with id: %s",
-                    taskId
+            throw new ResourceNotFoundException(
+                String.format("There was a problem updating the task with id: %s. The task could not be found.",
+                              taskId
                 ), ex);
-            } else {
-                camundaErrorDecoder.decodeException(ex);
-            }
+        }
+        try {
+            camundaServiceApi.assignTask(taskId, body);
+        } catch (FeignException ex) {
+            throw new ServerErrorException(
+                String.format("There was a problem assigning the task with id: %s",
+                taskId
+            ), ex);
         }
     }
 
