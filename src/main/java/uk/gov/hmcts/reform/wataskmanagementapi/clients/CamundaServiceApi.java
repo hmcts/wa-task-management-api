@@ -92,9 +92,9 @@ public interface CamundaServiceApi {
         value = "/task/{task-id}/assignee",
         consumes = APPLICATION_JSON_VALUE
     )
-    void assigneeTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                      @PathVariable("task-id") String id,
-                      @RequestBody Map<String, String> body);
+    void assignTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                    @PathVariable("task-id") String id,
+                    @RequestBody Map<String, String> body);
 
     @GetMapping(
         value = "/task/{task-id}/variables",
