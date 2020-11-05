@@ -49,7 +49,7 @@ public class CamundaService {
 
     public CamundaTask getTask(String id) {
         try {
-            return camundaServiceApi.getTask(id);
+            return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the task with id: %s",
@@ -62,7 +62,7 @@ public class CamundaService {
         try {
             Map<String, String> body = new ConcurrentHashMap<>();
             body.put("userId", userId);
-            camundaServiceApi.claimTask(taskId, body);
+            camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             if (HttpStatus.NOT_FOUND.value() == ex.status()) {
                 throw new ResourceNotFoundException(String.format(
@@ -82,7 +82,7 @@ public class CamundaService {
         variable.put("taskState", CamundaValue.stringValue("assigned"));
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
         try {
-            camundaServiceApi.addLocalVariablesToTask(taskId, camundaLocalVariables);
+            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(
                 String.format("There was a problem updating the task with id: %s. The task could not be found.",
@@ -90,7 +90,7 @@ public class CamundaService {
                 ), ex);
         }
         try {
-            camundaServiceApi.assignTask(taskId, body);
+            camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             throw new ServerErrorException(
                 String.format("There was a problem assigning the task with id: %s",
@@ -104,8 +104,8 @@ public class CamundaService {
             HashMap<String, CamundaValue<String>> variable = new HashMap<>();
             variable.put("taskState", CamundaValue.stringValue("unassigned"));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariablesToTask(id, camundaLocalVariables);
-            camundaServiceApi.unclaimTask(id);
+            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
+            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem unclaiming the task with id: %s",
@@ -116,7 +116,10 @@ public class CamundaService {
 
     public void completeTask(String id) {
         try {
-            List<HistoryVariableInstance> taskVariables = camundaServiceApi.getTaskVariables(id);
+            List<HistoryVariableInstance> taskVariables = camundaServiceApi.getTaskVariables(
+                authTokenGenerator.generate(),
+                id
+            );
 
             boolean taskHasCompleted = taskVariables.stream()
                 .anyMatch(taskVariable -> taskVariable.getName().equals("taskState")
@@ -125,8 +128,12 @@ public class CamundaService {
             if (!taskHasCompleted) {
                 HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
                 modifications.put("taskState", CamundaValue.stringValue("completed"));
-                camundaServiceApi.addLocalVariablesToTask(id, new AddLocalVariableRequest(modifications));
-                camundaServiceApi.completeTask(id, new CompleteTaskVariables());
+                camundaServiceApi.addLocalVariablesToTask(
+                    authTokenGenerator.generate(),
+                    id,
+                    new AddLocalVariableRequest(modifications)
+                );
+                camundaServiceApi.completeTask(authTokenGenerator.generate(), id, new CompleteTaskVariables());
             }
         } catch (FeignException ex) {
             // This endpoint throws a 500 when the task doesn't exist.

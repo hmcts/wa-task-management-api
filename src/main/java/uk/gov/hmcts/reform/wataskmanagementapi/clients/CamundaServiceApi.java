@@ -45,46 +45,55 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    CamundaTask getTask(@PathVariable("task-id") String id);
+    CamundaTask getTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                        @PathVariable("task-id") String id);
 
     @PostMapping(
         value = "/task/{task-id}/claim",
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
-    void claimTask(@PathVariable("task-id") String id,
+    void claimTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                   @PathVariable("task-id") String id,
                    @RequestBody Map<String, String> body);
 
     @PostMapping(
         value = "/task/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE
     )
-    void unclaimTask(@PathVariable("task-id") String id);
+    void unclaimTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                     @PathVariable("task-id") String id);
 
     @GetMapping(
         value = "/history/variable-instance",
         produces = APPLICATION_JSON_VALUE
     )
-    List<HistoryVariableInstance> getTaskVariables(@RequestParam("taskIdIn") String taskId);
+    List<HistoryVariableInstance> getTaskVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                   @RequestParam("taskIdIn") String taskId);
 
     @PostMapping(
         value = "/task/{task-id}/complete",
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
-    void completeTask(@PathVariable("task-id") String id, CompleteTaskVariables variables);
+    void completeTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                      @PathVariable("task-id") String id,
+                      CompleteTaskVariables variables);
 
     @PostMapping(
         value = "/task/{id}/localVariables",
         consumes = APPLICATION_JSON_VALUE
     )
-    void addLocalVariablesToTask(@PathVariable("id") String taskId, AddLocalVariableRequest addLocalVariableRequest);
+    void addLocalVariablesToTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                 @PathVariable("id") String taskId,
+                                 AddLocalVariableRequest addLocalVariableRequest);
 
     @PostMapping(
         value = "/task/{task-id}/assignee",
         consumes = APPLICATION_JSON_VALUE
     )
-    void assignTask(@PathVariable("task-id") String id,
+    void assignTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                    @PathVariable("task-id") String id,
                     @RequestBody Map<String, String> body);
 
     @GetMapping(
