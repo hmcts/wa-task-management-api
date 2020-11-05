@@ -207,12 +207,12 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/assignee")
+    @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId) {
 
         String userId = idamService.getUserId(authToken);
-        camundaService.assigneeTask(taskId, userId);
+        camundaService.assignTask(taskId, userId);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
