@@ -3,11 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.Map;
 
@@ -24,9 +22,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Value("${targets.camunda}")
     private String camundaUrl;
-
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {

@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -10,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -30,9 +28,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
-
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Test
     public void should_return_a_400_if_search_request_is_empty() {

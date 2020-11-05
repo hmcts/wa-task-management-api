@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.Map;
 
@@ -15,9 +13,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
-
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {

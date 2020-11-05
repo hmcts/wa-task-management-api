@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CamundaServiceTest {
 
+    public static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     @Mock
     private CamundaServiceApi camundaServiceApi;
 
@@ -56,18 +58,20 @@ class CamundaServiceTest {
     @Mock
     private CamundaQueryBuilder camundaQueryBuilder;
 
-    private TaskMapper taskMapper;
+    @Mock
+    AuthTokenGenerator authTokenGenerator;
 
     private CamundaService camundaService;
 
     @BeforeEach
     public void setUp() {
-        taskMapper = new TaskMapper(new CamundaObjectMapper());
+        TaskMapper taskMapper = new TaskMapper(new CamundaObjectMapper());
         camundaService = new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
             taskMapper,
-            camundaErrorDecoder
+            camundaErrorDecoder,
+            authTokenGenerator
         );
     }
 
@@ -159,7 +163,6 @@ class CamundaServiceTest {
     @Test
     void searchWithCriteria_should_succeed() {
 
-
         SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
         CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
         ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
@@ -177,10 +180,12 @@ class CamundaServiceTest {
 
         when(camundaQueryBuilder.createQuery(searchTaskRequest))
             .thenReturn(camundaSearchQueryMock);
-        when(camundaServiceApi.searchWithCriteria(camundaSearchQueryMock.getQueries()))
+        when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
             .thenReturn(singletonList(camundaTask));
-        when(camundaServiceApi.getVariables(camundaTask.getId()))
+        when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
             .thenReturn(variables);
+
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         List<Task> results = camundaService.searchWithCriteria(searchTaskRequest);
 
@@ -200,8 +205,12 @@ class CamundaServiceTest {
         assertEquals("username", results.get(0).getAssignee().getUserName());
         verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
         verifyNoMoreInteractions(camundaQueryBuilder);
-        verify(camundaServiceApi, times(1)).searchWithCriteria(camundaSearchQueryMock.getQueries());
-        verify(camundaServiceApi, times(1)).getVariables(camundaTask.getId());
+        verify(camundaServiceApi, times(1)).searchWithCriteria(
+            BEARER_SERVICE_TOKEN,
+            camundaSearchQueryMock.getQueries()
+        );
+        verify(camundaServiceApi, times(1))
+            .getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId());
         verifyNoMoreInteractions(camundaServiceApi);
     }
 
@@ -215,7 +224,9 @@ class CamundaServiceTest {
 
         when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
 
-        when(camundaServiceApi.searchWithCriteria(any())).thenThrow(FeignException.class);
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+
+        when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(FeignException.class);
 
         assertThatThrownBy(() -> camundaService.searchWithCriteria(searchTaskRequest))
             .isInstanceOf(ServerErrorException.class)
@@ -226,16 +237,19 @@ class CamundaServiceTest {
     @Test
     void getTask_should_throw_a_server_error_exception_when_camunda_local_variables_call_fails() {
 
-
         SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
         CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
 
-
         when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
 
-        when(camundaServiceApi.searchWithCriteria(camundaSearchQueryMock.getQueries())).thenReturn(singletonList(mock(
+        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+
+        when(camundaServiceApi.searchWithCriteria(
+            BEARER_SERVICE_TOKEN,
+            camundaSearchQueryMock.getQueries()
+        )).thenReturn(singletonList(mock(
             CamundaTask.class)));
-        when(camundaServiceApi.getVariables(any())).thenThrow(FeignException.class);
+        when(camundaServiceApi.getVariables(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(FeignException.class);
 
 
         assertThatThrownBy(() -> camundaService.searchWithCriteria(searchTaskRequest))
@@ -244,7 +258,6 @@ class CamundaServiceTest {
             .hasCauseInstanceOf(FeignException.class);
 
     }
-
 
     @Test
     void unclaimTask_should_succeed() {

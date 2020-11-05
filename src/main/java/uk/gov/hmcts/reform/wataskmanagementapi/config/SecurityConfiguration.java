@@ -54,9 +54,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        web.ignoring().mvcMatchers(
-            anonymousPaths.stream().toArray(String[]::new)
-        );
+        web.ignoring().mvcMatchers(anonymousPaths.toArray(String[]::new));
     }
 
     @Override

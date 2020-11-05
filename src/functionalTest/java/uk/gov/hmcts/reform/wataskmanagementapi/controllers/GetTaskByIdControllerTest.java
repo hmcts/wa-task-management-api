@@ -2,11 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.Map;
 
@@ -16,9 +14,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
-
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
@@ -43,7 +38,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task =
+            common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
             "task/{task-id}",
