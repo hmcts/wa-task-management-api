@@ -194,7 +194,8 @@ class CamundaServiceTest {
         String userId = UUID.randomUUID().toString();
 
         camundaService.claimTask(taskId, userId);
-        verify(camundaServiceApi, times(1)).claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
+        verify(camundaServiceApi, times(1))
+            .claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
         verifyNoMoreInteractions(camundaServiceApi);
     }
 
