@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-import static java.util.Arrays.stream;
-
 public enum PermissionTypes {
 
     READ("Read"),

@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -66,8 +65,8 @@ class TaskControllerTest {
 
         Task mockedTask = mock(Task.class);
         when(accessControlService.getRoles(httpHeaders)).thenReturn(singletonList(mockedRoleAssignment));
-        when(camundaService.getTask(taskId, singletonList(mockedRoleAssignment), singletonList(PermissionTypes.READ))).thenReturn(
-            mockedTask);
+        when(camundaService.getTask(taskId, singletonList(mockedRoleAssignment), singletonList(PermissionTypes.READ)))
+            .thenReturn(mockedTask);
 
         ResponseEntity<GetTaskResponse<Task>> response = taskController.getTask(httpHeaders, taskId);
 

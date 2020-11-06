@@ -8,7 +8,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 

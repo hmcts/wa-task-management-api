@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -32,13 +31,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -95,7 +91,7 @@ class CamundaServiceTest {
     void getTask_should_succeed() {
 
         String taskId = UUID.randomUUID().toString();
-        RoleAssignments roleAssignments = createMockRoleAssignment();
+        Assignment roleAssignment = mock(Assignment.class);
         CamundaTask mockedCamundaTask = createMockCamundaTask();
         Map<String, CamundaVariable> mockedVariables = mockVariables();
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
@@ -104,11 +100,11 @@ class CamundaServiceTest {
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedCamundaTask);
         when(permissionEvaluatorService.hasAccess(
             mockedVariables,
-            roleAssignments.getRoles(),
+            roleAssignment,
             permissionsRequired
         )).thenReturn(true);
 
-        Task response = camundaService.getTask(taskId, roleAssignments, permissionsRequired);
+        Task response = camundaService.getTask(taskId, singletonList(roleAssignment), permissionsRequired);
 
         assertNotNull(response);
         assertEquals("configured", response.getTaskState());
@@ -124,18 +120,18 @@ class CamundaServiceTest {
     void getTask_should_throw_insufficient_permissions_exception_when_has_access_returns_false() {
 
         String taskId = UUID.randomUUID().toString();
-        RoleAssignments roleAssignments = createMockRoleAssignment();
+        Assignment roleAssignment = mock(Assignment.class);
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         Map<String, CamundaVariable> mockedVariables = mockVariables();
 
         when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
             mockedVariables,
-            roleAssignments.getRoles(),
+            roleAssignment,
             permissionsRequired
         )).thenReturn(false);
 
-        assertThatThrownBy(() -> camundaService.getTask(taskId, roleAssignments, permissionsRequired))
+        assertThatThrownBy(() -> camundaService.getTask(taskId, singletonList(roleAssignment), permissionsRequired))
             .isInstanceOf(InsufficientPermissionsException.class)
             .hasMessage("User did not have sufficient permissions to access task with id: " + taskId);
 
@@ -145,8 +141,7 @@ class CamundaServiceTest {
     void getTask_should_throw_a_server_error_exception_exception_when_feign_exception_is_thrown_by_get_variables() {
 
         String taskId = UUID.randomUUID().toString();
-        RoleAssignments roleAssignments = createMockRoleAssignment();
-        Map<String, CamundaVariable> mockedVariables = mockVariables();
+        Assignment roleAssignment = mock(Assignment.class);
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
         String camundaException = camundaObjectMapper.asJsonString(new CamundaExceptionMessage(
@@ -163,10 +158,10 @@ class CamundaServiceTest {
 
         when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenThrow(exception);
 
-        assertThatThrownBy(() -> camundaService.getTask(taskId, roleAssignments, permissionsRequired))
-            .isInstanceOf(ServerErrorException.class)
+        assertThatThrownBy(() -> camundaService.getTask(taskId, singletonList(roleAssignment), permissionsRequired))
+            .isInstanceOf(ResourceNotFoundException.class)
             .hasCauseInstanceOf(FeignException.class)
-            .hasMessage("some message");
+            .hasMessage("There was a problem fetching the task with id: " + taskId);
 
     }
 
@@ -174,19 +169,19 @@ class CamundaServiceTest {
     void getTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
 
         String taskId = UUID.randomUUID().toString();
-        RoleAssignments roleAssignments = createMockRoleAssignment();
+        Assignment roleAssignment = mock(Assignment.class);
         Map<String, CamundaVariable> mockedVariables = mockVariables();
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
         when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
             mockedVariables,
-            roleAssignments.getRoles(),
+            roleAssignment,
             permissionsRequired
         )).thenReturn(true);
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenThrow(FeignException.NotFound.class);
 
-        assertThatThrownBy(() -> camundaService.getTask(taskId, roleAssignments, permissionsRequired))
+        assertThatThrownBy(() -> camundaService.getTask(taskId, singletonList(roleAssignment), permissionsRequired))
             .isInstanceOf(ResourceNotFoundException.class)
             .hasCauseInstanceOf(FeignException.class);
 
@@ -199,7 +194,7 @@ class CamundaServiceTest {
         String userId = UUID.randomUUID().toString();
 
         camundaService.claimTask(taskId, userId);
-        verify(camundaServiceApi, times(1)).claimTask(BEARER_SERVICE_TOKEN, eq(taskId), anyMap());
+        verify(camundaServiceApi, times(1)).claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
         verifyNoMoreInteractions(camundaServiceApi);
     }
 
@@ -242,9 +237,8 @@ class CamundaServiceTest {
                 camundaException
             );
 
-
         doThrow(exception)
-            .when(camundaServiceApi).claimTask(BEARER_SERVICE_TOKEN, eq(taskId), anyMap());
+            .when(camundaServiceApi).claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
 
         assertThatThrownBy(() -> camundaService.claimTask(taskId, userId))
             .isInstanceOf(ServerErrorException.class)
@@ -351,7 +345,7 @@ class CamundaServiceTest {
 
         assertThatThrownBy(() -> camundaService.searchWithCriteria(searchTaskRequest))
             .isInstanceOf(ServerErrorException.class)
-            .hasMessage("some exception message")
+            .hasMessage("There was a problem performing the search")
             .hasCauseInstanceOf(FeignException.class);
 
     }
@@ -550,10 +544,4 @@ class CamundaServiceTest {
         );
     }
 
-    private RoleAssignments createMockRoleAssignment() {
-        Set<Assignment> organisationalroles = new HashSet<>(singletonList(mock(Assignment.class)));
-        Set<Assignment> caseroles = new HashSet<>(singletonList(mock(Assignment.class)));
-        Set<String> roles = new HashSet<>(asList("tribunal-caseworker", "senior-tribunal-caseworker"));
-        return new RoleAssignments(roles, organisationalroles, caseroles);
-    }
 }

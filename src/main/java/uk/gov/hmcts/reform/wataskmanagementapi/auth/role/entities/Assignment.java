@@ -194,9 +194,9 @@ public class Assignment {
         return "Assignment{"
                + "id=" + id
                + ", actorIdType=" + actorIdType
-               + ", actorId='" + actorId + '\''
+               + ", actorId='" + actorId
                + ", roleType=" + roleType
-               + ", roleName='" + roleName + '\''
+               + ", roleName='" + roleName
                + ", classification=" + classification
                + ", grantType=" + grantType
                + ", roleCategory=" + roleCategory

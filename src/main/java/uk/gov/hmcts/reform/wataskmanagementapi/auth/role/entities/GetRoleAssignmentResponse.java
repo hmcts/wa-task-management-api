@@ -41,8 +41,8 @@ public class GetRoleAssignmentResponse {
 
     @Override
     public String toString() {
-        return "RoleAssignmentResponse{"
-               + "roleAssignments=" + roleAssignmentResponse
+        return "GetRoleAssignmentResponse{"
+               + "roleAssignmentResponse=" + roleAssignmentResponse
                + '}';
     }
 }

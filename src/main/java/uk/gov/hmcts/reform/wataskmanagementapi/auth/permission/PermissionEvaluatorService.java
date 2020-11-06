@@ -28,7 +28,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "java:S3776"})
+@SuppressWarnings({
+        "java:S3776",
+        "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDeeplyNestedIfStmts", "PMD.CyclomaticComplexity"
+    })
 public class PermissionEvaluatorService {
 
     private final CamundaObjectMapper camundaObjectMapper;
@@ -99,12 +102,14 @@ public class PermissionEvaluatorService {
 
     }
 
-    private boolean hasJurisdictionPermission(String roleAssignmentJurisdiction, Map<String, CamundaVariable> variables) {
+    private boolean hasJurisdictionPermission(String roleAssignmentJurisdiction,
+                                              Map<String, CamundaVariable> variables) {
         String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
         return roleAssignmentJurisdiction.equals(taskJurisdiction);
     }
 
-    private boolean hasSecurityClassificationPermission(Classification roleAssignmentClassification, Map<String, CamundaVariable> variables) {
+    private boolean hasSecurityClassificationPermission(Classification roleAssignmentClassification,
+                                                        Map<String, CamundaVariable> variables) {
         /*
          * If RESTRICTED on role assignment classification, then matches all levels on task
          * If PRIVATE on role assignment classification then matches "PRIVATE" and "PUBLIC" on task
@@ -128,12 +133,16 @@ public class PermissionEvaluatorService {
                 case RESTRICTED:
                     hasAccess = asList(PUBLIC, PRIVATE, RESTRICTED).contains(taskClassification);
                     break;
+                default:
+                    throw new IllegalArgumentException("Unexpected classification value");
             }
         }
         return hasAccess;
     }
 
-    private boolean hasRolePermission(String roleName, Map<String, CamundaVariable> variables, List<PermissionTypes> permissionsRequired) {
+    private boolean hasRolePermission(String roleName,
+                                      Map<String, CamundaVariable> variables,
+                                      List<PermissionTypes> permissionsRequired) {
         /*
          * Optimizations: Added safe-guards to abort early as soon as a match is found
          * this saves us time and further unnecessary processing

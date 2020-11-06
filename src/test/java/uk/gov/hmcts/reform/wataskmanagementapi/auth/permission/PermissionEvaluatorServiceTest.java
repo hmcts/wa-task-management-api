@@ -452,15 +452,15 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                         Assignment roleAssignment = createBaseAssignment(
-                             UUID.randomUUID().toString(),
-                             "tribunal-caseworker",
-                             roleType,
-                             roleClassification,
-                             roleAttributes
-                         );
-                         allTestRoles.add(roleAssignment);
-                     }
+                    Assignment roleAssignment = createBaseAssignment(
+                        UUID.randomUUID().toString(),
+                        "tribunal-caseworker",
+                        roleType,
+                        roleClassification,
+                        roleAttributes
+                    );
+                    allTestRoles.add(roleAssignment);
+                }
             ));
         return allTestRoles;
     }

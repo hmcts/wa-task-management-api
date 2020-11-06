@@ -32,7 +32,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message",
-                  equalTo("There was a problem unclaiming the task with id: " + nonExistentTaskId));
+                equalTo("There was a problem unclaiming the task with id: " + nonExistentTaskId));
     }
 
     @Test

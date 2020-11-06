@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignments;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -228,7 +227,7 @@ public class TaskController {
                                              @PathVariable("task-id") String taskId) {
 
         String userId = idamService.getUserId(authToken);
-        camundaService.assigneeTask(taskId, userId);
+        camundaService.assignTask(taskId, userId);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

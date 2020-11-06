@@ -51,7 +51,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getLawFirmAAuthorization()
         );
 
@@ -61,7 +61,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("timestamp", is(instanceOf(String.class)))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo("User did not have sufficient permissions to access task" ));
+            .body("message", equalTo("User did not have sufficient permissions to access task"));
     }
 
     @Test
@@ -71,14 +71,14 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(task.get("taskId" )));
+            .and().body("task.id", equalTo(task.get("taskId")));
     }
 
     @Test
@@ -87,7 +87,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
@@ -109,14 +109,14 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(task.get("taskId" )));
+            .and().body("task.id", equalTo(task.get("taskId")));
     }
 
     @Test
@@ -125,7 +125,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
 
@@ -147,14 +147,14 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(task.get("taskId" )));
+            .and().body("task.id", equalTo(task.get("taskId")));
     }
 
     @Test
@@ -164,7 +164,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
         );
 
@@ -186,23 +186,23 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(task.get("taskId" )));
+            .and().body("task.id", equalTo(task.get("taskId")));
     }
 
     @Test
-    public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_jurisdiction_region_location_did_not_match() {
+    public void should_return_a_403_when_user_did_not_have_permission_jurisdiction_region_location_did_not_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
 
         Response result = restApiActions.get(
             "task/{task-id}",
-            task.get("taskId" ),
+            task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
         );
 
