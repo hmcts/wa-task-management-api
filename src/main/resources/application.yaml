@@ -13,7 +13,6 @@ management:
 
 config:
   enableSwagger: ${ENABLE_SWAGGER:true}
-  permissionsSecurityEnabled: ${PERMISSIONS_SECURITY_ENABLED:true}
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
