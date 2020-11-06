@@ -54,20 +54,32 @@ public class GivensBuilder {
 
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
-
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("ccdId", caseId)
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("group", "TCW")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("name", "task name")
-            .build();
+    public GivensBuilder iCreateATaskWithCustomVariables(Map<String, CamundaValue<?>> processVariables) {
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
-            processVariables.getProcessVariablesMap()
+            processVariables
+        );
+
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .body(camundaObjectMapper.asCamelCasedJsonString(request))
+            .when()
+            .post("/message")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        return this;
+    }
+
+    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
+
+        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId);
+
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables
         );
 
         given()
@@ -142,6 +154,25 @@ public class GivensBuilder {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION)
         );
+    }
+
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("ccdId", caseId)
+            .withProcessVariable("region", "east-england")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "A Hearing Centre")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("group", "TCW")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", "wa-task-configuration-api-task")
+            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .build();
+
+        return processVariables.getProcessVariablesMap();
     }
 
     private RoleAssignmentRequest createRoleAssignmentRequest(String userId, String roleName, String caseId) {

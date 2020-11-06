@@ -108,7 +108,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .when()
@@ -119,7 +119,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -131,7 +131,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -143,7 +143,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -155,7 +155,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -167,7 +167,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)

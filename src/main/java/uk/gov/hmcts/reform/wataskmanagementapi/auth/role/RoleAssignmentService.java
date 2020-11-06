@@ -6,7 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 
@@ -33,12 +33,12 @@ public class RoleAssignmentService {
     public List<Assignment> getRolesForUser(String idamUserId, HttpHeaders headers) {
         requireNonNull(idamUserId, "IdamUserId cannot be null");
 
-        RoleAssignmentResponse roleAssignmentResponse = getRoles(idamUserId, headers);
+        GetRoleAssignmentResponse getRoleAssignmentResponse = getRoles(idamUserId, headers);
 
-        return roleAssignmentResponse.getRoleAssignments();
+        return getRoleAssignmentResponse.getRoleAssignmentResponse();
     }
 
-    private RoleAssignmentResponse getRoles(String idamUserId, HttpHeaders headers) {
+    private GetRoleAssignmentResponse getRoles(String idamUserId, HttpHeaders headers) {
         try {
             return roleAssignmentServiceApi.getRolesForUser(
                 idamUserId,

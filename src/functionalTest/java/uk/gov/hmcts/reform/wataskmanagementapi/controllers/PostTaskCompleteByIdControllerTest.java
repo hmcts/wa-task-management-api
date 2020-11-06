@@ -30,7 +30,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             "task/{task-id}/complete",
             nonExistentTaskId,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
 
@@ -53,7 +53,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             "task/{task-id}/complete",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -66,7 +66,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void endpoint_should_be_idempotent_should_return_a_204_when_completing_an_already_completed_task() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
-        Headers headers = authorizationHeadersProvider.getLawFirmAAuthorization();
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
 
         Response result = restApiActions.post(
             "task/{task-id}/complete",

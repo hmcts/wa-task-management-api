@@ -6,20 +6,20 @@ import com.google.common.base.Objects;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RoleAssignmentResponse {
+public class GetRoleAssignmentResponse {
 
-    private List<Assignment> roleAssignments;
+    private List<Assignment> roleAssignmentResponse;
 
-    private RoleAssignmentResponse() {
+    private GetRoleAssignmentResponse() {
         //Hidden constructor
     }
 
-    public RoleAssignmentResponse(List<Assignment> roleAssignments) {
-        this.roleAssignments = roleAssignments;
+    public GetRoleAssignmentResponse(List<Assignment> roleAssignmentResponse) {
+        this.roleAssignmentResponse = roleAssignmentResponse;
     }
 
-    public List<Assignment> getRoleAssignments() {
-        return roleAssignments;
+    public List<Assignment> getRoleAssignmentResponse() {
+        return roleAssignmentResponse;
     }
 
     @Override
@@ -30,19 +30,19 @@ public class RoleAssignmentResponse {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        RoleAssignmentResponse that = (RoleAssignmentResponse) object;
-        return Objects.equal(roleAssignments, that.roleAssignments);
+        GetRoleAssignmentResponse that = (GetRoleAssignmentResponse) object;
+        return Objects.equal(roleAssignmentResponse, that.roleAssignmentResponse);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(roleAssignments);
+        return Objects.hashCode(roleAssignmentResponse);
     }
 
     @Override
     public String toString() {
         return "RoleAssignmentResponse{"
-               + "roleAssignments=" + roleAssignments
+               + "roleAssignments=" + roleAssignmentResponse
                + '}';
     }
 }

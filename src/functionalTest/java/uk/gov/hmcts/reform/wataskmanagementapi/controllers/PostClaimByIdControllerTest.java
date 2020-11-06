@@ -22,7 +22,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             nonExistentTaskId,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         //FIXME: Better error message
@@ -46,7 +46,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -61,7 +61,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -70,7 +70,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response resultAfterClaimedBySameUser = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         resultAfterClaimedBySameUser.then().assertThat()
@@ -85,13 +85,13 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         Response result = restApiActions.post(
             "task/{task-id}/claim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmBAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
 
         result.then().assertThat()

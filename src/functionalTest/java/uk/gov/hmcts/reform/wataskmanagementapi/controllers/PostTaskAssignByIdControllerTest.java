@@ -21,7 +21,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             "task/{task-id}/assign",
             nonExistentTaskId,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -46,7 +46,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             "task/{task-id}/assign",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()

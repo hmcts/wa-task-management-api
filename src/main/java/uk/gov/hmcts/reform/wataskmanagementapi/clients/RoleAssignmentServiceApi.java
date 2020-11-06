@@ -7,8 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.Token;
 
@@ -28,9 +27,9 @@ public interface RoleAssignmentServiceApi {
         value = "/am/role-assignments/actors/{user-id}",
         produces = "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0"
     )
-    RoleAssignmentResponse getRolesForUser(@PathVariable("user-id") String userId,
-                                           @RequestHeader(AUTHORIZATION) String userToken,
-                                           @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
+    GetRoleAssignmentResponse getRolesForUser(@PathVariable("user-id") String userId,
+                                              @RequestHeader(AUTHORIZATION) String userToken,
+                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
 
     @PostMapping(
         value = "/am/role-assignments/query",

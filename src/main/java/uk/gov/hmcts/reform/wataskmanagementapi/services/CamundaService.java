@@ -204,11 +204,14 @@ public class CamundaService {
     }
 
     private Map<String, CamundaVariable> getVariables(String id) {
-        Map<String, CamundaVariable> variables = null;
+        Map<String, CamundaVariable> variables;
         try {
             variables = camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
-            camundaErrorDecoder.decodeException(ex);
+            throw new ResourceNotFoundException(String.format(
+                "There was a problem fetching the task with id: %s",
+                id
+            ), ex);
         }
         return variables;
     }

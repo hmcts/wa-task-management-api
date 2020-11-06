@@ -8,7 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 
@@ -48,7 +48,7 @@ class RoleManagementServiceTest {
         when(headers.getFirst(AUTHORIZATION)).thenReturn(mockedAuthToken);
         when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
         when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
-            .thenReturn(new RoleAssignmentResponse(mockedRoleAssignments));
+            .thenReturn(new GetRoleAssignmentResponse(mockedRoleAssignments));
 
         List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, headers);
 

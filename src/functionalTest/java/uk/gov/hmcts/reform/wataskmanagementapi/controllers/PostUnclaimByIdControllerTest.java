@@ -21,7 +21,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Response result = restApiActions.post(
             "task/{task-id}/unclaim",
             nonExistentTaskId,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
@@ -43,13 +43,13 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         Response result = restApiActions.post(
             "task/{task-id}/unclaim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmBAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
 
         //FIXME: Since the credentials are different we should not return 204 and claiming should be unsuccessful
@@ -66,13 +66,13 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         Response result = restApiActions.post(
             "task/{task-id}/unclaim",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()

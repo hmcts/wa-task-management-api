@@ -47,6 +47,26 @@ public class AuthorizationHeadersProvider {
         );
     }
 
+    public Headers getTribunalCaseworkerBAuthorization() {
+        return new Headers(
+            getCaseworkerBAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Headers getTribunalCaseworkerCAuthorization() {
+        return new Headers(
+            getCaseworkerCAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Headers getTribunalCaseworkerDAuthorization() {
+        return new Headers(
+            getCaseworkerDAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
 
     public Headers getLawFirmAAuthorization() {
         return new Headers(
@@ -54,7 +74,6 @@ public class AuthorizationHeadersProvider {
             getServiceAuthorizationHeader()
         );
     }
-
 
     public Headers getLawFirmBAuthorization() {
         return new Headers(
@@ -65,10 +84,37 @@ public class AuthorizationHeadersProvider {
 
     public Header getCaseworkerAAuthorizationOnly() {
 
-        String username = System.getenv("TEST_WA_CASEOFFICER_A_USERNAME");
-        String password = System.getenv("TEST_WA_CASEOFFICER_A_PASSWORD");
+        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD");
 
         return getAuthorization("CaseworkerA", username, password);
+
+    }
+
+    public Header getCaseworkerBAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD");
+
+        return getAuthorization("CaseworkerB", username, password);
+
+    }
+
+    public Header getCaseworkerCAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_C_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_C_PASSWORD");
+
+        return getAuthorization("CaseworkerC", username, password);
+
+    }
+
+    public Header getCaseworkerDAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_D_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_D_PASSWORD");
+
+        return getAuthorization("CaseworkerD", username, password);
 
     }
 
