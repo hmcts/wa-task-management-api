@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
-import io.restassured.http.Headers;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -38,8 +37,6 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        new HashMap<>();
-
         return Map.of(
             "caseId", caseId,
             "taskId", response.get(0).getId()
@@ -67,13 +64,4 @@ public class Common {
         );
 
     }
-
-    public Map<String, String> setupTaskWithRoleAssignmentAndRetrieveIds(Headers headers, String roleName) {
-        Map<String, String> task = setupTaskAndRetrieveIds();
-
-        given.iAllocateACaseToUserAs(headers, roleName, task.get("caseId"));
-
-        return task;
-    }
-
 }

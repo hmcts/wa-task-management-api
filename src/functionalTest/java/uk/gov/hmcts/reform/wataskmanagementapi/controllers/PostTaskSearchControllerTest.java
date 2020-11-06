@@ -60,7 +60,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(task.get("ccdId")))
+            .body("tasks.case_id", hasItem(task.get("caseId")))
             .body("tasks.id", hasItem(task.get("taskId")));
     }
 
@@ -96,7 +96,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.id", hasItem(task.get("taskId")))
             .body("tasks.name", everyItem(is("task name")))
-            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.task_system", hasItem("A task system"))
             .body("tasks.location_name", everyItem(is("A Hearing Centre")))
             .body("tasks.location", everyItem(equalTo("17595")))
@@ -105,7 +104,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.region", hasItem(("A region")))
             .body("tasks.case_category", hasItem(("A appeal type")))
-            .body("tasks.case_id", hasItem(task.get("ccdId")));
+            .body("tasks.case_id", hasItem(task.get("caseId")));
     }
 
     @Test

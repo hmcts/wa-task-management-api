@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -24,10 +24,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @FeignClient(
     name = "tasks",
     url = "${camunda.url}",
-    configuration = FeignConfiguration.class
+    configuration = CamundaFeignConfiguration.class
 )
 @Service
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals","PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UnnecessaryFullyQualifiedName"})
 public interface CamundaServiceApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";

@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -9,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -18,6 +14,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseIdGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
+
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -30,11 +29,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected Common common;
     protected CaseIdGenerator caseIdGenerator;
     protected RestApiActions restApiActions;
-
-    @Autowired
-    protected IdamServiceApi idamServiceApi;
-    @Autowired
-    protected RoleAssignmentServiceApi roleAssignmentServiceApi;
+    protected RestApiActions camundaApiActions;
 
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -46,26 +41,17 @@ public abstract class SpringBootFunctionalBaseTest {
 
     @Before
     public void setUpGivens() {
-        restApiActions = new RestApiActions(testUrl).setUp();
+        restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
+        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         caseIdGenerator = new CaseIdGenerator();
         assertions = new Assertions(camundaUrl);
-        camundaObjectMapper = new CamundaObjectMapper(getDefaultObjectMapper(), getCamundaObjectMapper());
         given = new GivensBuilder(
-            camundaUrl,
-            camundaObjectMapper,
-            idamServiceApi,
-            roleAssignmentServiceApi,
+            camundaApiActions,
+            restApiActions,
             authorizationHeadersProvider
         );
         common = new Common(caseIdGenerator, given);
 
     }
 
-    private ObjectMapper getCamundaObjectMapper() {
-        return new ObjectMapper();
-    }
-
-    private ObjectMapper getDefaultObjectMapper() {
-        return new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-    }
 }

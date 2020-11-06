@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -40,10 +41,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.INTERNAL_SERVER_ERROR,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 
@@ -55,10 +56,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.NOT_FOUND,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    HttpStatus.NOT_FOUND,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 
@@ -69,10 +70,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.CONFLICT,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    HttpStatus.CONFLICT,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 
@@ -83,10 +84,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
             .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.SERVICE_UNAVAILABLE,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 
@@ -97,10 +98,24 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.BAD_REQUEST,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    HttpStatus.BAD_REQUEST,
+                    systemDateProvider.nowWithTime()
+                )
+            );
+    }
+
+    @ExceptionHandler(InsufficientPermissionsException.class)
+    protected ResponseEntity<ErrorMessage> handleInsufficientPermissionsException(
+        Exception ex
+    ) {
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(new ErrorMessage(
+                    ex,
+                    HttpStatus.FORBIDDEN,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 

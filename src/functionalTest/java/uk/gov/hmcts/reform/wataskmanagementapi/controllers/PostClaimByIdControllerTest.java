@@ -80,7 +80,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
 
-
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         given.iClaimATaskWithIdAndAuthorization(

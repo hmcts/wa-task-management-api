@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -12,8 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -25,31 +22,21 @@ import java.util.Map;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
-import static net.serenitybdd.rest.SerenityRest.given;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 public class GivensBuilder {
 
-    private final String camundaUrl;
-    private final CamundaObjectMapper camundaObjectMapper;
-    private final IdamServiceApi idamServiceApi;
-    private final RoleAssignmentServiceApi roleAssignmentServiceApi;
+    private final RestApiActions camundaApiActions;
+    private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public GivensBuilder(String camundaUrl,
-                         CamundaObjectMapper camundaObjectMapper,
-                         IdamServiceApi idamServiceApi,
-                         RoleAssignmentServiceApi roleAssignmentServiceApi,
+    public GivensBuilder(RestApiActions camundaApiActions,
+                         RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider) {
-        this.camundaUrl = camundaUrl;
-        this.camundaObjectMapper = camundaObjectMapper;
-        this.idamServiceApi = idamServiceApi;
-        this.roleAssignmentServiceApi = roleAssignmentServiceApi;
+        this.camundaApiActions = camundaApiActions;
+        this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
 
     }
@@ -61,15 +48,15 @@ public class GivensBuilder {
             processVariables
         );
 
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .body(camundaObjectMapper.asCamelCasedJsonString(request))
-            .when()
-            .post("/message")
-            .then()
-            .assertThat()
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
         return this;
     }
 
@@ -82,16 +69,15 @@ public class GivensBuilder {
             processVariables
         );
 
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
-            .body(camundaObjectMapper.asCamelCasedJsonString(request))
-            .when()
-            .post("/message")
-            .then()
-            .assertThat()
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
         return this;
     }
 
@@ -99,14 +85,12 @@ public class GivensBuilder {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
-        return given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
-            .when()
-            .get("/task" + filter)
-            .then()
-            .assertThat()
+        Response result = camundaApiActions.get(
+            "/task" + filter,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        return result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and()
             .extract()
@@ -117,43 +101,29 @@ public class GivensBuilder {
         return this;
     }
 
-
     public void iClaimATaskWithIdAndAuthorization(String taskId, Headers headers) {
-        Response response = given()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .headers(headers)
-            .when()
-            .post("task/{task-id}/claim", taskId);
+        Response result = restApiActions.post(
+            "task/{task-id}/claim",
+            taskId,
+            headers
+        );
 
-        response.then().assertThat()
+        result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
     public GivensBuilder iAddVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
-            .body(new Modifications(processVariables.getProcessVariablesMap()))
-            .when()
-            .post("/task/{task-id}/variables", taskId)
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-        return this;
-    }
-
-    public void iAllocateACaseToUserAs(Headers headers, String roleName, String caseId) {
-
-        String userId = idamServiceApi.userInfo(headers.getValue(AUTHORIZATION)).getUid();
-
-        RoleAssignmentRequest roleAssignmentRequest = createRoleAssignmentRequest(userId, roleName, caseId);
-
-        roleAssignmentServiceApi.createRoleAssignment(
-            camundaObjectMapper.asCamelCasedJsonString(roleAssignmentRequest),
-            headers.getValue(AUTHORIZATION),
-            headers.getValue(SERVICE_AUTHORIZATION)
+        Response result = camundaApiActions.post(
+            "/task/{task-id}/variables",
+            taskId,
+            new Modifications(processVariables.getProcessVariablesMap()),
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
