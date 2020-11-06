@@ -71,6 +71,27 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
+    void hasAccess_should_succeed_when_looking_for_read_permission_and_abort_early_return_true() {
+
+        List<PermissionTypes> permissionsRequired = asList(PermissionTypes.READ, PermissionTypes.CANCEL);
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccess(
+                defaultVariables,
+                roleAssignment,
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
     void hasAccess_should_fail_when_looking_for_read_permission_and_return_false() {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);

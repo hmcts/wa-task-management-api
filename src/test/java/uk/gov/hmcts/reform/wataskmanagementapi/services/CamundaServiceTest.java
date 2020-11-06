@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -105,6 +106,37 @@ class CamundaServiceTest {
         )).thenReturn(true);
 
         Task response = camundaService.getTask(taskId, singletonList(roleAssignment), permissionsRequired);
+
+        assertNotNull(response);
+        assertEquals("configured", response.getTaskState());
+        assertEquals("someCaseName", response.getCaseName());
+        assertEquals("someCaseType", response.getCaseTypeId());
+        assertEquals("someCamundaTaskName", response.getName());
+        assertEquals("someStaffLocationName", response.getLocationName());
+        assertEquals("someCamundaTaskAssignee", response.getAssignee());
+
+    }
+
+
+    @Test
+    void getTask_should_succeed_and_abort_early() {
+
+        String taskId = UUID.randomUUID().toString();
+        Assignment roleAssignment1 = mock(Assignment.class);
+        Assignment roleAssignment2 = mock(Assignment.class);
+        CamundaTask mockedCamundaTask = createMockCamundaTask();
+        Map<String, CamundaVariable> mockedVariables = mockVariables();
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+        when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedCamundaTask);
+        when(permissionEvaluatorService.hasAccess(
+            mockedVariables,
+            roleAssignment1,
+            permissionsRequired
+        )).thenReturn(true);
+
+        Task response = camundaService.getTask(taskId, asList(roleAssignment1, roleAssignment2), permissionsRequired);
 
         assertNotNull(response);
         assertEquals("configured", response.getTaskState());
@@ -221,7 +253,7 @@ class CamundaServiceTest {
     }
 
     @Test
-    void claimTask_should_throw_server_error_exception_when_other__exception_is_thrown() {
+    void claimTask_should_throw_server_error_exception_when_other_exception_is_thrown() {
 
         String taskId = UUID.randomUUID().toString();
         String userId = UUID.randomUUID().toString();
