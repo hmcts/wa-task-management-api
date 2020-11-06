@@ -111,6 +111,19 @@ public class GivensBuilder {
         return this;
     }
 
+    public GivensBuilder iAddLocalVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .body(new Modifications(processVariables.getProcessVariablesMap()))
+            .when()
+            .post("/task/{task-id}/localVariables", taskId)
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        return this;
+    }
+
     private class Modifications {
         private final Map<String, CamundaValue<?>> modifications;
 

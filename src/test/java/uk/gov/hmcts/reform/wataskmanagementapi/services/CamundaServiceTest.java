@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -55,6 +55,8 @@ class CamundaServiceTest {
     @Mock
     private CamundaErrorDecoder camundaErrorDecoder;
 
+    private TaskMapper taskMapper;
+
     @Mock
     private CamundaQueryBuilder camundaQueryBuilder;
 
@@ -65,12 +67,12 @@ class CamundaServiceTest {
 
     @BeforeEach
     public void setUp() {
-        TaskMapper taskMapper = new TaskMapper(new CamundaObjectMapper());
+        taskMapper = new TaskMapper(new CamundaObjectMapper());
         camundaService = new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
-            taskMapper,
             camundaErrorDecoder,
+            taskMapper,
             authTokenGenerator
         );
 
@@ -82,16 +84,39 @@ class CamundaServiceTest {
     void getTask_should_succeed() {
 
         String taskId = UUID.randomUUID().toString();
+        ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+        CamundaTask camundaTask = new CamundaTask(
+            taskId,
+            "someTaskName",
+            "someAssignee",
+            ZonedDateTime.now(),
+            dueDate,
+            null,
+            null,
+            "someFormKey"
+        );
 
-        CamundaTask mockedTask = mock(CamundaTask.class);
-        when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedTask);
+        Map<String, CamundaVariable> mockvariables = mockVariables();
+        when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
+            .thenReturn(mockvariables);
+        when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, camundaTask.getId()))
+            .thenReturn(camundaTask);
 
-        CamundaTask response = camundaService.getTask(taskId);
+        final Task task = camundaService.getTask(taskId);
+        verify(camundaServiceApi, times(1)).getTask(eq(BEARER_SERVICE_TOKEN),eq(taskId));
+        verify(camundaServiceApi, times(1)).getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId());
 
-        verify(camundaServiceApi, times(1)).getTask(BEARER_SERVICE_TOKEN, taskId);
         verifyNoMoreInteractions(camundaServiceApi);
+        assertNotNull(task);
+        assertEquals("configured", task.getTaskState());
+        assertEquals("someCaseName", task.getCaseName());
+        assertEquals("someCaseType", task.getCaseTypeId());
+        assertEquals("someTaskName", task.getName());
+        assertNotNull(task.getLocation());
+        assertEquals("someStaffLocationName", task.getLocationName());
+        assertNotNull(task.getAssignee());
+        assertEquals("someAssignee", task.getAssignee());
 
-        assertEquals(mockedTask, response);
     }
 
 
@@ -180,7 +205,8 @@ class CamundaServiceTest {
             ZonedDateTime.now(),
             dueDate,
             null,
-            null
+            null,
+            "someFormKey"
         );
 
         Map<String, CamundaVariable> variables = mockVariables();
@@ -196,18 +222,15 @@ class CamundaServiceTest {
 
         assertNotNull(results);
         assertEquals(1, results.size());
-        assertEquals("configured", results.get(0).getState());
+        assertEquals("configured", results.get(0).getTaskState());
         assertEquals(dueDate, results.get(0).getDueDate());
+        assertEquals("someCaseName", results.get(0).getCaseName());
+        assertEquals("someCaseType", results.get(0).getCaseTypeId());
         assertEquals("someTaskName", results.get(0).getName());
-        assertNotNull(results.get(0).getCaseData());
-        assertEquals("someCaseType", results.get(0).getCaseData().getCategory());
-        assertEquals("someCaseName", results.get(0).getCaseData().getName());
-        assertNotNull(results.get(0).getCaseData().getLocation());
-        assertEquals("someStaffLocationId", results.get(0).getCaseData().getLocation().getId());
-        assertEquals("someStaffLocationName", results.get(0).getCaseData().getLocation().getLocationName());
+        assertNotNull(results.get(0).getLocation());
+        assertEquals("someStaffLocationName", results.get(0).getLocationName());
         assertNotNull(results.get(0).getAssignee());
-        assertEquals("someAssignee", results.get(0).getAssignee().getId());
-        assertEquals("username", results.get(0).getAssignee().getUserName());
+        assertEquals("someAssignee", results.get(0).getAssignee());
         verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
         verifyNoMoreInteractions(camundaQueryBuilder);
         verify(camundaServiceApi, times(1)).searchWithCriteria(
@@ -426,11 +449,19 @@ class CamundaServiceTest {
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("ccdId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
-        variables.put("caseType", new CamundaVariable("someCaseType", "String"));
+        variables.put("caseTypeId", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
         variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
         variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
-
+        variables.put("securityClassification", new CamundaVariable("SC", "String"));
+        variables.put("title", new CamundaVariable("some_title", "String"));
+        variables.put("executionType", new CamundaVariable("some_executionType", "String"));
+        variables.put("taskSystem", new CamundaVariable("some_taskSystem", "String"));
+        variables.put("jurisdiction", new CamundaVariable("some_jurisdiction", "String"));
+        variables.put("region", new CamundaVariable("some_region", "String"));
+        variables.put("appealType", new CamundaVariable("some_appealType", "String"));
+        variables.put("autoAssigned", new CamundaVariable("false", "Boolean"));
         return variables;
     }
 }
+

@@ -14,7 +14,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
@@ -25,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter","PMD.AvoidDuplicateLiterals"})
 public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
@@ -37,19 +38,26 @@ public class CamundaService {
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
                           CamundaQueryBuilder camundaQueryBuilder,
-                          TaskMapper taskMapper,
                           CamundaErrorDecoder camundaErrorDecoder,
-                          AuthTokenGenerator authTokenGenerator) {
+                          TaskMapper taskMapper,
+                          AuthTokenGenerator authTokenGenerator
+
+    ) {
         this.camundaServiceApi = camundaServiceApi;
         this.camundaQueryBuilder = camundaQueryBuilder;
-        this.taskMapper = taskMapper;
         this.camundaErrorDecoder = camundaErrorDecoder;
+        this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
     }
 
-    public CamundaTask getTask(String id) {
+    public Task getTask(String id) {
         try {
-            return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
+            //Create a hashMap which returns all localVariables
+            Map<String, CamundaVariable> localVariableResponse;
+            localVariableResponse = camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
+
+            CamundaTask camundaTask = camundaServiceApi.getTask(authTokenGenerator.generate(), id);
+            return taskMapper.mapToTaskObject(localVariableResponse, camundaTask);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the task with id: %s",
@@ -102,7 +110,7 @@ public class CamundaService {
     public void unclaimTask(String id) {
         try {
             HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-            variable.put("taskState", CamundaValue.stringValue("unassigned"));
+            variable.put("taskState", CamundaValue.stringValue(TaskState.UNASSIGNED.getTaskState()));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
             camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
@@ -154,11 +162,9 @@ public class CamundaService {
             );
 
             searchResults.forEach(camundaTask -> {
-                Map<String, CamundaVariable> variables = camundaServiceApi.getVariables(
-                    authTokenGenerator.generate(),
-                    camundaTask.getId()
-                );
-                Task task = taskMapper.mapToTaskObject(camundaTask, variables);
+                Map<String, CamundaVariable> variables = camundaServiceApi
+                    .getVariables(authTokenGenerator.generate(), camundaTask.getId());
+                Task task = taskMapper.mapToTaskObject(variables, camundaTask);
                 response.add(task);
             });
 
@@ -170,3 +176,4 @@ public class CamundaService {
 
     }
 }
+

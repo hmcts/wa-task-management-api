@@ -19,6 +19,10 @@ public class CamundaValue<T> {
         return new CamundaValue<>(value, "String");
     }
 
+    public static CamundaValue<Boolean> booleanValue(Boolean value) {
+        return new CamundaValue<>(value, "boolean");
+    }
+
     public static CamundaValue<String> jsonValue(String value) {
         return new CamundaValue<>(value, "json");
     }

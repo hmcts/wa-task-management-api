@@ -5,18 +5,16 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Assignee;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.CaseData;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Location;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
+
 @Service
 public class TaskMapper {
+
 
     private final CamundaObjectMapper camundaObjectMapper;
 
@@ -25,44 +23,53 @@ public class TaskMapper {
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
-    public Task mapToTaskObject(CamundaTask camundaTask, Map<String, CamundaVariable> variables) {
-
-        CaseData caseData = null;
-        Location location = null;
-        Assignee assignee = null;
-        final String taskName = camundaTask.getName();
-        final ZonedDateTime dueDate = camundaTask.getDue();
-        final String state = getVariableValue(variables.get("taskState"), String.class);
-
-        if (camundaTask.getAssignee() != null) {
-            assignee = new Assignee(camundaTask.getAssignee(), "username");
-        }
-
-        String staffLocation = getVariableValue(variables.get("location"), String.class);
-        if (staffLocation != null) {
-            location = new Location(
-                staffLocation,
-                getVariableValue(variables.get("locationName"), String.class)
-            );
-        }
-
-        String caseReference = getVariableValue(variables.get("ccdId"), String.class);
-        if (caseReference != null) {
-            caseData = new CaseData(
-                caseReference,
-                getVariableValue(variables.get("jurisdiction"), String.class),
-                getVariableValue(variables.get("caseName"), String.class),
-                getVariableValue(variables.get("caseType"), String.class),
-                location
-            );
-        }
+    public Task mapToTaskObject(Map<String, CamundaVariable> variables, CamundaTask camundaTask) {
+        // Camunda Attributes
+        String id = camundaTask.getId();
+        String name = camundaTask.getName();
+        String task = camundaTask.getFormKey();
+        ZonedDateTime createdDate = camundaTask.getCreated();
+        ZonedDateTime dueDate = camundaTask.getDue();
+        String assignee = camundaTask.getAssignee();
+        // Local Variables
+        String taskState = getVariableValue(variables.get("taskState"), String.class);
+        String securityClassification = getVariableValue(variables
+                                                               .get("securityClassification"), String.class);
+        String taskTitle = getVariableValue(variables.get("title"), String.class);
+        String executionType = getVariableValue(variables.get("executionType"), String.class);
+        boolean autoAssigned = false;
+        String taskSystem = getVariableValue(variables.get("taskSystem"), String.class);
+        String jurisdiction = getVariableValue(variables.get("jurisdiction"), String.class);
+        String region = getVariableValue(variables.get("region"), String.class);
+        String location = getVariableValue(variables.get("location"), String.class);
+        String locationName = getVariableValue(variables.get("locationName"), String.class);
+        String caseTypeId = getVariableValue(variables.get("caseTypeId"), String.class);
+        String caseId = getVariableValue(variables.get("ccdId"), String.class);
+        String caseName = getVariableValue(variables.get("caseName"), String.class);
+        String caseCategory = getVariableValue(variables.get("appealType"), String.class);
 
         return new Task(
-            taskName,
-            state,
+            id,
+            name,
+            task,
+            taskState,
+            taskSystem,
+            securityClassification,
+            taskTitle,
+            createdDate,
             dueDate,
-            caseData,
-            assignee
+            assignee,
+            autoAssigned,
+            executionType,
+            jurisdiction,
+            region,
+            location,
+            locationName,
+            caseTypeId,
+            caseId,
+            caseCategory,
+            caseName
+
         );
     }
 
