@@ -1,7 +1,8 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Objects;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 
 import java.util.List;
 
