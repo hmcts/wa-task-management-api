@@ -9,6 +9,7 @@ import pl.pojo.tester.api.assertion.Method;
 import pl.pojo.tester.internal.field.DefaultFieldValueChanger;
 import pl.pojo.tester.internal.instantiator.ObjectGenerator;
 import pl.pojo.tester.internal.utils.ThoroughFieldPermutator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleAssignmentRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -32,6 +33,7 @@ class PojoTest {
         HistoryVariableInstance.class,
         AddLocalVariableRequest.class,
         GetRoleAssignmentResponse.class,
+        RoleAssignmentRequest.class,
         RoleRequest.class
     };
 
