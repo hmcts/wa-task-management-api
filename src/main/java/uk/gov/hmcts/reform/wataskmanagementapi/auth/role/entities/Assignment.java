@@ -87,7 +87,6 @@ public class Assignment {
         this.authorisations = authorisations;
     }
 
-
     public UUID getId() {
         return id;
     }
