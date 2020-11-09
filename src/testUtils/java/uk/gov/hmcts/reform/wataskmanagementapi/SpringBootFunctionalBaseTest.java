@@ -24,7 +24,6 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 public abstract class SpringBootFunctionalBaseTest {
 
     protected GivensBuilder given;
-    protected CamundaObjectMapper camundaObjectMapper;
     protected Assertions assertions;
     protected Common common;
     protected CaseIdGenerator caseIdGenerator;

@@ -11,13 +11,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings("PMD.ExcessiveParameterList")
 public class Assignment {
 
-    private UUID id;
+    private String id;
     private ActorIdType actorIdType;
     private String actorId;
     private RoleType roleType;
@@ -57,7 +56,7 @@ public class Assignment {
         this.attributes = attributes;
     }
 
-    public Assignment(UUID id,
+    public Assignment(String id,
                       ActorIdType actorIdType,
                       String actorId,
                       RoleType roleType,
@@ -87,7 +86,7 @@ public class Assignment {
         this.authorisations = authorisations;
     }
 
-    public UUID getId() {
+    public String getId() {
         return id;
     }
 

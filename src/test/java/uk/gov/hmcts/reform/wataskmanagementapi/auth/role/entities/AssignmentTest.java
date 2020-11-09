@@ -18,7 +18,7 @@ class AssignmentTest {
 
     @Test
     void should_set_properties() {
-        UUID id = UUID.randomUUID();
+        String id = UUID.randomUUID().toString();
         Assignment assignment = new Assignment(
             id,
             ActorIdType.IDAM,

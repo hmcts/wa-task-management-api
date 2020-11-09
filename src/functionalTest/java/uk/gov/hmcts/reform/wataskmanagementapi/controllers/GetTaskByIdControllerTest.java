@@ -8,11 +8,11 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -38,7 +38,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(instanceOf(String.class)))
+            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId));
@@ -58,7 +58,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(instanceOf(String.class)))
+            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("User did not have sufficient permissions to access task"));
@@ -94,7 +94,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(instanceOf(String.class)))
+            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -132,7 +132,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(instanceOf(String.class)))
+            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -171,7 +171,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(instanceOf(String.class)))
+            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -209,7 +209,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(instanceOf(String.class)))
+            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
