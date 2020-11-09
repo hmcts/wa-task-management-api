@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
@@ -29,6 +28,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected CaseIdGenerator caseIdGenerator;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
+    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -43,7 +43,7 @@ public abstract class SpringBootFunctionalBaseTest {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         caseIdGenerator = new CaseIdGenerator();
-        assertions = new Assertions(camundaUrl);
+        assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,

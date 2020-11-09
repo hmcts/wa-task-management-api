@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -26,8 +25,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
@@ -115,13 +117,13 @@ public class TaskController {
         )
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader HttpHeaders headers,
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
                                                          @PathVariable("task-id") String id) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        List<Assignment> roleAssignments = accessControlService.getRoles(headers);
-        Task task = camundaService.getTask(id, roleAssignments, endpointPermissionsRequired);
+        Task task = camundaService.getTask(id, accessControlResponse.getRoleAssignments(), endpointPermissionsRequired);
 
         return ResponseEntity
             .ok()
@@ -156,8 +158,11 @@ public class TaskController {
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
                                             @PathVariable("task-id") String taskId) {
-        String userId = idamService.getUserId(authToken);
-        camundaService.claimTask(taskId, userId);
+
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        camundaService.claimTask(taskId, accessControlResponse, endpointPermissionsRequired);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

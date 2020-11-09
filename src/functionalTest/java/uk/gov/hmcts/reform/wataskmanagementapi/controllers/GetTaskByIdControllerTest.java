@@ -2,18 +2,17 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
@@ -21,15 +20,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
+    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
@@ -38,7 +36,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId));
@@ -50,7 +49,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getLawFirmAAuthorization()
         );
@@ -58,7 +57,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("User did not have sufficient permissions to access task"));
@@ -70,7 +70,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
@@ -86,7 +86,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
@@ -94,7 +94,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -108,7 +109,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
@@ -124,7 +125,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
@@ -132,7 +133,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -146,7 +148,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
         );
@@ -163,7 +165,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
         );
@@ -171,7 +173,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -185,7 +188,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
         );
@@ -201,7 +204,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
         );
@@ -209,7 +212,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", equalTo(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(

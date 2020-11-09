@@ -63,7 +63,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -84,7 +84,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -113,7 +113,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);
@@ -135,7 +135,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -157,7 +157,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);
@@ -179,7 +179,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);
@@ -201,7 +201,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -223,7 +223,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -245,7 +245,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -267,7 +267,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -289,7 +289,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -310,7 +310,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -331,7 +331,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);
@@ -352,7 +352,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -373,7 +373,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);
@@ -395,7 +395,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -416,7 +416,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);
@@ -438,7 +438,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertTrue(result);
@@ -459,7 +459,7 @@ class PermissionEvaluatorServiceTest {
         testCases.forEach(roleAssignment -> {
             boolean result = permissionEvaluatorService.hasAccess(
                 defaultVariables,
-                roleAssignment,
+                singletonList(roleAssignment),
                 permissionsRequired
             );
             assertFalse(result);

@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
@@ -13,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermission
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
@@ -30,19 +28,19 @@ public class RoleAssignmentService {
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
     }
 
-    public List<Assignment> getRolesForUser(String idamUserId, HttpHeaders headers) {
+    public List<Assignment> getRolesForUser(String idamUserId, String authToken) {
         requireNonNull(idamUserId, "IdamUserId cannot be null");
 
-        GetRoleAssignmentResponse getRoleAssignmentResponse = getRoles(idamUserId, headers);
+        GetRoleAssignmentResponse getRoleAssignmentResponse = getRoles(idamUserId, authToken);
 
         return getRoleAssignmentResponse.getRoleAssignmentResponse();
     }
 
-    private GetRoleAssignmentResponse getRoles(String idamUserId, HttpHeaders headers) {
+    private GetRoleAssignmentResponse getRoles(String idamUserId, String authToken) {
         try {
             return roleAssignmentServiceApi.getRolesForUser(
                 idamUserId,
-                headers.getFirst(AUTHORIZATION),
+                authToken,
                 serviceAuthTokenGenerator.generate()
             );
         } catch (FeignException ex) {
