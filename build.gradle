@@ -262,9 +262,7 @@ dependencies {
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
 
   compile group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
-
-  compile group: 'com.auth0', name: 'java-jwt', version: '3.10.3'
-
+  
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
