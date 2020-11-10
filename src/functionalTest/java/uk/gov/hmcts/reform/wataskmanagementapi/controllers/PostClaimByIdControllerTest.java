@@ -60,7 +60,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("User did not have sufficient permissions to access task"));

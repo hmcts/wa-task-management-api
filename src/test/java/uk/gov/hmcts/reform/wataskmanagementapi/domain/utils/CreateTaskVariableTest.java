@@ -34,7 +34,7 @@ class CreateTaskVariableTest {
 
 
         localVariables = new HashMap<>();
-        localVariables.put("taskState", new CamundaVariable(TaskState.ASSIGNED.getTaskState(), "string"));
+        localVariables.put("taskState", new CamundaVariable(TaskState.ASSIGNED.value(), "string"));
         localVariables.put("securityClassification", new CamundaVariable("some-classification", "string"));
         localVariables.put("title", new CamundaVariable("some-title", "string"));
         localVariables.put("executionType", new CamundaVariable("some-executionType", "string"));
