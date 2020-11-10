@@ -2,11 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,15 +20,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
+    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
@@ -52,7 +49,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getLawFirmAAuthorization()
         );
@@ -73,7 +70,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
@@ -89,7 +86,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
@@ -112,7 +109,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
@@ -128,7 +125,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
@@ -151,7 +148,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
         );
@@ -168,7 +165,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
         );
@@ -191,7 +188,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
         );
@@ -207,7 +204,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
 
         Response result = restApiActions.get(
-            "task/{task-id}",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
         );

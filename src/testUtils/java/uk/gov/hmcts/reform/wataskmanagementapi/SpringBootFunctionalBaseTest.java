@@ -22,13 +22,14 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 @ActiveProfiles("functional")
 public abstract class SpringBootFunctionalBaseTest {
 
-    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
     protected CaseIdGenerator caseIdGenerator;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
+    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
 

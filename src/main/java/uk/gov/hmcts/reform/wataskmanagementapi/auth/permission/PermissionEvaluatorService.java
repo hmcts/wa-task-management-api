@@ -29,9 +29,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 @Service
 @SuppressWarnings({
-        "java:S3776",
-        "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDeeplyNestedIfStmts", "PMD.CyclomaticComplexity"
-    })
+    "java:S3776",
+    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDeeplyNestedIfStmts", "PMD.CyclomaticComplexity"
+})
 public class PermissionEvaluatorService {
 
     private final CamundaObjectMapper camundaObjectMapper;
@@ -42,8 +42,24 @@ public class PermissionEvaluatorService {
     }
 
     public boolean hasAccess(Map<String, CamundaVariable> variables,
-                             Assignment roleAssignment,
+                             List<Assignment> roleAssignments,
                              List<PermissionTypes> permissionsRequired) {
+
+        boolean hasAccess = false;
+        // Loop through the roleAssignments and attempt to find a role with sufficient permissions
+        for (Assignment roleAssignment : roleAssignments) {
+            //Safe-guard
+            if (hasAccess) {
+                break;
+            }
+            hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
+        }
+        return hasAccess;
+    }
+
+    private boolean evaluateAccess(Map<String, CamundaVariable> variables,
+                                   Assignment roleAssignment,
+                                   List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
 
         // 1. Always Check Role name has required permission
@@ -169,4 +185,5 @@ public class PermissionEvaluatorService {
         Optional<T> value = camundaObjectMapper.read(variable, type);
         return value.orElse(null);
     }
+
 }

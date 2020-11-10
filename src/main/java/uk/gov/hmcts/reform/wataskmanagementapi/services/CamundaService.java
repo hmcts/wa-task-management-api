@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static java.util.Objects.requireNonNull;
 
 @Service
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
@@ -57,23 +59,29 @@ public class CamundaService {
         this.permissionEvaluatorService = permissionEvaluatorService;
     }
 
+    public void claimTask(String taskId,
+                          AccessControlResponse accessControlResponse,
+                          List<PermissionTypes> permissionsRequired) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
 
-    public void claimTask(String taskId, String userId) {
-        try {
-            Map<String, String> body = new ConcurrentHashMap<>();
-            body.put("userId", userId);
-            camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
-        } catch (FeignException ex) {
-            if (HttpStatus.NOT_FOUND.value() == ex.status()) {
-                throw new ResourceNotFoundException(String.format(
-                    "There was a problem claiming the task with id: %s",
-                    taskId
-                ), ex);
-            } else {
-                camundaErrorDecoder.decodeException(ex);
-            }
+        Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+
+        boolean hasAccess = permissionEvaluatorService
+            .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+        if (hasAccess) {
+            performClaimTaskAction(
+                taskId,
+                Map.of("userId", accessControlResponse.getUserInfo().getUid())
+            );
+        } else {
+            throw new InsufficientPermissionsException(
+                String.format("User did not have sufficient permissions to claim task with id: %s", taskId)
+            );
         }
+
     }
+
 
     public void assignTask(String taskId, String userId) {
         Map<String, String> body = new ConcurrentHashMap<>();
@@ -180,21 +188,13 @@ public class CamundaService {
          * Performing the check this way saves an extra call to camunda in cases where
          * the user did not have sufficient permissions
          */
-        Map<String, CamundaVariable> variables = getVariables(id);
 
-        boolean hasAccess = false;
+        Map<String, CamundaVariable> variables = performGetVariablesAction(id);
 
-        // Loop through the roleAssignments and attempt to find a role that s
-        for (Assignment roleAssignment : roleAssignments) {
-            //Safe-guard
-            if (hasAccess) {
-                break;
-            }
-            hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignment, permissionsRequired);
-        }
+        boolean hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignments, permissionsRequired);
 
         if (hasAccess) {
-            CamundaTask camundaTask = getCamundaTask(id);
+            CamundaTask camundaTask = performGetCamundaTaskAction(id);
             return taskMapper.mapToTaskObject(variables, camundaTask);
         }
 
@@ -203,7 +203,7 @@ public class CamundaService {
         );
     }
 
-    private Map<String, CamundaVariable> getVariables(String id) {
+    private Map<String, CamundaVariable> performGetVariablesAction(String id) {
         Map<String, CamundaVariable> variables;
         try {
             variables = camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
@@ -216,7 +216,7 @@ public class CamundaService {
         return variables;
     }
 
-    private CamundaTask getCamundaTask(String id) {
+    private CamundaTask performGetCamundaTaskAction(String id) {
         try {
             return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
@@ -224,6 +224,14 @@ public class CamundaService {
                 "There was a problem fetching the task with id: %s",
                 id
             ), ex);
+        }
+    }
+
+    private void performClaimTaskAction(String taskId, Map<String, String> body) {
+        try {
+            camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
+        } catch (FeignException ex) {
+            camundaErrorDecoder.decodeException(ex);
         }
     }
 }

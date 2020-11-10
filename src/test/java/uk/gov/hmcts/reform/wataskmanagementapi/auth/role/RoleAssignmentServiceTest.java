@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
@@ -27,7 +26,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @ExtendWith(MockitoExtension.class)
 class RoleAssignmentServiceTest {
@@ -48,15 +46,13 @@ class RoleAssignmentServiceTest {
         String idamUserId = "someIdamUserId";
         String mockedAuthToken = "authToken";
         String mockedServiceToken = "serviceToken";
-        HttpHeaders headers = mock(HttpHeaders.class);
 
         List<Assignment> mockedRoleAssignments = createMockRoleAssignments(idamUserId);
-        when(headers.getFirst(AUTHORIZATION)).thenReturn(mockedAuthToken);
         when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
         when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
             .thenReturn(new GetRoleAssignmentResponse(mockedRoleAssignments));
 
-        List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, headers);
+        List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken);
 
         result.forEach(roleAssignment -> {
 
@@ -75,9 +71,7 @@ class RoleAssignmentServiceTest {
         String idamUserId = "someIdamUserId";
         String mockedAuthToken = "authToken";
         String mockedServiceToken = "serviceToken";
-        HttpHeaders headers = mock(HttpHeaders.class);
 
-        when(headers.getFirst(AUTHORIZATION)).thenReturn(mockedAuthToken);
         when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
 
         TestFeignClientException exception =
@@ -89,7 +83,7 @@ class RoleAssignmentServiceTest {
         doThrow(exception)
             .when(roleAssignmentServiceApi).getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken);
 
-        assertThatThrownBy(() -> roleAssignmentService.getRolesForUser(idamUserId, headers))
+        assertThatThrownBy(() -> roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken))
             .isInstanceOf(InsufficientPermissionsException.class)
             .hasCauseInstanceOf(FeignException.class)
             .hasMessage("User did not have sufficient permissions to access task");
