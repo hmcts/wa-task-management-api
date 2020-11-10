@@ -435,15 +435,34 @@ class CamundaServiceTest {
     @Nested
     @DisplayName("unclaimTask()")
     class UnclaimTask {
+
         @Test
         void unclaimTask_should_succeed() {
 
             String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
 
-            camundaService.unclaimTask(taskId);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
 
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                singletonList(mockedRoleAssignment),
+                permissionsRequired
+            )).thenReturn(true);
+
+            camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired);
             verify(camundaServiceApi, times(1))
-                .unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+                .unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
+            verifyNoMoreInteractions(camundaServiceApi);
         }
 
         @Test
@@ -451,6 +470,14 @@ class CamundaServiceTest {
 
             String taskId = UUID.randomUUID().toString();
             String exceptionMessage = "some exception message";
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
+            AccessControlResponse accessControlResponse =
+                new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
 
             TestFeignClientException exception =
                 new TestFeignClientException(
@@ -460,11 +487,43 @@ class CamundaServiceTest {
                 );
 
             doThrow(exception)
-                .when(camundaServiceApi).unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+                .when(camundaServiceApi).getVariables(eq(BEARER_SERVICE_TOKEN), eq(taskId));
 
-            assertThatThrownBy(() -> camundaService.unclaimTask(taskId))
+            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasCauseInstanceOf(FeignException.class);
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(String.format("There was a problem fetching the task with id: %s", taskId));
+
+        }
+
+        @Test
+        void unclaimTask_should_throw_insufficient_permissions_exception_when_user_did_not_have_enough_permission() {
+
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
+            AccessControlResponse accessControlResponse =
+                new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                singletonList(mockedRoleAssignment),
+                permissionsRequired
+            )).thenReturn(false);
+
+
+            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(InsufficientPermissionsException.class)
+                .hasNoCause()
+                .hasMessage(
+                    String.format("User did not have sufficient permissions to claim task with id: %s", taskId));
         }
     }
 

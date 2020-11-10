@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -109,18 +108,25 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String id) {
-        try {
-            HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-            variable.put("taskState", CamundaValue.stringValue(TaskState.UNASSIGNED.getTaskState()));
-            AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
-        } catch (FeignException ex) {
-            throw new ResourceNotFoundException(String.format(
-                "There was a problem unclaiming the task with id: %s",
-                id
-            ), ex);
+    public void unclaimTask(String id,
+                            AccessControlResponse accessControlResponse,
+                            List<PermissionTypes> permissionsRequired) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
+
+        Map<String, CamundaVariable> variables = performGetVariablesAction(id);
+
+        boolean hasAccess = permissionEvaluatorService
+            .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+        if (hasAccess) {
+            performUnclaimTaskAction(
+                id,
+                Map.of("userId", accessControlResponse.getUserInfo().getUid())
+            );
+        } else {
+            throw new InsufficientPermissionsException(
+                String.format("User did not have sufficient permissions to claim task with id: %s", id)
+            );
         }
     }
 
@@ -232,6 +238,17 @@ public class CamundaService {
             camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             camundaErrorDecoder.decodeException(ex);
+        }
+    }
+
+    private void performUnclaimTaskAction(String taskId, Map<String, String> body) {
+        try {
+            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId, body);
+        } catch (FeignException ex) {
+            throw new ServerErrorException(String.format(
+                "Error unclaiming task: %s",
+                taskId
+            ), ex);
         }
     }
 }
