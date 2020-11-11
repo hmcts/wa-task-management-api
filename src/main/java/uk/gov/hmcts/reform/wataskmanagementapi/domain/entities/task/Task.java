@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,7 +12,7 @@ import java.util.Objects;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@SuppressWarnings({"PMD.LawOfDemeter","PMD.TooManyFields","PMD.ExcessiveParameterList","PMD.ShortClassName"})
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields", "PMD.ExcessiveParameterList", "PMD.ShortClassName"})
 @ApiModel("Task")
 public class Task {
     @ApiModelProperty(
@@ -112,8 +112,8 @@ public class Task {
     )
     private boolean autoAssigned;
 
-    public Task() {
-        //Default constructor for deserialization
+    private Task() {
+        //Hidden constructor
         super();
     }
 
@@ -139,9 +139,9 @@ public class Task {
                 String caseName
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
+        Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
         this.executionType = executionType;
-        Objects.requireNonNull(name, "name cannot be null");
         this.name = name;
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;
@@ -160,7 +160,6 @@ public class Task {
         this.jurisdiction = jurisdiction;
         this.region = region;
         this.location = location;
-
 
 
     }

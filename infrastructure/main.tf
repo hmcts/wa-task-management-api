@@ -51,3 +51,42 @@ data "azurerm_key_vault_secret" "wa_idam_client_secret" {
   key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
 }
 
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_a_username" {
+  name         = "wa-test-caseofficer-public-a-username"
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_a_password" {
+  name          = "wa-test-caseofficer-public-a-password"
+  key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_b_username" {
+  name         = "wa-test-caseofficer-public-b-username"
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_b_password" {
+  name          = "wa-test-caseofficer-public-b-password"
+  key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_c_username" {
+  name         = "wa-test-caseofficer-public-c-username"
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_c_password" {
+  name          = "wa-test-caseofficer-public-c-password"
+  key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_d_username" {
+  name         = "wa-test-caseofficer-public-d-username"
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+data "azurerm_key_vault_secret" "wa_test_caseofficer_public_d_password" {
+  name          = "wa-test-caseofficer-public-d-password"
+  key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+}

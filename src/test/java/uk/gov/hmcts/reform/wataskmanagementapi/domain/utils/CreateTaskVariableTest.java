@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskMapper;
 
 import java.time.ZonedDateTime;
@@ -28,12 +28,13 @@ class CreateTaskVariableTest {
         ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
 
         camundaTask = new CamundaTask("some-id", "some-name", "some-assignee",
-                                      created, dueDate, "some-description",
-                                      "some-owner", "formKey");
+            created, dueDate, "some-description",
+            "some-owner", "formKey"
+        );
 
 
         localVariables = new HashMap<>();
-        localVariables.put("taskState", new CamundaVariable(TaskState.ASSIGNED.getTaskState(),"string"));
+        localVariables.put("taskState", new CamundaVariable(TaskState.ASSIGNED.getTaskState(), "string"));
         localVariables.put("securityClassification", new CamundaVariable("some-classification", "string"));
         localVariables.put("title", new CamundaVariable("some-title", "string"));
         localVariables.put("executionType", new CamundaVariable("some-executionType", "string"));

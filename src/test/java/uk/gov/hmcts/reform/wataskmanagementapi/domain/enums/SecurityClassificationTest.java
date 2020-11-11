@@ -14,9 +14,9 @@ class SecurityClassificationTest {
         final String restrictedEnum = SecurityClassification.RESTRICTED.getSecurityClassification();
 
 
-        assertEquals("PUBLIC",publicEnum);
-        assertEquals("PRIVATE",privateEnum);
-        assertEquals("RESTRICTED",restrictedEnum);
+        assertEquals("PUBLIC", publicEnum);
+        assertEquals("PRIVATE", privateEnum);
+        assertEquals("RESTRICTED", restrictedEnum);
     }
 
     @Test

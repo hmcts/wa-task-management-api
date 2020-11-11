@@ -17,6 +17,9 @@ config:
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
 
+role-assignment:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
 security:
   anonymousPaths:
     - "/"

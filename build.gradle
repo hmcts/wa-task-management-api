@@ -262,7 +262,7 @@ dependencies {
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
 
   compile group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
-
+  
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
@@ -282,6 +282,9 @@ dependencies {
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testCompile group: 'com.google.guava', name: 'guava-testlib', version: '29.0-jre'
   testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
+
+  testUtilsImplementation sourceSets.main.runtimeClasspath
+  testUtilsImplementation sourceSets.test.runtimeClasspath
 
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath
