@@ -5,11 +5,12 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -21,14 +22,15 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             "task/{task-id}/assign",
             nonExistentTaskId,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", is(notNullValue()))
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -46,7 +48,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             "task/{task-id}/assign",
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         result.then().assertThat()

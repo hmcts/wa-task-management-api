@@ -19,10 +19,6 @@ def component = "task-management-api"
 
 def secrets = [
   'wa-${env}' : [
-    secret('test-law-firm-a-username', 'TEST_LAW_FIRM_A_USERNAME'),
-    secret('test-law-firm-a-password', 'TEST_LAW_FIRM_A_PASSWORD'),
-    secret('test-law-firm-b-username', 'TEST_LAW_FIRM_B_USERNAME'),
-    secret('test-law-firm-b-password', 'TEST_LAW_FIRM_B_PASSWORD'),
     secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
     secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),

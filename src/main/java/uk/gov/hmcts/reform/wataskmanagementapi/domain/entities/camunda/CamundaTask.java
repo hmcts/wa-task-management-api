@@ -24,13 +24,9 @@ public class CamundaTask {
     private String owner;
     private String formKey;
 
-    public CamundaTask() {
-        //Default constructor for deserialization
+    private CamundaTask() {
+        //Hidden constructor
         super();
-    }
-
-    public CamundaTask(String id) {
-        this.id = id;
     }
 
     public CamundaTask(String id,

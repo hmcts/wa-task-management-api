@@ -27,7 +27,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
     configuration = CamundaFeignConfiguration.class
 )
 @Service
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals","PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UnnecessaryFullyQualifiedName"})
 public interface CamundaServiceApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
