@@ -51,16 +51,6 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/claim")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -112,18 +102,6 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .baseUri(testUrl)
             .when()
             .post("/task")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value());
-
-        given()
-            .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/claim")
             .then()
             .assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
