@@ -3,13 +3,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.RestAssured;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 
@@ -17,9 +15,6 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
     private String testUrl;
-
-    @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Before
     public void setUp() {

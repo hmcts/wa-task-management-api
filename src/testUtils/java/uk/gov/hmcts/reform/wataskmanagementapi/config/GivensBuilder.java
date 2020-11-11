@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -23,10 +24,14 @@ public class GivensBuilder {
 
     private final String camundaUrl;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public GivensBuilder(String camundaUrl, CamundaObjectMapper camundaObjectMapper) {
+    public GivensBuilder(String camundaUrl,
+                         CamundaObjectMapper camundaObjectMapper,
+                         AuthorizationHeadersProvider authorizationHeadersProvider) {
         this.camundaUrl = camundaUrl;
         this.camundaObjectMapper = camundaObjectMapper;
+        this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
     public GivensBuilder iCreateATaskWithCcdId(String ccdId) {
@@ -47,6 +52,7 @@ public class GivensBuilder {
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
             .body(camundaObjectMapper.asCamundaJsonString(request))
             .when()
@@ -63,6 +69,7 @@ public class GivensBuilder {
 
         return given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
             .when()
             .get("/task" + filter)
@@ -99,6 +106,19 @@ public class GivensBuilder {
             .post("/task/{task-id}/variables", taskId)
             .then()
             .log().all(true)
+            .assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        return this;
+    }
+
+    public GivensBuilder iAddLocalVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .body(new Modifications(processVariables.getProcessVariablesMap()))
+            .when()
+            .post("/task/{task-id}/localVariables", taskId)
+            .then()
             .assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
         return this;

@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class Common {
 
     private final CcdIdGenerator ccdIdGenerator;
-
     private final GivensBuilder given;
 
     public Common(CcdIdGenerator ccdIdGenerator, GivensBuilder given) {

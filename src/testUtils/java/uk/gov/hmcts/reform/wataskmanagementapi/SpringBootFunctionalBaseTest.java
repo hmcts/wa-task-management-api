@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
@@ -30,6 +32,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
+    @Autowired
+    protected AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Before
     public void setUpGivens() {
@@ -37,7 +41,7 @@ public abstract class SpringBootFunctionalBaseTest {
         ccdIdGenerator = new CcdIdGenerator();
         assertions = new Assertions(camundaUrl);
         camundaObjectMapper = new CamundaObjectMapper(getDefaultObjectMapper(), getCamundaObjectMapper());
-        given = new GivensBuilder(camundaUrl, camundaObjectMapper);
+        given = new GivensBuilder(camundaUrl, camundaObjectMapper, authorizationHeadersProvider);
         common = new Common(ccdIdGenerator, given);
 
     }
