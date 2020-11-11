@@ -265,7 +265,7 @@ public class TaskController {
     @PostMapping(path = "/{task-id}/complete")
     public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId) {
-        List<PermissionTypes> endpointPermissionsRequired = singletonList(EXECUTE);
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
