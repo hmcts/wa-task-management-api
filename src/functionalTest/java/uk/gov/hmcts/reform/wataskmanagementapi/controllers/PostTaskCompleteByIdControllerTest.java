@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -59,33 +58,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "completed");
-    }
-
-    @Test
-    public void endpoint_should_be_idempotent_should_return_a_204_when_completing_an_already_completed_task() {
-
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
-        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
-            headers
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "completed");
-
-        Response resultWhenTaskAlreadyCompleted = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
-            headers
-        );
-
-        resultWhenTaskAlreadyCompleted.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
     @Test

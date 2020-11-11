@@ -691,8 +691,7 @@ class CamundaServiceTest {
                 permissionsRequired
             )).thenReturn(true);
 
-            doThrow(mock(FeignException.class))
-                .when(camundaServiceApi).addLocalVariablesToTask(
+            doThrow(mock(FeignException.class)).when(camundaServiceApi).addLocalVariablesToTask(
                 eq(BEARER_SERVICE_TOKEN),
                 eq(taskId),
                 any(AddLocalVariableRequest.class)
