@@ -13,6 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalV
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Assignee;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.CaseData;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Location;
 
 import java.util.List;
 
@@ -28,7 +31,10 @@ class PojoTest {
         Token.class,
         UserInfo.class,
         HistoryVariableInstance.class,
-        AddLocalVariableRequest.class
+        AddLocalVariableRequest.class,
+        CaseData.class,
+        Location.class,
+        Assignee.class
     };
 
     // Cannot test equals for generic classes

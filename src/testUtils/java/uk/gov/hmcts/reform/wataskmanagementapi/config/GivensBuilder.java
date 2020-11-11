@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.Map;
@@ -16,21 +17,27 @@ import static java.time.ZonedDateTime.now;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper.asCamundaJsonString;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 public class GivensBuilder {
 
     private final String camundaUrl;
+    private final CamundaObjectMapper camundaObjectMapper;
+    private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public GivensBuilder(String camundaUrl) {
+    public GivensBuilder(String camundaUrl,
+                         CamundaObjectMapper camundaObjectMapper,
+                         AuthorizationHeadersProvider authorizationHeadersProvider) {
         this.camundaUrl = camundaUrl;
+        this.camundaObjectMapper = camundaObjectMapper;
+        this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
     public GivensBuilder iCreateATaskWithCcdId(String ccdId) {
 
         CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("ccdId", ccdId)
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")
@@ -45,8 +52,9 @@ public class GivensBuilder {
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
-            .body(asCamundaJsonString(request))
+            .body(camundaObjectMapper.asCamundaJsonString(request))
             .when()
             .post("/message")
             .then()
@@ -61,6 +69,7 @@ public class GivensBuilder {
 
         return given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
             .when()
             .get("/task" + filter)
@@ -102,8 +111,21 @@ public class GivensBuilder {
         return this;
     }
 
+    public GivensBuilder iAddLocalVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .body(new Modifications(processVariables.getProcessVariablesMap()))
+            .when()
+            .post("/task/{task-id}/localVariables", taskId)
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+        return this;
+    }
+
     private class Modifications {
-        private Map<String, CamundaValue<?>> modifications;
+        private final Map<String, CamundaValue<?>> modifications;
 
         public Modifications(Map<String, CamundaValue<?>> processVariablesMap) {
             super();

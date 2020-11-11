@@ -23,8 +23,12 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
         RestAssured.useRelaxedHTTPSValidation();
     }
 
+    /**
+     * Open Id verification should trigger first therefore it should return a 401.
+     * if no bearer token is provided
+     */
     @Test
-    public void should_return_403_when_no_service_token_is_provided() {
+    public void should_return_401_when_no_token_is_provided() {
         String taskId = "00000000-0000-0000-0000-000000000000";
 
         given()
@@ -35,7 +39,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .post("/task")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -46,7 +50,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/claim")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -57,7 +61,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/claim")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -68,7 +72,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/unclaim")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -79,7 +83,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/complete")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -91,8 +95,88 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .post("/task/{task-id}/assign")
             .then()
             .assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+    }
 
+    /**
+     * Service authentication should trigger after therefore it should still return a 401.
+     * if no service authorization token is provided
+     */
+    @Test
+    public void should_return_401_when_bearer_token_is_provided_but_no_service_token() {
+        String taskId = "00000000-0000-0000-0000-000000000000";
+
+        given()
+            .relaxedHTTPSValidation()
+            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .when()
+            .post("/task")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+            .relaxedHTTPSValidation()
+            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .pathParam("task-id", taskId)
+            .when()
+            .post("/task/{task-id}/claim")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+            .relaxedHTTPSValidation()
+            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .pathParam("task-id", taskId)
+            .when()
+            .post("/task/{task-id}/claim")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+            .relaxedHTTPSValidation()
+            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .pathParam("task-id", taskId)
+            .when()
+            .post("/task/{task-id}/unclaim")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+            .relaxedHTTPSValidation()
+            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .pathParam("task-id", taskId)
+            .when()
+            .post("/task/{task-id}/complete")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
+
+        given()
+            .relaxedHTTPSValidation()
+            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .pathParam("task-id", taskId)
+            .body(new AssignTaskRequest("some-user-id"))
+            .when()
+            .post("/task/{task-id}/assign")
+            .then()
+            .assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
     }
 
 }

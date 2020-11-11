@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
@@ -68,7 +67,12 @@ public class TaskController {
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
+        @RequestBody SearchTaskRequest searchTaskRequest) {
+
+        if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
 
         List<Task> tasks = camundaService.searchWithCriteria(searchTaskRequest);
         return ResponseEntity
@@ -102,8 +106,8 @@ public class TaskController {
         )
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTaskResponse<CamundaTask>> getTask(@PathVariable("task-id") String id) {
-        CamundaTask task = camundaService.getTask(id);
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@PathVariable("task-id") String id) {
+        Task task = camundaService.getTask(id);
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -203,12 +207,12 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/assignee")
+    @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId) {
 
         String userId = idamService.getUserId(authToken);
-        camundaService.assigneeTask(taskId, userId);
+        camundaService.assignTask(taskId, userId);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

@@ -22,6 +22,7 @@ public class CamundaTask {
     private ZonedDateTime due;
     private String description;
     private String owner;
+    private String formKey;
 
     public CamundaTask() {
         //Default constructor for deserialization
@@ -38,7 +39,8 @@ public class CamundaTask {
                        ZonedDateTime created,
                        ZonedDateTime due,
                        String description,
-                       String owner) {
+                       String owner,
+                       String formKey) {
         this.id = id;
         this.name = name;
         this.assignee = assignee;
@@ -46,6 +48,7 @@ public class CamundaTask {
         this.due = due;
         this.description = description;
         this.owner = owner;
+        this.formKey = formKey;
     }
 
     public String getId() {
@@ -74,5 +77,9 @@ public class CamundaTask {
 
     public String getOwner() {
         return owner;
+    }
+
+    public String getFormKey() {
+        return formKey;
     }
 }
