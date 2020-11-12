@@ -199,7 +199,7 @@ public class TaskController {
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
                                               @PathVariable("task-id") String taskId) {
 
-        List<PermissionTypes> endpointPermissionsRequired = asList(MANAGE);
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
         camundaService.unclaimTask(taskId, accessControlResponse, endpointPermissionsRequired);

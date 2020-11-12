@@ -62,8 +62,7 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     void unclaimTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                     @PathVariable("task-id") String id,
-                     @RequestBody Map<String, String> body);
+                     @PathVariable("task-id") String id);
 
     @GetMapping(
         value = "/history/variable-instance",

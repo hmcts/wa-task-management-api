@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +88,8 @@ class CamundaServiceTest {
             camundaErrorDecoder,
             taskMapper,
             authTokenGenerator,
-            permissionEvaluatorService
+            permissionEvaluatorService,
+            camundaObjectMapper
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -110,6 +112,7 @@ class CamundaServiceTest {
         variables.put("region", new CamundaVariable("some_region", "String"));
         variables.put("appealType", new CamundaVariable("some_appealType", "String"));
         variables.put("autoAssigned", new CamundaVariable("false", "Boolean"));
+        variables.put("assignee", new CamundaVariable("uid", "String"));
         return variables;
     }
 
@@ -435,7 +438,6 @@ class CamundaServiceTest {
     @Nested
     @DisplayName("unclaimTask()")
     class UnclaimTask {
-
         @Test
         void unclaimTask_should_succeed() {
 
@@ -443,8 +445,8 @@ class CamundaServiceTest {
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
-            UserInfo mockedUserInfo = mock(UserInfo.class);
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+            UserInfo mockedUserInfo = new UserInfo("email","uid",
+                                                   new ArrayList<String>(),"name","givenName","familyName");
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
@@ -461,8 +463,43 @@ class CamundaServiceTest {
 
             camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired);
             verify(camundaServiceApi, times(1))
-                .unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
+                .unclaimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+            verify(camundaServiceApi, times(1))
+                .addLocalVariablesToTask(
+                    eq(BEARER_SERVICE_TOKEN),
+                    eq(taskId),
+                    any()
+                );
             verifyNoMoreInteractions(camundaServiceApi);
+        }
+
+        @Test
+        void unclaimTask_should_fail_as_differnet_user() {
+
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = new UserInfo("email","anot",
+                                                   new ArrayList<String>(),"name","givenName","familyName");
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                singletonList(mockedRoleAssignment),
+                permissionsRequired
+            )).thenReturn(true);
+
+            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(InsufficientPermissionsException.class)
+                .hasMessage(String.format("Task %s has been claim by another user and cannot be unclaim by user",
+                                          taskId));
         }
 
         @Test
@@ -473,7 +510,6 @@ class CamundaServiceTest {
             Assignment mockedRoleAssignment = mock(Assignment.class);
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
             AccessControlResponse accessControlResponse =
@@ -504,7 +540,6 @@ class CamundaServiceTest {
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.MANAGE);
             AccessControlResponse accessControlResponse =
@@ -518,12 +553,11 @@ class CamundaServiceTest {
                 permissionsRequired
             )).thenReturn(false);
 
-
             assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(InsufficientPermissionsException.class)
                 .hasNoCause()
                 .hasMessage(
-                    String.format("User did not have sufficient permissions to claim task with id: %s", taskId));
+                    String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId));
         }
     }
 

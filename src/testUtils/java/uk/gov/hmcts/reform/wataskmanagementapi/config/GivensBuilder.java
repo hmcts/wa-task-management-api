@@ -136,6 +136,7 @@ public class GivensBuilder {
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
+            .withProcessVariable("taskState", "configured")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")

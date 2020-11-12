@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -22,13 +23,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermission
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 
 @Service
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
@@ -40,6 +41,7 @@ public class CamundaService {
     private final TaskMapper taskMapper;
     private final AuthTokenGenerator authTokenGenerator;
     private final PermissionEvaluatorService permissionEvaluatorService;
+    private final CamundaObjectMapper camundaObjectMapper;
 
 
     @Autowired
@@ -48,7 +50,8 @@ public class CamundaService {
                           CamundaErrorDecoder camundaErrorDecoder,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
-                          PermissionEvaluatorService permissionEvaluatorService
+                          PermissionEvaluatorService permissionEvaluatorService,
+                          CamundaObjectMapper camundaObjectMapper
     ) {
         this.camundaServiceApi = camundaServiceApi;
         this.camundaQueryBuilder = camundaQueryBuilder;
@@ -56,6 +59,7 @@ public class CamundaService {
         this.taskMapper = taskMapper;
         this.authTokenGenerator = authTokenGenerator;
         this.permissionEvaluatorService = permissionEvaluatorService;
+        this.camundaObjectMapper = camundaObjectMapper;
     }
 
     public void claimTask(String taskId,
@@ -108,25 +112,31 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String id,
+    public void unclaimTask(String taskId,
                             AccessControlResponse accessControlResponse,
                             List<PermissionTypes> permissionsRequired) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
+        String userId = accessControlResponse.getUserInfo().getUid();
+        Objects.requireNonNull(userId, "UserId must be null");
+        CamundaTask camundaTask = performGetCamundaTaskAction(taskId);
 
-        Map<String, CamundaVariable> variables = performGetVariablesAction(id);
+        boolean isSameUser = userId.equals(camundaTask.getAssignee());
 
-        boolean hasAccess = permissionEvaluatorService
-            .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+        if(isSameUser) {
+            Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        if (hasAccess) {
-            performUnclaimTaskAction(
-                id,
-                Map.of("userId", accessControlResponse.getUserInfo().getUid())
-            );
+            boolean hasAccess = permissionEvaluatorService
+                .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+            if (hasAccess) {
+                String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+                performUnclaimTaskAction(taskState, taskId);
+            } else {
+                throw new InsufficientPermissionsException(
+                    String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
+                );
+            }
         } else {
-            throw new InsufficientPermissionsException(
-                String.format("User did not have sufficient permissions to claim task with id: %s", id)
-            );
+            throw new InsufficientPermissionsException("Task was not claimed by this user");
         }
     }
 
@@ -241,14 +251,35 @@ public class CamundaService {
         }
     }
 
-    private void performUnclaimTaskAction(String taskId, Map<String, String> body) {
+    private void performUnclaimTaskAction(String taskState, String taskId) {
         try {
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId, body);
+
+            if (!UNASSIGNED.getTaskState().equals(taskState)) {
+                HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
+                modifications.put(
+                    TASK_STATE.value(), CamundaValue.stringValue(UNASSIGNED.getTaskState())
+                );
+
+                //1. Add/Update local variables to task
+                camundaServiceApi.addLocalVariablesToTask(
+                    authTokenGenerator.generate(),
+                    taskId,
+                    new AddLocalVariableRequest(modifications)
+                );
+            }
+
+            //2. Call Unclaim in camunda
+                camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
         } catch (FeignException ex) {
             throw new ServerErrorException(String.format(
-                "Error unclaiming task: %s",
+                "There was a problem unclaiming task: %s",
                 taskId
             ), ex);
         }
+    }
+
+    private <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
+        Optional<T> value = camundaObjectMapper.read(variable, type);
+        return value.orElse(null);
     }
 }

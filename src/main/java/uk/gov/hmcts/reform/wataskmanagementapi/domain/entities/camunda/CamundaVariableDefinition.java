@@ -14,7 +14,8 @@ public enum CamundaVariableDefinition {
     TASK_STATE("taskState"),
     TASK_SYSTEM("taskSystem"),
     TITLE("title"),
-    JURISDICTION("jurisdiction");
+    JURISDICTION("jurisdiction"),
+    ASSIGNEE("assignee");
 
     private final String value;
 
