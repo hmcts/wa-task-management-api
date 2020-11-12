@@ -39,7 +39,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() {
         restApiActions = new RestApiActions(testUrl).setUp();
         ccdIdGenerator = new CcdIdGenerator();
-        assertions = new Assertions(camundaUrl);
+        assertions = new Assertions(camundaUrl, authorizationHeadersProvider);
         camundaObjectMapper = new CamundaObjectMapper(getDefaultObjectMapper(), getCamundaObjectMapper());
         given = new GivensBuilder(camundaUrl, camundaObjectMapper, authorizationHeadersProvider);
         common = new Common(ccdIdGenerator, given);

@@ -39,8 +39,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
-
-
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
         Response result = restApiActions.post(

@@ -100,6 +100,7 @@ public class GivensBuilder {
     public GivensBuilder iAddVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(authorizationHeadersProvider.getServiceAuthorizationHeader())
             .baseUri(camundaUrl)
             .body(new Modifications(processVariables.getProcessVariablesMap()))
             .when()
