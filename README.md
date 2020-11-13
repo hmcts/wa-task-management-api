@@ -16,6 +16,8 @@ Provides API endpoints that enable clients manage Tasks in the Camunda Task Data
 
 #### Access Management Process
 
+The general approach and interaction with Access Management is depicted below.  The search endpoints has some slight differences but are similar.
+
 <!--
     Sequence Diagram Source:
     http://www.plantuml.com/plantuml/uml/XPBDRjGm4CVFdQUmojaF05ANfhlggKWL8EuJPpPhnVQOyQGBGhmxJWmgsHQHGmxp-t_CIBujYg9p373o0vaZi_Ry3Q1CFcKKZAQSSE2pJwDHcMb3wEjCoP7v0LUT29_t75ZCWIX_chxVXPdgt2dB7Sj0qkY0ClKhUl17Ul29_aFHJQFmd8QcUDEzFUmFzt05LuyewftFcBHblEpVQ2wIpYUl13y1r6iWyndBP3vWmf4Y9JNMTCvHAMssZ01mLaQd_WcL32V8p-dcsWLVHHPplZPOZ0jRh3NVnfRVT7xLQTpgC5hXG1PByMDQfCKMaYVlQDNZXTvXh2UXxNEqEQ0UMM9Re2h11RlJQDwPJBAGvShEgUS4eD7kS64ZwSTQsJqtWf3EaeninytZ_fYMi2ye7lj01KpzVjjq0nPJM-A4PSyYvFIH9FeQpAcy1y2WhxERc_RegjlkZCFNB_ch6TV9dcCEfBHMruL3jLqI2eN-LNh42b-QxrbwFmoKgZiDS5j_Smo_0000
