@@ -79,13 +79,21 @@ public class TaskController {
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
-
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
+                                                                     @RequestBody SearchTaskRequest searchTaskRequest) {
+        //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        List<Task> tasks = camundaService.searchWithCriteria(searchTaskRequest);
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        List<Task> tasks = camundaService.searchWithCriteria(
+            searchTaskRequest,
+            accessControlResponse.getRoleAssignments(),
+            endpointPermissionsRequired
+        );
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

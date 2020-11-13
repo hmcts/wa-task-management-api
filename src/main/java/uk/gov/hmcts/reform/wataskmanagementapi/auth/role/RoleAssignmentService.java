@@ -44,7 +44,8 @@ public class RoleAssignmentService {
                 serviceAuthTokenGenerator.generate()
             );
         } catch (FeignException ex) {
-            throw new InsufficientPermissionsException("User did not have sufficient permissions to access task", ex);
+            throw new InsufficientPermissionsException(
+                "User did not have sufficient permissions to perform this action", ex);
         }
     }
 
