@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -24,7 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
 @Service
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
@@ -92,19 +91,9 @@ public class CamundaService {
     public void assignTask(String taskId, String userId) {
         Map<String, String> body = new ConcurrentHashMap<>();
         body.put("userId", userId);
-        HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-        variable.put("taskState", CamundaValue.stringValue("assigned"));
-        AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
+
         try {
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
-        } catch (FeignException ex) {
-            throw new ResourceNotFoundException(
-                String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.",
-                    taskId
-                ), ex);
-        }
-        try {
+            updateTaskStateTo(taskId, TaskState.ASSIGNED);
             camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             throw new ServerErrorException(
@@ -115,17 +104,14 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String id) {
+    public void unclaimTask(String taskId) {
         try {
-            HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-            variable.put("taskState", CamundaValue.stringValue(TaskState.UNASSIGNED.value()));
-            AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
+            updateTaskStateTo(taskId, TaskState.UNASSIGNED);
+            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem unclaiming the task with id: %s",
-                id
+                taskId
             ), ex);
         }
     }
@@ -143,18 +129,14 @@ public class CamundaService {
         if (hasAccess) {
             // Check that task state was not already completed
             String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-            boolean taskHasCompleted = COMPLETED.value().equals(taskState);
+            boolean taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
 
-            if (!taskHasCompleted) {
-                // If task was not already completed complete it
-                performCompleteTaskAction(taskId);
-            }
+            performCompleteTaskAction(taskId, taskHasCompleted);
         } else {
             throw new InsufficientPermissionsException(
                 String.format("User did not have sufficient permissions to complete task with id: %s", taskId)
             );
         }
-
     }
 
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
@@ -232,27 +214,19 @@ public class CamundaService {
 
     private void performClaimTaskAction(String taskId, Map<String, String> body) {
         try {
+            updateTaskStateTo(taskId, TaskState.ASSIGNED);
             camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             camundaErrorDecoder.decodeException(ex);
         }
     }
 
-    private void performCompleteTaskAction(String taskId) {
+    private void performCompleteTaskAction(String taskId, boolean taskHasCompleted) {
         try {
-            //1. Update taskState variable in camunda
-            HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
-            modifications.put(
-                TASK_STATE.value(), CamundaValue.stringValue(COMPLETED.value())
-            );
-
-            camundaServiceApi.addLocalVariablesToTask(
-                authTokenGenerator.generate(),
-                taskId,
-                new AddLocalVariableRequest(modifications)
-            );
-
-            //2. Call Complete in camunda
+            if (!taskHasCompleted) {
+                // If task was not already completed complete it
+                updateTaskStateTo(taskId, TaskState.COMPLETED);
+            }
             camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
         } catch (FeignException ex) {
             throw new ServerErrorException(String.format(
@@ -260,6 +234,14 @@ public class CamundaService {
                 taskId
             ), ex);
         }
+    }
+
+    private void updateTaskStateTo(String taskId, TaskState newState) {
+        Map<String, CamundaValue<String>> variable = Map.of(
+            CamundaVariableDefinition.TASK_STATE.value(), CamundaValue.stringValue(newState.value())
+        );
+        AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
+        camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
     }
 
     private <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
