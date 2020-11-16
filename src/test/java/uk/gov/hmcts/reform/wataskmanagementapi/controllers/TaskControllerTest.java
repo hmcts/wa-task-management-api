@@ -146,7 +146,7 @@ class TaskControllerTest {
     @Test
     void should_complete_a_task() {
         String taskId = UUID.randomUUID().toString();
-        ResponseEntity response = taskController.completeTask(taskId);
+        ResponseEntity response = taskController.completeTask(IDAM_AUTH_TOKEN, taskId);
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }

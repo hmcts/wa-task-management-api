@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -62,26 +63,21 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo("User did not have sufficient permissions to access task"));
+            .body("message", equalTo("Task was not claimed by this user"));
     }
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
 
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
-
-
-        given.iClaimATaskWithIdAndAuthorization(
-            task.get("taskId"),
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );
+        Map<String, String> task = setupScenario(headers);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );
+            headers
 
+        );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
@@ -108,22 +104,31 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         );
 
 
-        //FIXME: Since the credentials are different we should not return 204 and claiming should be unsuccessful
-
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value());
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message", equalTo("Task was not claimed by this user"));
 
     }
 
 
     @Test
     public void should_return_a_403_when_user_did_not_have_permission_jurisdiction_region_location_did_not_match() {
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerDAuthorization();
+
+        Map<String, String> task = setupScenario(headers);
+
+        common.updateTaskWithCustomVariablesOverride(task,Map.of(LOCATION,"17595"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
-            authorizationHeadersProvider.getTribunalCaseworkerDAuthorization()
+            headers
+
         );
 
         result.then().assertThat()
@@ -138,15 +143,20 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             ));
     }
 
+
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_location_did_not_match() {
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerCAuthorization();
 
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "17595");
+        Map<String, String> task = setupScenario(headers);
+
+        common.updateTaskWithCustomVariablesOverride(task,Map.of(LOCATION,"17595"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
-            authorizationHeadersProvider.getTribunalCaseworkerCAuthorization()
+            headers
+
         );
 
         result.then().assertThat()
@@ -163,12 +173,17 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
+
+        Map<String, String> task = setupScenario(headers);
+
+        common.updateTaskWithCustomVariablesOverride(task,Map.of(REGION,"north-england"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+            headers
+
         );
 
         result.then().assertThat()
@@ -182,6 +197,19 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                 format("User did not have sufficient permissions to unclaim task with id: %s", task.get("taskId"))
             ));
     }
+
+    private Map<String, String> setupScenario(Headers headers) {
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
+
+        given.iClaimATaskWithIdAndAuthorization(
+            task.get("taskId"),
+            headers
+        );
+
+        return task;
+
+    }
+
 
 }
 
