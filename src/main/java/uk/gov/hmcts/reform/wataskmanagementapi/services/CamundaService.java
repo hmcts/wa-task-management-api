@@ -118,7 +118,7 @@ public class CamundaService {
     public void unclaimTask(String id) {
         try {
             HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-            variable.put("taskState", CamundaValue.stringValue(TaskState.UNASSIGNED.getTaskState()));
+            variable.put("taskState", CamundaValue.stringValue(TaskState.UNASSIGNED.value()));
             AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
             camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
