@@ -178,7 +178,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
                 CamundaVariableDefinition.JURISDICTION, "IA",
                 CamundaVariableDefinition.LOCATION, locationId,
-                CamundaVariableDefinition.TASK_STATE, TaskState.UNASSIGNED.getTaskState()
+                CamundaVariableDefinition.TASK_STATE, TaskState.UNASSIGNED.value()
             );
 
             Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
