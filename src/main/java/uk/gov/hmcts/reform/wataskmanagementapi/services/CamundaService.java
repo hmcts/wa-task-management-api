@@ -89,11 +89,19 @@ public class CamundaService {
 
 
     public void assignTask(String taskId, String userId) {
-        Map<String, String> body = new ConcurrentHashMap<>();
-        body.put("userId", userId);
 
         try {
             updateTaskStateTo(taskId, TaskState.ASSIGNED);
+        } catch (FeignException ex) {
+            throw new ResourceNotFoundException(
+                String.format(
+                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    taskId
+                ), ex);
+        }
+        try {
+            Map<String, String> body = new ConcurrentHashMap<>();
+            body.put("userId", userId);
             camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             throw new ServerErrorException(

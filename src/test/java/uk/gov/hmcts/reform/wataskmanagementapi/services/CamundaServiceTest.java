@@ -583,10 +583,12 @@ class CamundaServiceTest {
             );
 
             assertThatThrownBy(() -> camundaService.assignTask(taskId, userId))
-                .isInstanceOf(ServerErrorException.class)
+                .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage(
-                    String.format("There was a problem assigning the task with id: %s", taskId)
+                    String.format(
+                        "There was a problem updating the task with id: %s. The task could not be found.", taskId
+                    )
                 );
         }
     }
