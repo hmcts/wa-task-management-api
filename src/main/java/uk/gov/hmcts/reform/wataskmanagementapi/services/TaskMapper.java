@@ -14,7 +14,7 @@ import java.util.Optional;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CCD_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
@@ -57,7 +57,7 @@ public class TaskMapper {
         String location = getVariableValue(variables.get(LOCATION.value()), String.class);
         String locationName = getVariableValue(variables.get(LOCATION_NAME.value()), String.class);
         String caseTypeId = getVariableValue(variables.get(CASE_TYPE_ID.value()), String.class);
-        String caseId = getVariableValue(variables.get(CCD_ID.value()), String.class);
+        String caseId = getVariableValue(variables.get(CASE_ID.value()), String.class);
         String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
         String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
 
