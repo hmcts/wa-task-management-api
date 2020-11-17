@@ -40,14 +40,29 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
+
     public Headers getTribunalCaseworkerAAuthorization() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         */
         return new Headers(
             getCaseworkerAAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
     }
 
+
     public Headers getTribunalCaseworkerBAuthorization() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         * --region = east-england
+         */
         return new Headers(
             getCaseworkerBAuthorizationOnly(),
             getServiceAuthorizationHeader()
@@ -55,6 +70,13 @@ public class AuthorizationHeadersProvider {
     }
 
     public Headers getTribunalCaseworkerCAuthorization() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         * --primaryLocation = 765324
+         */
         return new Headers(
             getCaseworkerCAuthorizationOnly(),
             getServiceAuthorizationHeader()
@@ -62,20 +84,36 @@ public class AuthorizationHeadersProvider {
     }
 
     public Headers getTribunalCaseworkerDAuthorization() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         * --region = east-england
+         * --primaryLocation = 765324
+         */
         return new Headers(
             getCaseworkerDAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
     }
 
+
     public Headers getLawFirmAAuthorization() {
+        /*
+         * No Role assignment
+         */
         return new Headers(
             getLawFirmAAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
     }
 
+
     public Headers getLawFirmBAuthorization() {
+        /*
+         * No Role assignment
+         */
         return new Headers(
             getLawFirmBAuthorizationOnly(),
             getServiceAuthorizationHeader()

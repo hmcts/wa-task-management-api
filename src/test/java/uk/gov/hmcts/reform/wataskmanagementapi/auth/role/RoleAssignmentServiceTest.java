@@ -86,7 +86,7 @@ class RoleAssignmentServiceTest {
         assertThatThrownBy(() -> roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken))
             .isInstanceOf(InsufficientPermissionsException.class)
             .hasCauseInstanceOf(FeignException.class)
-            .hasMessage("User did not have sufficient permissions to access task");
+            .hasMessage("User did not have sufficient permissions to perform this action");
 
     }
 
