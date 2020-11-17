@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -140,7 +141,11 @@ class TaskControllerTest {
 
         when(idamService.getUserId(authToken)).thenReturn(userId);
 
-        ResponseEntity<String> response = taskController.assignTask(authToken, taskId);
+        ResponseEntity<String> response = taskController.assignTask(
+            authToken,
+            taskId,
+            new AssigneeRequest("userId")
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
