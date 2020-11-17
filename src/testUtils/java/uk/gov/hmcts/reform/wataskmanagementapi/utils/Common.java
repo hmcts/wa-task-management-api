@@ -49,6 +49,18 @@ public class Common {
 
     }
 
+    public void updateTaskWithCustomVariablesOverride(Map<String,String> task,
+        Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+
+    ) {
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(task.get("caseId"));
+        variablesToUseAsOverride.keySet()
+            .forEach(key -> processVariables
+                .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
+
+        given.iUpdateVariablesOfTaskById(task.get("taskId"),processVariables);
+    }
+
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = caseIdGenerator.generate();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
@@ -90,4 +102,6 @@ public class Common {
         );
 
     }
+
+
 }
