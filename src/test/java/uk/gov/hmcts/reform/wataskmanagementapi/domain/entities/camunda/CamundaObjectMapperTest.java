@@ -39,14 +39,10 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asCamundaJsonString(testObject);
 
         String expected = "{\"processVariablesMap\":"
-                          + "{\"dueDate\":{\"value\":\"2020-09-27\","
-                          + "\"type\":\"String\"},"
-                          + "\"caseId\":{\"value\":\"0000000\","
-                          + "\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\","
-                          + "\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\","
-                          + "\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
+                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 
@@ -75,14 +71,10 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asJsonString(testObject);
 
         String expected = "{\"process_variables_map\":"
-                          + "{\"dueDate\":{\"value\":\"2020-09-27\","
-                          + "\"type\":\"String\"},"
-                          + "\"caseId\":{\"value\":\"0000000\","
-                          + "\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\","
-                          + "\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\","
-                          + "\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
+                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 }
