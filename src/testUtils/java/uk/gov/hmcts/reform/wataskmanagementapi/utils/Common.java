@@ -23,6 +23,32 @@ public class Common {
         this.given = given;
     }
 
+    public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+        Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+    ) {
+        String caseId = caseIdGenerator.generate();
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+
+        variablesToUseAsOverride.keySet()
+            .forEach(key -> processVariables
+                .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("ccdId", caseId);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return Map.of(
+            "caseId", caseId,
+            "taskId", response.get(0).getId()
+        );
+
+    }
+
     public void updateTaskWithCustomVariablesOverride(Map<String,String> task,
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
 

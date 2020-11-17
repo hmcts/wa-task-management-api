@@ -97,8 +97,11 @@ class TaskControllerTest {
 
     @Test
     void should_succeed_when_performing_search_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
+            IDAM_AUTH_TOKEN,
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
             ));
@@ -111,7 +114,7 @@ class TaskControllerTest {
     void should_return_a_400_when_performing_search_with_no_parameters() {
 
         ResponseEntity<GetTasksResponse<Task>> response =
-            taskController.searchWithCriteria(new SearchTaskRequest(emptyList()));
+            taskController.searchWithCriteria(IDAM_AUTH_TOKEN, new SearchTaskRequest(emptyList()));
 
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());

@@ -63,7 +63,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo("Task was not claimed by this user"));
+            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
     }
 
     @Test

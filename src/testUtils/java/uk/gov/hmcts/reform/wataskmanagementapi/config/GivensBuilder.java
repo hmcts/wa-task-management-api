@@ -152,6 +152,7 @@ public class GivensBuilder {
             .withProcessVariable("name", "task name")
             .withProcessVariable("taskState", "configured")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
+            .withProcessVariable("taskState", "configured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")

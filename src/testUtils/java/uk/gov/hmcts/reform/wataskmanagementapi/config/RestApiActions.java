@@ -46,7 +46,7 @@ public class RestApiActions {
                         return objectMapper;
                     }
                 ))
-            );
+            ).relaxedHTTPSValidation();
     }
 
     public Response get(String path, Header header) {

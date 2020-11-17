@@ -35,7 +35,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis",
+    "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals","PMD.TooManyMethods"})
 public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
@@ -170,27 +171,12 @@ public class CamundaService {
 
     }
 
-    public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
+    public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
+                                         List<Assignment> roleAssignments,
+                                         List<PermissionTypes> permissionsRequired) {
+
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-        List<Task> response = new ArrayList<>();
-        try {
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            );
-
-            searchResults.forEach(camundaTask -> {
-                Map<String, CamundaVariable> variables = camundaServiceApi
-                    .getVariables(authTokenGenerator.generate(), camundaTask.getId());
-                Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                response.add(task);
-            });
-
-        } catch (FeignException ex) {
-            throw new ServerErrorException("There was a problem performing the search", ex);
-        }
-
-        return response;
+        return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
 
@@ -251,6 +237,38 @@ public class CamundaService {
         }
     }
 
+    private List<Task> performSearchAction(CamundaSearchQuery query,
+                                           List<Assignment> roleAssignments,
+                                           List<PermissionTypes> permissionsRequired) {
+        List<Task> response = new ArrayList<>();
+        try {
+            //1. Perform the search
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            );
+
+            //Loop through all search results
+            searchResults.forEach(camundaTask -> {
+                //2. Get Variables for the task
+                Map<String, CamundaVariable> variables = performGetVariablesAction(camundaTask.getId());
+
+                //3. Evaluate access to task
+                boolean hasAccess = permissionEvaluatorService
+                    .hasAccess(variables, roleAssignments, permissionsRequired);
+
+                if (hasAccess) {
+                    //4. If user had sufficient access to this task map to a task object and add to response
+                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                    response.add(task);
+                }
+            });
+            return response;
+        } catch (FeignException | ResourceNotFoundException ex) {
+            throw new ServerErrorException("There was a problem performing the search", ex);
+        }
+    }
+
     private void performCompleteTaskAction(String taskId) {
         try {
             //1. Update taskState variable in camunda
@@ -306,4 +324,5 @@ public class CamundaService {
         Optional<T> value = camundaObjectMapper.read(variable, type);
         return value.orElse(null);
     }
+
 }

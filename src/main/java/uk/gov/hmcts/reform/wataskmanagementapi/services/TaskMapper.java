@@ -11,6 +11,20 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Optional;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CCD_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+
 
 @Service
 public class TaskMapper {
@@ -32,21 +46,20 @@ public class TaskMapper {
         ZonedDateTime dueDate = camundaTask.getDue();
         String assignee = camundaTask.getAssignee();
         // Local Variables
-        String taskState = getVariableValue(variables.get("taskState"), String.class);
-        String securityClassification = getVariableValue(variables
-                                                               .get("securityClassification"), String.class);
-        String taskTitle = getVariableValue(variables.get("title"), String.class);
-        String executionType = getVariableValue(variables.get("executionType"), String.class);
+        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+        String securityClassification = getVariableValue(variables.get(SECURITY_CLASSIFICATION.value()), String.class);
+        String taskTitle = getVariableValue(variables.get(TITLE.value()), String.class);
+        String executionType = getVariableValue(variables.get(EXECUTION_TYPE.value()), String.class);
         boolean autoAssigned = false;
-        String taskSystem = getVariableValue(variables.get("taskSystem"), String.class);
-        String jurisdiction = getVariableValue(variables.get("jurisdiction"), String.class);
-        String region = getVariableValue(variables.get("region"), String.class);
-        String location = getVariableValue(variables.get("location"), String.class);
-        String locationName = getVariableValue(variables.get("locationName"), String.class);
-        String caseTypeId = getVariableValue(variables.get("caseTypeId"), String.class);
-        String caseId = getVariableValue(variables.get("ccdId"), String.class);
-        String caseName = getVariableValue(variables.get("caseName"), String.class);
-        String caseCategory = getVariableValue(variables.get("appealType"), String.class);
+        String taskSystem = getVariableValue(variables.get(TASK_SYSTEM.value()), String.class);
+        String jurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
+        String region = getVariableValue(variables.get(REGION.value()), String.class);
+        String location = getVariableValue(variables.get(LOCATION.value()), String.class);
+        String locationName = getVariableValue(variables.get(LOCATION_NAME.value()), String.class);
+        String caseTypeId = getVariableValue(variables.get(CASE_TYPE_ID.value()), String.class);
+        String caseId = getVariableValue(variables.get(CCD_ID.value()), String.class);
+        String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
+        String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
 
         return new Task(
             id,
