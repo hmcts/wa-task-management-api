@@ -9,9 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -22,10 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.PermissionCheckService;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -36,9 +32,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,17 +41,13 @@ class TaskControllerTest {
     @Mock
     private CamundaService camundaService;
     @Mock
-    private IdamService idamService;
-    @Mock
     private AccessControlService accessControlService;
-    @Mock
-    private PermissionEvaluatorService permissionEvaluatorService;
-    @Mock
-    private RoleAssignmentService roleAssignmentService;
     @Mock
     private Assignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
+    @Mock
+    private PermissionCheckService permissionCheckService;
 
     private TaskController taskController;
 
@@ -67,10 +56,8 @@ class TaskControllerTest {
 
         taskController = new TaskController(
             camundaService,
-            idamService,
             accessControlService,
-            permissionEvaluatorService,
-            roleAssignmentService
+            permissionCheckService
         );
 
     }
@@ -149,22 +136,8 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
-        String userId = UUID.randomUUID().toString();
 
-        when(idamService.getUserId(authToken)).thenReturn(userId);
-
-        when(permissionEvaluatorService.hasAccess(
-            Collections.emptyMap(),
-            Collections.emptyList(),
-            Collections.singletonList(MANAGE)
-        )).thenReturn(true);
-
-        when(permissionEvaluatorService.hasAccess(
-            Collections.emptyMap(),
-            Collections.emptyList(),
-            Arrays.asList(OWN, EXECUTE)
-        )).thenReturn(true);
-
+        when(permissionCheckService.validate(authToken, taskId, "userId")).thenReturn(true);
 
         ResponseEntity<String> response = taskController.assignTask(
             authToken,

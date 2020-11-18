@@ -16,27 +16,21 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.PermissionCheckService;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
@@ -56,22 +50,16 @@ public class TaskController {
     private static final String TASK_ID = "task-id";
 
     private final CamundaService camundaService;
-    private final IdamService idamService;
     private final AccessControlService accessControlService;
-    private final PermissionEvaluatorService permissionEvaluatorService;
-    private final RoleAssignmentService roleAssignmentService;
+    private final PermissionCheckService permissionCheckService;
 
     @Autowired
     public TaskController(CamundaService camundaService,
-                          IdamService idamService,
                           AccessControlService accessControlService,
-                          PermissionEvaluatorService permissionEvaluatorService,
-                          RoleAssignmentService roleAssignmentService) {
+                          PermissionCheckService permissionCheckService) {
         this.camundaService = camundaService;
-        this.idamService = idamService;
         this.accessControlService = accessControlService;
-        this.permissionEvaluatorService = permissionEvaluatorService;
-        this.roleAssignmentService = roleAssignmentService;
+        this.permissionCheckService = permissionCheckService;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -259,7 +247,7 @@ public class TaskController {
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody AssigneeRequest assigneeRequest) {
-        boolean permissionCheckResult = permissionCheck(authToken, taskId, assigneeRequest.getUserId());
+        boolean permissionCheckResult = permissionCheckService.validate(authToken, taskId, assigneeRequest.getUserId());
 
         if (permissionCheckResult) {
             camundaService.assignTask(taskId, assigneeRequest.getUserId());
@@ -267,31 +255,6 @@ public class TaskController {
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-
-    }
-
-    private boolean permissionCheck(String authToken, String taskId, String assigneeId) {
-
-        String userId = idamService.getUserId(authToken);
-        Map<String, CamundaVariable> variables = camundaService.performGetVariablesAction(taskId);
-
-        // 1. Check user permissions
-        List<Assignment> userAssignments = roleAssignmentService.getRolesForUser(userId, authToken);
-        boolean userAccess = permissionEvaluatorService.hasAccess(
-            variables,
-            userAssignments,
-            singletonList(MANAGE)
-        );
-
-        // 2. Check assignee permission
-        List<Assignment> assigneeAssignments = roleAssignmentService.getRolesForUser(assigneeId, authToken);
-        boolean assigneeAccess = permissionEvaluatorService.hasAccess(
-            variables,
-            assigneeAssignments,
-            asList(OWN, EXECUTE)
-        );
-
-        return userAccess && assigneeAccess;
     }
 
     @ApiOperation("Completes a Task identified by an id.")
