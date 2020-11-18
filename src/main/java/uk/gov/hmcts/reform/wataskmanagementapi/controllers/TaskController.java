@@ -253,13 +253,13 @@ public class TaskController {
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId,
                                              @RequestBody AssigneeRequest assigneeRequest) {
-        boolean permissionCheck = permissionCheck(authToken, taskId, assigneeRequest.getUserId());
+        boolean permissionCheckResult = permissionCheck(authToken, taskId, assigneeRequest.getUserId());
 
-        if (permissionCheck) {
+        if (permissionCheckResult) {
             camundaService.assignTask(taskId, assigneeRequest.getUserId());
             return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
     }

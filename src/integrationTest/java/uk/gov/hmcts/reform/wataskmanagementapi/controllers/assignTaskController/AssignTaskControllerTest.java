@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.assignTaskController;
 
+import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.eq;
@@ -53,22 +56,23 @@ public class AssignTaskControllerTest {
         when(camundaService.performGetVariablesAction("1")).thenReturn(Collections.emptyMap());
         when(roleAssignmentService.getRolesForUser(anyString(), eq(BEARER_USER_TOKEN)))
             .thenReturn(Collections.emptyList());
+    }
 
+    @ParameterizedTest(name = "Scenario {argumentsWithNames}")
+    @MethodSource("provideScenario")
+    public void assignTest(Scenario scenario) throws Exception {
         when(permissionEvaluatorService.hasAccess(
             Collections.emptyMap(),
             Collections.emptyList(),
             Collections.singletonList(MANAGE)
-        )).thenReturn(false);
+        )).thenReturn(scenario.permissionEvaluatorUserResult);
 
         when(permissionEvaluatorService.hasAccess(
             Collections.emptyMap(),
             Collections.emptyList(),
             Arrays.asList(OWN, EXECUTE)
-        )).thenReturn(false);
-    }
+        )).thenReturn(scenario.permissionEvaluatorAssigneeResult);
 
-    @Test
-    public void assignTest() throws Exception {
         MockHttpServletRequestBuilder post = post("/task/1/assign")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -78,8 +82,32 @@ public class AssignTaskControllerTest {
 
         mockMvc.perform(post)
             .andDo(print())
-            .andExpect(status().isUnauthorized());
+            .andExpect(status().is(scenario.expectedStatus));
 
     }
+
+    private static Stream<Scenario> provideScenario() {
+        Scenario forbiddenScenario = Scenario.builder()
+            .permissionEvaluatorAssigneeResult(false)
+            .permissionEvaluatorUserResult(false)
+            .expectedStatus(403)
+            .build();
+
+        Scenario noContentScenario = Scenario.builder()
+            .permissionEvaluatorAssigneeResult(true)
+            .permissionEvaluatorUserResult(true)
+            .expectedStatus(204)
+            .build();
+
+        return Stream.of(forbiddenScenario, noContentScenario);
+    }
+
+    @Builder
+    static class Scenario {
+        int expectedStatus;
+        boolean permissionEvaluatorUserResult;
+        boolean permissionEvaluatorAssigneeResult;
+    }
+
 
 }
