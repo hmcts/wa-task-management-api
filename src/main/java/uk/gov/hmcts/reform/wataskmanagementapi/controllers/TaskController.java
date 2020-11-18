@@ -31,6 +31,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
@@ -213,7 +214,11 @@ public class TaskController {
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
                                               @PathVariable(TASK_ID) String taskId) {
-        camundaService.unclaimTask(taskId);
+
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        camundaService.unclaimTask(taskId, accessControlResponse, endpointPermissionsRequired);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

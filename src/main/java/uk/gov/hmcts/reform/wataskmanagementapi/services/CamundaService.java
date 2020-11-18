@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -27,15 +26,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis",
+    "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals","PMD.TooManyMethods"})
 public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
@@ -68,7 +69,7 @@ public class CamundaService {
     public void claimTask(String taskId,
                           AccessControlResponse accessControlResponse,
                           List<PermissionTypes> permissionsRequired) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
+        Objects.requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
@@ -115,25 +116,38 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String id) {
-        try {
-            HashMap<String, CamundaValue<String>> variable = new HashMap<>();
-            variable.put("taskState", CamundaValue.stringValue(TaskState.UNASSIGNED.value()));
-            AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
-            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), id, camundaLocalVariables);
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), id);
-        } catch (FeignException ex) {
-            throw new ResourceNotFoundException(String.format(
-                "There was a problem unclaiming the task with id: %s",
-                id
-            ), ex);
+    public void unclaimTask(String taskId,
+                            AccessControlResponse accessControlResponse,
+                            List<PermissionTypes> permissionsRequired) {
+        String userId = accessControlResponse.getUserInfo().getUid();
+        Objects.requireNonNull(userId, "UserId must be null");
+        CamundaTask camundaTask = performGetCamundaTaskAction(taskId);
+
+        boolean isSameUser = userId.equals(camundaTask.getAssignee());
+
+        if (isSameUser) {
+            Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+
+            boolean hasAccess = permissionEvaluatorService
+                .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+            if (hasAccess) {
+                String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+                performUnclaimTaskAction(taskState, taskId);
+            } else {
+                throw new InsufficientPermissionsException(
+                    String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
+                );
+            }
+        } else {
+            throw new InsufficientPermissionsException("Task was not claimed by this user");
         }
     }
 
     public void completeTask(String taskId,
                              AccessControlResponse accessControlResponse,
                              List<PermissionTypes> permissionsRequired) {
-        requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
+        Objects.requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
@@ -274,6 +288,33 @@ public class CamundaService {
         } catch (FeignException ex) {
             throw new ServerErrorException(String.format(
                 "There was a problem completing the task with id: %s",
+                taskId
+            ), ex);
+        }
+    }
+
+    private void performUnclaimTaskAction(String taskState, String taskId) {
+        try {
+
+            if (!UNASSIGNED.value().equals(taskState)) {
+                HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
+                modifications.put(
+                    TASK_STATE.value(), CamundaValue.stringValue(UNASSIGNED.value())
+                );
+
+                //1. Add/Update local variables to task
+                camundaServiceApi.addLocalVariablesToTask(
+                    authTokenGenerator.generate(),
+                    taskId,
+                    new AddLocalVariableRequest(modifications)
+                );
+            }
+
+            //2. Call Unclaim in camunda
+            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
+        } catch (FeignException ex) {
+            throw new ServerErrorException(String.format(
+                "There was a problem unclaiming task: %s",
                 taskId
             ), ex);
         }
