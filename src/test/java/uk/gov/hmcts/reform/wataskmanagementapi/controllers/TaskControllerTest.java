@@ -24,6 +24,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -34,6 +36,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
 @ExtendWith(MockitoExtension.class)
@@ -147,6 +152,19 @@ class TaskControllerTest {
         String userId = UUID.randomUUID().toString();
 
         when(idamService.getUserId(authToken)).thenReturn(userId);
+
+        when(permissionEvaluatorService.hasAccess(
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            Collections.singletonList(MANAGE)
+        )).thenReturn(true);
+
+        when(permissionEvaluatorService.hasAccess(
+            Collections.emptyMap(),
+            Collections.emptyList(),
+            Arrays.asList(OWN, EXECUTE)
+        )).thenReturn(true);
+
 
         ResponseEntity<String> response = taskController.assignTask(
             authToken,

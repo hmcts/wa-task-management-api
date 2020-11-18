@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.assignTaskController;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.assigntaskcontroller;
 
 import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +60,7 @@ public class AssignTaskControllerTest {
 
     @ParameterizedTest(name = "Scenario {argumentsWithNames}")
     @MethodSource("provideScenario")
-    public void assignTest(Scenario scenario) throws Exception {
+    public void assignTaskTest(Scenario scenario) throws Exception {
         when(permissionEvaluatorService.hasAccess(
             Collections.emptyMap(),
             Collections.emptyList(),

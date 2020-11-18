@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.assignTaskController;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.assigntaskcontroller;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
