@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,21 +16,27 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
@@ -45,14 +52,20 @@ public class TaskController {
     private final CamundaService camundaService;
     private final IdamService idamService;
     private final AccessControlService accessControlService;
+    private final PermissionEvaluatorService permissionEvaluatorService;
+    private final RoleAssignmentService roleAssignmentService;
 
     @Autowired
     public TaskController(CamundaService camundaService,
                           IdamService idamService,
-                          AccessControlService accessControlService) {
+                          AccessControlService accessControlService,
+                          PermissionEvaluatorService permissionEvaluatorService,
+                          RoleAssignmentService roleAssignmentService) {
         this.camundaService = camundaService;
         this.idamService = idamService;
         this.accessControlService = accessControlService;
+        this.permissionEvaluatorService = permissionEvaluatorService;
+        this.roleAssignmentService = roleAssignmentService;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -240,13 +253,39 @@ public class TaskController {
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId,
                                              @RequestBody AssigneeRequest assigneeRequest) {
+        boolean permissionCheck = permissionCheck(authToken, taskId, assigneeRequest.getUserId());
+
+        if (permissionCheck) {
+            camundaService.assignTask(taskId, assigneeRequest.getUserId());
+            return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+    }
+
+    private boolean permissionCheck(String authToken, String taskId, String assigneeId) {
 
         String userId = idamService.getUserId(authToken);
-        camundaService.assignTask(taskId, userId);
-        return ResponseEntity
-            .noContent()
-            .cacheControl(CacheControl.noCache())
-            .build();
+        Map<String, CamundaVariable> variables = camundaService.performGetVariablesAction(taskId);
+
+        // 1. Check user permissions
+        List<Assignment> userAssignments = roleAssignmentService.getRolesForUser(userId, authToken);
+        boolean userAccess = permissionEvaluatorService.hasAccess(
+            variables,
+            userAssignments,
+            singletonList(MANAGE)
+        );
+
+        // 2. Check assignee permission
+        List<Assignment> assigneeAssignments = roleAssignmentService.getRolesForUser(assigneeId, authToken);
+        boolean assigneeAccess = permissionEvaluatorService.hasAccess(
+            variables,
+            assigneeAssignments,
+            asList(OWN, EXECUTE)
+        );
+
+        return (userAccess && assigneeAccess);
     }
 
     @ApiOperation("Completes a Task identified by an id.")

@@ -18,6 +18,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.33.0'
   id 'org.sonarqube' version '3.0'
   id 'info.solidsoft.pitest' version '1.5.2'
+  id 'io.freefair.lombok' version '5.1.0'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -29,6 +30,12 @@ version = '0.0.1'
 allprojects {
   sourceCompatibility = '11'
   targetCompatibility = '11'
+}
+
+lombok {
+  config['config.stopBubbling'] = 'true'
+  config['lombok.addLombokGeneratedAnnotation'] = 'true'
+  config['lombok.anyConstructor.addConstructorProperties'] = 'true'
 }
 
 sourceSets {
@@ -262,7 +269,10 @@ dependencies {
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
 
   compile group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
-  
+
+  annotationProcessor 'org.projectlombok:lombok:1.18.12'
+  compileOnly 'org.projectlombok:lombok:1.18.12'
+
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'

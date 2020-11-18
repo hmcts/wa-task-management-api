@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -38,17 +40,22 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 class TaskControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
-    private static final String USER_ID = "IDAM_USER_ID";
     @Mock
     private CamundaService camundaService;
     @Mock
     private IdamService idamService;
     @Mock
     private AccessControlService accessControlService;
+    @Mock
+    private PermissionEvaluatorService permissionEvaluatorService;
+    @Mock
+    private RoleAssignmentService roleAssignmentService;
+    @Mock
+    private Assignment mockedRoleAssignment;
+    @Mock
+    private UserInfo mockedUserInfo;
 
     private TaskController taskController;
-    private Assignment mockedRoleAssignment;
-    private UserInfo mockedUserInfo;
 
     @BeforeEach
     void setUp() {
@@ -56,11 +63,11 @@ class TaskControllerTest {
         taskController = new TaskController(
             camundaService,
             idamService,
-            accessControlService
+            accessControlService,
+            permissionEvaluatorService,
+            roleAssignmentService
         );
 
-        mockedRoleAssignment = mock(Assignment.class);
-        mockedUserInfo = mock(UserInfo.class);
     }
 
     @Test

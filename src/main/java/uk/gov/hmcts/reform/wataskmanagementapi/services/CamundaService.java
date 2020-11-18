@@ -191,7 +191,7 @@ public class CamundaService {
         );
     }
 
-    private Map<String, CamundaVariable> performGetVariablesAction(String id) {
+    public Map<String, CamundaVariable> performGetVariablesAction(String id) {
         Map<String, CamundaVariable> variables;
         try {
             variables = camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
