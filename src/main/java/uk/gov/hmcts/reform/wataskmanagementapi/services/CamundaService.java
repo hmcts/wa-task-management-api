@@ -115,6 +115,10 @@ public class CamundaService {
             );
             if (assigneeHasAccess) {
                 performAssignTaskAction(taskId, assigneeAccessControlResponse.getUserInfo().getUid());
+            } else {
+                throw new InsufficientPermissionsException(
+                    String.format("User did not have sufficient permissions to claim task with id: %s", taskId)
+                );
             }
         } else {
             throw new InsufficientPermissionsException(

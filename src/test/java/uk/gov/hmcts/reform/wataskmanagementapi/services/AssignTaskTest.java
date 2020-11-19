@@ -143,9 +143,14 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             .assignerHasAccess(false)
             .assigneeHasAccess(true)
             .build();
+        Scenario assigneeDoesNotHavePermissions = Scenario.builder()
+            .assignerHasAccess(true)
+            .assigneeHasAccess(false)
+            .build();
 
         return Stream.of(
-            assignerDoesNotHavePermissions
+            assignerDoesNotHavePermissions,
+            assigneeDoesNotHavePermissions
         );
     }
 
