@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,10 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({
+    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals", "PMD.TooManyMethods"
+})
 public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
@@ -89,7 +89,6 @@ public class CamundaService {
 
     }
 
-
     public void assignTask(String taskId, String userId) {
 
         try {
@@ -114,23 +113,11 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String taskId) {
-        try {
-            updateTaskStateTo(taskId, TaskState.UNASSIGNED);
-            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
-        } catch (FeignException ex) {
-            throw new ResourceNotFoundException(String.format(
-                "There was a problem unclaiming the task with id: %s",
-                taskId
-            ), ex);
-        }
-    }
-
     public void unclaimTask(String taskId,
                             AccessControlResponse accessControlResponse,
                             List<PermissionTypes> permissionsRequired) {
         String userId = accessControlResponse.getUserInfo().getUid();
-        Objects.requireNonNull(userId, "UserId must be null");
+        requireNonNull(userId, "UserId must be null");
         CamundaTask camundaTask = performGetCamundaTaskAction(taskId);
 
         boolean isSameUser = userId.equals(camundaTask.getAssignee());
@@ -143,7 +130,8 @@ public class CamundaService {
 
             if (hasAccess) {
                 String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-                performUnclaimTaskAction(taskState, taskId);
+                boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
+                performUnclaimTaskAction(taskId, taskHasUnassigned);
             } else {
                 throw new InsufficientPermissionsException(
                     String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
@@ -152,6 +140,7 @@ public class CamundaService {
         } else {
             throw new InsufficientPermissionsException("Task was not claimed by this user");
         }
+    }
 
     public void completeTask(String taskId,
                              AccessControlResponse accessControlResponse,
@@ -244,7 +233,6 @@ public class CamundaService {
         }
     }
 
-
     private List<Task> performSearchAction(CamundaSearchQuery query,
                                            List<Assignment> roleAssignments,
                                            List<PermissionTypes> permissionsRequired) {
@@ -292,7 +280,7 @@ public class CamundaService {
         }
     }
 
-    private void performUnclaimTaskAction(String taskId, boolean) {
+    private void performUnclaimTaskAction(String taskId, boolean taskHasUnassigned) {
         try {
 
             if (!taskHasUnassigned) {
