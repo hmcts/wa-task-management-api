@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalV
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.Collections;
@@ -181,12 +180,18 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             List.of(OWN, EXECUTE)
         ))
             .isInstanceOf(ServerErrorException.class)
-            .hasCauseInstanceOf(FeignException.class);
+            .hasCauseInstanceOf(FeignException.class)
+            .hasMessage(
+                String.format(
+                    "There was a problem assigning the task with id: %s",
+                    taskId
+                )
+            );
 
     }
 
     @Test
-    void assignTask_should_throw_resource_not_found_exception_when_addLocalVariablesToTask_fails() {
+    void assignTask_should_throw_server_error_exception_exception_when_addLocalVariablesToTask_fails() {
 
         TestFeignClientException exception =
             new TestFeignClientException(
@@ -208,11 +213,12 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             assigneeAccessControlResponse,
             List.of(OWN, EXECUTE)
         ))
-            .isInstanceOf(ResourceNotFoundException.class)
+            .isInstanceOf(ServerErrorException.class)
             .hasCauseInstanceOf(FeignException.class)
             .hasMessage(
                 String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.", taskId
+                    "There was a problem assigning the task with id: %s",
+                    taskId
                 )
             );
     }
