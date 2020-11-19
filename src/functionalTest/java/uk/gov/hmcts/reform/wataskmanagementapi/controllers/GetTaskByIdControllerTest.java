@@ -40,7 +40,10 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo("There was a problem fetching the task with id: " + nonExistentTaskId));
+            .body("message", equalTo(String.format(
+                "There was a problem updating the task with id: %s. The task could not be found.",
+                nonExistentTaskId
+            )));
     }
 
     @Test

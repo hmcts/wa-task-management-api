@@ -40,12 +40,11 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.NOT_FOUND.value()));
-        //fixme: discrepancies in message. To clarify it.
-//            .body("message", equalTo(String.format(
-//                "There was a problem updating the task with id: %s. The task could not be found.",
-//                nonExistentTaskId
-//            )));
+            .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
+            .body("message", equalTo(String.format(
+                "There was a problem updating the task with id: %s. The task could not be found.",
+                nonExistentTaskId
+            )));
     }
 
     private String getAssigneeId(Header caseworkerBAuthorizationOnly) {
