@@ -7,7 +7,10 @@ public enum SearchParameterKey {
     LOCATION("location"),
     USER("user"),
     JURISDICTION("jurisdiction"),
-    STATE("state");
+    STATE("state"),
+    TASK_TYPE("type"),
+    CASE_ID("caseId");
+
 
     @JsonValue
     private final String id;

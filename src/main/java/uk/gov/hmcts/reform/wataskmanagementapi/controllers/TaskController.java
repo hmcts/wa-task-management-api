@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
@@ -288,5 +289,51 @@ public class TaskController {
             .noContent()
             .cacheControl(CacheControl.noCache())
             .build();
+    }
+
+    @ApiOperation("Retrieve a list of Task resources identified by set of search"
+                  + " criteria that are eligible for automatic completion")
+    @ApiResponses({
+        @ApiResponse(
+            code = 200,
+            message = "OK",
+            response = GetTasksResponse.class
+        ),
+        @ApiResponse(
+            code = 400,
+            message = "Bad Request"
+        ),
+        @ApiResponse(
+            code = 403,
+            message = "Forbidden"
+        ),
+        @ApiResponse(
+            code = 415,
+            message = "Unsupported Media Type"
+        ),
+        @ApiResponse(
+            code = 500,
+            message = "Internal Server Error"
+        )
+    })
+    @PostMapping(path = "/completableByCaseEvent", consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
+        @RequestHeader("Authorization") String authToken,
+        @RequestBody SearchEventAndCase searchEventAndCase) {
+
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        List<Task> tasks = camundaService.searchForCompletableTasksUsingEventAndCaseId(
+            searchEventAndCase,
+            endpointPermissionsRequired,
+            accessControlResponse
+
+        );
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(new GetTasksResponse<>(tasks));
     }
 }

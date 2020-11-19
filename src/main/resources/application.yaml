@@ -16,6 +16,8 @@ config:
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+  dmnKeys:
+    complete-task: "completeTask_IA_Asylum"
 
 role-assignment:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
@@ -76,3 +78,4 @@ feign:
         connectTimeout: 30000
         readTimeout: 30000
         loggerLevel: basic
+

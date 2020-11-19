@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -26,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
@@ -47,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -58,6 +62,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class CamundaServiceTest {
 
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
@@ -129,6 +134,18 @@ class CamundaServiceTest {
             "someCamundaTaskFormKey"
         );
     }
+
+    private List<Map<String, CamundaVariable>>  mockDMN() {
+
+        //A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
+        List<Map<String, CamundaVariable>> array = new ArrayList<>();
+        Map<String, CamundaVariable> dmnResult = new HashMap<>();
+        dmnResult.put("ccdId", new CamundaVariable("00000", "String"));
+        dmnResult.put("caseName", new CamundaVariable("someCaseName", "String"));
+        array.add(dmnResult);
+        return array;
+    }
+
 
     private void verifyTaskStateUpdateWasCalled(String taskId, TaskState newTaskState) {
         Map<String, CamundaValue<String>> modifications = Map.of(
@@ -452,7 +469,6 @@ class CamundaServiceTest {
             verify(camundaServiceApi, times(1))
                 .claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
             verifyTaskStateUpdateWasCalled(taskId, TaskState.ASSIGNED);
-            verifyNoMoreInteractions(camundaServiceApi);
         }
 
         @Test
@@ -593,7 +609,6 @@ class CamundaServiceTest {
                     eq(taskId),
                     any()
                 );
-            verifyNoMoreInteractions(camundaServiceApi);
         }
 
         @Test
@@ -832,7 +847,6 @@ class CamundaServiceTest {
             camundaService.completeTask(taskId, accessControlResponse, permissionsRequired);
 
             verify(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
-            verifyNoMoreInteractions(camundaServiceApi);
         }
 
         @Test
@@ -975,6 +989,225 @@ class CamundaServiceTest {
                     taskId));
 
         }
+
+    }
+
+    @Nested
+    @DisplayName("auto-complete()")
+    class AutoCompleteTask {
+
+        @Test
+        void should_auto_complete_task_when_same_user() {
+            ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
+            CamundaTask camundaTask = new CamundaTask(
+                "someId",
+                "someTaskName",
+                "IDAM_USER_ID",
+                ZonedDateTime.now(),
+                dueDate,
+                null,
+                null,
+                "someFormKey"
+            );
+
+            Map<String, CamundaVariable> variables = mockVariables();
+
+            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+                .thenReturn(singletonList(camundaTask));
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
+                .thenReturn(variables);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+
+            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+            when(searchEventAndCase.getCaseId()).thenReturn("caseId");
+            when(searchEventAndCase.getEventId()).thenReturn("eventId");
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
+            Map<String, CamundaVariable> body = new HashMap<>();
+            body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
+
+            String dmnId = "completeTask_IA_Asylum";
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(mockDMN());
+
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
+            )).thenReturn(true);
+
+            when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
+                .thenReturn(camundaSearchQuery);
+
+            List<Task> tasks = camundaService.searchForCompletableTasksUsingEventAndCaseId(
+                searchEventAndCase,
+                permissionsRequired,
+                accessControlResponse);
+
+            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), anyObject()))
+                .thenReturn(singletonList(createMockCamundaTask()));
+
+            assertNotNull(tasks);
+            assertEquals(1, tasks.size());
+            assertEquals("IDAM_USER_ID", tasks.get(0).getAssignee());
+            assertEquals("someTaskName", tasks.get(0).getName());
+            assertEquals("someStaffLocationId", tasks.get(0).getLocation());
+            assertEquals(false, tasks.get(0).getAutoAssigned());
+            assertEquals("someStaffLocationName", tasks.get(0).getLocationName());
+            assertEquals("00000", tasks.get(0).getCaseId());
+            assertEquals("someCaseName", tasks.get(0).getCaseName());
+        }
+
+        @Test
+        void should_auto_complete_task_when_has_permissions() {
+            ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
+            CamundaTask camundaTask = new CamundaTask(
+                "someId",
+                "someTaskName",
+                "someAssignee",
+                ZonedDateTime.now(),
+                dueDate,
+                null,
+                null,
+                "someFormKey"
+            );
+
+            Map<String, CamundaVariable> variables = mockVariables();
+
+            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+                .thenReturn(singletonList(camundaTask));
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
+                .thenReturn(variables);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+
+            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+            when(searchEventAndCase.getCaseId()).thenReturn("caseId");
+            when(searchEventAndCase.getEventId()).thenReturn("eventId");
+
+            Map<String, CamundaVariable> body = new HashMap<>();
+            body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
+
+            String dmnId = "completeTask_IA_Asylum";
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(mockDMN());
+
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
+                .thenReturn(camundaSearchQuery);
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
+            when(permissionEvaluatorService.hasAccess(
+                variables,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
+            )).thenReturn(true);
+
+            List<Task> tasks = camundaService.searchForCompletableTasksUsingEventAndCaseId(
+                searchEventAndCase,
+                permissionsRequired,
+                accessControlResponse);
+
+            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), anyObject()))
+                .thenReturn(singletonList(createMockCamundaTask()));
+
+            assertNotNull(tasks);
+            assertEquals(1, tasks.size());
+            assertEquals("someAssignee", tasks.get(0).getAssignee());
+            assertEquals("someTaskName", tasks.get(0).getName());
+            assertEquals("someStaffLocationId", tasks.get(0).getLocation());
+            assertEquals(false, tasks.get(0).getAutoAssigned());
+            assertEquals("someStaffLocationName", tasks.get(0).getLocationName());
+            assertEquals("00000", tasks.get(0).getCaseId());
+            assertEquals("someCaseName", tasks.get(0).getCaseName());
+
+        }
+
+        @Test
+        void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_search_call_fails() {
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN,PermissionTypes.MANAGE);
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
+            CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
+
+
+            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
+            when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
+                .thenReturn(camundaSearchQuery);
+            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN),
+            any())).thenThrow(FeignException.class);
+
+            assertThatThrownBy(() ->
+                                   camundaService.searchForCompletableTasksUsingEventAndCaseId(
+                                       searchEventAndCase,
+                                       permissionsRequired,
+                                       accessControlResponse)
+            )
+                .isInstanceOf(ServerErrorException.class)
+                .hasMessage("There was a problem performing the search")
+                .hasCauseInstanceOf(FeignException.class);
+        }
+
+        @Test
+        void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_dmn_evaluating_fails() {
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN,PermissionTypes.MANAGE);
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo,
+                singletonList(mockedRoleAssignment));
+
+            when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
+                .thenReturn(camundaSearchQuery);
+
+            TestFeignClientException exception =
+                new TestFeignClientException(
+                    HttpStatus.SERVICE_UNAVAILABLE.value(),
+                    HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                    createCamundaTestException("aCamundaErrorType", "some exception message")
+                );
+
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), anyObject(), anyObject()))
+                .thenThrow(exception);
+
+
+
+            assertThatThrownBy(() ->
+                                   camundaService.searchForCompletableTasksUsingEventAndCaseId(
+                                       searchEventAndCase,
+                                       permissionsRequired,
+                                       accessControlResponse)
+            )
+                .isInstanceOf(ServerErrorException.class)
+                .hasMessage("There was a problem evaluating DMN")
+                .hasCauseInstanceOf(FeignException.class);
+        }
+
 
     }
 

@@ -96,6 +96,16 @@ public interface CamundaServiceApi {
                     @PathVariable("task-id") String id,
                     @RequestBody Map<String, String> body);
 
+
+    @PostMapping(
+        value = "/decision-definition/key/{key}/evaluate",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    List<Map<String, CamundaVariable>>   evaluateDMN(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                    @PathVariable("key") String key,
+                    @RequestBody Map<String,Map<String,CamundaVariable>> body);
+
+
     @GetMapping(
         value = "/task/{task-id}/variables",
         produces = APPLICATION_JSON_VALUE
