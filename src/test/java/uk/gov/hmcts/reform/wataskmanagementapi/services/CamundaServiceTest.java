@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.http.HttpStatus;
@@ -26,7 +25,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
@@ -137,6 +138,20 @@ class CamundaServiceTest {
         );
     }
 
+    private void verifyTaskStateUpdateWasCalled(String taskId, TaskState newTaskState) {
+        Map<String, CamundaValue<String>> modifications = Map.of(
+            CamundaVariableDefinition.TASK_STATE.value(), CamundaValue.stringValue(newTaskState.value())
+        );
+        verify(camundaServiceApi).addLocalVariablesToTask(
+            BEARER_SERVICE_TOKEN,
+            taskId,
+            new AddLocalVariableRequest(modifications)
+        );
+    }
+
+    private String createCamundaTestException(String type, String message) {
+        return camundaObjectMapper.asCamundaJsonString(new CamundaExceptionMessage(type, message));
+    }
 
     @Nested
     @DisplayName("getTask()")
@@ -199,16 +214,12 @@ class CamundaServiceTest {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
             List<PermissionTypes> permissionsRequired = singletonList(READ);
 
-            String camundaException = camundaObjectMapper.asJsonString(new CamundaExceptionMessage(
-                "aCamundaErrorType",
-                "some message"
-            ));
 
             TestFeignClientException exception =
                 new TestFeignClientException(
                     HttpStatus.SERVICE_UNAVAILABLE.value(),
                     HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
-                    camundaException
+                    createCamundaTestException("aCamundaErrorType", "some exception message")
                 );
 
             when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenThrow(exception);
@@ -371,10 +382,6 @@ class CamundaServiceTest {
             SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
             CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
 
-            String camundaException = camundaObjectMapper.asCamundaJsonString(new CamundaExceptionMessage(
-                "aCamundaErrorType",
-                "some exception message"
-            ));
             when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
             when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(mock(CamundaTask.class)));
@@ -389,7 +396,7 @@ class CamundaServiceTest {
                 new TestFeignClientException(
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                    camundaException
+                    createCamundaTestException("aCamundaErrorType", "some exception message")
                 )
             );
 
@@ -455,11 +462,12 @@ class CamundaServiceTest {
             camundaService.claimTask(taskId, accessControlResponse, permissionsRequired);
             verify(camundaServiceApi, times(1))
                 .claimTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
+            verifyTaskStateUpdateWasCalled(taskId, TaskState.ASSIGNED);
             verifyNoMoreInteractions(camundaServiceApi);
         }
 
         @Test
-        void claimTask_should_throw_resource_not_found_exception_when_get_Variables_threw_exception() {
+        void claimTask_should_throw_resource_not_found_exception_when_getVariables_threw_exception() {
 
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -519,6 +527,47 @@ class CamundaServiceTest {
                     String.format("User did not have sufficient permissions to claim task with id: %s", taskId));
         }
 
+        @Test
+        void claimTask_should_throw_exception_when_updateTaskState_failed() {
+
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
+            AccessControlResponse accessControlResponse =
+                new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                singletonList(mockedRoleAssignment),
+                permissionsRequired
+            )).thenReturn(true);
+
+
+            TestFeignClientException exception =
+                new TestFeignClientException(
+                    HttpStatus.SERVICE_UNAVAILABLE.value(),
+                    HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                    createCamundaTestException("aCamundaErrorType", "some exception message")
+                );
+
+            doThrow(exception).when(camundaServiceApi).addLocalVariablesToTask(
+                eq(BEARER_SERVICE_TOKEN),
+                eq(taskId),
+                any(AddLocalVariableRequest.class)
+            );
+
+            assertThatThrownBy(() -> camundaService.claimTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(ServerErrorException.class)
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage("some exception message");
+        }
     }
 
     @Nested
@@ -745,7 +794,7 @@ class CamundaServiceTest {
                 new TestFeignClientException(
                     HttpStatus.SERVICE_UNAVAILABLE.value(),
                     HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
-                    exceptionMessage
+                    createCamundaTestException("aCamundaErrorType", "some exception message")
                 );
 
             doThrow(exception).when(camundaServiceApi).addLocalVariablesToTask(
@@ -762,7 +811,12 @@ class CamundaServiceTest {
                 List.of(OWN, EXECUTE)
             ))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasCauseInstanceOf(FeignException.class);
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(
+                    String.format(
+                        "There was a problem updating the task with id: %s. The task could not be found.", taskId
+                    )
+                );
         }
     }
 
@@ -803,10 +857,11 @@ class CamundaServiceTest {
                 new AddLocalVariableRequest(modifications)
             );
             verify(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
+            verifyTaskStateUpdateWasCalled(taskId, TaskState.COMPLETED);
         }
 
         @Test
-        void completeTask_does_not_call_camunda_complete_if_task_already_complete() {
+        void completeTask_does_not_call_camunda_task_state_update_complete_if_task_already_complete() {
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
@@ -831,9 +886,8 @@ class CamundaServiceTest {
 
             camundaService.completeTask(taskId, accessControlResponse, permissionsRequired);
 
-            verify(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
-            Mockito.verifyNoMoreInteractions(camundaServiceApi);
-
+            verify(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
+            verifyNoMoreInteractions(camundaServiceApi);
         }
 
         @Test
@@ -922,7 +976,14 @@ class CamundaServiceTest {
                 permissionsRequired
             )).thenReturn(true);
 
-            doThrow(mock(FeignException.class)).when(camundaServiceApi).addLocalVariablesToTask(
+            TestFeignClientException exception =
+                new TestFeignClientException(
+                    HttpStatus.SERVICE_UNAVAILABLE.value(),
+                    HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
+                    createCamundaTestException("aCamundaErrorType", "some exception message")
+                );
+
+            doThrow(exception).when(camundaServiceApi).addLocalVariablesToTask(
                 eq(BEARER_SERVICE_TOKEN),
                 eq(taskId),
                 any(AddLocalVariableRequest.class)

@@ -80,6 +80,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
     }
 
     @Test
@@ -96,6 +98,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
+
         Response resultAfterClaimedBySameUser = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
@@ -104,6 +108,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         resultAfterClaimedBySameUser.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
     }
 
     @Test
@@ -159,7 +165,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_and_region_match() {
+    public void should_return_a_204_and_claim_a_task_by_id_jurisdiction_and_region_match() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
@@ -171,6 +177,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
+
     }
 
     @Test
@@ -196,7 +204,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_and_location_match() {
+    public void should_return_a_204_and_claim_a_task_by_id_jurisdiction_and_location_match() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
@@ -208,6 +216,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
+
     }
 
     @Test
@@ -234,7 +244,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_region_and_location_match() {
+    public void should_return_a_204_and_claim_a_task_by_id_jurisdiction_region_and_location_match() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
@@ -246,6 +256,8 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
+
     }
 
     @Test
