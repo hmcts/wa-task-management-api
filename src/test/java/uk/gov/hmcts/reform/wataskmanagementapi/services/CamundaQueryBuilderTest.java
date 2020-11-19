@@ -11,6 +11,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
@@ -250,4 +253,63 @@ class CamundaQueryBuilderTest {
             .hasMessage("Unsupported search operator [BEFORE] used in search parameter")
             .hasNoCause();
     }
+
+
+    @Test
+    void createCompleteQuery_should_build_query_from_search_task_request_with_only_AND_queries()
+        throws JsonProcessingException, JSONException {
+
+        List<String> taskTypes = new ArrayList<>();
+        taskTypes.add("Test Task Type");
+
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createCompletionQuery("caseId", taskTypes);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "\t\"queries\": {\n"
+                          + "\t\t\"orQueries\": [\n"
+                          + "\t\t\t{\n"
+                          + "\t\t\t\t\"processVariables\": [\n"
+                          + "\t\t\t\t\t{\n"
+                          + "\t\t\t\t\t\t\"name\": \"ccdId\",\n"
+                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
+                          + "\t\t\t\t\t\t\"value\": \"caseId\"\n"
+                          + "\t\t\t\t\t}\n"
+                          + "\t\t\t\t]\n"
+                          + "\t\t\t},\n"
+                          + "\t\t\t{\n"
+                          + "\t\t\t\t\"processVariables\": [\n"
+                          + "\t\t\t\t\t{\n"
+                          + "\t\t\t\t\t\t\"name\": \"type\",\n"
+                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
+                          + "\t\t\t\t\t\t\"value\": \"Test Task Type\"\n"
+                          + "\t\t\t\t\t}\n"
+                          + "\t\t\t\t]\n"
+                          + "\t\t\t},\n"
+                          + "\t\t\t{\n"
+                          + "\t\t\t\t\"processVariables\": [\n"
+                          + "\t\t\t\t\t{\n"
+                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
+                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
+                          + "\t\t\t\t\t\t\"value\": \"assigned\"\n"
+                          + "\t\t\t\t\t},\n"
+                          + "\t\t\t\t\t{\n"
+                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
+                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
+                          + "\t\t\t\t\t\t\"value\": \"referred\"\n"
+                          + "\t\t\t\t\t},\n"
+                          + "\t\t\t\t\t{\n"
+                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
+                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
+                          + "\t\t\t\t\t\t\"value\": \"unassigned\"\n"
+                          + "\t\t\t\t\t}\n"
+                          + "\t\t\t\t]\n"
+                          + "\t\t\t}\n"
+                          + "\t\t]\n"
+                          + "\t}\n"
+                          + "}";
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
 }
