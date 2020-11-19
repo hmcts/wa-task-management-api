@@ -64,6 +64,6 @@ public class CamundaServiceBaseTest {
     @MockitoSettings(strictness = Strictness.LENIENT)
     void someTest() {
         assertEquals(BEARER_SERVICE_TOKEN, authTokenGenerator.generate());
-        assertNotNull(camundaService); // if not test it highlighted by sonarcloud as a code smell
+        assertNotNull(camundaService); // if no test then it is highlighted by sonarcloud as a code smell
     }
 }
