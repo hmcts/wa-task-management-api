@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.Collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -56,5 +57,25 @@ class AccessControlServiceTest {
         verifyNoMoreInteractions(idamService);
         verify(roleAssignmentService, times(1)).getRolesForUser(mockedUserInfo.getUid(), idamToken);
         verifyNoMoreInteractions(roleAssignmentService);
+    }
+
+    @Test
+    void given_user_id_should_return_roles_assignments() {
+
+        when(roleAssignmentService.getRolesForUser("some user id", "Bearer user token"))
+            .thenReturn(Collections.singletonList(Assignment.builder().build()));
+
+        AccessControlResponse actualAccessResponse = accessControlService.getRolesGivenUserId(
+            "some user id",
+            "Bearer user token"
+        );
+
+        AccessControlResponse expectedAccessResponse = new AccessControlResponse(
+            UserInfo.builder().uid("some user id").build(),
+            Collections.singletonList(Assignment.builder().build())
+        );
+        assertThat(actualAccessResponse)
+            .isEqualTo(expectedAccessResponse);
+
     }
 }
