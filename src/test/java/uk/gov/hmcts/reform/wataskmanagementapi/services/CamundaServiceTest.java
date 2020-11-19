@@ -208,7 +208,10 @@ class CamundaServiceTest {
             assertThatThrownBy(() -> camundaService.getTask(taskId, roleAssignment, permissionsRequired))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
-                .hasMessage("There was a problem fetching the task with id: " + taskId);
+                .hasMessage(String.format(
+                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    taskId
+                ));
 
         }
 
@@ -472,8 +475,10 @@ class CamundaServiceTest {
             assertThatThrownBy(() -> camundaService.claimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format("There was a problem fetching the task with id: %s", taskId));
-
+                .hasMessage(String.format(
+                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    taskId
+                ));
         }
 
         @Test
@@ -601,10 +606,9 @@ class CamundaServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage(String.format(
-                    "There was a problem fetching the task with id: %s",
-                    taskId)
-                );
-
+                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    taskId
+                ));
         }
 
         @Test
@@ -805,7 +809,10 @@ class CamundaServiceTest {
             assertThatThrownBy(() -> camundaService.completeTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format("There was a problem fetching the task with id: %s", taskId));
+                .hasMessage(String.format(
+                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    taskId
+                ));
 
         }
 
