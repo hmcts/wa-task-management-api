@@ -29,4 +29,12 @@ public class AccessControlService {
 
         return new AccessControlResponse(userInfo, assignments);
     }
+
+    public AccessControlResponse getRolesGivenUserId(String userId, String assignerAuthToken) {
+        List<Assignment> assignments = roleAssignmentService.getRolesForUser(userId, assignerAuthToken);
+        return new AccessControlResponse(
+            UserInfo.builder().uid(userId).build(),
+            assignments
+        );
+    }
 }

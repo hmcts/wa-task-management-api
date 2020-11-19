@@ -5,7 +5,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRespo
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.PermissionCheckService;
 
 import java.util.List;
 
@@ -52,15 +50,13 @@ public class TaskController {
 
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
-    private final PermissionCheckService permissionCheckService;
 
     @Autowired
     public TaskController(CamundaService camundaService,
-                          AccessControlService accessControlService,
-                          PermissionCheckService permissionCheckService) {
+                          AccessControlService accessControlService
+    ) {
         this.camundaService = camundaService;
         this.accessControlService = accessControlService;
-        this.permissionCheckService = permissionCheckService;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -249,16 +245,27 @@ public class TaskController {
         )
     })
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody AssigneeRequest assigneeRequest) {
-        boolean permissionCheckResult = permissionCheckService.validate(authToken, taskId, assigneeRequest.getUserId());
 
-        if (permissionCheckResult) {
-            camundaService.assignTask(taskId, assigneeRequest.getUserId());
-            return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
+        List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
+
+        AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
+        AccessControlResponse assigneeAccessControlResponse = accessControlService.getRolesGivenUserId(
+            assigneeRequest.getUserId(),
+            assignerAuthToken
+        );
+
+        camundaService.assignTask(
+            taskId,
+            assignerAccessControlResponse,
+            assignerPermissionsRequired,
+            assigneeAccessControlResponse,
+            assigneePermissionsRequired
+        );
+        return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
 
     @ApiOperation("Completes a Task identified by an id.")

@@ -89,8 +89,42 @@ public class CamundaService {
 
     }
 
+    public void assignTask(String taskId,
+                           AccessControlResponse assignerAccessControlResponse,
+                           List<PermissionTypes> assignerPermissionsRequired,
+                           AccessControlResponse assigneeAccessControlResponse,
+                           List<PermissionTypes> assigneePermissionsRequired) {
+        Objects.requireNonNull(
+            assigneeAccessControlResponse.getUserInfo().getUid(),
+            "AssigneeId cannot be null"
+        );
 
-    public void assignTask(String taskId, String userId) {
+        Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+
+        boolean assignerHasAccess = permissionEvaluatorService.hasAccess(
+            variables,
+            assignerAccessControlResponse.getRoleAssignments(),
+            assignerPermissionsRequired
+        );
+
+        if (assignerHasAccess) {
+            boolean assigneeHasAccess = permissionEvaluatorService.hasAccess(
+                variables,
+                assigneeAccessControlResponse.getRoleAssignments(),
+                assigneePermissionsRequired
+            );
+            if (assigneeHasAccess) {
+                performAssignTask(taskId, assigneeAccessControlResponse.getUserInfo().getUid());
+            }
+        } else {
+            throw new InsufficientPermissionsException(
+                String.format("User did not have sufficient permissions to claim task with id: %s", taskId)
+            );
+        }
+
+    }
+
+    private void performAssignTask(String taskId, String userId) {
         Map<String, String> body = new ConcurrentHashMap<>();
         body.put("userId", userId);
         HashMap<String, CamundaValue<String>> variable = new HashMap<>();

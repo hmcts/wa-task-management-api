@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.PermissionCheckService;
 
 import java.util.UUID;
 
@@ -46,8 +45,6 @@ class TaskControllerTest {
     private Assignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
-    @Mock
-    private PermissionCheckService permissionCheckService;
 
     private TaskController taskController;
 
@@ -56,8 +53,7 @@ class TaskControllerTest {
 
         taskController = new TaskController(
             camundaService,
-            accessControlService,
-            permissionCheckService
+            accessControlService
         );
 
     }
@@ -136,8 +132,6 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
-
-        when(permissionCheckService.validate(authToken, taskId, "userId")).thenReturn(true);
 
         ResponseEntity<String> response = taskController.assignTask(
             authToken,
