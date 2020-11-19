@@ -29,7 +29,6 @@ public class RestApiActions {
     public RestApiActions setUp() {
         requestSpecBuilder.setBaseUri(baseUri);
         specification = requestSpecBuilder.build();
-        specification.relaxedHTTPSValidation();
         return this;
     }
 
