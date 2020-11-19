@@ -126,6 +126,20 @@ public class GivensBuilder {
         return this;
     }
 
+    public GivensBuilder iUpdateVariablesOfTaskById(String taskId,Map<String, CamundaValue<?>> processVariables) {
+        Response result = camundaApiActions.post(
+            "/task/{task-id}/variables",
+            taskId,
+            new Modifications(processVariables),
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
+    }
+
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
@@ -136,7 +150,9 @@ public class GivensBuilder {
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
+            .withProcessVariable("taskState", "configured")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
+            .withProcessVariable("taskState", "configured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")

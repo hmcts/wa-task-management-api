@@ -29,6 +29,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
@@ -79,13 +80,21 @@ public class TaskController {
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
-
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
+                                                                     @RequestBody SearchTaskRequest searchTaskRequest) {
+        //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
-        List<Task> tasks = camundaService.searchWithCriteria(searchTaskRequest);
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        List<Task> tasks = camundaService.searchWithCriteria(
+            searchTaskRequest,
+            accessControlResponse.getRoleAssignments(),
+            endpointPermissionsRequired
+        );
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -197,7 +206,11 @@ public class TaskController {
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
                                               @PathVariable("task-id") String taskId) {
-        camundaService.unclaimTask(taskId);
+
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        camundaService.unclaimTask(taskId, accessControlResponse, endpointPermissionsRequired);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

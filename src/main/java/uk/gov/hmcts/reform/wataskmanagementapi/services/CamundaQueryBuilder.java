@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOrQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchExpression;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
@@ -14,16 +15,12 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOrQuery.CamundaOrQueryBuilder.orQuery;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
@@ -32,27 +29,24 @@ public class CamundaQueryBuilder {
 
     public CamundaSearchQuery createQuery(SearchTaskRequest searchTaskRequest) {
 
-        EnumMap<SearchParameterKey, SearchParameter> searchParametersMap = new EnumMap<>(SearchParameterKey.class);
-        searchTaskRequest.getSearchParameters()
-            .forEach(request -> searchParametersMap.put(request.getKey(), request));
+        EnumMap<SearchParameterKey, SearchParameter> searchParametersMap = asEnumMap(searchTaskRequest);
 
-        Set<CamundaSearchExpression> jurisdictionExpressions =
-            asMultipleExpressions("jurisdiction", searchParametersMap.get(JURISDICTION));
-        CamundaOrQuery.CamundaOrQueryBuilder jurisdictionQueries = asOrQuery(jurisdictionExpressions);
+        Map<String, List<String>> userQueries = createUserQueries(searchParametersMap.get(USER));
 
-        Map<String, List<String>> userQueries = new ConcurrentHashMap<>();
+        CamundaOrQuery.CamundaOrQueryBuilder jurisdictionQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.JURISDICTION,
+            searchParametersMap.get(SearchParameterKey.JURISDICTION)
+        );
 
-        if (searchParametersMap.get(USER) != null) {
-            userQueries.put("assigneeIn", searchParametersMap.get(USER).getValues());
-        }
+        CamundaOrQuery.CamundaOrQueryBuilder locationQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.LOCATION,
+            searchParametersMap.get(SearchParameterKey.LOCATION)
+        );
 
-        Set<CamundaSearchExpression> locationExpressions =
-            asMultipleExpressions("location", searchParametersMap.get(LOCATION));
-        CamundaOrQuery.CamundaOrQueryBuilder locationQueries = asOrQuery(locationExpressions);
-
-        Set<CamundaSearchExpression> stateQueriesExpressions =
-            asMultipleExpressions("taskState", searchParametersMap.get(STATE));
-        CamundaOrQuery.CamundaOrQueryBuilder stateQueries = asOrQuery(stateQueriesExpressions);
+        CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.TASK_STATE,
+            searchParametersMap.get(SearchParameterKey.STATE)
+        );
 
         return camundaQuery()
             .andQuery(userQueries)
@@ -63,6 +57,31 @@ public class CamundaQueryBuilder {
 
     }
 
+    private CamundaOrQuery.CamundaOrQueryBuilder createProcessVariableQueriesFor(CamundaVariableDefinition key,
+                                                                                 SearchParameter searchParameter) {
+        Set<CamundaSearchExpression> jurisdictionExpressions = buildSearchExpressions(key.value(), searchParameter);
+        return asOrQuery(jurisdictionExpressions);
+
+    }
+
+    private Map<String, List<String>> createUserQueries(SearchParameter userSearchParameter) {
+
+        //Safe-guard
+        if (userSearchParameter == null) {
+            return null;
+        }
+
+        return Map.of("assigneeIn", userSearchParameter.getValues());
+    }
+
+    private EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {
+        EnumMap<SearchParameterKey, SearchParameter> map = new EnumMap<>(SearchParameterKey.class);
+        searchTaskRequest.getSearchParameters()
+            .forEach(request -> map.put(request.getKey(), request));
+
+        return map;
+    }
+
     private CamundaOrQuery.CamundaOrQueryBuilder asOrQuery(Set<CamundaSearchExpression> jurisdictionExpressions) {
         CamundaOrQuery.CamundaOrQueryBuilder orQuery = orQuery();
         for (CamundaSearchExpression jurisdictionExpression : jurisdictionExpressions) {
@@ -71,7 +90,7 @@ public class CamundaQueryBuilder {
         return orQuery;
     }
 
-    private Set<CamundaSearchExpression> asMultipleExpressions(String key, SearchParameter searchParameter) {
+    private Set<CamundaSearchExpression> buildSearchExpressions(String key, SearchParameter searchParameter) {
 
         return ofNullable(searchParameter)
             .map(SearchParameter::getValues)

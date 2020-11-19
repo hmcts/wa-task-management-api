@@ -78,7 +78,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo("User did not have sufficient permissions to access task"));
+            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
     }
 
     @Test

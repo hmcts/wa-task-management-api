@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
 @Service
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals"})
@@ -124,6 +126,33 @@ public class CamundaService {
         }
     }
 
+    public void unclaimTask(String taskId,
+                            AccessControlResponse accessControlResponse,
+                            List<PermissionTypes> permissionsRequired) {
+        String userId = accessControlResponse.getUserInfo().getUid();
+        Objects.requireNonNull(userId, "UserId must be null");
+        CamundaTask camundaTask = performGetCamundaTaskAction(taskId);
+
+        boolean isSameUser = userId.equals(camundaTask.getAssignee());
+
+        if (isSameUser) {
+            Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+
+            boolean hasAccess = permissionEvaluatorService
+                .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+            if (hasAccess) {
+                String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+                performUnclaimTaskAction(taskState, taskId);
+            } else {
+                throw new InsufficientPermissionsException(
+                    String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
+                );
+            }
+        } else {
+            throw new InsufficientPermissionsException("Task was not claimed by this user");
+        }
+
     public void completeTask(String taskId,
                              AccessControlResponse accessControlResponse,
                              List<PermissionTypes> permissionsRequired) {
@@ -145,29 +174,15 @@ public class CamundaService {
                 String.format("User did not have sufficient permissions to complete task with id: %s", taskId)
             );
         }
+
     }
 
-    public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest) {
+    public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
+                                         List<Assignment> roleAssignments,
+                                         List<PermissionTypes> permissionsRequired) {
+
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-        List<Task> response = new ArrayList<>();
-        try {
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            );
-
-            searchResults.forEach(camundaTask -> {
-                Map<String, CamundaVariable> variables = camundaServiceApi
-                    .getVariables(authTokenGenerator.generate(), camundaTask.getId());
-                Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                response.add(task);
-            });
-
-        } catch (FeignException ex) {
-            throw new ServerErrorException("There was a problem performing the search", ex);
-        }
-
-        return response;
+        return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
 
@@ -229,6 +244,39 @@ public class CamundaService {
         }
     }
 
+
+    private List<Task> performSearchAction(CamundaSearchQuery query,
+                                           List<Assignment> roleAssignments,
+                                           List<PermissionTypes> permissionsRequired) {
+        List<Task> response = new ArrayList<>();
+        try {
+            //1. Perform the search
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            );
+
+            //Loop through all search results
+            searchResults.forEach(camundaTask -> {
+                //2. Get Variables for the task
+                Map<String, CamundaVariable> variables = performGetVariablesAction(camundaTask.getId());
+
+                //3. Evaluate access to task
+                boolean hasAccess = permissionEvaluatorService
+                    .hasAccess(variables, roleAssignments, permissionsRequired);
+
+                if (hasAccess) {
+                    //4. If user had sufficient access to this task map to a task object and add to response
+                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                    response.add(task);
+                }
+            });
+            return response;
+        } catch (FeignException | ResourceNotFoundException ex) {
+            throw new ServerErrorException("There was a problem performing the search", ex);
+        }
+    }
+
     private void performCompleteTaskAction(String taskId, boolean taskHasCompleted) {
         try {
             if (!taskHasCompleted) {
@@ -239,6 +287,23 @@ public class CamundaService {
         } catch (FeignException ex) {
             throw new ServerErrorException(String.format(
                 "There was a problem completing the task with id: %s",
+                taskId
+            ), ex);
+        }
+    }
+
+    private void performUnclaimTaskAction(String taskId, boolean) {
+        try {
+
+            if (!taskHasUnassigned) {
+                // If task was not already completed complete it
+                updateTaskStateTo(taskId, TaskState.UNASSIGNED);
+            }
+
+            camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
+        } catch (FeignException ex) {
+            throw new ServerErrorException(String.format(
+                "There was a problem unclaiming task: %s",
                 taskId
             ), ex);
         }
