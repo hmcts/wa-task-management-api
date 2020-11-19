@@ -44,11 +44,8 @@ public class PermissionCheckService {
                                  String assigneeId,
                                  String userId,
                                  Map<String, CamundaVariable> variables) {
-        boolean userHasAccess = checkUserPermissions(authToken, userId, variables);
-        if (userHasAccess) {
-            return checkAssigneePermissions(authToken, assigneeId, variables);
-        }
-        return false;
+        return checkUserPermissions(authToken, userId, variables)
+            && checkAssigneePermissions(authToken, assigneeId, variables);
     }
 
     private boolean checkAssigneePermissions(String authToken,

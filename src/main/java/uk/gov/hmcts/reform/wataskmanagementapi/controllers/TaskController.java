@@ -257,9 +257,8 @@ public class TaskController {
         if (permissionCheckResult) {
             camundaService.assignTask(taskId, assigneeRequest.getUserId());
             return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
     }
 
     @ApiOperation("Completes a Task identified by an id.")
