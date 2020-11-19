@@ -1,26 +1,16 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -37,7 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -58,50 +46,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.mockito.quality.Strictness.LENIENT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
-@ExtendWith(MockitoExtension.class)
-class CamundaServiceTest {
 
-    private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
-    private static final String IDAM_USER_ID = "IDAM_USER_ID";
-
-    @Mock
-    AuthTokenGenerator authTokenGenerator;
-
-    @Mock
-    private CamundaServiceApi camundaServiceApi;
-
-    @Mock
-    private CamundaQueryBuilder camundaQueryBuilder;
-
-    @Mock
-    private PermissionEvaluatorService permissionEvaluatorService;
-
-    private CamundaObjectMapper camundaObjectMapper;
-    private CamundaService camundaService;
+class CamundaServiceTest extends CamundaServiceBaseTest {
 
     @BeforeEach
     public void setUp() {
-        camundaObjectMapper = new CamundaObjectMapper();
-        CamundaErrorDecoder camundaErrorDecoder = new CamundaErrorDecoder();
-        TaskMapper taskMapper = new TaskMapper(camundaObjectMapper);
-        camundaService = new CamundaService(
-            camundaServiceApi,
-            camundaQueryBuilder,
-            camundaErrorDecoder,
-            taskMapper,
-            authTokenGenerator,
-            permissionEvaluatorService,
-            camundaObjectMapper
-        );
-
-        when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
+        super.setUp();
     }
 
     private Map<String, CamundaVariable> mockVariables() {
@@ -147,10 +103,6 @@ class CamundaServiceTest {
             taskId,
             new AddLocalVariableRequest(modifications)
         );
-    }
-
-    private String createCamundaTestException(String type, String message) {
-        return camundaObjectMapper.asCamundaJsonString(new CamundaExceptionMessage(type, message));
     }
 
     @Nested
@@ -704,123 +656,6 @@ class CamundaServiceTest {
     }
 
     @Nested
-    @DisplayName("assignTask()")
-    @MockitoSettings(strictness = LENIENT)
-    class AssignTask {
-        private AccessControlResponse assignerAccessControlResponse;
-        private AccessControlResponse assigneeAccessControlResponse;
-        private String taskId;
-
-        @BeforeEach
-        void setUp() {
-            assignerAccessControlResponse = mockAccessControl("some assigner user id");
-            assigneeAccessControlResponse = mockAccessControl("some assignee user id");
-            taskId = "some task id";
-
-            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(Collections.emptyMap());
-            when(permissionEvaluatorService.hasAccess(anyMap(), anyList(), eq(singletonList(MANAGE))))
-                .thenReturn(true);
-            when(permissionEvaluatorService.hasAccess(anyMap(), anyList(), eq(List.of(OWN, EXECUTE))))
-                .thenReturn(true);
-        }
-
-        @Test
-        void assignTask_should_succeed() {
-
-            camundaService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                singletonList(MANAGE),
-                assigneeAccessControlResponse,
-                List.of(OWN, EXECUTE)
-            );
-
-            verify(camundaServiceApi, times(1))
-                .addLocalVariablesToTask(
-                    eq(BEARER_SERVICE_TOKEN),
-                    eq(taskId),
-                    any(AddLocalVariableRequest.class)
-                );
-
-            verify(camundaServiceApi, times(1))
-                .assignTask(
-                    eq(BEARER_SERVICE_TOKEN),
-                    eq(taskId),
-                    anyMap()
-                );
-        }
-
-        @NotNull
-        private AccessControlResponse mockAccessControl(String userId) {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            UserInfo userInfo = UserInfo.builder().uid(userId).build();
-
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            when(accessControlResponse.getRoleAssignments())
-                .thenReturn(Collections.singletonList(Assignment.builder().build()));
-            return accessControlResponse;
-        }
-
-        @Test
-        void assignTask_should_throw_server_error_exception_when_assignTask_fails() {
-
-            TestFeignClientException exception =
-                new TestFeignClientException(
-                    HttpStatus.NOT_FOUND.value(),
-                    HttpStatus.NOT_FOUND.getReasonPhrase()
-                );
-
-            doThrow(exception)
-                .when(camundaServiceApi).assignTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), anyMap());
-
-            assertThatThrownBy(() -> camundaService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                singletonList(MANAGE),
-                assigneeAccessControlResponse,
-                List.of(OWN, EXECUTE)
-            ))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class);
-
-        }
-
-        @Test
-        void assignTask_should_throw_resource_not_found_exception_when_addLocalVariablesToTask_fails() {
-
-            String exceptionMessage = "some exception message";
-
-            TestFeignClientException exception =
-                new TestFeignClientException(
-                    HttpStatus.SERVICE_UNAVAILABLE.value(),
-                    HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
-                    createCamundaTestException("aCamundaErrorType", "some exception message")
-                );
-
-            doThrow(exception).when(camundaServiceApi).addLocalVariablesToTask(
-                eq(BEARER_SERVICE_TOKEN),
-                eq(taskId),
-                any(AddLocalVariableRequest.class)
-            );
-
-            assertThatThrownBy(() -> camundaService.assignTask(
-                taskId,
-                assignerAccessControlResponse,
-                singletonList(MANAGE),
-                assigneeAccessControlResponse,
-                List.of(OWN, EXECUTE)
-            ))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(
-                    String.format(
-                        "There was a problem updating the task with id: %s. The task could not be found.", taskId
-                    )
-                );
-        }
-    }
-
-    @Nested
     @DisplayName("completeTask()")
     class CompleteTask {
 
@@ -1035,6 +870,8 @@ class CamundaServiceTest {
         }
 
     }
+
+
 
 
 }
