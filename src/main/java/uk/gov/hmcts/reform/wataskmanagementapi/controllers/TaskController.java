@@ -236,6 +236,10 @@ public class TaskController {
             message = FORBIDDEN
         ),
         @ApiResponse(
+            code = 401,
+            message = "Unauthorized"
+        ),
+        @ApiResponse(
             code = 415,
             message = UNSUPPORTED_MEDIA_TYPE
         ),
