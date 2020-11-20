@@ -133,7 +133,7 @@ class TaskControllerTest {
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
-        ResponseEntity<String> response = taskController.assignTask(
+        ResponseEntity<Void> response = taskController.assignTask(
             authToken,
             taskId,
             new AssigneeRequest("userId")

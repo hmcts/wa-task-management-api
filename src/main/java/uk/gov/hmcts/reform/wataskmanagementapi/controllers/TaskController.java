@@ -245,7 +245,7 @@ public class TaskController {
         )
     })
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
+    public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody AssigneeRequest assigneeRequest) {
 
