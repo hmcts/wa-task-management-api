@@ -16,7 +16,7 @@ public class AccessControlService {
     private final IdamService idamService;
     private final RoleAssignmentService roleAssignmentService;
 
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessControlService.class);
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(AccessControlService.class);
 
     @Autowired
     public AccessControlService(IdamService idamService,
@@ -27,9 +27,9 @@ public class AccessControlService {
 
     public AccessControlResponse getRoles(String authToken) {
         UserInfo userInfo = idamService.getUserInfo(authToken);
-        log.info("*** email: " + userInfo.getEmail());
-        log.info("*** name: " + userInfo.getName());
-        log.info("*** uid: " + userInfo.getUid());
+        LOGGER.info("*** email: " + userInfo.getEmail());
+        LOGGER.info("*** name: " + userInfo.getName());
+        LOGGER.info("*** uid: " + userInfo.getUid());
         List<Assignment> assignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
 
         return new AccessControlResponse(userInfo, assignments);
