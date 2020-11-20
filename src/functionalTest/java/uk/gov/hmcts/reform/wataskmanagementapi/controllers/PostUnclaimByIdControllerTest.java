@@ -15,7 +15,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 
 public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -59,7 +58,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
@@ -108,67 +107,11 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("Task was not claimed by this user"));
 
-    }
-
-
-    @Test
-    public void should_return_a_403_when_user_did_not_have_permission_jurisdiction_region_location_did_not_match() {
-        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerDAuthorization();
-
-        Map<String, String> task = setupScenario(headers);
-
-        common.updateTaskWithCustomVariablesOverride(task,Map.of(LOCATION,"17595"));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
-            headers
-
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo(
-                format("User did not have sufficient permissions to unclaim task with id: %s", task.get("taskId"))
-            ));
-    }
-
-
-    @Test
-    public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_location_did_not_match() {
-        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerCAuthorization();
-
-        Map<String, String> task = setupScenario(headers);
-
-        common.updateTaskWithCustomVariablesOverride(task,Map.of(LOCATION,"17595"));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
-            headers
-
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo(
-                format("User did not have sufficient permissions to unclaim task with id: %s", task.get("taskId"))
-            ));
     }
 
     @Test
@@ -177,7 +120,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         Map<String, String> task = setupScenario(headers);
 
-        common.updateTaskWithCustomVariablesOverride(task,Map.of(REGION,"north-england"));
+        common.updateTaskWithCustomVariablesOverride(task, Map.of(REGION, "north-england"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -190,7 +133,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(

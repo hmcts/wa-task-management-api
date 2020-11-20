@@ -19,11 +19,6 @@ def secrets = [
         secret('wa-test-caseofficer-public-a-password', 'TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD'),
         secret('wa-test-caseofficer-public-b-username', 'TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME'),
         secret('wa-test-caseofficer-public-b-password', 'TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD'),
-        secret('wa-test-caseofficer-public-c-username', 'TEST_WA_CASEOFFICER_PUBLIC_C_USERNAME'),
-        secret('wa-test-caseofficer-public-c-password', 'TEST_WA_CASEOFFICER_PUBLIC_C_PASSWORD'),
-        secret('wa-test-caseofficer-public-d-username', 'TEST_WA_CASEOFFICER_PUBLIC_D_USERNAME'),
-        secret('wa-test-caseofficer-public-d-password', 'TEST_WA_CASEOFFICER_PUBLIC_D_PASSWORD')
-
     ],
 
     's2s-${env}': [
