@@ -27,9 +27,9 @@ public class AccessControlService {
 
     public AccessControlResponse getRoles(String authToken) {
         UserInfo userInfo = idamService.getUserInfo(authToken);
-        LOGGER.info("*** email: " + userInfo.getEmail());
-        LOGGER.info("*** name: " + userInfo.getName());
-        LOGGER.info("*** uid: " + userInfo.getUid());
+        LOGGER.info(String.format("*** email: %s", userInfo.getEmail()));
+        LOGGER.info(String.format("*** name: %s", userInfo.getName()));
+        LOGGER.info(String.format("*** uid: %s", userInfo.getUid()));
         List<Assignment> assignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
 
         return new AccessControlResponse(userInfo, assignments);
