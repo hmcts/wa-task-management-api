@@ -11,12 +11,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.List;
 
-@Slf4j
 @Service
 public class AccessControlService {
 
     private final IdamService idamService;
     private final RoleAssignmentService roleAssignmentService;
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessControlService.class);
 
     @Autowired
     public AccessControlService(IdamService idamService,
