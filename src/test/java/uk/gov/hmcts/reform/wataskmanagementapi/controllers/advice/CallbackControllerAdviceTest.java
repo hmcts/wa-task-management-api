@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.LocalDateTime;
@@ -48,8 +49,20 @@ class CallbackControllerAdviceTest {
     }
 
     @Test
-    void should_() {
+    void should_handle_unauthorized_exception() {
 
+        final String exceptionMessage = "Some unauthorized exception message";
+        final UnAuthorizedException exception = new UnAuthorizedException(exceptionMessage, new Exception());
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleUnAuthorizedException(exception);
+
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.UNAUTHORIZED.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 
     @ParameterizedTest
