@@ -40,8 +40,10 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo(
-                String.format("There was a problem fetching the task with id: %s", nonExistentTaskId)));
+            .body("message", equalTo(String.format(
+                "There was a problem fetching the task with id: %s",
+                nonExistentTaskId
+            )));
     }
 
     @Test
