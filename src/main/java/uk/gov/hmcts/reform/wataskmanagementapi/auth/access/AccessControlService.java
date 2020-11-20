@@ -16,8 +16,6 @@ public class AccessControlService {
     private final IdamService idamService;
     private final RoleAssignmentService roleAssignmentService;
 
-    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(AccessControlService.class);
-
     @Autowired
     public AccessControlService(IdamService idamService,
                                 RoleAssignmentService roleAssignmentService) {
