@@ -1,8 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
+import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
@@ -15,15 +18,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
@@ -296,6 +302,64 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
+    @ParameterizedTest
+    @MethodSource("scenarioProvider")
+    void hasAccess_should_succeed_when_looking_for_begin_time_permission_and_return_true(Scenario scenario) {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        boolean actualHasAccess = permissionEvaluatorService.hasAccess(
+            defaultVariables,
+            singletonList(scenario.roleAssignment),
+            permissionsRequired
+        );
+
+        assertEquals(scenario.expectedHasAccess, actualHasAccess);
+    }
+
+    private static Stream<Scenario> scenarioProvider() {
+
+        Scenario beginTimeIsNull = Scenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenBeginTime(null))
+            .expectedHasAccess(true)
+            .build();
+
+        Scenario beginTimeIsAfterCurrentTime = Scenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().minusDays(3)))
+            .expectedHasAccess(true)
+            .build();
+
+        Scenario beginTimeIsBeforeCurrentTime = Scenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().plusDays(3)))
+            .expectedHasAccess(false)
+            .build();
+
+        return Stream.of(
+            beginTimeIsNull,
+            beginTimeIsAfterCurrentTime,
+            beginTimeIsBeforeCurrentTime
+        );
+    }
+
+    private static Assignment buildRoleAssignmentGivenBeginTime(LocalDateTime beginTime) {
+        return Assignment.builder()
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("some actor id")
+            .roleType(RoleType.ORGANISATION)
+            .roleName("tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.SPECIFIC)
+            .roleCategory(RoleCategory.STAFF)
+            .beginTime(beginTime)
+            .build();
+    }
+
+    @Builder
+    private static class Scenario {
+        Assignment roleAssignment;
+        boolean expectedHasAccess;
+    }
+
     @Test
     void hasAccess_should_succeed_when_looking_for_jurisdiction_permission_and_return_true() {
 
@@ -527,4 +591,5 @@ class PermissionEvaluatorServiceTest {
 
         return variables;
     }
+
 }

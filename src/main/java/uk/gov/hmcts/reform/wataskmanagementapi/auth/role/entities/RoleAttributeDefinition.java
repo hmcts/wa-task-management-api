@@ -5,9 +5,7 @@ public enum RoleAttributeDefinition {
     CASE_ID("caseId"),
     JURISDICTION("jurisdiction"),
     PRIMARY_LOCATION("primaryLocation"),
-    REGION("region"),
-    START_DATE("startDate"),
-    END_DATE("endDate");
+    REGION("region");
 
     private final String value;
 

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -9,6 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +99,16 @@ public class PermissionEvaluatorService {
                 if (hasAccess && locationAttributeValue != null) {
                     hasAccess = hasLocationPermission(locationAttributeValue, variables);
                 }
+            }
+
+            LocalDateTime beginTime = roleAssignment.getBeginTime();
+            if (hasAccess && beginTime != null) {
+
+                ZoneId zoneId = ZoneId.of("Europe/London");
+                ZonedDateTime beginTimeLondonTime = beginTime.atZone(zoneId);
+                ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+
+                hasAccess = currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
             }
         }
 

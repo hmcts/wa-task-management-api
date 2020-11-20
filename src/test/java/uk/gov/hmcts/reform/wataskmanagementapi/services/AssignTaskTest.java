@@ -146,7 +146,7 @@ class AssignTaskTest extends CamundaServiceBaseTest {
         return accessControlResponse;
     }
 
-    @ParameterizedTest(name = "Scenario {argumentsWithNames}")
+    @ParameterizedTest
     @MethodSource("provideScenario")
     void assignTask_should_throw_exception_when_no_enough_permissions(Scenario scenario) {
 
