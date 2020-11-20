@@ -42,7 +42,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
-                "There was a problem updating the task with id: %s. The task could not be found.",
+                "There was a problem fetching the variables for task with id: %s",
                 nonExistentTaskId
             )));
     }

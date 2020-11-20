@@ -240,7 +240,7 @@ public class CamundaService {
             variables = camundaServiceApi.getVariables(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             throw new ResourceNotFoundException(String.format(
-                "There was a problem updating the task with id: %s. The task could not be found.",
+                "There was a problem fetching the variables for task with id: %s",
                 id
             ), ex);
         }

@@ -55,6 +55,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 
 class CamundaServiceTest extends CamundaServiceBaseTest {
 
+    public static final String EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
+        "There was a problem fetching the variables for task with id: %s";
+
     @BeforeEach
     public void setUp() {
         super.setUp();
@@ -180,7 +183,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage(String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                     taskId
                 ));
 
@@ -444,7 +447,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage(String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                     taskId
                 ));
         }
@@ -616,7 +619,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage(String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                     taskId
                 ));
         }
@@ -751,7 +754,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
                 .hasMessage(String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.",
+                    EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                     taskId
                 ));
 
