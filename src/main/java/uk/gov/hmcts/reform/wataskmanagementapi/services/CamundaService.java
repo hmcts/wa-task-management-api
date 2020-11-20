@@ -96,38 +96,31 @@ public class CamundaService {
                            List<PermissionTypes> assignerPermissionsRequired,
                            AccessControlResponse assigneeAccessControlResponse,
                            List<PermissionTypes> assigneePermissionsRequired) {
-        requireNonNull(
-            assigneeAccessControlResponse.getUserInfo().getUid(),
-            "AssigneeId cannot be null"
-        );
+        requireNonNull(assigneeAccessControlResponse.getUserInfo().getUid(), "AssigneeId cannot be null");
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        boolean assignerHasAccess = permissionEvaluatorService.hasAccess(
+        hasAccess(taskId, assignerAccessControlResponse, assignerPermissionsRequired, variables);
+        hasAccess(taskId, assigneeAccessControlResponse, assigneePermissionsRequired, variables);
+
+        performAssignTaskAction(taskId, assigneeAccessControlResponse.getUserInfo().getUid());
+    }
+
+    private void hasAccess(String taskId,
+                           AccessControlResponse accessControlResponse,
+                           List<PermissionTypes> permissionsRequired,
+                           Map<String, CamundaVariable> variables) {
+        boolean hasAccess = permissionEvaluatorService.hasAccess(
             variables,
-            assignerAccessControlResponse.getRoleAssignments(),
-            assignerPermissionsRequired
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
         );
 
-        if (assignerHasAccess) {
-            boolean assigneeHasAccess = permissionEvaluatorService.hasAccess(
-                variables,
-                assigneeAccessControlResponse.getRoleAssignments(),
-                assigneePermissionsRequired
-            );
-            if (assigneeHasAccess) {
-                performAssignTaskAction(taskId, assigneeAccessControlResponse.getUserInfo().getUid());
-            } else {
-                throw new InsufficientPermissionsException(
-                    String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK, taskId)
-                );
-            }
-        } else {
+        if (!hasAccess) {
             throw new InsufficientPermissionsException(
                 String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK, taskId)
             );
         }
-
     }
 
     private void performAssignTaskAction(String taskId, String userId) {
