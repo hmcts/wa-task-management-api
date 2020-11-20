@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -101,17 +100,22 @@ public class PermissionEvaluatorService {
                 }
             }
 
-            LocalDateTime beginTime = roleAssignment.getBeginTime();
-            if (hasAccess && beginTime != null) {
-
-                ZoneId zoneId = ZoneId.of("Europe/London");
-                ZonedDateTime beginTimeLondonTime = beginTime.atZone(zoneId);
-                ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
-
-                hasAccess = currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
-            }
+            hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
         }
 
+        return hasAccess;
+    }
+
+    private boolean hasBeginTimePermission(Assignment roleAssignment, boolean hasAccess) {
+        LocalDateTime beginTime = roleAssignment.getBeginTime();
+        if (hasAccess && beginTime != null) {
+
+            ZoneId zoneId = ZoneId.of("Europe/London");
+            ZonedDateTime beginTimeLondonTime = beginTime.atZone(zoneId);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+
+            hasAccess = currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
+        }
         return hasAccess;
     }
 
