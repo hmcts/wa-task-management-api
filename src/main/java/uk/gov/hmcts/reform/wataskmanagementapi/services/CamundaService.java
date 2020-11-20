@@ -39,6 +39,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 })
 public class CamundaService {
 
+    public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK =
+        "User did not have sufficient permissions to assign task with id: %s";
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
     private final CamundaQueryBuilder camundaQueryBuilder;
@@ -117,12 +119,12 @@ public class CamundaService {
                 performAssignTaskAction(taskId, assigneeAccessControlResponse.getUserInfo().getUid());
             } else {
                 throw new InsufficientPermissionsException(
-                    String.format("User did not have sufficient permissions to claim task with id: %s", taskId)
+                    String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK, taskId)
                 );
             }
         } else {
             throw new InsufficientPermissionsException(
-                String.format("User did not have sufficient permissions to claim task with id: %s", taskId)
+                String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK, taskId)
             );
         }
 

@@ -119,7 +119,7 @@ class AssignTaskTest extends CamundaServiceBaseTest {
         ))
             .isInstanceOf(InsufficientPermissionsException.class)
             .hasMessage(String.format(
-                "User did not have sufficient permissions to claim task with id: %s",
+                "User did not have sufficient permissions to assign task with id: %s",
                 taskId
             ));
 
