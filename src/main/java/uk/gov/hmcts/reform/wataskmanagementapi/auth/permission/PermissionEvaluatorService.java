@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.START_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PRIVATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.RESTRICTED;
@@ -95,6 +96,12 @@ public class PermissionEvaluatorService {
                 if (hasAccess && locationAttributeValue != null) {
                     hasAccess = hasLocationPermission(locationAttributeValue, variables);
                 }
+                // 7. Conditionally check Start date matches the one on the task
+                String startDateAttributeValue = attributes.get(START_DATE.value());
+                if (hasAccess && startDateAttributeValue != null) {
+                    hasAccess = hasStartDatePermission(startDateAttributeValue, variables);
+                }
+                // todo: do the same for the endDate
             }
         }
 
@@ -122,6 +129,15 @@ public class PermissionEvaluatorService {
                                               Map<String, CamundaVariable> variables) {
         String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
         return roleAssignmentJurisdiction.equals(taskJurisdiction);
+    }
+
+    private boolean hasStartDatePermission(String roleAssignmentStartDate,
+                                              Map<String, CamundaVariable> variables) {
+        String taskStartDate = getVariableValue(variables.get(START_DATE.value()), String.class);
+        // todo: TBC
+        // parse dateStrings to dates
+        // compare dates and return result
+        return true;
     }
 
     private boolean hasSecurityClassificationPermission(Classification roleAssignmentClassification,
