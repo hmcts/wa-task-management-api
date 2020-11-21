@@ -101,8 +101,22 @@ public class PermissionEvaluatorService {
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
+            hasAccess = hasEndTimePermission(roleAssignment, hasAccess);
         }
 
+        return hasAccess;
+    }
+
+    private boolean hasEndTimePermission(Assignment roleAssignment, boolean hasAccess) {
+        LocalDateTime endTime = roleAssignment.getEndTime();
+        if (hasAccess && endTime != null) {
+
+            ZoneId zoneId = ZoneId.of("Europe/London");
+            ZonedDateTime endTimeLondonTime = endTime.atZone(zoneId);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+
+            return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
+        }
         return hasAccess;
     }
 
@@ -114,11 +128,10 @@ public class PermissionEvaluatorService {
             ZonedDateTime beginTimeLondonTime = beginTime.atZone(zoneId);
             ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
 
-            hasAccess = currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
+            return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
         return hasAccess;
     }
-
 
     private boolean hasLocationPermission(String roleAssignmentLocation, Map<String, CamundaVariable> variables) {
         String taskLocation = getVariableValue(variables.get(LOCATION.value()), String.class);

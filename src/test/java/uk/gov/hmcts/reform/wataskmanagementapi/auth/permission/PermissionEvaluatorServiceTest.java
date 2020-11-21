@@ -303,8 +303,8 @@ class PermissionEvaluatorServiceTest {
     }
 
     @ParameterizedTest
-    @MethodSource("scenarioProvider")
-    void hasAccess_should_succeed_when_looking_for_begin_time_permission_and_return_true(Scenario scenario) {
+    @MethodSource("endTimeScenarioProvider")
+    void hasAccess_should_succeed_when_looking_for_end_time_permission_and_return_true(EndTimeScenario scenario) {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
@@ -317,19 +317,78 @@ class PermissionEvaluatorServiceTest {
         assertEquals(scenario.expectedHasAccess, actualHasAccess);
     }
 
-    private static Stream<Scenario> scenarioProvider() {
+    private static Stream<EndTimeScenario> endTimeScenarioProvider() {
 
-        Scenario beginTimeIsNull = Scenario.builder()
+        EndTimeScenario endTimeIsNull = EndTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenEndTime(null))
+            .expectedHasAccess(true)
+            .build();
+
+        EndTimeScenario endTimeIsAfterCurrentTime = EndTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenEndTime(LocalDateTime.now().minusDays(3)))
+            .expectedHasAccess(false)
+            .build();
+
+        EndTimeScenario endTimeIsBeforeCurrentTime = EndTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenEndTime(LocalDateTime.now().plusDays(3)))
+            .expectedHasAccess(true)
+            .build();
+
+        return Stream.of(
+            endTimeIsNull,
+            endTimeIsAfterCurrentTime,
+            endTimeIsBeforeCurrentTime
+        );
+    }
+
+    private static Assignment buildRoleAssignmentGivenEndTime(LocalDateTime endTime) {
+        return Assignment.builder()
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("some actor id")
+            .roleType(RoleType.ORGANISATION)
+            .roleName("tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.SPECIFIC)
+            .roleCategory(RoleCategory.STAFF)
+            .endTime(endTime)
+            .build();
+    }
+
+    @Builder
+    private static class EndTimeScenario {
+        Assignment roleAssignment;
+        boolean expectedHasAccess;
+    }
+
+    @ParameterizedTest
+    @MethodSource("beginTimeScenarioProvider")
+    void hasAccess_should_succeed_when_looking_for_begin_time_permission_and_return_true(
+        BeginTimeScenario scenario) {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        boolean actualHasAccess = permissionEvaluatorService.hasAccess(
+            defaultVariables,
+            singletonList(scenario.roleAssignment),
+            permissionsRequired
+        );
+
+        assertEquals(scenario.expectedHasAccess, actualHasAccess);
+    }
+
+    private static Stream<BeginTimeScenario> beginTimeScenarioProvider() {
+
+        BeginTimeScenario beginTimeIsNull = BeginTimeScenario.builder()
             .roleAssignment(buildRoleAssignmentGivenBeginTime(null))
             .expectedHasAccess(true)
             .build();
 
-        Scenario beginTimeIsAfterCurrentTime = Scenario.builder()
+        BeginTimeScenario beginTimeIsAfterCurrentTime = BeginTimeScenario.builder()
             .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().minusDays(3)))
             .expectedHasAccess(true)
             .build();
 
-        Scenario beginTimeIsBeforeCurrentTime = Scenario.builder()
+        BeginTimeScenario beginTimeIsBeforeCurrentTime = BeginTimeScenario.builder()
             .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().plusDays(3)))
             .expectedHasAccess(false)
             .build();
@@ -355,7 +414,7 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Builder
-    private static class Scenario {
+    private static class BeginTimeScenario {
         Assignment roleAssignment;
         boolean expectedHasAccess;
     }
