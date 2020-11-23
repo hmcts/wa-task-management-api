@@ -96,14 +96,6 @@ public class AuthorizationHeadersProvider {
     }
 
     public Header getCaseworkerBAuthorizationOnly() {
-        /*
-         * Role assignment Properties:
-         * - Organizational case role with:
-         * --classification = PUBLIC
-         * --jurisdiction = IA
-         * --primaryLocation = 765324
-         * --region = east-england
-         */
 
         String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME");
         String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD");
