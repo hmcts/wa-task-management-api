@@ -98,8 +98,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
-        String no_manage_permission = "Read,Refer,Own,Cancel";
-        Map<String, String> task = common.setupTaskAndRetrieveIds(no_manage_permission);
+        String noManagePermission = "Read,Refer,Own,Cancel";
+        Map<String, String> task = common.setupTaskAndRetrieveIds(noManagePermission);
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
         String taskId = task.get("taskId");
@@ -125,8 +125,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
-        String no_own_permission = "Read,Refer,Manage,Cancel";
-        Map<String, String> task = common.setupTaskAndRetrieveIds(no_own_permission);
+        String noOwnPermission = "Read,Refer,Manage,Cancel";
+        Map<String, String> task = common.setupTaskAndRetrieveIds(noOwnPermission);
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
         String taskId = task.get("taskId");
