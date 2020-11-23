@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -48,7 +49,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -69,7 +70,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -108,7 +109,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,

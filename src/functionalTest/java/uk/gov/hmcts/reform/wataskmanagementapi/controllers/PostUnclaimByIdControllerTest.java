@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -48,7 +49,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -144,7 +145,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     }
 
     private Map<String, String> setupScenario(Headers headers) {
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),
