@@ -49,6 +49,7 @@ public class AuthorizationHeadersProvider {
          * --classification = PUBLIC
          * --jurisdiction = IA
          * --primaryLocation = 765324
+         * -- role name = tribunal-caseworker which has "Read,Refer,Own,Manage,Cancel" permissions
          */
         return new Headers(
             getCaseworkerAAuthorizationOnly(),
@@ -65,6 +66,7 @@ public class AuthorizationHeadersProvider {
          * --jurisdiction = IA
          * --primaryLocation = 765324
          * --region = east-england
+         * -- role name = tribunal-caseworker which has "Read,Refer,Own,Manage,Cancel" permissions
          */
         return new Headers(
             getCaseworkerBAuthorizationOnly(),
@@ -84,16 +86,6 @@ public class AuthorizationHeadersProvider {
     }
 
 
-    public Headers getLawFirmBAuthorization() {
-        /*
-         * No Role assignment
-         */
-        return new Headers(
-            getLawFirmBAuthorizationOnly(),
-            getServiceAuthorizationHeader()
-        );
-    }
-
     public Header getCaseworkerAAuthorizationOnly() {
 
         String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME");
@@ -104,6 +96,14 @@ public class AuthorizationHeadersProvider {
     }
 
     public Header getCaseworkerBAuthorizationOnly() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         * --primaryLocation = 765324
+         * --region = east-england
+         */
 
         String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME");
         String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD");
@@ -120,14 +120,6 @@ public class AuthorizationHeadersProvider {
 
         return getAuthorization("LawFirmA", username, password);
 
-    }
-
-    public Header getLawFirmBAuthorizationOnly() {
-
-        String username = System.getenv("TEST_LAW_FIRM_B_USERNAME");
-        String password = System.getenv("TEST_LAW_FIRM_B_PASSWORD");
-
-        return getAuthorization("LawFirmB", username, password);
     }
 
 
