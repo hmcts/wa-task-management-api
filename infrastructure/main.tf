@@ -1,9 +1,7 @@
 provider "azurerm" {
+  version = "~> 2.25"
   features {}
 
-}
-locals {
-  S2S_SECRET_TASK_MANAGEMENT_API = "${data.azurerm_key_vault_secret.s2s_secret.value}"
 }
 
 data "azurerm_key_vault" "wa_key_vault" {
@@ -20,6 +18,13 @@ data "azurerm_key_vault_secret" "s2s_secret" {
   key_vault_id = data.azurerm_key_vault.s2s_key_vault.id
   name        = "microservicekey-wa-task-management-api"
 }
+
+resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
+  name         = "s2s-secret-task-management-api"
+  value        = data.azurerm_key_vault_secret.s2s_secret.value
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
 
 data "azurerm_key_vault_secret" "test_law_firm_a_username" {
   name         = "test-law-firm-a-username"
