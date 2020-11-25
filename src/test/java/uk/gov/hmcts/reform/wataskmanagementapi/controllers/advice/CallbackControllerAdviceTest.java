@@ -1,14 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
+import lombok.Builder;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
-import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -19,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.LocalDateTime;
@@ -32,8 +31,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CallbackControllerAdviceTest {
 
-    @Mock HttpServletRequest request;
-    @Mock SystemDateProvider systemDateProvider;
+    @Mock
+    HttpServletRequest request;
+    @Mock
+    SystemDateProvider systemDateProvider;
 
     private CallbackControllerAdvice callbackControllerAdvice;
     private LocalDateTime mockedTimestamp;
@@ -47,31 +48,64 @@ class CallbackControllerAdviceTest {
         when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(CustomArgumentProvider.class)
-    void should_handle_generic_exception(Exception exception) {
+    @Test
+    void should_handle_unauthorized_exception() {
 
-        final String exceptionMessage = "Some exception message";
+        final String exceptionMessage = "Some unauthorized exception message";
+        final UnAuthorizedException exception = new UnAuthorizedException(exceptionMessage, new Exception());
 
-        ResponseEntity<ErrorMessage> response = callbackControllerAdvice.handleGenericException(exception);
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleUnAuthorizedException(exception);
 
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getStatusCode().value());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), response.getBody().getError());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), response.getBody().getStatus());
+        assertEquals(HttpStatus.UNAUTHORIZED.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 
-    static class CustomArgumentProvider implements ArgumentsProvider {
+    @ParameterizedTest
+    @MethodSource("scenarioProvider")
+    void should_handle_generic_exception(Scenario scenario) {
 
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                new Exception("Some exception message"),
-                new ServerErrorException("Some exception message", new Exception())
-            ).map(Arguments::of);
-        }
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice.handleGenericException(scenario.exception);
+
+        assertEquals(scenario.expectedHttpStatus.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(scenario.expectedHttpStatus.getReasonPhrase(), response.getBody().getError());
+        assertEquals(scenario.expectedHttpStatus.value(), response.getBody().getStatus());
+        assertEquals(scenario.expectedMessage, response.getBody().getMessage());
+    }
+
+    private static Stream<Scenario> scenarioProvider() {
+
+        String genericExceptionMessage = "Some generic exception message";
+        Scenario exceptionScenario = Scenario.builder()
+            .exception(new Exception(genericExceptionMessage))
+            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+            .expectedMessage(genericExceptionMessage)
+            .build();
+
+        String errorExceptionMessage = "Some server error exception message";
+        Scenario serverErrorExceptionScenario = Scenario.builder()
+            .exception(new ServerErrorException(errorExceptionMessage, new Exception()))
+            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+            .expectedMessage(errorExceptionMessage)
+            .build();
+
+        return Stream.of(
+            exceptionScenario,
+            serverErrorExceptionScenario
+        );
+    }
+
+    @Builder
+    static class Scenario {
+        Exception exception;
+        HttpStatus expectedHttpStatus;
+        String expectedMessage;
     }
 
     @Test

@@ -13,14 +13,17 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -31,6 +34,7 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,6 +61,47 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             .thenReturn(true);
         when(permissionEvaluatorService.hasAccess(anyMap(), anyList(), eq(List.of(OWN, EXECUTE))))
             .thenReturn(true);
+    }
+
+    @Test
+    void assignTask_should_not_call_camunda_if_task_state_already_assigned() {
+
+        Map<String, CamundaVariable> variables = new ConcurrentHashMap<>();
+        variables.put("taskState", new CamundaVariable(TaskState.ASSIGNED.value(), "String"));
+
+        when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId))
+            .thenReturn(variables);
+
+        when(permissionEvaluatorService.hasAccess(anyMap(), anyList(), eq(singletonList(MANAGE))))
+            .thenReturn(true);
+        when(permissionEvaluatorService.hasAccess(anyMap(), anyList(), eq(List.of(OWN, EXECUTE))))
+            .thenReturn(true);
+
+        camundaService.assignTask(
+            taskId,
+            assignerAccessControlResponse,
+            singletonList(MANAGE),
+            assigneeAccessControlResponse,
+            List.of(OWN, EXECUTE)
+        );
+
+        verify(camundaServiceApi).getVariables(
+            eq(BEARER_SERVICE_TOKEN),
+            eq(taskId)
+        );
+
+        verify(camundaServiceApi, never()).addLocalVariablesToTask(
+            eq(BEARER_SERVICE_TOKEN),
+            eq(taskId),
+            any(AddLocalVariableRequest.class)
+        );
+
+        verify(camundaServiceApi).assignTask(
+            eq(BEARER_SERVICE_TOKEN),
+            eq(taskId),
+            anyMap()
+        );
+
     }
 
     @Test
@@ -101,7 +146,7 @@ class AssignTaskTest extends CamundaServiceBaseTest {
         return accessControlResponse;
     }
 
-    @ParameterizedTest(name = "Scenario {argumentsWithNames}")
+    @ParameterizedTest
     @MethodSource("provideScenario")
     void assignTask_should_throw_exception_when_no_enough_permissions(Scenario scenario) {
 
@@ -181,12 +226,18 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             List.of(OWN, EXECUTE)
         ))
             .isInstanceOf(ServerErrorException.class)
-            .hasCauseInstanceOf(FeignException.class);
+            .hasCauseInstanceOf(FeignException.class)
+            .hasMessage(
+                String.format(
+                    "There was a problem assigning the task with id: %s",
+                    taskId
+                )
+            );
 
     }
 
     @Test
-    void assignTask_should_throw_resource_not_found_exception_when_addLocalVariablesToTask_fails() {
+    void assignTask_should_throw_server_error_exception_exception_when_addLocalVariablesToTask_fails() {
 
         TestFeignClientException exception =
             new TestFeignClientException(
@@ -208,11 +259,12 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             assigneeAccessControlResponse,
             List.of(OWN, EXECUTE)
         ))
-            .isInstanceOf(ResourceNotFoundException.class)
+            .isInstanceOf(ServerErrorException.class)
             .hasCauseInstanceOf(FeignException.class)
             .hasMessage(
                 String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.", taskId
+                    "There was a problem assigning the task with id: %s",
+                    taskId
                 )
             );
     }

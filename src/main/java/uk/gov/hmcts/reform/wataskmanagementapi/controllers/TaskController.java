@@ -47,6 +47,7 @@ public class TaskController {
     private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
     private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     private static final String TASK_ID = "task-id";
+    public static final String UNAUTHORIZED = "Unauthorized";
 
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
@@ -73,6 +74,10 @@ public class TaskController {
         @ApiResponse(
             code = 403,
             message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
@@ -121,6 +126,10 @@ public class TaskController {
             message = FORBIDDEN
         ),
         @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
             code = 415,
             message = UNSUPPORTED_MEDIA_TYPE
         ),
@@ -157,6 +166,10 @@ public class TaskController {
         @ApiResponse(
             code = 403,
             message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
@@ -198,6 +211,10 @@ public class TaskController {
             message = FORBIDDEN
         ),
         @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
             code = 415,
             message = UNSUPPORTED_MEDIA_TYPE
         ),
@@ -236,6 +253,10 @@ public class TaskController {
             message = FORBIDDEN
         ),
         @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
             code = 415,
             message = UNSUPPORTED_MEDIA_TYPE
         ),
@@ -245,7 +266,7 @@ public class TaskController {
         )
     })
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
+    public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody AssigneeRequest assigneeRequest) {
 
@@ -281,6 +302,10 @@ public class TaskController {
         @ApiResponse(
             code = 403,
             message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,

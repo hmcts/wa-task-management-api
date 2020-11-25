@@ -60,9 +60,13 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
+    public GivensBuilder iCreateATaskWithCaseId(String caseId,
+                                                String tribunalCaseworkerPermissions) {
 
-        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(
+            caseId,
+            tribunalCaseworkerPermissions
+        );
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -140,7 +144,8 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId,
+                                                                   String tribunalCaseworkerPermissions) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseId", caseId)
@@ -154,7 +159,7 @@ public class GivensBuilder {
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("taskState", "configured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .build();
 

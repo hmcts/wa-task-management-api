@@ -9,6 +9,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -96,11 +99,39 @@ public class PermissionEvaluatorService {
                     hasAccess = hasLocationPermission(locationAttributeValue, variables);
                 }
             }
+
+            hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
+            hasAccess = hasEndTimePermission(roleAssignment, hasAccess);
         }
 
         return hasAccess;
     }
 
+    private boolean hasEndTimePermission(Assignment roleAssignment, boolean hasAccess) {
+        LocalDateTime endTime = roleAssignment.getEndTime();
+        if (hasAccess && endTime != null) {
+
+            ZoneId zoneId = ZoneId.of("Europe/London");
+            ZonedDateTime endTimeLondonTime = endTime.atZone(zoneId);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+
+            return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
+        }
+        return hasAccess;
+    }
+
+    private boolean hasBeginTimePermission(Assignment roleAssignment, boolean hasAccess) {
+        LocalDateTime beginTime = roleAssignment.getBeginTime();
+        if (hasAccess && beginTime != null) {
+
+            ZoneId zoneId = ZoneId.of("Europe/London");
+            ZonedDateTime beginTimeLondonTime = beginTime.atZone(zoneId);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+
+            return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
+        }
+        return hasAccess;
+    }
 
     private boolean hasLocationPermission(String roleAssignmentLocation, Map<String, CamundaVariable> variables) {
         String taskLocation = getVariableValue(variables.get(LOCATION.value()), String.class);

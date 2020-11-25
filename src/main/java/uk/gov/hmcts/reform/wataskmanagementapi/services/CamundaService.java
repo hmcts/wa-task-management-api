@@ -41,6 +41,7 @@ public class CamundaService {
 
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK =
         "User did not have sufficient permissions to assign task with id: %s";
+
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
     private final CamundaQueryBuilder camundaQueryBuilder;
@@ -103,7 +104,14 @@ public class CamundaService {
         hasAccess(taskId, assignerAccessControlResponse, assignerPermissionsRequired, variables);
         hasAccess(taskId, assigneeAccessControlResponse, assigneePermissionsRequired, variables);
 
-        performAssignTaskAction(taskId, assigneeAccessControlResponse.getUserInfo().getUid());
+        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+        boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
+
+        performAssignTaskAction(
+            taskId,
+            assigneeAccessControlResponse.getUserInfo().getUid(),
+            taskStateIsAssignedAlready
+        );
     }
 
     private void hasAccess(String taskId,
@@ -123,20 +131,15 @@ public class CamundaService {
         }
     }
 
-    private void performAssignTaskAction(String taskId, String userId) {
+    private void performAssignTaskAction(String taskId,
+                                         String userId,
+                                         boolean taskStateIsAssignedAlready) {
         Map<String, String> body = new ConcurrentHashMap<>();
         body.put("userId", userId);
         try {
-            updateTaskStateTo(taskId, TaskState.ASSIGNED);
-        } catch (FeignException ex) {
-            throw new ResourceNotFoundException(
-                String.format(
-                    "There was a problem updating the task with id: %s. The task could not be found.",
-                    taskId
-                ), ex);
-        }
-
-        try {
+            if (!taskStateIsAssignedAlready) {
+                updateTaskStateTo(taskId, TaskState.ASSIGNED);
+            }
             camundaServiceApi.assignTask(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
             throw new ServerErrorException(
