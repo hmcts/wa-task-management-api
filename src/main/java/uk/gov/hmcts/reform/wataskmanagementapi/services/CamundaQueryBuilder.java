@@ -125,7 +125,7 @@ public class CamundaQueryBuilder {
 
     public CamundaSearchQuery createCompletionQuery(String caseId, List<String> taskTypes) {
         CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.CCD_ID,
+            CamundaVariableDefinition.CASE_ID,
             new SearchParameter(SearchParameterKey.CASE_ID,
                                 SearchOperator.IN, singletonList(caseId))
         );

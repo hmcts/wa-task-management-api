@@ -18,8 +18,7 @@ public enum CamundaVariableDefinition {
     ASSIGNEE("assignee"),
     FORM_KEY("formKey"),
     TASK_ID("taskId"),
-    TYPE("type"),
-    CASE_ID("caseId");
+    TYPE("type");
 
     private final String value;
 
