@@ -62,13 +62,11 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
-        result.prettyPrint();
-
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks[0].case_id", equalTo(task.get("caseId")))
             .body("tasks[0].task_state", equalTo("unassigned"))
+            .body("tasks[0].case_id", equalTo(task.get("caseId")))
             .body("tasks[0].id", equalTo(task.get("taskId")))
             .body("tasks[0].type", equalTo("ReviewTheAppeal"));
 

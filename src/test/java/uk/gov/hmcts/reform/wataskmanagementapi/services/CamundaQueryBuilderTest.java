@@ -272,7 +272,7 @@ class CamundaQueryBuilderTest {
                           + "\t\t\t{\n"
                           + "\t\t\t\t\"processVariables\": [\n"
                           + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"ccdId\",\n"
+                          + "\t\t\t\t\t\t\"name\": \"caseId\",\n"
                           + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
                           + "\t\t\t\t\t\t\"value\": \"caseId\"\n"
                           + "\t\t\t\t\t}\n"
