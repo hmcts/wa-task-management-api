@@ -5,6 +5,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.Builder;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
 public class CamundaProcessVariables {
@@ -29,6 +30,11 @@ public class CamundaProcessVariables {
 
         public ProcessVariablesBuilder withProcessVariable(String key, String value) {
             processVariablesMap.put(key, stringValue(value));
+            return this;
+        }
+
+        public ProcessVariablesBuilder withProcessVariablBooleane(String key, boolean value) {
+            processVariablesMap.put(key, booleanValue(value));
             return this;
         }
 

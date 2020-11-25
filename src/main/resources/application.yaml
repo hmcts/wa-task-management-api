@@ -10,13 +10,28 @@ management:
       base-path: /
       exposure:
         include: health, info, prometheus
-config:
-  stacktraceEnabled: ${STACKTRACE_ENABLED:false}
 
-enableSwagger: ${ENABLE_SWAGGER:true}
+config:
+  enableSwagger: ${ENABLE_SWAGGER:true}
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
+role-assignment:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/loggers/**"
+    - "/swagger-ui.html"
+    - "/swagger-resources/**"
+    - "/v2/api-docs"
+    - "/webjars/springfox-swagger-ui/**"
+    - "/favicon.ico"
 
 auth:
   provider:
@@ -25,48 +40,39 @@ auth:
         baseUrl: ${S2S_URL:http://service-auth-provider-api}
 
 idam:
-  baseUrl: ${IDAM_URL:http://sidam-api}
+  baseUrl: ${OPEN_ID_IDAM_URL:http://sidam-api}
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
   scope: "openid profile roles"
   s2s-auth:
     url: ${S2S_URL:http://service-auth-provider-api}
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
+  s2s-authorised:
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api}
 
 spring:
-  main:
-    allow-bean-definition-overriding: true
   application:
     name: WA Task Management
-  jackson:
-    property-naming-strategy: SNAKE_CASE
+  main:
+    allow-bean-definition-overriding: true
   security:
     oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks
       client:
+        provider:
+          oidc:
+            issuer-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o
         registration:
           oidc:
-            client-id: ${IA_IDAM_CLIENT_ID:iac}
-            client-secret: ${IA_IDAM_SECRET:something}
-
-security:
-  anonymousPaths:
-    - "/"
-    - "/health"
-    - "/health/readiness"
-    - "/health/liveness"
-    - "/loggers/**"
-    - "/swagger-ui.html"
-    - "/swagger-resources/**"
-    - "/v2/api-docs"
-    - "/webjars/springfox-swagger-ui/**"
-    - "/favicon.ico"
-  authorisedServices:
-    - "wa_task_management_api"
+            client-id: ${WA_IDAM_CLIENT_ID:wa}
+            client-secret: ${WA_IDAM_CLIENT_SECRET:something}
 
 feign:
   client:
     config:
       default:
-        connectTimeout: 5000
-        readTimeout: 5000
-        loggerLevel: full
+        connectTimeout: 30000
+        readTimeout: 30000
+        loggerLevel: basic
