@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Objects;
+import lombok.Builder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings("PMD.ExcessiveParameterList")
+@Builder
 public class Assignment {
 
     private String id;

@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +84,7 @@ class RoleAssignmentServiceTest {
             .when(roleAssignmentServiceApi).getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken);
 
         assertThatThrownBy(() -> roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken))
-            .isInstanceOf(InsufficientPermissionsException.class)
+            .isInstanceOf(UnAuthorizedException.class)
             .hasCauseInstanceOf(FeignException.class)
             .hasMessage("User did not have sufficient permissions to perform this action");
 

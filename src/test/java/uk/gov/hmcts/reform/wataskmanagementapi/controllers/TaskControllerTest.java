@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -19,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
@@ -37,29 +37,25 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 class TaskControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
-    private static final String USER_ID = "IDAM_USER_ID";
     @Mock
     private CamundaService camundaService;
     @Mock
-    private IdamService idamService;
-    @Mock
     private AccessControlService accessControlService;
+    @Mock
+    private Assignment mockedRoleAssignment;
+    @Mock
+    private UserInfo mockedUserInfo;
 
     private TaskController taskController;
-    private Assignment mockedRoleAssignment;
-    private UserInfo mockedUserInfo;
 
     @BeforeEach
     void setUp() {
 
         taskController = new TaskController(
             camundaService,
-            idamService,
             accessControlService
         );
 
-        mockedRoleAssignment = mock(Assignment.class);
-        mockedUserInfo = mock(UserInfo.class);
     }
 
     @Test
@@ -136,11 +132,12 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
-        String userId = UUID.randomUUID().toString();
 
-        when(idamService.getUserId(authToken)).thenReturn(userId);
-
-        ResponseEntity<String> response = taskController.assignTask(authToken, taskId);
+        ResponseEntity<Void> response = taskController.assignTask(
+            authToken,
+            taskId,
+            new AssigneeRequest("userId")
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());

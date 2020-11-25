@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -118,5 +119,22 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
                 )
             );
     }
+
+
+    @ExceptionHandler(UnAuthorizedException.class)
+    protected ResponseEntity<ErrorMessage> handleUnAuthorizedException(
+        Exception ex
+    ) {
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(new ErrorMessage(
+                    ex,
+                    HttpStatus.UNAUTHORIZED,
+                    systemDateProvider.nowWithTime()
+                )
+            );
+    }
+
+
 
 }

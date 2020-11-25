@@ -1,9 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import io.restassured.http.Header;
 import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,13 +18,19 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
 
+    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
+
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
+        String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
-            "task/{task-id}/assign",
+            ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
+            new AssigneeRequest(assigneeId),
+            APPLICATION_JSON_VALUE,
+            APPLICATION_JSON_VALUE,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
@@ -30,24 +39,30 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
-                "There was a problem updating the task with id: %s. The task could not be found.",
+                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                 nonExistentTaskId
             )));
     }
 
+    private String getAssigneeId(Header caseworkerBAuthorizationOnly) {
+        return authorizationHeadersProvider.getUserInfo(caseworkerBAuthorizationOnly.getValue()).getUid();
+    }
+
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
-
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
-
+        String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
-            "task/{task-id}/assign",
+            ENDPOINT_BEING_TESTED,
             task.get("taskId"),
+            new AssigneeRequest(assigneeId),
+            APPLICATION_JSON_VALUE,
+            APPLICATION_JSON_VALUE,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
@@ -55,6 +70,84 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
+    }
+
+    @Test
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() {
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+
+        String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            task.get("taskId"),
+            new AssigneeRequest(assigneeId),
+            APPLICATION_JSON_VALUE,
+            APPLICATION_JSON_VALUE,
+            authorizationHeadersProvider.getLawFirmAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.UNAUTHORIZED.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
+            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+    }
+
+    @Test
+    public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
+        String noManagePermission = "Read,Refer,Own,Cancel";
+        Map<String, String> task = common.setupTaskAndRetrieveIds(noManagePermission);
+
+        String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
+        String taskId = task.get("taskId");
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            new AssigneeRequest(assigneeId),
+            APPLICATION_JSON_VALUE,
+            APPLICATION_JSON_VALUE,
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message",
+                  equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
+    }
+
+    @Test
+    public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
+        String noOwnPermission = "Read,Refer,Manage,Cancel";
+        Map<String, String> task = common.setupTaskAndRetrieveIds(noOwnPermission);
+
+        String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
+        String taskId = task.get("taskId");
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            new AssigneeRequest(assigneeId),
+            APPLICATION_JSON_VALUE,
+            APPLICATION_JSON_VALUE,
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("message",
+                  equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
     }
 
 }
