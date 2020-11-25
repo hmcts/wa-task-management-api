@@ -41,6 +41,8 @@ public class CamundaService {
 
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK =
         "User did not have sufficient permissions to assign task with id: %s";
+    public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK =
+        "User did not have sufficient permissions to claim task with id: %s";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -86,7 +88,7 @@ public class CamundaService {
             );
         } else {
             throw new InsufficientPermissionsException(
-                String.format("User did not have sufficient permissions to claim task with id: %s", taskId)
+                String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId)
             );
         }
 
