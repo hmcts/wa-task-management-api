@@ -36,7 +36,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("ccdId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
@@ -69,7 +69,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("ccdId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
@@ -88,7 +88,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("ccdId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);

@@ -30,7 +30,7 @@ class CamundaObjectMapperTest {
     void should_convert_object_to_camunda_json_camel_case() {
 
         CamundaProcessVariables testObject = processVariables()
-            .withProcessVariable("ccdId", "0000000")
+            .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
@@ -39,14 +39,10 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asCamundaJsonString(testObject);
 
         String expected = "{\"processVariablesMap\":"
-                          + "{\"dueDate\":{\"value\":\"2020-09-27\","
-                          + "\"type\":\"String\"},"
-                          + "\"ccdId\":{\"value\":\"0000000\","
-                          + "\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\","
-                          + "\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\","
-                          + "\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
+                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 
@@ -66,7 +62,7 @@ class CamundaObjectMapperTest {
     void should_convert_object_to_json_snake_case() {
 
         CamundaProcessVariables testObject = processVariables()
-            .withProcessVariable("ccdId", "0000000")
+            .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
@@ -75,14 +71,10 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asJsonString(testObject);
 
         String expected = "{\"process_variables_map\":"
-                          + "{\"dueDate\":{\"value\":\"2020-09-27\","
-                          + "\"type\":\"String\"},"
-                          + "\"ccdId\":{\"value\":\"0000000\","
-                          + "\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\","
-                          + "\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\","
-                          + "\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
+                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 }

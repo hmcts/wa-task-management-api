@@ -5,7 +5,7 @@ public enum CamundaVariableDefinition {
     APPEAL_TYPE("appealType"),
     CASE_NAME("caseName"),
     CASE_TYPE_ID("caseTypeId"),
-    CCD_ID("ccdId"),
+    CASE_ID("caseId"),
     EXECUTION_TYPE("executionType"),
     LOCATION("location"),
     LOCATION_NAME("locationName"),

@@ -26,9 +26,9 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CCD_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
@@ -507,7 +507,7 @@ class PermissionEvaluatorServiceTest {
     private Map<String, CamundaVariable> getDefaultVariables() {
 
         Map<String, CamundaVariable> variables = new HashMap<>();
-        variables.put(CCD_ID.value(), new CamundaVariable("123456789", "String"));
+        variables.put(CASE_ID.value(), new CamundaVariable("123456789", "String"));
         variables.put(CASE_NAME.value(), new CamundaVariable("someCaseName", "String"));
         variables.put(CASE_TYPE_ID.value(), new CamundaVariable("someCaseType", "String"));
         variables.put(TASK_STATE.value(), new CamundaVariable("configured", "String"));
