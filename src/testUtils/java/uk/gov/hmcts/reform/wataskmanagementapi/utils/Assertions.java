@@ -1,32 +1,36 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
-import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class Assertions {
 
-    private final String camundaUrl;
+    private final RestApiActions camundaApiActions;
+    private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public Assertions(String camundaUrl) {
-        this.camundaUrl = camundaUrl;
+    public Assertions(RestApiActions camundaApiActions, AuthorizationHeadersProvider authorizationHeadersProvider) {
+        this.camundaApiActions = camundaApiActions;
+        this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
     public void taskVariableWasUpdated(String taskId, String variable, String value) {
-        List<HistoryVariableInstance> historyVariableInstances = given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .when()
-            .get("/history/variable-instance?taskIdIn=" + taskId)
-            .then()
+
+        Response result = camundaApiActions.get(
+            "/history/variable-instance?taskIdIn=" + taskId,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        List<HistoryVariableInstance> historyVariableInstances = result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and()
             .extract()

@@ -8,22 +8,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AssigneeEnumTest {
 
     @Test
-     void simpleEnumExampleOutsideClassTest() {
-        String assigned = TaskState.ASSIGNED.getTaskState();
-        String cancelled = TaskState.CANCELLED.getTaskState();
-        String completed = TaskState.COMPLETED.getTaskState();
-        final String configured = TaskState.CONFIGURED.getTaskState();
-        final String unassigned = TaskState.UNASSIGNED.getTaskState();
-        final String unconfigured = TaskState.UNCONFIGURED.getTaskState();
-        final String referred = TaskState.REFERRED.getTaskState();
+    void simpleEnumExampleOutsideClassTest() {
+        String assigned = TaskState.ASSIGNED.value();
+        String cancelled = TaskState.CANCELLED.value();
+        String completed = TaskState.COMPLETED.value();
+        final String configured = TaskState.CONFIGURED.value();
+        final String unassigned = TaskState.UNASSIGNED.value();
+        final String unconfigured = TaskState.UNCONFIGURED.value();
+        final String referred = TaskState.REFERRED.value();
 
-        assertEquals("assigned",assigned);
-        assertEquals("cancelled",cancelled);
-        assertEquals("completed",completed);
-        assertEquals("configured",configured);
-        assertEquals("unassigned",unassigned);
-        assertEquals("unconfigured",unconfigured);
-        assertEquals("referred",referred);
+        assertEquals("assigned", assigned);
+        assertEquals("cancelled", cancelled);
+        assertEquals("completed", completed);
+        assertEquals("configured", configured);
+        assertEquals("unassigned", unassigned);
+        assertEquals("unconfigured", unconfigured);
+        assertEquals("referred", referred);
     }
 
     @Test

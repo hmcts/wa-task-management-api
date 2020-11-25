@@ -21,7 +21,7 @@ public class CamundaObjectMapper {
         return jsonString(obj, defaultObjectMapper);
     }
 
-    public String asCamundaJsonString(final Object obj) {
+    public String asCamelCasedJsonString(final Object obj) {
         return jsonString(obj, camundaObjectMapper);
     }
 

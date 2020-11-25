@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import io.restassured.RestAssured;
 import org.junit.Before;
@@ -6,7 +6,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -52,16 +51,6 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
 
-        given()
-            .relaxedHTTPSValidation()
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/claim")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()
@@ -108,7 +97,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .when()
@@ -119,7 +108,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -131,19 +120,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
-            .contentType(MediaType.APPLICATION_JSON_VALUE)
-            .baseUri(testUrl)
-            .pathParam("task-id", taskId)
-            .when()
-            .post("/task/{task-id}/claim")
-            .then()
-            .assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value());
-
-        given()
-            .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -155,7 +132,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -167,7 +144,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getLawFirmAAuthorizationOnly())
+            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly())
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)

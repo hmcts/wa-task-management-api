@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -9,13 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CcdIdGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseIdGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
+
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -23,34 +23,34 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 public abstract class SpringBootFunctionalBaseTest {
 
     protected GivensBuilder given;
-    protected CamundaObjectMapper camundaObjectMapper;
     protected Assertions assertions;
     protected Common common;
-    protected CcdIdGenerator ccdIdGenerator;
+    protected CaseIdGenerator caseIdGenerator;
     protected RestApiActions restApiActions;
+    protected RestApiActions camundaApiActions;
+    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    @Autowired
+    protected AuthorizationHeadersProvider authorizationHeadersProvider;
+
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
-    @Autowired
-    protected AuthorizationHeadersProvider authorizationHeadersProvider;
 
     @Before
     public void setUpGivens() {
-        restApiActions = new RestApiActions(testUrl).setUp();
-        ccdIdGenerator = new CcdIdGenerator();
-        assertions = new Assertions(camundaUrl);
-        camundaObjectMapper = new CamundaObjectMapper(getDefaultObjectMapper(), getCamundaObjectMapper());
-        given = new GivensBuilder(camundaUrl, camundaObjectMapper, authorizationHeadersProvider);
-        common = new Common(ccdIdGenerator, given);
+        restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
+        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        caseIdGenerator = new CaseIdGenerator();
+        assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
+        given = new GivensBuilder(
+            camundaApiActions,
+            restApiActions,
+            authorizationHeadersProvider
+        );
+        common = new Common(caseIdGenerator, given);
 
     }
 
-    private ObjectMapper getCamundaObjectMapper() {
-        return new ObjectMapper();
-    }
-
-    private ObjectMapper getDefaultObjectMapper() {
-        return new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
-    }
 }

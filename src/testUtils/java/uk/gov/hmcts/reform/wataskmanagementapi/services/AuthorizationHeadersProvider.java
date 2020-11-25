@@ -40,7 +40,42 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
+
+    public Headers getTribunalCaseworkerAAuthorization() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         * --primaryLocation = 765324
+         */
+        return new Headers(
+            getCaseworkerAAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+
+    public Headers getTribunalCaseworkerBAuthorization() {
+        /*
+         * Role assignment Properties:
+         * - Organizational case role with:
+         * --classification = PUBLIC
+         * --jurisdiction = IA
+         * --primaryLocation = 765324
+         * --region = east-england
+         */
+        return new Headers(
+            getCaseworkerBAuthorizationOnly(),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+
     public Headers getLawFirmAAuthorization() {
+        /*
+         * No Role assignment
+         */
         return new Headers(
             getLawFirmAAuthorizationOnly(),
             getServiceAuthorizationHeader()
@@ -49,11 +84,33 @@ public class AuthorizationHeadersProvider {
 
 
     public Headers getLawFirmBAuthorization() {
+        /*
+         * No Role assignment
+         */
         return new Headers(
             getLawFirmBAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
     }
+
+    public Header getCaseworkerAAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD");
+
+        return getAuthorization("CaseworkerA", username, password);
+
+    }
+
+    public Header getCaseworkerBAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD");
+
+        return getAuthorization("CaseworkerB", username, password);
+
+    }
+
 
     public Header getLawFirmAAuthorizationOnly() {
 

@@ -11,20 +11,19 @@ public enum TaskState {
     COMPLETED("completed"),
     CANCELLED("cancelled");
 
-
     @JsonValue
-    private final String taskState;
+    private final String value;
 
-    TaskState(String taskState) {
-        this.taskState = taskState;
+    TaskState(String value) {
+        this.value = value;
     }
 
-    public String getTaskState() {
-        return this.taskState;
+    public String value() {
+        return this.value;
     }
 
     @Override
     public String toString() {
-        return this.taskState;
+        return this.value;
     }
 }
