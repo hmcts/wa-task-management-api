@@ -11,7 +11,7 @@ class CamundaSendMessageRequestTest {
     void should_set_properties() {
 
         CamundaProcessVariables testProcessVariables = processVariables()
-            .withProcessVariable("ccdId", "0000000")
+            .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "someTaskId")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
@@ -44,7 +44,7 @@ class CamundaSendMessageRequestTest {
     void should_allow_unset_message_name_properties() {
 
         CamundaProcessVariables testProcessVariables = processVariables()
-            .withProcessVariable("ccdId", "0000000")
+            .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "someTaskId")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")

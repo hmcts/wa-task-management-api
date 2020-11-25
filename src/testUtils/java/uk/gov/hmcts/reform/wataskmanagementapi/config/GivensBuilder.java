@@ -143,7 +143,7 @@ public class GivensBuilder {
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("ccdId", caseId)
+            .withProcessVariable("caseId", caseId)
             .withProcessVariable("region", "east-england")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "A Hearing Centre")

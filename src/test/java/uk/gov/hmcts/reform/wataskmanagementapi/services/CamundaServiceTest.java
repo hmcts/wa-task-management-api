@@ -66,7 +66,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
     private Map<String, CamundaVariable> mockVariables() {
 
         Map<String, CamundaVariable> variables = new HashMap<>();
-        variables.put("ccdId", new CamundaVariable("00000", "String"));
+        variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("caseTypeId", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
