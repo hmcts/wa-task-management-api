@@ -6,52 +6,58 @@ def type = "java"
 def product = "wa"
 def component = "task-management-api"
 def secrets = [
-  'wa-${env}' : [
-    secret('test-law-firm-a-username', 'TEST_LAW_FIRM_A_USERNAME'),
-    secret('test-law-firm-a-password', 'TEST_LAW_FIRM_A_PASSWORD'),
-    secret('test-law-firm-b-username', 'TEST_LAW_FIRM_B_USERNAME'),
-    secret('test-law-firm-b-password', 'TEST_LAW_FIRM_B_PASSWORD'),
-    secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
-    secret('idam-secret', 'IA_IDAM_SECRET')
-  ],
-  's2s-${env}' : [
-    secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
-  ]
+    'wa-${env}' : [
+        secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+        secret('idam-secret', 'IA_IDAM_SECRET'),
+        secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),
+        secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+        secret('test-law-firm-a-username', 'TEST_LAW_FIRM_A_USERNAME'),
+        secret('test-law-firm-a-password', 'TEST_LAW_FIRM_A_PASSWORD'),
+        secret('test-law-firm-b-username', 'TEST_LAW_FIRM_B_USERNAME'),
+        secret('test-law-firm-b-password', 'TEST_LAW_FIRM_B_PASSWORD'),
+        secret('wa-test-caseofficer-public-a-username', 'TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME'),
+        secret('wa-test-caseofficer-public-a-password', 'TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD'),
+        secret('wa-test-caseofficer-public-b-username', 'TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME'),
+        secret('wa-test-caseofficer-public-b-password', 'TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD'),
+    ],
+
+    's2s-${env}': [
+        secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
+    ]
 ]
 
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
-  [$class     : 'AzureKeyVaultSecret',
-   secretType : 'Secret',
-   name       : secretName,
-   version    : '',
-   envVariable: envVar
-  ]
+    [$class     : 'AzureKeyVaultSecret',
+     secretType : 'Secret',
+     name       : secretName,
+     version    : '',
+     envVariable: envVar
+    ]
 }
 
 withPipeline(type, product, component) {
-  disableLegacyDeployment()
+    disableLegacyDeployment()
+    loadVaultSecrets(secrets)
 
-  env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
-  env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
-  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
-  env.IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
+    env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
+    env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+    env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+    env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
+    env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
 
-  loadVaultSecrets(secrets)
+    after('test') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
+    }
 
+    after('functionalTest:preview') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+    }
 
-  after('test') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
-  }
-
-  after('functionalTest:preview') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
-  }
-
-  after('functionalTest:aat') {
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
-  }
+    after('functionalTest:aat') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+    }
 }

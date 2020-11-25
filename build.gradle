@@ -15,7 +15,7 @@ plugins {
   id 'io.spring.dependency-management' version '1.0.10.RELEASE'
   id 'org.springframework.boot' version '2.3.4.RELEASE'
   id 'org.owasp.dependencycheck' version '6.0.2'
-  id 'com.github.ben-manes.versions' version '0.33.0'
+  id 'com.github.ben-manes.versions' version '0.36.0'
   id 'org.sonarqube' version '3.0'
   id 'info.solidsoft.pitest' version '1.5.2'
 }
@@ -234,10 +234,13 @@ ext.libraries = [
 ]
 
 dependencies {
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: versions.springBoot
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: versions.springBoot
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: versions.springBoot
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: versions.springBoot
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: versions.springBoot
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
+
 
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
@@ -279,6 +282,9 @@ dependencies {
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testCompile group: 'com.google.guava', name: 'guava-testlib', version: '29.0-jre'
   testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
+
+  testUtilsImplementation sourceSets.main.runtimeClasspath
+  testUtilsImplementation sourceSets.test.runtimeClasspath
 
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath

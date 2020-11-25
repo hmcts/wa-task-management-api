@@ -1,65 +1,93 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Assignee;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.CaseData;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Location;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.Optional;
 
-import static java.util.Optional.ofNullable;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CCD_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
+
 @Service
 public class TaskMapper {
 
-    public Task mapToTaskObject(CamundaTask camundaTask, Map<String, CamundaVariable> variables) {
 
-        CaseData caseData = null;
-        Location location = null;
-        Assignee assignee = null;
-        final String taskName = camundaTask.getName();
-        final ZonedDateTime dueDate = camundaTask.getDue();
-        final String state = getVariableValue(variables.get("taskState"));
+    private final CamundaObjectMapper camundaObjectMapper;
 
-        if (camundaTask.getAssignee() != null) {
-            assignee = new Assignee(camundaTask.getAssignee(), "username");
-        }
+    @Autowired
+    public TaskMapper(CamundaObjectMapper camundaObjectMapper) {
+        this.camundaObjectMapper = camundaObjectMapper;
+    }
 
-        String staffLocation = getVariableValue(variables.get("location"));
-        if (staffLocation != null) {
-            location = new Location(
-                getVariableValue(variables.get("location")),
-                getVariableValue(variables.get("locationName"))
-            );
-        }
-
-        String caseReference = getVariableValue(variables.get("ccdId"));
-        if (caseReference != null) {
-            caseData = new CaseData(
-                caseReference,
-                getVariableValue(variables.get("caseName")),
-                getVariableValue(variables.get("caseType")),
-                location
-            );
-        }
+    public Task mapToTaskObject(Map<String, CamundaVariable> variables, CamundaTask camundaTask) {
+        // Camunda Attributes
+        String id = camundaTask.getId();
+        String name = camundaTask.getName();
+        String task = camundaTask.getFormKey();
+        ZonedDateTime createdDate = camundaTask.getCreated();
+        ZonedDateTime dueDate = camundaTask.getDue();
+        String assignee = camundaTask.getAssignee();
+        // Local Variables
+        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+        String securityClassification = getVariableValue(variables.get(SECURITY_CLASSIFICATION.value()), String.class);
+        String taskTitle = getVariableValue(variables.get(TITLE.value()), String.class);
+        String executionType = getVariableValue(variables.get(EXECUTION_TYPE.value()), String.class);
+        boolean autoAssigned = false;
+        String taskSystem = getVariableValue(variables.get(TASK_SYSTEM.value()), String.class);
+        String jurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
+        String region = getVariableValue(variables.get(REGION.value()), String.class);
+        String location = getVariableValue(variables.get(LOCATION.value()), String.class);
+        String locationName = getVariableValue(variables.get(LOCATION_NAME.value()), String.class);
+        String caseTypeId = getVariableValue(variables.get(CASE_TYPE_ID.value()), String.class);
+        String caseId = getVariableValue(variables.get(CCD_ID.value()), String.class);
+        String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
+        String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
 
         return new Task(
-            taskName,
-            state,
+            id,
+            name,
+            task,
+            taskState,
+            taskSystem,
+            securityClassification,
+            taskTitle,
+            createdDate,
             dueDate,
-            caseData,
-            assignee
+            assignee,
+            autoAssigned,
+            executionType,
+            jurisdiction,
+            region,
+            location,
+            locationName,
+            caseTypeId,
+            caseId,
+            caseCategory,
+            caseName
+
         );
     }
 
-    private String getVariableValue(CamundaVariable variable) {
-        return ofNullable(variable)
-            .map(CamundaVariable::getValue)
-            .orElse(null);
+    private <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
+        Optional<T> value = camundaObjectMapper.read(variable, type);
+        return value.orElse(null);
     }
 }

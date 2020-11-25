@@ -13,17 +13,25 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 @RequestMapping(
@@ -36,11 +44,15 @@ public class TaskController {
 
     private final CamundaService camundaService;
     private final IdamService idamService;
+    private final AccessControlService accessControlService;
 
     @Autowired
-    public TaskController(CamundaService camundaService, IdamService idamService) {
+    public TaskController(CamundaService camundaService,
+                          IdamService idamService,
+                          AccessControlService accessControlService) {
         this.camundaService = camundaService;
         this.idamService = idamService;
+        this.accessControlService = accessControlService;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -68,9 +80,21 @@ public class TaskController {
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestBody SearchTaskRequest searchTaskRequest) {
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
+                                                                     @RequestBody SearchTaskRequest searchTaskRequest) {
+        //Safe-guard
+        if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
 
-        List<Task> tasks = camundaService.searchWithCriteria(searchTaskRequest);
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        List<Task> tasks = camundaService.searchWithCriteria(
+            searchTaskRequest,
+            accessControlResponse.getRoleAssignments(),
+            endpointPermissionsRequired
+        );
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -102,8 +126,14 @@ public class TaskController {
         )
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<GetTaskResponse<CamundaTask>> getTask(@PathVariable("task-id") String id) {
-        CamundaTask task = camundaService.getTask(id);
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
+                                                         @PathVariable("task-id") String id) {
+
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        Task task = camundaService.getTask(id, accessControlResponse.getRoleAssignments(), endpointPermissionsRequired);
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -137,8 +167,11 @@ public class TaskController {
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
                                             @PathVariable("task-id") String taskId) {
-        String userId = idamService.getUserId(authToken);
-        camundaService.claimTask(taskId, userId);
+
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        camundaService.claimTask(taskId, accessControlResponse, endpointPermissionsRequired);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
@@ -173,7 +206,11 @@ public class TaskController {
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
                                               @PathVariable("task-id") String taskId) {
-        camundaService.unclaimTask(taskId);
+
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        camundaService.unclaimTask(taskId, accessControlResponse, endpointPermissionsRequired);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
@@ -203,12 +240,12 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/assignee")
+    @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable("task-id") String taskId) {
 
         String userId = idamService.getUserId(authToken);
-        camundaService.assigneeTask(taskId, userId);
+        camundaService.assignTask(taskId, userId);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
@@ -239,8 +276,13 @@ public class TaskController {
         )
     })
     @PostMapping(path = "/{task-id}/complete")
-    public ResponseEntity<Void> completeTask(@PathVariable("task-id") String taskId) {
-        camundaService.completeTask(taskId);
+    public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
+                                             @PathVariable("task-id") String taskId) {
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
 
         return ResponseEntity
             .noContent()

@@ -6,17 +6,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 
 import java.time.ZonedDateTime;
 
-public class CamundaTaskTest {
-
-    @Test
-    void should_create_minimum_object_and_get_value() {
-        CamundaTask camundaTask = new CamundaTask("some-id");
-        Assertions.assertThat(camundaTask.getId()).isEqualTo("some-id");
-    }
+class CamundaTaskTest {
 
     @Test
     void should_create_full_object_and_get_values() {
-
 
         ZonedDateTime created = ZonedDateTime.now();
         ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
@@ -27,7 +20,8 @@ public class CamundaTaskTest {
             created,
             dueDate,
             "some-description",
-            "some-owner"
+            "some-owner",
+            "formKey"
         );
 
         Assertions.assertThat(camundaTask.getId()).isEqualTo("some-id");
@@ -37,7 +31,6 @@ public class CamundaTaskTest {
         Assertions.assertThat(camundaTask.getDue()).isEqualTo(dueDate);
         Assertions.assertThat(camundaTask.getDescription()).isEqualTo("some-description");
         Assertions.assertThat(camundaTask.getOwner()).isEqualTo("some-owner");
-
+        Assertions.assertThat(camundaTask.getFormKey()).isEqualTo("formKey");
     }
-
 }
