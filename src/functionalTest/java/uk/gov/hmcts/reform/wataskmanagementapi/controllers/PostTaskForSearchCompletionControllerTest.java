@@ -95,26 +95,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_200_checking_authorization_of_user() {
-
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "no_event_id");
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
-    }
-
-
-    @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
