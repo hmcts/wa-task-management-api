@@ -11,8 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
@@ -42,7 +41,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_200_and_retrieve_a_task_by_event_and_case_location_match() {
+    public void should_return_a_200_and_retrieve_a_task_by_event_and_case_match() {
 
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
@@ -73,12 +72,13 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     }
 
+
     @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
+    public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "requestRespondentEvidence");
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "no_event_id");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -89,8 +89,48 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks[0]", equalTo(null));
+            .body("tasks.size()", equalTo(0));
     }
+
+    @Test
+    public void should_return_a_200_checking_authorization_of_user() {
+
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "no_event_id");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+    }
+
+
+    @Test
+    public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
+
+        Map<String, String> task = common.setupTaskAndRetrieveIds();
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "reviewHearingRequirements");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+    }
+
 
     @Test
     public void should_return_a_500_and_when_performing_search() {
