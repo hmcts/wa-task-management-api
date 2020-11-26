@@ -22,6 +22,9 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 @ActiveProfiles("functional")
 public abstract class SpringBootFunctionalBaseTest {
 
+    public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
+        "There was a problem fetching the variables for task with id: %s";
+
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;

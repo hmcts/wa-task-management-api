@@ -6,12 +6,14 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
@@ -20,7 +22,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_any_roles() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "requestRespondentEvidence");
 
@@ -76,7 +78,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "no_event_id");
 
@@ -95,7 +97,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     @Test
     public void should_return_a_200_checking_authorization_of_user() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "no_event_id");
 
@@ -115,7 +117,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "reviewHearingRequirements");
 
@@ -135,7 +137,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     @Test
     public void should_return_a_500_and_when_performing_search() {
 
-        common.setupTaskAndRetrieveIds();
+        common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(null, null);
 

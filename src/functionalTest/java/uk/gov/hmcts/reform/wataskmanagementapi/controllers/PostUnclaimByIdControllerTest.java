@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,14 +40,16 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo(
-                String.format("There was a problem fetching the task with id: %s", nonExistentTaskId)));
+            .body("message", equalTo(String.format(
+                "There was a problem fetching the task with id: %s",
+                nonExistentTaskId
+            )));
     }
 
     @Test
-    public void should_return_a_403_when_the_user_did_not_have_any_roles() {
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -55,13 +58,13 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
+            .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
 
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
     }
 
@@ -142,7 +145,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     }
 
     private Map<String, String> setupScenario(Headers headers) {
-        Map<String, String> task = common.setupTaskAndRetrieveIds();
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         given.iClaimATaskWithIdAndAuthorization(
             task.get("taskId"),

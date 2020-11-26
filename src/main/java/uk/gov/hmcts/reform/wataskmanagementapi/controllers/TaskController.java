@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 @RequestMapping(
     path = "/task",
     consumes = APPLICATION_JSON_VALUE,
@@ -43,16 +43,21 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @RestController
 public class TaskController {
 
+    private static final String BAD_REQUEST = "Bad Request";
+    private static final String FORBIDDEN = "Forbidden";
+    private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+    private static final String TASK_ID = "task-id";
+    public static final String UNAUTHORIZED = "Unauthorized";
+
     private final CamundaService camundaService;
-    private final IdamService idamService;
     private final AccessControlService accessControlService;
 
     @Autowired
     public TaskController(CamundaService camundaService,
-                          IdamService idamService,
-                          AccessControlService accessControlService) {
+                          AccessControlService accessControlService
+    ) {
         this.camundaService = camundaService;
-        this.idamService = idamService;
         this.accessControlService = accessControlService;
     }
 
@@ -65,19 +70,23 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
@@ -111,24 +120,28 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
-                                                         @PathVariable("task-id") String id) {
+                                                         @PathVariable(TASK_ID) String id) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -149,25 +162,29 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @PostMapping(path = "/{task-id}/claim",
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
-                                            @PathVariable("task-id") String taskId) {
+                                            @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
@@ -188,25 +205,29 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @PostMapping(path = "/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
-                                              @PathVariable("task-id") String taskId) {
+                                              @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
 
@@ -226,31 +247,47 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
-                                             @PathVariable("task-id") String taskId) {
+    public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
+                                             @PathVariable(TASK_ID) String taskId,
+                                             @RequestBody AssigneeRequest assigneeRequest) {
 
-        String userId = idamService.getUserId(authToken);
-        camundaService.assignTask(taskId, userId);
-        return ResponseEntity
-            .noContent()
-            .cacheControl(CacheControl.noCache())
-            .build();
+        List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
+        List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
+
+        AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
+        AccessControlResponse assigneeAccessControlResponse = accessControlService.getRolesGivenUserId(
+            assigneeRequest.getUserId(),
+            assignerAuthToken
+        );
+
+        camundaService.assignTask(
+            taskId,
+            assignerAccessControlResponse,
+            assignerPermissionsRequired,
+            assigneeAccessControlResponse,
+            assigneePermissionsRequired
+        );
+        return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
 
     @ApiOperation("Completes a Task identified by an id.")
@@ -261,24 +298,28 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @PostMapping(path = "/{task-id}/complete")
     public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
-                                             @PathVariable("task-id") String taskId) {
+                                             @PathVariable(TASK_ID) String taskId) {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);

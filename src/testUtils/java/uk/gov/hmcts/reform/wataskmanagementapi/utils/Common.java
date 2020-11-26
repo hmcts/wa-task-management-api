@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class Common {
 
+    public static final String TRIBUNAL_CASEWORKER_PERMISSIONS = "Read,Refer,Own,Manage,Cancel";
     private final CaseIdGenerator caseIdGenerator;
 
     private final GivensBuilder given;
@@ -27,7 +28,10 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
     ) {
         String caseId = caseIdGenerator.generate();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
+            TRIBUNAL_CASEWORKER_PERMISSIONS
+        );
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
@@ -53,7 +57,10 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
 
     ) {
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(task.get("caseId"));
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            task.get("caseId"),
+            TRIBUNAL_CASEWORKER_PERMISSIONS
+        );
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
                 .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
@@ -63,7 +70,10 @@ public class Common {
 
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = caseIdGenerator.generate();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            caseId,
+            TRIBUNAL_CASEWORKER_PERMISSIONS
+        );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
         List<CamundaTask> response = given
@@ -82,11 +92,11 @@ public class Common {
 
     }
 
-    public Map<String, String> setupTaskAndRetrieveIds() {
+    public Map<String, String> setupTaskAndRetrieveIds(String tribunalCaseworkerPermissions) {
         String caseId = caseIdGenerator.generate();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId)
+            .iCreateATaskWithCaseId(caseId, tribunalCaseworkerPermissions)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 

@@ -9,6 +9,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +49,7 @@ public class AuthorizationHeadersProvider {
          * --classification = PUBLIC
          * --jurisdiction = IA
          * --primaryLocation = 765324
+         * -- role name = tribunal-caseworker which has "Read,Refer,Own,Manage,Cancel" permissions
          */
         return new Headers(
             getCaseworkerAAuthorizationOnly(),
@@ -64,6 +66,7 @@ public class AuthorizationHeadersProvider {
          * --jurisdiction = IA
          * --primaryLocation = 765324
          * --region = east-england
+         * -- role name = tribunal-caseworker which has "Read,Refer,Own,Manage,Cancel" permissions
          */
         return new Headers(
             getCaseworkerBAuthorizationOnly(),
@@ -82,16 +85,6 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-
-    public Headers getLawFirmBAuthorization() {
-        /*
-         * No Role assignment
-         */
-        return new Headers(
-            getLawFirmBAuthorizationOnly(),
-            getServiceAuthorizationHeader()
-        );
-    }
 
     public Header getCaseworkerAAuthorizationOnly() {
 
@@ -121,14 +114,6 @@ public class AuthorizationHeadersProvider {
 
     }
 
-    public Header getLawFirmBAuthorizationOnly() {
-
-        String username = System.getenv("TEST_LAW_FIRM_B_USERNAME");
-        String password = System.getenv("TEST_LAW_FIRM_B_PASSWORD");
-
-        return getAuthorization("LawFirmB", username, password);
-    }
-
 
     private Header getAuthorization(String key, String username, String password) {
 
@@ -153,5 +138,9 @@ public class AuthorizationHeadersProvider {
         body.add("scope", userScope);
 
         return body;
+    }
+
+    public UserInfo getUserInfo(String userToken) {
+        return idamServiceApi.userInfo(userToken);
     }
 }
