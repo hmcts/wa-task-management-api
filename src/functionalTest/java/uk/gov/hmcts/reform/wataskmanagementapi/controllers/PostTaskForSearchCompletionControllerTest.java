@@ -21,7 +21,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     private static final String ENDPOINT_BEING_TESTED = "task/completableByCaseEvent";
 
     @Test
-    public void should_return_a_403_when_the_user_did_not_have_any_roles() {
+    public void should_return_a_401_when_the_user_is_unauthorised() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "requestRespondentEvidence");
@@ -33,12 +33,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
+            .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
                                                      .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
+            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
     }
 
@@ -156,9 +156,5 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.value()))
             .body("message", equalTo("There was a problem performing the search"));
     }
-
-
-
-
 }
 

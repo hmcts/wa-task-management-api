@@ -919,7 +919,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(searchEventAndCase.getCaseId()).thenReturn("caseId");
             when(searchEventAndCase.getEventId()).thenReturn("eventId");
 
-            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
             Map<String, CamundaVariable> body = new HashMap<>();
             body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
 
@@ -927,26 +926,19 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(mockDMN());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
-            Map<String, CamundaVariable> mockedVariables = mockVariables();
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
             );
-            when(permissionEvaluatorService.hasAccess(
-                mockedVariables,
-                accessControlResponse.getRoleAssignments(),
-                permissionsRequired
-            )).thenReturn(true);
 
             when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
                 .thenReturn(camundaSearchQuery);
 
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
             List<Task> tasks = camundaService.searchForCompletableTasksUsingEventAndCaseId(
                 searchEventAndCase,
                 permissionsRequired,
                 accessControlResponse);
 
-            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), anyObject()))
-                .thenReturn(singletonList(createMockCamundaTask()));
 
             assertNotNull(tasks);
             assertEquals(1, tasks.size());
@@ -1014,9 +1006,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 permissionsRequired,
                 accessControlResponse);
 
-            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), anyObject()))
-                .thenReturn(singletonList(createMockCamundaTask()));
-
             assertNotNull(tasks);
             assertEquals(1, tasks.size());
             assertEquals("someAssignee", tasks.get(0).getAssignee());
@@ -1035,7 +1024,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Assignment mockedRoleAssignment = mock(Assignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
             CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
 
 
@@ -1047,7 +1035,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
 
 
-            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
             when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
                 .thenReturn(camundaSearchQuery);
             when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN),
@@ -1070,14 +1057,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Assignment mockedRoleAssignment = mock(Assignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
             CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo,
                 singletonList(mockedRoleAssignment));
-
-            when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
-                .thenReturn(camundaSearchQuery);
 
             TestFeignClientException exception =
                 new TestFeignClientException(
