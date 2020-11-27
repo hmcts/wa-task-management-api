@@ -19,24 +19,28 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 
 @Service
 @SuppressWarnings({
-    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDuplicateLiterals", "PMD.TooManyMethods"
-})
+    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter",
+    "PMD.AvoidDuplicateLiterals", "PMD.TooManyMethods", "PMD.UseConcurrentHashMap",
+    "PMD.ExcessiveImports"})
 public class CamundaService {
 
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK =
@@ -52,6 +56,8 @@ public class CamundaService {
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CamundaObjectMapper camundaObjectMapper;
 
+    private static final String DMN_KEY = "completeTask_IA_Asylum";
+    private static final boolean ACCESS_FLAG = true;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
@@ -214,6 +220,42 @@ public class CamundaService {
 
     }
 
+    public List<Task> searchForCompletableTasksUsingEventAndCaseId(SearchEventAndCase searchEventAndCase,
+                                                                   List<PermissionTypes> permissionsRequired,
+                                                                   AccessControlResponse accessControlResponse) {
+
+        //1. Perform the DMN evaluation
+        try {
+            Map<String, CamundaVariable> eventVariable = new HashMap<>();
+            eventVariable.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "String"));
+            Map<String,Map<String,CamundaVariable>> dmnRequest = new HashMap<>();
+            dmnRequest.put("variables", eventVariable);
+            // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
+            List<Map<String, CamundaVariable>> evaluateDmnResult =
+                camundaServiceApi.evaluateDMN(authTokenGenerator.generate(),
+                                              DMN_KEY, dmnRequest);
+
+            List<String> taskTypes = evaluateDmnResult.stream()
+                .map(result -> getVariableValue(result.get("task_type"), String.class))
+                .collect(Collectors.toList());
+
+            CamundaSearchQuery camundaSearchQuery =
+                camundaQueryBuilder.createCompletionQuery(
+                    searchEventAndCase.getCaseId(),
+                    taskTypes);
+
+
+            return performSearchForCompletableTasksUsingEventAndCaseId(
+                permissionsRequired,
+                accessControlResponse,
+                camundaSearchQuery
+            );
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem evaluating DMN", ex);
+        }
+
+    }
+
     public Task getTask(String id,
                         List<Assignment> roleAssignments,
                         List<PermissionTypes> permissionsRequired) {
@@ -275,6 +317,9 @@ public class CamundaService {
     private List<Task> performSearchAction(CamundaSearchQuery query,
                                            List<Assignment> roleAssignments,
                                            List<PermissionTypes> permissionsRequired) {
+
+
+
         List<Task> response = new ArrayList<>();
         try {
             //1. Perform the search
@@ -335,6 +380,49 @@ public class CamundaService {
             ), ex);
         }
     }
+
+    private List<Task> performSearchForCompletableTasksUsingEventAndCaseId(List<PermissionTypes> permissionsRequired,
+                                                                           AccessControlResponse accessControlResponse,
+                                                                           CamundaSearchQuery query) {
+        List<Task> response = new ArrayList<>();
+        try {
+
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            );
+
+            searchResults.forEach(camundaTask -> {
+                String userId = accessControlResponse.getUserInfo().getUid();
+
+                boolean isSameUser = userId.equals(camundaTask.getAssignee());
+
+                Map<String, CamundaVariable> variables = performGetVariablesAction(camundaTask.getId());
+
+                if (ACCESS_FLAG) {
+                    if (isSameUser) {
+                        Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                        response.add(task);
+                    } else {
+                        boolean hasAccess = permissionEvaluatorService
+                            .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+                        if (hasAccess) {
+                            Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                            response.add(task);
+                        }
+                    }
+                } else {
+                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                    response.add(task);
+                }
+            });
+            return response;
+        } catch (FeignException | ResourceNotFoundException ex) {
+            throw new ServerErrorException("There was a problem performing the search", ex);
+        }
+    }
+
 
     private void updateTaskStateTo(String taskId, TaskState newState) {
         Map<String, CamundaValue<String>> variable = Map.of(

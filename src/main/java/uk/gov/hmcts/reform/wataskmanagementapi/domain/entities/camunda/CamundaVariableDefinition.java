@@ -5,7 +5,6 @@ public enum CamundaVariableDefinition {
     APPEAL_TYPE("appealType"),
     CASE_NAME("caseName"),
     CASE_TYPE_ID("caseTypeId"),
-    CASE_ID("caseId"),
     EXECUTION_TYPE("executionType"),
     LOCATION("location"),
     LOCATION_NAME("locationName"),
@@ -15,7 +14,11 @@ public enum CamundaVariableDefinition {
     TASK_SYSTEM("taskSystem"),
     TITLE("title"),
     JURISDICTION("jurisdiction"),
-    ASSIGNEE("assignee");
+    ASSIGNEE("assignee"),
+    TASK_ID("taskId"),
+    TYPE("type"),
+    FORM_KEY("formKey"),
+    CASE_ID("caseId");
 
     private final String value;
 

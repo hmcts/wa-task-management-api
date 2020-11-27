@@ -17,10 +17,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOrQuery.CamundaOrQueryBuilder.orQuery;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.REFERRED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
@@ -116,5 +121,30 @@ public class CamundaQueryBuilder {
             default:
                 throw new IllegalStateException("Unexpected search operator value: " + operator.toString());
         }
+    }
+
+    public CamundaSearchQuery createCompletionQuery(String caseId, List<String> taskTypes) {
+        CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.CASE_ID,
+            new SearchParameter(SearchParameterKey.CASE_ID,
+                                SearchOperator.IN, singletonList(caseId))
+        );
+
+        CamundaOrQuery.CamundaOrQueryBuilder taskTypeQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.TYPE,
+            new SearchParameter(SearchParameterKey.TASK_TYPE,
+                                SearchOperator.IN, taskTypes));
+
+        CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.TASK_STATE,
+            new SearchParameter(SearchParameterKey.STATE,
+                                SearchOperator.IN, asList(ASSIGNED.value(),UNASSIGNED.value(),REFERRED.value())));
+
+        return camundaQuery()
+            .andQuery(caseIdQueries)
+            .andQuery(taskTypeQueries)
+            .andQuery(stateQueries)
+            .build();
+
     }
 }
