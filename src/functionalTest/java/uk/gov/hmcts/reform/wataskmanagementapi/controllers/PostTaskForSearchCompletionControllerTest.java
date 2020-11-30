@@ -115,11 +115,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
 
     @Test
-    public void should_return_a_500_and_when_performing_search() {
+    public void should_return_a_200_and_when_performing_search_when_caseId_correct_eventId_incorrect() {
 
         common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(null, null);
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), null);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -128,13 +129,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-            .body("message", equalTo("There was a problem performing the search"));
+            .body("tasks.size()", equalTo(0));
     }
 }
 
