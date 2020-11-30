@@ -1019,44 +1019,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_search_call_fails() {
-            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN,PermissionTypes.MANAGE);
-            Assignment mockedRoleAssignment = mock(Assignment.class);
-            UserInfo mockedUserInfo = mock(UserInfo.class);
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
-
-
-            AccessControlResponse accessControlResponse = new AccessControlResponse(
-                mockedUserInfo, singletonList(mockedRoleAssignment)
-            );
-
-            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
-            CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
-
-
-            when(camundaQueryBuilder.createCompletionQuery(eq(searchEventAndCase.getCaseId()), anyObject()))
-                .thenReturn(camundaSearchQuery);
-            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN),
-            any())).thenThrow(FeignException.class);
-
-            assertThatThrownBy(() ->
-                                   camundaService.searchForCompletableTasksUsingEventAndCaseId(
-                                       searchEventAndCase,
-                                       permissionsRequired,
-                                       accessControlResponse)
-            )
-                .isInstanceOf(ServerErrorException.class)
-                .hasMessage("There was a problem performing the search")
-                .hasCauseInstanceOf(FeignException.class);
-        }
-
-        @Test
         void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_dmn_evaluating_fails() {
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN,PermissionTypes.MANAGE);
             Assignment mockedRoleAssignment = mock(Assignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo,
