@@ -70,7 +70,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmBAuthorization()
         );
 
         result.then().assertThat()

@@ -54,7 +54,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmBAuthorization()
         );
 
         result.then().assertThat()

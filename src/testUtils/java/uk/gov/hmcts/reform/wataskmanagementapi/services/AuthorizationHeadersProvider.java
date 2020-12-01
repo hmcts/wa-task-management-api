@@ -75,12 +75,12 @@ public class AuthorizationHeadersProvider {
     }
 
 
-    public Headers getLawFirmAAuthorization() {
+    public Headers getLawFirmBAuthorization() {
         /*
          * No Role assignment
          */
         return new Headers(
-            getLawFirmAAuthorizationOnly(),
+            getLawFirmBAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
     }
@@ -105,12 +105,12 @@ public class AuthorizationHeadersProvider {
     }
 
 
-    public Header getLawFirmAAuthorizationOnly() {
+    public Header getLawFirmBAuthorizationOnly() {
 
-        String username = System.getenv("TEST_LAW_FIRM_A_USERNAME");
-        String password = System.getenv("TEST_LAW_FIRM_A_PASSWORD");
+        String username = System.getenv("TEST_LAW_FIRM_B_USERNAME");
+        String password = System.getenv("TEST_LAW_FIRM_B_PASSWORD");
 
-        return getAuthorization("LawFirmA", username, password);
+        return getAuthorization("LawFirmB", username, password);
 
     }
 

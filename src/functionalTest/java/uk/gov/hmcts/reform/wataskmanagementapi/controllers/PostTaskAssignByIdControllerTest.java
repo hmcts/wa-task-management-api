@@ -83,7 +83,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             new AssigneeRequest(assigneeId),
             APPLICATION_JSON_VALUE,
             APPLICATION_JSON_VALUE,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmBAuthorization()
         );
 
         result.then().assertThat()
