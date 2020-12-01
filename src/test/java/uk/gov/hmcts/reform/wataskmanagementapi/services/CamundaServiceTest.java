@@ -1053,7 +1053,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
         @Test
         void should_auto_complete_and_return_empty_array() {
-            UserInfo mockedUserInfo = mock(UserInfo.class);
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
             when(searchEventAndCase.getEventId()).thenReturn("eventId");
@@ -1062,9 +1061,13 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
 
             String dmnId = "completeTask_IA_Asylum";
-            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(new ArrayList<>());
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN),
+                                               eq(dmnId),
+                                               anyObject()))
+                .thenReturn(new ArrayList<>());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
             );
