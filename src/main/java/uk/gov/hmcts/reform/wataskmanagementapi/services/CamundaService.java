@@ -239,17 +239,22 @@ public class CamundaService {
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
                 .collect(Collectors.toList());
 
-            CamundaSearchQuery camundaSearchQuery =
-                camundaQueryBuilder.createCompletionQuery(
-                    searchEventAndCase.getCaseId(),
-                    taskTypes);
 
+            if (taskTypes.isEmpty()) {
+                return new ArrayList<>();
+            } else {
+                CamundaSearchQuery camundaSearchQuery =
+                    camundaQueryBuilder.createCompletionQuery(
+                        searchEventAndCase.getCaseId(),
+                        taskTypes
+                    );
 
-            return performSearchForCompletableTasksUsingEventAndCaseId(
-                permissionsRequired,
-                accessControlResponse,
-                camundaSearchQuery
-            );
+                return performSearchForCompletableTasksUsingEventAndCaseId(
+                    permissionsRequired,
+                    accessControlResponse,
+                    camundaSearchQuery
+                );
+            }
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }

@@ -141,9 +141,9 @@ public class CamundaQueryBuilder {
                                 SearchOperator.IN, asList(ASSIGNED.value(),UNASSIGNED.value(),REFERRED.value())));
 
         return camundaQuery()
-            .andQuery(caseIdQueries)
             .andQuery(taskTypeQueries)
             .andQuery(stateQueries)
+            .andQuery(caseIdQueries)
             .build();
 
     }
