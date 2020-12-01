@@ -29,7 +29,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getLawFirmAAuthorization()
+            authorizationHeadersProvider.getLawFirmBAuthorization()
         );
 
         result.then().assertThat()
