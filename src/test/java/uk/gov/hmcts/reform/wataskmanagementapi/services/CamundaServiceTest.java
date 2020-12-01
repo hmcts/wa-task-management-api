@@ -1051,6 +1051,35 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .hasCauseInstanceOf(FeignException.class);
         }
 
+        @Test
+        void should_auto_complete_and_return_empty_array() {
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+
+            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+            when(searchEventAndCase.getEventId()).thenReturn("eventId");
+
+            Map<String, CamundaVariable> body = new HashMap<>();
+            body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
+
+            String dmnId = "completeTask_IA_Asylum";
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(new ArrayList<>());
+
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
+            List<Task> tasks = camundaService.searchForCompletableTasksUsingEventAndCaseId(
+                searchEventAndCase,
+                permissionsRequired,
+                accessControlResponse);
+
+
+            assertNotNull(tasks);
+            assertEquals(0, tasks.size());
+        }
+
 
     }
 
