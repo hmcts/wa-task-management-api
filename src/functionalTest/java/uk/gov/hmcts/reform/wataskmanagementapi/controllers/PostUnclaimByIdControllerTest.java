@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -21,14 +22,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
+    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
+    private String taskId;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        taskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            nonExistentTaskId,
+            taskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
@@ -42,18 +45,18 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
                 "There was a problem fetching the task with id: %s",
-                nonExistentTaskId
+                taskId
             )));
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             authorizationHeadersProvider.getLawFirmBAuthorization()
         );
 
@@ -71,40 +74,36 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
-
         Map<String, String> task = setupScenario(headers);
+        taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             headers
 
         );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "unassigned");
-
-
+        assertions.taskVariableWasUpdated(taskId, "taskState", "unassigned");
     }
 
     @Test
     public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_credentials() {
-
-
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
+        taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
-            task.get("taskId"),
+            taskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
-
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
@@ -114,7 +113,6 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("Task was not claimed by this user"));
-
     }
 
     @Test
@@ -122,12 +120,13 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
 
         Map<String, String> task = setupScenario(headers);
+        taskId = task.get("taskId");
 
         common.updateTaskWithCustomVariablesOverride(task, Map.of(REGION, "north-england"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             headers
 
         );
@@ -140,22 +139,27 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
-                format("User did not have sufficient permissions to unclaim task with id: %s", task.get("taskId"))
+                format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
             ));
     }
 
     private Map<String, String> setupScenario(Headers headers) {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
-            task.get("taskId"),
+            taskId,
             headers
         );
 
         return task;
-
     }
 
+    @After
+    public void cleanUp() {
+        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
+                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+    }
 
 }
 

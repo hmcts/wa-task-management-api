@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Header;
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -19,15 +21,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
+    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
+    private String taskId;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        taskId = "00000000-0000-0000-0000-000000000000";
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            nonExistentTaskId,
+            taskId,
             new AssigneeRequest(assigneeId),
             APPLICATION_JSON_VALUE,
             APPLICATION_JSON_VALUE,
@@ -44,7 +48,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
                 LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
-                nonExistentTaskId
+                taskId
             )));
     }
 
@@ -55,11 +59,12 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             new AssigneeRequest(assigneeId),
             APPLICATION_JSON_VALUE,
             APPLICATION_JSON_VALUE,
@@ -69,17 +74,18 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "assigned");
+        assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             new AssigneeRequest(assigneeId),
             APPLICATION_JSON_VALUE,
             APPLICATION_JSON_VALUE,
@@ -100,9 +106,9 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
         String noManagePermission = "Read,Refer,Own,Cancel";
         Map<String, String> task = common.setupTaskAndRetrieveIds(noManagePermission);
+        taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
-        String taskId = task.get("taskId");
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -127,9 +133,9 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
         String noOwnPermission = "Read,Refer,Manage,Cancel";
         Map<String, String> task = common.setupTaskAndRetrieveIds(noOwnPermission);
+        taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
-        String taskId = task.get("taskId");
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -150,5 +156,10 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
                   equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
     }
 
+    @After
+    public void cleanUp() {
+        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
+                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+    }
 }
 
