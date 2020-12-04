@@ -44,74 +44,67 @@ To build the project execute the following command:
 ```bash
   ./gradlew build
 ```
+This will do compilation, checkstyle, PMD checks , run tests , but not integration or functional tests.
 
 ### Running the application
 
-Create the image of the application by executing the following command:
+- Prerequisite:
+    - Check if services are running in minikube, if not follow the README in
+    https://github.com/hmcts/wa-kube-environment
+    - Check if minikube IP is set as environment variable.
+        ```
+        echo $OPEN_ID_IDAM_URL
+        ```
+        You should see the ip and port as output, eg: http://192.168.64.14:30196.
+        If you do not see, then from your wa-kube-enviroment map environment variables
+        ```
+        source .env
+        ```
+- You can either run as Java Application from run configurations or
+    ```bash
+      ./gradlew clean bootRun
+    ```
+- In order to test if the application is up, you can call its health endpoint:
 
-```bash
-  ./gradlew assemble
-```
+    ```bash
+      curl http://localhost:8090/health
+    ```
 
-Create docker image:
+    You should get a response similar to this:
 
-```bash
-  docker-compose build
-```
+    ```
+      {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
+    ```
 
-Run the distribution (created in `build/install/wa-task-management-api` directory)
-by executing the following command:
+- To access any service endpoint, you must set headers Service Authorization, Authorization
+    - To set Service Authorization header, from wa-kube-environment Goto wa-kube-environment/scripts/actions
+       and execute command
+       ```
+        ./idam-service-token.sh wa_task_management_api
+       ```
+      The command will generate a long token prefixed with your name. Copy the token till the name and set in Service Authorization header
+      Service Authorization: Bearer 'your token'
+    - To set Authorization header, from the same path execute command
+       ```
+        ./idam-user-token.sh "${TEST_CASEOFFICER_USERNAME}" "${TEST_CASEOFFICER_PASSWORD}"
+       ```
+      The command should generate a long token, copy the whole token and set in Authoirization header
+      Authorization: Bearer 'your token'
+      Note: if the command returns null, then make sure the environment variable is set and
+      you have sourced the environment variables.
 
-```bash
-  docker-compose up
-```
-
-This will start the API container exposing the application's port
-(set to `8090` in this template app).
-
-In order to test if the application is up, you can call its health endpoint:
-
-```bash
-  curl http://localhost:8090/health
-```
-
-You should get a response similar to this:
-
-```
-  {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
-```
-
-### Alternative script to run application
-
-To skip all the setting up and building, just execute the following command:
-
-```bash
-./bin/run-in-docker.sh
-```
-
-For more information:
-
-```bash
-./bin/run-in-docker.sh -h
-```
-
-Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
-
-```bash
-docker-compose rm
-```
-
-It clears stopped containers correctly. Might consider removing clutter of images too, especially the ones fiddled with:
-
-```bash
-docker images
-
-docker image rm <image-id>
-```
-
-There is no need to remove postgres and java or similar core images.
-
-
+- To run all functional tests or single test you can run as Junit, make sure the env is set
+    ```
+        OPEN_ID_IDAM_URL=http://'minikubeIP:port'
+    ```
+ - To run all tests including junit, integration and functional. You can run the command
+    ```
+        ./gradlew test integration functional
+    ```
+   or
+       ```
+           ./gradlew tests
+       ```
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
