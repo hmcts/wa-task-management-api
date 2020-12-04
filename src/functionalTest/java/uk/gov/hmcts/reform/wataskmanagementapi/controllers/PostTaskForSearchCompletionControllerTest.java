@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Test;
@@ -21,7 +20,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/completableByCaseEvent";
-    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private String taskId;
 
     @Test
@@ -136,8 +134,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @After
     public void cleanUp() {
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+        common.cleanUpTask(taskId);
     }
 }
 

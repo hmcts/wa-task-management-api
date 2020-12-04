@@ -52,7 +52,7 @@ public abstract class SpringBootFunctionalBaseTest {
             restApiActions,
             authorizationHeadersProvider
         );
-        common = new Common(caseIdGenerator, given);
+        common = new Common(caseIdGenerator, given, camundaApiActions, authorizationHeadersProvider);
 
     }
 

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -35,7 +34,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
-    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private String taskId;
 
     @Test
@@ -94,8 +92,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(task.get("caseId")))
             .body("tasks.id", hasItem(taskId));
 
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -126,8 +123,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")));
 
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -155,9 +151,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(0));
 
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
-
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -191,8 +185,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")));
 
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -224,10 +217,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         tasksCreated.stream()
             .map(map -> map.get("taskId"))
-            .forEach(task -> camundaApiActions
-                .post(ENDPOINT_COMPLETE_TASK, task,
-                      new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
-                ));
+            .forEach(task -> common.cleanUpTask(task));
     }
 
     @Test
@@ -255,8 +245,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.size()", equalTo(0));
 
         tasksCreated.stream()
-            .map(map -> map.get("taskId")).forEach(task -> camundaApiActions.post(
-            ENDPOINT_COMPLETE_TASK, task, new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())));
+            .map(map -> map.get("taskId")).forEach(task -> common.cleanUpTask(task));
 
     }
 

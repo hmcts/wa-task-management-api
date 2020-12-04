@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Test;
@@ -23,16 +22,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
-    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private String taskId;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        taskId = "00000000-0000-0000-0000-000000000000";
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        taskId = nonExistentTaskId;
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskId,
+            nonExistentTaskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
@@ -46,7 +45,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
                 LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
-                taskId
+                nonExistentTaskId
             )));
     }
 
@@ -211,8 +210,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void cleanUp() {
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+        common.cleanUpTask(taskId);
     }
 }
 

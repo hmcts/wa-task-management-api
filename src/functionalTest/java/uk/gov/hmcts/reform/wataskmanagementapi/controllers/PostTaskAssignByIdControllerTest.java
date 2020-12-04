@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Header;
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Test;
@@ -21,17 +20,17 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
-    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private String taskId;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        taskId = "00000000-0000-0000-0000-000000000000";
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        taskId = nonExistentTaskId;
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskId,
+            nonExistentTaskId,
             new AssigneeRequest(assigneeId),
             APPLICATION_JSON_VALUE,
             APPLICATION_JSON_VALUE,
@@ -48,7 +47,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
                 LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
-                taskId
+                nonExistentTaskId
             )));
     }
 
@@ -158,8 +157,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @After
     public void cleanUp() {
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader()));
+        common.cleanUpTask(taskId);
     }
 }
 

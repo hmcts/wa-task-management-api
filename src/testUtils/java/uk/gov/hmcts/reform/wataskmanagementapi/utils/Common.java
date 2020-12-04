@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseIdGenerator;
 
 import java.util.HashMap;
@@ -15,13 +17,18 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class Common {
 
     public static final String TRIBUNAL_CASEWORKER_PERMISSIONS = "Read,Refer,Own,Manage,Cancel";
+    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private final CaseIdGenerator caseIdGenerator;
-
     private final GivensBuilder given;
+    private final RestApiActions camundaApiActions;
+    private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public Common(CaseIdGenerator caseIdGenerator, GivensBuilder given) {
+    public Common(CaseIdGenerator caseIdGenerator, GivensBuilder given,
+                  RestApiActions camundaApiActions, AuthorizationHeadersProvider authorizationHeadersProvider) {
         this.caseIdGenerator = caseIdGenerator;
         this.given = given;
+        this.camundaApiActions = camundaApiActions;
+        this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariablesOverride(
@@ -111,6 +118,11 @@ public class Common {
             "taskId", response.get(0).getId()
         );
 
+    }
+
+    public void cleanUpTask(String taskId) {
+        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
+                               authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
     }
 
 
