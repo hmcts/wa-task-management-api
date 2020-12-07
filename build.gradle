@@ -214,6 +214,8 @@ dependencyManagement {
     dependencySet(group: 'com.google.guava', version: '29.0-jre') {
       entry 'guava'
     }
+    // 
+    dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
   }
 }
 
