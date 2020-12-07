@@ -97,6 +97,8 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
     ```
         OPEN_ID_IDAM_URL=http://'minikubeIP:port'
     ```
+  Note: Make sure the BPMN and DMN are deployed onto Camunda locally.
+
  - To run all tests including junit, integration and functional. You can run the command
     ```
         ./gradlew test integration functional
