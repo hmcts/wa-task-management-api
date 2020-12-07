@@ -56,7 +56,7 @@ public class CamundaService {
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CamundaObjectMapper camundaObjectMapper;
 
-    private static final String DMN_KEY = "completeTask_IA_Asylum";
+    private static final String WA_TASK_COMPLETION_DMN_KEY = "wa-task-completion-ia-asylum";
     private static final boolean ACCESS_FLAG = true;
 
     @Autowired
@@ -233,7 +233,7 @@ public class CamundaService {
             // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
             List<Map<String, CamundaVariable>> evaluateDmnResult =
                 camundaServiceApi.evaluateDMN(authTokenGenerator.generate(),
-                                              DMN_KEY, dmnRequest);
+                    WA_TASK_COMPLETION_DMN_KEY, dmnRequest);
 
             List<String> taskTypes = evaluateDmnResult.stream()
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
