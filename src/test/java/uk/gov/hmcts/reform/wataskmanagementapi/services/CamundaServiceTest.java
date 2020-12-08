@@ -53,6 +53,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService.WA_TASK_COMPLETION_DMN_KEY;
 
 
 class CamundaServiceTest extends CamundaServiceBaseTest {
@@ -99,7 +100,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         );
     }
 
-    private List<Map<String, CamundaVariable>>  mockDMN() {
+    private List<Map<String, CamundaVariable>> mockDMN() {
 
         //A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
         List<Map<String, CamundaVariable>> array = new ArrayList<>();
@@ -548,8 +549,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
-            UserInfo mockedUserInfo = new UserInfo("email","someCamundaTaskAssignee",
-                                                   new ArrayList<String>(),"name","givenName","familyName");
+            UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
+                new ArrayList<String>(), "name", "givenName", "familyName");
 
             List<PermissionTypes> permissionsRequired = asList(MANAGE);
 
@@ -584,8 +585,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
-            UserInfo mockedUserInfo = new UserInfo("email","anot",
-                                                   new ArrayList<String>(),"name","givenName","familyName");
+            UserInfo mockedUserInfo = new UserInfo("email", "anot",
+                new ArrayList<String>(), "name", "givenName", "familyName");
 
             List<PermissionTypes> permissionsRequired = asList(MANAGE);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
@@ -593,7 +594,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             );
 
             when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(createMockCamundaTask());
-
 
 
             assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
@@ -608,8 +608,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             String exceptionMessage = "some exception message";
             Assignment mockedRoleAssignment = mock(Assignment.class);
 
-            UserInfo mockedUserInfo = new UserInfo("email","someCamundaTaskAssignee",
-                                                   new ArrayList<String>(),"name","givenName","familyName");
+            UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
+                new ArrayList<String>(), "name", "givenName", "familyName");
 
 
             List<PermissionTypes> permissionsRequired = asList(MANAGE);
@@ -644,8 +644,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
-            UserInfo mockedUserInfo = new UserInfo("email","someCamundaTaskAssignee",
-                                                   new ArrayList<String>(),"name","givenName","familyName");
+            UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
+                new ArrayList<String>(), "name", "givenName", "familyName");
 
 
             List<PermissionTypes> permissionsRequired = asList(MANAGE);
@@ -922,8 +922,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Map<String, CamundaVariable> body = new HashMap<>();
             body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
 
-            String dmnId = "completeTask_IA_Asylum";
-            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(mockDMN());
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN),
+                eq(WA_TASK_COMPLETION_DMN_KEY),
+                any())
+            ).thenReturn(mockDMN());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
@@ -980,11 +982,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(searchEventAndCase.getCaseId()).thenReturn("caseId");
             when(searchEventAndCase.getEventId()).thenReturn("eventId");
 
-            Map<String, CamundaVariable> body = new HashMap<>();
-            body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
-
-            String dmnId = "completeTask_IA_Asylum";
-            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(dmnId), anyObject())).thenReturn(mockDMN());
+            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN),
+                eq(WA_TASK_COMPLETION_DMN_KEY),
+                any())
+            ).thenReturn(mockDMN());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
@@ -1020,7 +1021,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
         @Test
         void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_dmn_evaluating_fails() {
-            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN,PermissionTypes.MANAGE);
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
             Assignment mockedRoleAssignment = mock(Assignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
@@ -1039,12 +1040,11 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenThrow(exception);
 
 
-
             assertThatThrownBy(() ->
-                                   camundaService.searchForCompletableTasksUsingEventAndCaseId(
-                                       searchEventAndCase,
-                                       permissionsRequired,
-                                       accessControlResponse)
+                camundaService.searchForCompletableTasksUsingEventAndCaseId(
+                    searchEventAndCase,
+                    permissionsRequired,
+                    accessControlResponse)
             )
                 .isInstanceOf(ServerErrorException.class)
                 .hasMessage("There was a problem evaluating DMN")
@@ -1060,10 +1060,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Map<String, CamundaVariable> body = new HashMap<>();
             body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
 
-            String dmnId = "completeTask_IA_Asylum";
             when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN),
-                                               eq(dmnId),
-                                               anyObject()))
+                eq(WA_TASK_COMPLETION_DMN_KEY),
+                anyObject()))
                 .thenReturn(new ArrayList<>());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -1085,8 +1084,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
 
     }
-
-
 
 
 }
