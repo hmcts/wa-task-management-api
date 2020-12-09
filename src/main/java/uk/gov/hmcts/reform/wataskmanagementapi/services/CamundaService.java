@@ -47,6 +47,9 @@ public class CamundaService {
         "User did not have sufficient permissions to assign task with id: %s";
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK =
         "User did not have sufficient permissions to claim task with id: %s";
+    public static final String WA_TASK_COMPLETION_DMN_KEY = "wa-task-completion-ia-asylum";
+
+    private static final boolean ACCESS_FLAG = true;
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -55,9 +58,6 @@ public class CamundaService {
     private final AuthTokenGenerator authTokenGenerator;
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CamundaObjectMapper camundaObjectMapper;
-
-    private static final String DMN_KEY = "completeTask_IA_Asylum";
-    private static final boolean ACCESS_FLAG = true;
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
@@ -228,12 +228,15 @@ public class CamundaService {
         try {
             Map<String, CamundaVariable> eventVariable = new HashMap<>();
             eventVariable.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "String"));
-            Map<String,Map<String,CamundaVariable>> dmnRequest = new HashMap<>();
+            Map<String, Map<String, CamundaVariable>> dmnRequest = new HashMap<>();
             dmnRequest.put("variables", eventVariable);
             // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
             List<Map<String, CamundaVariable>> evaluateDmnResult =
-                camundaServiceApi.evaluateDMN(authTokenGenerator.generate(),
-                                              DMN_KEY, dmnRequest);
+                camundaServiceApi.evaluateDMN(
+                    authTokenGenerator.generate(),
+                    WA_TASK_COMPLETION_DMN_KEY,
+                    dmnRequest
+                );
 
             List<String> taskTypes = evaluateDmnResult.stream()
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
@@ -322,7 +325,6 @@ public class CamundaService {
     private List<Task> performSearchAction(CamundaSearchQuery query,
                                            List<Assignment> roleAssignments,
                                            List<PermissionTypes> permissionsRequired) {
-
 
 
         List<Task> response = new ArrayList<>();
