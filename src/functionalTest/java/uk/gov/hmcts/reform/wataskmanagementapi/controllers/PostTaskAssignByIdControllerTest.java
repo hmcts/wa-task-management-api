@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Header;
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -25,7 +24,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        taskId = nonExistentTaskId;
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
@@ -58,7 +56,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
@@ -74,12 +72,14 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerBAuthorizationOnly());
         Response result = restApiActions.post(
@@ -99,13 +99,15 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
         String noManagePermission = "Read,Refer,Own,Cancel";
         Map<String, String> task = common.setupTaskAndRetrieveIds(noManagePermission);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
         Response result = restApiActions.post(
@@ -126,13 +128,15 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message",
                   equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
         String noOwnPermission = "Read,Refer,Manage,Cancel";
         Map<String, String> task = common.setupTaskAndRetrieveIds(noOwnPermission);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         String assigneeId = getAssigneeId(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly());
         Response result = restApiActions.post(
@@ -153,11 +157,9 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message",
                   equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
-    }
 
-    @After
-    public void cleanUp() {
         common.cleanUpTask(taskId);
     }
+
 }
 

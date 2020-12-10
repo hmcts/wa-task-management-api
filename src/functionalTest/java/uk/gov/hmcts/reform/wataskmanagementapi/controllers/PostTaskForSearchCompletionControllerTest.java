@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -25,7 +24,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     @Test
     public void should_return_a_401_when_the_user_is_unauthorised() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "requestRespondentEvidence");
 
@@ -43,6 +42,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -56,7 +57,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "requestRespondentEvidence");
 
@@ -73,12 +74,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].case_id", equalTo(task.get("caseId")))
             .body("tasks[0].id", equalTo(task.get("taskId")))
             .body("tasks[0].type", equalTo("ReviewTheAppeal"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "no_event_id");
 
@@ -92,12 +95,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), "reviewHearingRequirements");
 
@@ -111,12 +116,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_and_when_performing_search_when_caseId_correct_eventId_incorrect() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(task.get("caseId"), null);
 
@@ -130,11 +137,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
-    }
 
-    @After
-    public void cleanUp() {
         common.cleanUpTask(taskId);
     }
+
 }
 

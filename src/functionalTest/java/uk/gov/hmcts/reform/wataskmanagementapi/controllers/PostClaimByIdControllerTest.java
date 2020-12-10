@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,12 +21,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
-    private String taskId;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        taskId = nonExistentTaskId;
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -52,7 +49,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -68,12 +65,14 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_204_when_claiming_a_task_by_id() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -85,12 +84,14 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void endpoint_should_be_idempotent_should_return_a_204_when_claiming_a_task_by_id() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -113,12 +114,14 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -143,12 +146,14 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Task '%s' is already claimed by someone else.",
                 taskId
             )));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -166,12 +171,14 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("message", equalTo(
                 format("User did not have sufficient permissions to claim task with id: %s", taskId)
             ));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_204_and_claim_a_task_by_id_jurisdiction_location_and_region_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -183,12 +190,13 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
 
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -206,11 +214,9 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("message", equalTo(
                 format("User did not have sufficient permissions to claim task with id: %s", taskId)
             ));
-    }
 
-    @After
-    public void cleanUp() {
         common.cleanUpTask(taskId);
     }
+
 }
 

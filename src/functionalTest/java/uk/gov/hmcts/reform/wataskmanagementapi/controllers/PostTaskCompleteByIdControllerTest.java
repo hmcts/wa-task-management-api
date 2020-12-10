@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -26,7 +25,6 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        taskId = nonExistentTaskId;
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -51,7 +49,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -63,12 +61,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "completed");
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -84,12 +84,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -107,12 +109,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("message", equalTo(
                 format("User did not have sufficient permissions to complete task with id: %s", taskId)
             ));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -122,12 +126,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -145,11 +151,9 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("message", equalTo(
                 format("User did not have sufficient permissions to complete task with id: %s", taskId)
             ));
-    }
 
-    @After
-    public void cleanUp() {
         common.cleanUpTask(taskId);
     }
+
 }
 

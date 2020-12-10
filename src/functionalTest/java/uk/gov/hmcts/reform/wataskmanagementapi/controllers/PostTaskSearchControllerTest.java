@@ -74,7 +74,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -103,7 +103,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -134,7 +134,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -163,7 +163,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),

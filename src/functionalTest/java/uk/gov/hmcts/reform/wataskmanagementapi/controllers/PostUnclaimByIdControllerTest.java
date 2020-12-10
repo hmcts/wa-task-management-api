@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -27,7 +26,6 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        taskId = nonExistentTaskId;
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -52,7 +50,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -69,13 +67,15 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
         Map<String, String> task = setupScenario(headers);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -87,12 +87,14 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "unassigned");
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_credentials() {
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -113,6 +115,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("Task was not claimed by this user"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -120,7 +124,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
 
         Map<String, String> task = setupScenario(headers);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         common.updateTaskWithCustomVariablesOverride(task, Map.of(REGION, "north-england"));
 
@@ -141,11 +145,13 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("message", equalTo(
                 format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
             ));
+
+        common.cleanUpTask(taskId);
     }
 
     private Map<String, String> setupScenario(Headers headers) {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        taskId = task.get("taskId");
+        var taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -153,11 +159,6 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         );
 
         return task;
-    }
-
-    @After
-    public void cleanUp() {
-        common.cleanUpTask(taskId);
     }
 
 }
