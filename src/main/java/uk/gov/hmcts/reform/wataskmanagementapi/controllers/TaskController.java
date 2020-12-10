@@ -29,6 +29,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -376,5 +377,46 @@ public class TaskController {
             .ok()
             .cacheControl(CacheControl.noCache())
             .body(new GetTasksResponse<>(tasks));
+    }
+
+    @ApiOperation("Cancel a Task identified by an id.")
+    @ApiResponses({
+        @ApiResponse(
+            code = 204,
+            message = "Task has been cancelled"
+        ),
+        @ApiResponse(
+            code = 400,
+            message = BAD_REQUEST
+        ),
+        @ApiResponse(
+            code = 403,
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
+            code = 415,
+            message = UNSUPPORTED_MEDIA_TYPE
+        ),
+        @ApiResponse(
+            code = 500,
+            message = INTERNAL_SERVER_ERROR
+        )
+    })
+    @PostMapping(path = "/{task-id}/cancel")
+    public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
+                                             @PathVariable(TASK_ID) String taskId) {
+        List<PermissionTypes> endpointPermissionsRequired = asList(CANCEL);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        camundaService.cancelTask(taskId, accessControlResponse, endpointPermissionsRequired);
+
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
     }
 }
