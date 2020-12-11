@@ -163,6 +163,12 @@ project.tasks['pitest'].group = "Verification"
 
 project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
 
+
+// Ensures that functional tests index page is generated
+// Functional tests should run two tasks "functional" and "aggregate"
+gradle.startParameter.continueOnFailure = true
+functional.finalizedBy aggregate
+
 sonarqube {
   properties {
     property "sonar.projectName", "Reform :: wa-task-management-api"
@@ -209,7 +215,7 @@ dependencyManagement {
     dependencySet(group: 'com.google.guava', version: '29.0-jre') {
       entry 'guava'
     }
-    // 
+    //
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
   }
 }
