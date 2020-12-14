@@ -94,26 +94,16 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_204_when_canelling_a_task_by_id() {
 
-/*        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        task.clear();
-        task.put("teamName", "Spurs");
+        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             task.get("taskId"),
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );*/
-
-        /*Response response = camundaApiActions.get(
-            "task?processInstanceId=d4390416-3a46-11eb-8b58-0242ac110013",
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
-        List<Object> taskId = response.then().extract().path("id");
 
-        Object task = taskId.get(0);*/
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
-        Map<String, String> map = new ConcurrentHashMap<>();
-        map.put("escalationCode", "spurs1234");
-        camundaApiActions.post("task/{task-id}/bpmnEscalation", "6f377767-3acb-11eb-b6b9-0242ac110013", map, authorizationHeadersProvider.getServiceAuthorizationHeader());
-    }
+     }
 }

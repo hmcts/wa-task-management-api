@@ -50,6 +50,7 @@ public class CamundaService {
     public static final String WA_TASK_COMPLETION_DMN_KEY = "wa-task-completion-ia-asylum";
 
     private static final boolean ACCESS_FLAG = true;
+    private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -461,6 +462,7 @@ public class CamundaService {
 
     private void performCancelTaskAction(String taskId) {
         Map<String, String> body = new ConcurrentHashMap<>();
+        body.put("escalationCode", ESCALATION_CODE);
         try {
             camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
