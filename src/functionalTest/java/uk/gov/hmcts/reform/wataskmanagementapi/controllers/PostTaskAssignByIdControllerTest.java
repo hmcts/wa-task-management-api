@@ -15,6 +15,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -73,7 +74,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -100,7 +101,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -129,7 +130,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("message",
                   equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -158,7 +159,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("message",
                   equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
 }

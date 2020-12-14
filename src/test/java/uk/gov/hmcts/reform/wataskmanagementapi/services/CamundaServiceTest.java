@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -1116,7 +1115,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired);
 
-            verify(camundaServiceApi).bpmnEscalation(BEARER_SERVICE_TOKEN, taskId, new ConcurrentHashMap<>());
+            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
         }
 
         @Test
@@ -1206,7 +1205,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
             doThrow(mock(FeignException.class))
-                .when(camundaServiceApi).bpmnEscalation(BEARER_SERVICE_TOKEN, taskId, new ConcurrentHashMap<>());
+                .when(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
 
             assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(ServerErrorException.class)

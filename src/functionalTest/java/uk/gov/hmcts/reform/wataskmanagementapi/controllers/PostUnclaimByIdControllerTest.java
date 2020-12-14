@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -68,7 +69,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -88,7 +89,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "unassigned");
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -116,7 +117,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("Task was not claimed by this user"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -146,7 +147,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                 format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     private Map<String, String> setupScenario(Headers headers) {
