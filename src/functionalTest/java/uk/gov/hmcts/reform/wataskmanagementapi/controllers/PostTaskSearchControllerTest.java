@@ -34,6 +34,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
+    private String taskId;
 
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
@@ -72,8 +73,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
-
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -89,18 +90,20 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")))
-            .body("tasks.id", hasItem(task.get("taskId")));
+            .body("tasks.id", hasItem(taskId));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
-
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324"
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -115,21 +118,23 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.id", hasItem(task.get("taskId")))
+            .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_with_empty_search_results_location_did_not_match() {
-
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "17595"
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -146,11 +151,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(0));
 
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_state_filters() {
-
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
@@ -158,6 +163,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        var taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -174,15 +180,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.id", hasItem(task.get("taskId")))
+            .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_multiple_state_filters() {
-
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
         List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
@@ -206,6 +213,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+
+
+        tasksCreated.stream()
+            .map(map -> map.get("taskId"))
+            .forEach(task -> common.cleanUpTask(task));
     }
 
     @Test
@@ -213,7 +225,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
-        createMultipleTasksWithDifferentTaskStates(taskStates);
+        List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(
+            taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS")),
@@ -230,6 +243,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(0));
+
+        tasksCreated.stream()
+            .map(map -> map.get("taskId")).forEach(task -> common.cleanUpTask(task));
+
     }
 
 
