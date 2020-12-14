@@ -21,6 +21,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
+    private String taskId;
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
@@ -48,12 +49,12 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             authorizationHeadersProvider.getLawFirmBAuthorization()
         );
 
@@ -66,45 +67,45 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_204_when_unclaiming_a_task_by_id() {
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
-
         Map<String, String> task = setupScenario(headers);
+        var taskId = task.get("taskId");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             headers
 
         );
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(task.get("taskId"), "taskState", "unassigned");
+        assertions.taskVariableWasUpdated(taskId, "taskState", "unassigned");
 
-
+        common.cleanUpTask(taskId);
     }
 
     @Test
     public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_credentials() {
-
-
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
+        var taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
-            task.get("taskId"),
+            taskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
-
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
@@ -115,6 +116,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo("Task was not claimed by this user"));
 
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -122,12 +124,13 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
 
         Map<String, String> task = setupScenario(headers);
+        var taskId = task.get("taskId");
 
         common.updateTaskWithCustomVariablesOverride(task, Map.of(REGION, "north-england"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            task.get("taskId"),
+            taskId,
             headers
 
         );
@@ -140,22 +143,23 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
-                format("User did not have sufficient permissions to unclaim task with id: %s", task.get("taskId"))
+                format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
             ));
+
+        common.cleanUpTask(taskId);
     }
 
     private Map<String, String> setupScenario(Headers headers) {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        var taskId = task.get("taskId");
 
         given.iClaimATaskWithIdAndAuthorization(
-            task.get("taskId"),
+            taskId,
             headers
         );
 
         return task;
-
     }
-
 
 }
 
