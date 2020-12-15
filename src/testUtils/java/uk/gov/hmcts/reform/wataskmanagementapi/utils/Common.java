@@ -1,27 +1,38 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
+import io.restassured.response.Response;
+import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseIdGenerator;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class Common {
 
     public static final String TRIBUNAL_CASEWORKER_PERMISSIONS = "Read,Refer,Own,Manage,Cancel";
+    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
+    private static final String ENDPOINT_HISTORY_TASK = "history/task";
     private final CaseIdGenerator caseIdGenerator;
-
     private final GivensBuilder given;
+    private final RestApiActions camundaApiActions;
+    private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public Common(CaseIdGenerator caseIdGenerator, GivensBuilder given) {
+    public Common(CaseIdGenerator caseIdGenerator, GivensBuilder given,
+                  RestApiActions camundaApiActions, AuthorizationHeadersProvider authorizationHeadersProvider) {
         this.caseIdGenerator = caseIdGenerator;
         this.given = given;
+        this.camundaApiActions = camundaApiActions;
+        this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariablesOverride(
@@ -113,5 +124,18 @@ public class Common {
 
     }
 
+    public void cleanUpTask(String taskId) {
+        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
+                               authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+
+        Response result = camundaApiActions.get(
+            ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("[0].deleteReason", is("completed"));
+    }
 
 }

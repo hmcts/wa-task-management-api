@@ -143,4 +143,8 @@ public class AuthorizationHeadersProvider {
     public UserInfo getUserInfo(String userToken) {
         return idamServiceApi.userInfo(userToken);
     }
+
+    public Headers getServiceAuthorizationHeadersOnly() {
+        return new Headers(getServiceAuthorizationHeader());
+    }
 }
