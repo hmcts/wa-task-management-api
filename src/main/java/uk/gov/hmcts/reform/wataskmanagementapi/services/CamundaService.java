@@ -50,6 +50,7 @@ public class CamundaService {
     public static final String WA_TASK_COMPLETION_DMN_KEY = "wa-task-completion-ia-asylum";
 
     private static final boolean ACCESS_FLAG = true;
+    private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -302,6 +303,26 @@ public class CamundaService {
         return variables;
     }
 
+    public void cancelTask(String taskId,
+                           AccessControlResponse accessControlResponse,
+                           List<PermissionTypes> permissionsRequired) {
+        requireNonNull(accessControlResponse.getUserInfo().getUid(), "UserId cannot be null");
+
+        Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+
+        boolean hasAccess = permissionEvaluatorService.hasAccess(
+            variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+        if (hasAccess) {
+            performCancelTaskAction(taskId);
+        } else {
+            throw new InsufficientPermissionsException(
+                String.format("User did not have sufficient permissions to cancel task with id: %s", taskId)
+            );
+        }
+
+    }
+
     private CamundaTask performGetCamundaTaskAction(String id) {
         try {
             return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
@@ -437,6 +458,19 @@ public class CamundaService {
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
         camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+    }
+
+    private void performCancelTaskAction(String taskId) {
+        Map<String, String> body = new ConcurrentHashMap<>();
+        body.put("escalationCode", ESCALATION_CODE);
+        try {
+            camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
+        } catch (FeignException ex) {
+            throw new ServerErrorException(String.format(
+                "There was a problem cancelling the task with id: %s",
+                taskId
+            ), ex);
+        }
     }
 
     private <T> T getVariableValue(CamundaVariable variable, Class<T> type) {

@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class Common {
 
     public static final String TRIBUNAL_CASEWORKER_PERMISSIONS = "Read,Refer,Own,Manage,Cancel";
+    public static final String REASON_COMPLETED = "completed";
+    public static final String REASON_DELETED = "deleted";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private static final String ENDPOINT_HISTORY_TASK = "history/task";
     private final CaseIdGenerator caseIdGenerator;
@@ -124,7 +126,7 @@ public class Common {
 
     }
 
-    public void cleanUpTask(String taskId) {
+    public void cleanUpTask(String taskId, String reason) {
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
                                authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
 
@@ -135,7 +137,7 @@ public class Common {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("[0].deleteReason", is("completed"));
+            .body("[0].deleteReason", is(reason));
     }
 
 }

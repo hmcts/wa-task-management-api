@@ -31,10 +31,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
-    private String taskId;
 
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
@@ -92,7 +92,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(task.get("caseId")))
             .body("tasks.id", hasItem(taskId));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -151,7 +151,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -185,7 +185,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(task.get("caseId")));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -206,6 +206,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.id", hasItems(tasksCreated.get(0).get("taskId"), tasksCreated.get(1).get("taskId")))
@@ -217,7 +218,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         tasksCreated.stream()
             .map(map -> map.get("taskId"))
-            .forEach(task -> common.cleanUpTask(task));
+            .forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
     }
 
     @Test
@@ -245,7 +246,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.size()", equalTo(0));
 
         tasksCreated.stream()
-            .map(map -> map.get("taskId")).forEach(task -> common.cleanUpTask(task));
+            .map(map -> map.get("taskId")).forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
 
     }
 

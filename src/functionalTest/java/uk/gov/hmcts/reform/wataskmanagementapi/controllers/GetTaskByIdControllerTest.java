@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -67,7 +68,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, Common.REASON_COMPLETED);
     }
 
     @Test
@@ -87,7 +88,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -112,7 +113,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 format("User did not have sufficient permissions to access task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -132,7 +133,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -157,7 +158,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 format("User did not have sufficient permissions to access task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
 }

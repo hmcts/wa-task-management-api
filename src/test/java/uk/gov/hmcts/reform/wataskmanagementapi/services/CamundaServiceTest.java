@@ -48,6 +48,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
@@ -1082,6 +1083,138 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertEquals(0, tasks.size());
         }
 
+
+    }
+
+    @Nested
+    @DisplayName("cancelTask()")
+    class CancelTask {
+
+        @Test
+        void should_cancel_task() {
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            List<PermissionTypes> permissionsRequired = singletonList(CANCEL);
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
+            )).thenReturn(true);
+
+            camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired);
+
+            verify(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+        }
+
+        @Test
+        void cancelTask_should_throw_resource_not_found_exception_when_getVariables_threw_exception() {
+
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            List<PermissionTypes> permissionsRequired = asList(CANCEL);
+            AccessControlResponse accessControlResponse =
+                new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+
+            TestFeignClientException exception =
+                new TestFeignClientException(
+                    HttpStatus.NOT_FOUND.value(),
+                    HttpStatus.NOT_FOUND.getReasonPhrase()
+                );
+
+            doThrow(exception)
+                .when(camundaServiceApi).getVariables(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+
+            assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(String.format(
+                    EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
+                    taskId
+                ));
+
+        }
+
+        @Test
+        void cancelTask_should_throw_insufficient_permissions_exception_when_user_did_not_have_enough_permission() {
+
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            List<PermissionTypes> permissionsRequired = asList(CANCEL);
+            AccessControlResponse accessControlResponse =
+                new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                singletonList(mockedRoleAssignment),
+                permissionsRequired
+            )).thenReturn(false);
+
+
+            assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(InsufficientPermissionsException.class)
+                .hasNoCause()
+                .hasMessage(
+                    String.format("User did not have sufficient permissions to cancel task with id: %s", taskId));
+        }
+
+        @Test
+        void cancelTask_should_throw_a_server_error_exception_when_completing_task_fails() {
+
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            List<PermissionTypes> permissionsRequired = singletonList(CANCEL);
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
+            )).thenReturn(true);
+
+            doThrow(mock(FeignException.class))
+                .when(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
+
+            assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(ServerErrorException.class)
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(String.format(
+                    "There was a problem cancelling the task with id: %s",
+                    taskId));
+
+        }
 
     }
 

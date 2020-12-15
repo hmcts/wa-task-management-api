@@ -17,6 +17,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -66,7 +67,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -85,7 +86,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -115,7 +116,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -147,7 +148,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 taskId
             )));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -172,7 +173,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 format("User did not have sufficient permissions to claim task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -190,7 +191,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
         assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -215,7 +216,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 format("User did not have sufficient permissions to claim task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
 }

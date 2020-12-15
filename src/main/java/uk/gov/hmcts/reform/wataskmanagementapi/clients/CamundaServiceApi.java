@@ -114,4 +114,13 @@ public interface CamundaServiceApi {
     Map<String, CamundaVariable> getVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                               @PathVariable("task-id") String id);
 
+    @PostMapping(
+        value = "/task/{task-id}/bpmnEscalation",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    void bpmnEscalation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                    @PathVariable("task-id") String id,
+                    @RequestBody Map<String, String> body);
+
+
 }

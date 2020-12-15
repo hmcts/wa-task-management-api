@@ -160,4 +160,12 @@ class TaskControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
+
+    @Test
+    void should_cancel_a_task() {
+        String taskId = UUID.randomUUID().toString();
+        ResponseEntity response = taskController.cancelTask(IDAM_AUTH_TOKEN, taskId);
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
 }

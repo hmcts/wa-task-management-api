@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -62,7 +63,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         assertions.taskVariableWasUpdated(taskId, "taskState", "completed");
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -85,7 +86,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -110,7 +111,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 format("User did not have sufficient permissions to complete task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -127,7 +128,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -152,7 +153,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
                 format("User did not have sufficient permissions to complete task with id: %s", taskId)
             ));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
 }

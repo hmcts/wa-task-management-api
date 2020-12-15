@@ -15,6 +15,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -43,7 +44,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -75,7 +76,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].id", equalTo(task.get("taskId")))
             .body("tasks[0].type", equalTo("ReviewTheAppeal"));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -96,7 +97,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -117,7 +118,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
@@ -138,7 +139,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
 }
