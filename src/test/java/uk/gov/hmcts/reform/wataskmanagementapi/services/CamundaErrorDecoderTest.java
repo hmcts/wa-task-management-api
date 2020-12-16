@@ -105,4 +105,15 @@ class CamundaErrorDecoderTest {
             .hasMessage("Some error message.")
             .hasRootCauseInstanceOf(FeignException.class);
     }
+
+    @Test
+    void should_throw_an_illegal_argument_exception_when_there_content_is_empty() {
+        FeignException mockedException = mock(FeignException.class);
+
+        when(mockedException.contentUTF8()).thenReturn("");
+
+        assertThatThrownBy(() -> camundaErrorDecoder.decodeException(mockedException))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
 }

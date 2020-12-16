@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
 class CamundaObjectMapperTest {
@@ -76,5 +77,11 @@ class CamundaObjectMapperTest {
                           + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
                           + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
+    }
+
+    @Test
+    void should_throw_IllegalArgumentException_when_invalid_object_is_passed() {
+        assertThrows(IllegalArgumentException.class, () ->
+            camundaObjectMapper.asCamundaJsonString(new Object()));
     }
 }
