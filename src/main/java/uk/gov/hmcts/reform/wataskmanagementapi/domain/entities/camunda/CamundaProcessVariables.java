@@ -33,7 +33,7 @@ public class CamundaProcessVariables {
             return this;
         }
 
-        public ProcessVariablesBuilder withProcessVariablBooleane(String key, boolean value) {
+        public ProcessVariablesBuilder withProcessVariableBoolean(String key, boolean value) {
             processVariablesMap.put(key, booleanValue(value));
             return this;
         }
