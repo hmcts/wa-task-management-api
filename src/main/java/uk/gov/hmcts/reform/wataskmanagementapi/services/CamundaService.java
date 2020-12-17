@@ -466,10 +466,7 @@ public class CamundaService {
         try {
             camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
         } catch (FeignException ex) {
-            throw new ServerErrorException(String.format(
-                "There was a problem cancelling the task with id: %s",
-                taskId
-            ), ex);
+            camundaErrorDecoder.decodeException(ex);
         }
     }
 

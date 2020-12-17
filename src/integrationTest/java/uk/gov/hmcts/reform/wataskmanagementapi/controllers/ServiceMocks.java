@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import org.springframework.boot.test.mock.mockito.MockBean;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -11,7 +12,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRo
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 
 import java.util.ArrayList;
@@ -25,9 +28,43 @@ import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class TestAssignments {
+public class ServiceMocks {
 
-    public void mockRoleAssignments(RoleAssignmentServiceApi roleAssignmentServiceApi) {
+    private static final String IDAM_USER_ID = "IDAM_USER_ID";
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    private IdamServiceApi idamServiceApi;
+    private CamundaServiceApi camundaServiceApi;
+    private RoleAssignmentServiceApi roleAssignmentServiceApi;
+
+    public ServiceMocks(IdamServiceApi idamServiceApi,
+                        CamundaServiceApi camundaServiceApi,
+                        RoleAssignmentServiceApi roleAssignmentServiceApi) {
+        this.idamServiceApi = idamServiceApi;
+        this.camundaServiceApi = camundaServiceApi;
+        this.roleAssignmentServiceApi = roleAssignmentServiceApi;
+    }
+
+    public void mockServiceAPIs() {
+        var userToken = "user_token";
+
+        mockUserInfo(idamServiceApi);
+        mockRoleAssignments(roleAssignmentServiceApi);
+
+        when(idamServiceApi.token(any())).thenReturn(new Token(userToken, "scope"));
+
+        mockVariables(camundaServiceApi);
+    }
+
+    public String createCamundaTestException(String type, String message) {
+        try {
+            return objectMapper.writeValueAsString(new CamundaExceptionMessage(type, message));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    private void mockRoleAssignments(RoleAssignmentServiceApi roleAssignmentServiceApi) {
         List<Assignment> assignments = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
@@ -42,22 +79,20 @@ public class TestAssignments {
     }
 
     private List<Assignment> createTestAssignments(List<String> roleNames,
-                                                  Classification roleClassification,
-                                                  Map<String, String> roleAttributes) {
+                                                   Classification roleClassification,
+                                                   Map<String, String> roleAttributes) {
 
         List<Assignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                         Assignment roleAssignment = createBaseAssignment(
-                             UUID.randomUUID().toString(),
-                             "tribunal-caseworker",
-                             roleType,
-                             roleClassification,
-                             roleAttributes
-                         );
-                         allTestRoles.add(roleAssignment);
-                     }
-            ));
+                Assignment roleAssignment = createBaseAssignment(
+                    UUID.randomUUID().toString(), "tribunal-caseworker",
+                    roleType,
+                    roleClassification,
+                    roleAttributes
+                );
+                allTestRoles.add(roleAssignment);
+            }));
         return allTestRoles;
     }
 
@@ -79,13 +114,12 @@ public class TestAssignments {
         );
     }
 
-    public void mockUserInfo(IdamServiceApi idamServiceApi) {
-       var IDAM_USER_ID = "IDAM_USER_ID";
+    private void mockUserInfo(IdamServiceApi idamServiceApi) {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
         when(idamServiceApi.userInfo(any())).thenReturn(mockedUserInfo);
     }
 
-    public void mockVariables(CamundaServiceApi camundaServiceApi) {
+    private void mockVariables(CamundaServiceApi camundaServiceApi) {
         Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
 
         processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
@@ -94,4 +128,5 @@ public class TestAssignments {
         when(camundaServiceApi.getVariables(any(), any()))
             .thenReturn(processVariables);
     }
+
 }
