@@ -31,6 +31,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
@@ -74,6 +75,25 @@ class PermissionEvaluatorServiceTest {
             );
             assertTrue(result);
         });
+    }
+
+    @Test
+    void hasAccess_should_succeed_when_multiple_roles_and_return_true() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        boolean result = permissionEvaluatorService.hasAccess(
+            defaultVariables,
+            testCases,
+            permissionsRequired
+        );
+        assertTrue(result);
     }
 
     @Test
@@ -300,6 +320,26 @@ class PermissionEvaluatorServiceTest {
             );
             assertTrue(result);
         });
+    }
+
+    @Test
+    void hasAccess_should_throw_IllegalArgumentException_when_looking_for_unknown_classification() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+        defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("RESTRICTED", "String"));
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.UNKNOWN,
+            emptyMap()
+        );
+
+        assertThrows(IllegalArgumentException.class, () ->
+            permissionEvaluatorService.hasAccess(
+                defaultVariables,
+                testCases,
+                permissionsRequired
+            ));
     }
 
     @ParameterizedTest

@@ -3,7 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 class CamundaValueTest {
 
@@ -33,6 +35,21 @@ class CamundaValueTest {
 
         assertEquals("json", testObject.getType());
         assertEquals("someJson", testObject.getValue());
+    }
+
+    @Test
+    void should_return_true_when_objects_reference_is_same() {
+        CamundaValue<String> targetObj = CamundaValue.jsonValue("someJson");
+        CamundaValue<String> thisObj = targetObj;
+
+        assertTrue(thisObj.equals(targetObj));
+    }
+
+    @Test
+    void should_return_false_when_object_is_null() {
+        CamundaValue<String> thisObj = CamundaValue.jsonValue("someJson");
+
+        assertFalse(thisObj.equals(null));
     }
 
     @Test

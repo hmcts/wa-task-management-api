@@ -670,6 +670,42 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     taskId)
                 );
         }
+
+        @Test
+        void unclaimTask_should_throw_a_server_error_exception_when_unclaim_task_fails() {
+            String taskId = UUID.randomUUID().toString();
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            Map<String, CamundaVariable> mockedVariables = mockVariables();
+
+            UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
+                                                   new ArrayList<String>(), "name", "givenName", "familyName");
+
+            List<PermissionTypes> permissionsRequired = asList(MANAGE);
+
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+            when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(createMockCamundaTask());
+
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                singletonList(mockedRoleAssignment),
+                permissionsRequired
+            )).thenReturn(true);
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            doThrow(FeignException.class)
+                .when(camundaServiceApi).unclaimTask(any(), any());
+
+            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
+                .isInstanceOf(ServerErrorException.class)
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(String.format(
+                    "There was a problem unclaiming task: %s",
+                    taskId)
+                );
+        }
     }
 
     @Nested
@@ -1181,7 +1217,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void cancelTask_should_throw_a_server_error_exception_when_completing_task_fails() {
+        void cancelTask_should_throw_a_server_error_exception_when_cancelling_task_fails() {
 
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
