@@ -222,6 +222,7 @@ dependencyManagement {
     }
     //
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.5'
   }
 }
 
@@ -281,7 +282,7 @@ dependencies {
   compile group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.2'
   compile group: 'uk.gov.hmcts.reform.auth', name: 'auth-checker-lib', version: '2.1.4'
 
-  compile group: 'com.auth0', name: 'java-jwt', version: '3.12.0'
+  compile group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
 
   annotationProcessor 'org.projectlombok:lombok:1.18.12'
   compileOnly 'org.projectlombok:lombok:1.18.12'
