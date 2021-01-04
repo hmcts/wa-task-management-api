@@ -34,4 +34,13 @@
     <cve>CVE-2007-1651</cve>
     <cve>CVE-2007-1652</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+			Jar: com.nimbusds:lang-tag-1.4.4.jar
+		]]></notes>
+    <cve>CVE-2020-29242</cve>
+    <cve>CVE-2020-29243</cve>
+    <cve>CVE-2020-29244</cve>
+    <cve>CVE-2020-29245</cve>
+  </suppress>
 </suppressions>

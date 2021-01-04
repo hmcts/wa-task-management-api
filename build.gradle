@@ -222,7 +222,6 @@ dependencyManagement {
     }
     //
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
-    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.5'
   }
 }
 
