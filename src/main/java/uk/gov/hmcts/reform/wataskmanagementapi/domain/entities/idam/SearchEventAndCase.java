@@ -17,15 +17,22 @@ public class SearchEventAndCase {
     @JsonProperty(value = "event-id")
     @ApiModelProperty(required = true)
     private String eventId;
+    @JsonProperty(value = "case-jurisdiction")
+    private String caseJurisdiction;
+    @JsonProperty(value = "case-type")
+    private String caseType;
 
     private SearchEventAndCase() {
         //Default constructor for deserialization
         super();
     }
 
-    public SearchEventAndCase(String caseId, String eventId) {
+    public SearchEventAndCase(String caseId, String eventId,
+                              String caseJurisdiction, String caseType) {
         this.caseId = caseId;
         this.eventId = eventId;
+        this.caseJurisdiction = caseJurisdiction;
+        this.caseType = caseType;
     }
 
     public String getCaseId() {
@@ -36,4 +43,11 @@ public class SearchEventAndCase {
         return eventId;
     }
 
+    public String getCaseJurisdiction() {
+        return caseJurisdiction;
+    }
+
+    public String getCaseType() {
+        return caseType;
+    }
 }

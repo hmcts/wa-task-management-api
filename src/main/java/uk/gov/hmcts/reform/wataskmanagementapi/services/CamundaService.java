@@ -47,7 +47,7 @@ public class CamundaService {
         "User did not have sufficient permissions to assign task with id: %s";
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK =
         "User did not have sufficient permissions to claim task with id: %s";
-    public static final String WA_TASK_COMPLETION_DMN_KEY = "wa-task-completion-ia-asylum";
+    public static final String WA_TASK_COMPLETION_TABLE_NAME = "wa-task-completion";
 
     private static final boolean ACCESS_FLAG = true;
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
@@ -221,9 +221,9 @@ public class CamundaService {
 
     }
 
-    public List<Task> searchForCompletableTasksUsingEventAndCaseId(SearchEventAndCase searchEventAndCase,
-                                                                   List<PermissionTypes> permissionsRequired,
-                                                                   AccessControlResponse accessControlResponse) {
+    public List<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
+                                                List<PermissionTypes> permissionsRequired,
+                                                AccessControlResponse accessControlResponse) {
 
         //1. Perform the DMN evaluation
         try {
@@ -235,7 +235,7 @@ public class CamundaService {
             List<Map<String, CamundaVariable>> evaluateDmnResult =
                 camundaServiceApi.evaluateDMN(
                     authTokenGenerator.generate(),
-                    WA_TASK_COMPLETION_DMN_KEY,
+                    getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
                     dmnRequest
                 );
 
@@ -263,6 +263,10 @@ public class CamundaService {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
 
+    }
+
+    private String getTableKey(String jurisdictionId, String caseTypeId) {
+        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId + "-" + caseTypeId;
     }
 
     public Task getTask(String id,
