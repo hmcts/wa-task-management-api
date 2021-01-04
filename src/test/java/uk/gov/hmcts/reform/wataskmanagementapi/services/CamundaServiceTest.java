@@ -1240,7 +1240,16 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 permissionsRequired
             )).thenReturn(true);
 
-            doThrow(mock(FeignException.class))
+            TestFeignClientException exception =
+                new TestFeignClientException(
+                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                    HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                    createCamundaTestException("aCamundaErrorType", String.format(
+                        "There was a problem cancelling the task with id: %s",
+                        taskId))
+                );
+
+            doThrow(exception)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
 
             assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
