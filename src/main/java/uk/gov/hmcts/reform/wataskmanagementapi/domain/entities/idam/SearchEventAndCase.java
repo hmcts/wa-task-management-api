@@ -17,8 +17,10 @@ public class SearchEventAndCase {
     @JsonProperty(value = "event-id")
     @ApiModelProperty(required = true)
     private String eventId;
+    @ApiModelProperty(required = true)
     @JsonProperty(value = "case-jurisdiction")
     private String caseJurisdiction;
+    @ApiModelProperty(required = true)
     @JsonProperty(value = "case-type")
     private String caseType;
 
