@@ -266,7 +266,7 @@ public class CamundaService {
     }
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId + "-" + caseTypeId;
+        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase() + "-" + caseTypeId.toLowerCase();
     }
 
     public Task getTask(String id,
