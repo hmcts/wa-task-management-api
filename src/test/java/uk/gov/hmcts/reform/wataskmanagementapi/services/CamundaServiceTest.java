@@ -30,6 +30,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -1070,7 +1071,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
             Assignment mockedRoleAssignment = mock(Assignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
-            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "caseId", "eventId", caseJurisdiction, caseType);
+
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo,
                 singletonList(mockedRoleAssignment));
@@ -1130,7 +1134,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         private String getTableKey(String jurisdictionId, String caseTypeId) {
-            return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId + "-" + caseTypeId;
+            return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
+                + "-" + caseTypeId.toLowerCase(Locale.getDefault());
         }
     }
 

@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -266,7 +267,8 @@ public class CamundaService {
     }
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase() + "-" + caseTypeId.toLowerCase();
+        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
+            + "-" + caseTypeId.toLowerCase(Locale.getDefault());
     }
 
     public Task getTask(String id,
