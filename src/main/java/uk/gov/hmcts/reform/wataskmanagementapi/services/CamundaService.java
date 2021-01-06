@@ -336,7 +336,8 @@ public class CamundaService {
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the task with id: %s",
                 id
-            ), ex);        }
+            ), ex);
+        }
     }
 
     private void performClaimTaskAction(String taskId, Map<String, String> body) {
