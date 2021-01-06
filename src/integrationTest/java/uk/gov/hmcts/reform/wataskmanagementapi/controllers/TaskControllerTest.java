@@ -103,9 +103,10 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_a_500_when_id_invalid() throws Exception {
             final var taskId = UUID.randomUUID().toString();
 
+
             mockServices.mockServiceAPIs();
 
-            FeignException mockFeignException = mock(FeignException.class);
+            FeignException mockFeignException = mock(FeignException.FeignServerException.class);
 
             when(mockFeignException.contentUTF8())
                 .thenReturn(mockServices.createCamundaTestException(
@@ -113,7 +114,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
                         "There was a problem fetching the task with id: %s",
                         taskId
                     )));
-            doThrow(mockFeignException).when(camundaServiceApi).getTask(any(), any());
+            doThrow(mockFeignException).when(roleAssignmentServiceApi).createRoleAssignment(any(), any(), any());
 
             mockMvc.perform(
                 get("/task/" + taskId)
