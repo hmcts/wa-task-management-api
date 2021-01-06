@@ -333,9 +333,10 @@ public class CamundaService {
         try {
             return camundaServiceApi.getTask(authTokenGenerator.generate(), id);
         } catch (FeignException ex) {
-            camundaErrorDecoder.decodeException(ex);
-        }
-        return null;
+            throw new ResourceNotFoundException(String.format(
+                "There was a problem fetching the task with id: %s",
+                id
+            ), ex);        }
     }
 
     private void performClaimTaskAction(String taskId, Map<String, String> body) {
