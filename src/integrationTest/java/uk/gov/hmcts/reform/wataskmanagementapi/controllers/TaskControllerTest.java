@@ -28,6 +28,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class TaskControllerTest extends SpringBootIntegrationBaseTest {
@@ -92,6 +93,39 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             verify(camundaServiceApi, times(1))
                 .bpmnEscalation(any(), any(), any());
+        }
+    }
+
+    @Nested
+    @DisplayName("getTask()")
+    class GetTask {
+        @Test
+        void should_return_a_500_when_id_invalid() throws Exception {
+            final var taskId = UUID.randomUUID().toString();
+
+            mockServices.mockServiceAPIs();
+
+            FeignException mockFeignException = mock(FeignException.class);
+
+            when(mockFeignException.contentUTF8())
+                .thenReturn(mockServices.createCamundaTestException(
+                    "aCamundaErrorType", String.format(
+                        "There was a problem fetching the task with id: %s",
+                        taskId
+                    )));
+            doThrow(mockFeignException).when(camundaServiceApi).getTask(any(), any());
+
+            mockMvc.perform(
+                get("/task/" + taskId)
+                    .header(
+                        "Authorization",
+                        authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+                    )
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpect(status().is5xxServerError());
+
+            verify(camundaServiceApi, times(1))
+                .getTask(any(), any());
         }
     }
 
