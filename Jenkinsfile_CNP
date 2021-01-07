@@ -4,6 +4,7 @@
 
 def type = "java"
 def product = "wa"
+def tenantId = "ia"
 def component = "task-management-api"
 def secrets = [
     'wa-${env}' : [
@@ -36,7 +37,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withPipeline(type, product, component) {
+withPipeline(type, product, component, tenantId) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
 
