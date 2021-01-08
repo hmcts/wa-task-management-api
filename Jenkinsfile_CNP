@@ -6,7 +6,7 @@ def type = "java"
 def product = "wa"
 def tenantId = "ia"
 def component = "task-management-api"
-def s2sServiceName = "wa_task_management_api"
+def s2sServiceName = "task_management_api"
 
 
 def secrets = [
