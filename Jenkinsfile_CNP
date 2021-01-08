@@ -6,6 +6,9 @@ def type = "java"
 def product = "wa"
 def tenantId = "ia"
 def component = "task-management-api"
+def s2sServiceName = "wa_task_management_api"
+
+
 def secrets = [
     'wa-${env}' : [
         secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
@@ -37,7 +40,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withPipeline(type, product, component, tenantId) {
+withCamundaOnlyPipeline(type, product, component, s2sServiceName, tenantId) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
 
