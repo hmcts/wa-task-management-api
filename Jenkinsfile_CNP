@@ -4,9 +4,7 @@
 
 def type = "java"
 def product = "wa"
-def tenantId = "ia"
 def component = "task-management-api"
-def s2sServiceName = "task_management_api"
 
 
 def secrets = [
@@ -40,7 +38,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withCamundaOnlyPipeline(type, product, component, s2sServiceName, tenantId) {
+withPipeline(type, product, component) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
 
