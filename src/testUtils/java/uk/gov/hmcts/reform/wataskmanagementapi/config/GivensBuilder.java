@@ -17,6 +17,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -161,6 +163,8 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", ZonedDateTime.now()
+                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .build();
 
         return processVariables.getProcessVariablesMap();
