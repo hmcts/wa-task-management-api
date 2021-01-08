@@ -10,11 +10,14 @@ class SearchEventAndCaseTest {
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "some-caseId",
-            "some-eventId"
+            "some-eventId",
+            "some-caseJurisdiction",
+            "some-caseType"
         );
 
         Assertions.assertThat(searchEventAndCase.getCaseId()).isEqualTo("some-caseId");
         Assertions.assertThat(searchEventAndCase.getEventId()).isEqualTo("some-eventId");
-
+        Assertions.assertThat(searchEventAndCase.getCaseJurisdiction()).isEqualTo("some-caseJurisdiction");
+        Assertions.assertThat(searchEventAndCase.getCaseType()).isEqualTo("some-caseType");
     }
 }

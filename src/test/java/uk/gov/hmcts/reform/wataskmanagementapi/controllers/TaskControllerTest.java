@@ -154,7 +154,8 @@ class TaskControllerTest {
 
     @Test
     void should_auto_complete_a_task() {
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase("caseId", "eventId");
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "caseId", "eventId", "caseJurisdiction", "caseType");
         ResponseEntity response =
             taskController.searchWithCriteriaForAutomaticCompletion(IDAM_AUTH_TOKEN, searchEventAndCase);
         assertNotNull(response);

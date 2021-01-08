@@ -358,7 +358,7 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/completableByCaseEvent", consumes = APPLICATION_JSON_VALUE,
+    @PostMapping(path = "/searchForCompletable", consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,
@@ -367,7 +367,7 @@ public class TaskController {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        List<Task> tasks = camundaService.searchForCompletableTasksUsingEventAndCaseId(
+        List<Task> tasks = camundaService.searchForCompletableTasks(
             searchEventAndCase,
             endpointPermissionsRequired,
             accessControlResponse
