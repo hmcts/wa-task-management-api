@@ -27,7 +27,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "caseJurisdiction", "caseType");
+            task.get("caseId"),"requestRespondentEvidence", "ia", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
