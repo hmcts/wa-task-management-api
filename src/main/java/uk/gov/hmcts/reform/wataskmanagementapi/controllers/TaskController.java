@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -101,6 +102,8 @@ public class TaskController {
         List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
+        Gson g = new Gson();
+        System.out.println(g.toJson(searchTaskRequest));
         List<Task> tasks = camundaService.searchWithCriteria(
             searchTaskRequest,
             accessControlResponse.getRoleAssignments(),
