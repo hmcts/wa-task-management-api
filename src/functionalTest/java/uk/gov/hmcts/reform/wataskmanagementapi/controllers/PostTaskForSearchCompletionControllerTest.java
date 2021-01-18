@@ -21,31 +21,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     private static final String ENDPOINT_BEING_TESTED = "task/searchForCompletable";
 
-    @Test
-    public void should_return_a_401_when_the_user_is_unauthorised() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
-
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "ia", "asylum");
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authorizationHeadersProvider.getLawFirmBAuthorization()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
-            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_event_and_case_match() {
@@ -150,45 +125,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
-    @Test
-    public void should_return_a_500_and_when_performing_search_when_jurisdiction_is_incorrect() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "jurisdiction", "asylum");
 
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
-
-    @Test
-    public void should_return_a_500_and_when_performing_search_when_caseType_is_incorrect() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
-
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "IA", "caseType");
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
 
 }
 

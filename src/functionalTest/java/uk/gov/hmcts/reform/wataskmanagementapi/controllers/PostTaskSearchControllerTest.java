@@ -37,41 +37,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
 
     @Test
-    public void should_return_a_400_if_search_request_is_empty() {
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            new SearchTaskRequest(emptyList()),
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value());
-    }
-
-    @Test
-    public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
-        ));
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authorizationHeadersProvider.getLawFirmBAuthorization()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
-            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
-    }
-
-    @Test
     public void should_return_a_200_with_search_results() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
         var taskId = task.get("taskId");
