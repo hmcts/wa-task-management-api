@@ -102,8 +102,6 @@ public class TaskController {
         List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        Gson g = new Gson();
-        System.out.println(g.toJson(searchTaskRequest));
         List<Task> tasks = camundaService.searchWithCriteria(
             searchTaskRequest,
             accessControlResponse.getRoleAssignments(),

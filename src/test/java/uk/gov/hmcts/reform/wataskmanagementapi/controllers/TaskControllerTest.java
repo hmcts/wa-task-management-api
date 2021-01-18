@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventA
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -105,6 +109,32 @@ class TaskControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void should_succeed_when_performing_search_with_sorting_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
+            IDAM_AUTH_TOKEN,
+            new SearchTaskRequest(
+                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+                singletonList(new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)))
+            );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void should_return_a_400_when_performing_search_with_null_parameters() {
+
+        ResponseEntity<GetTasksResponse<Task>> response =
+            taskController.searchWithCriteria(IDAM_AUTH_TOKEN, new SearchTaskRequest(null));
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test

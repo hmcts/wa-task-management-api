@@ -220,9 +220,7 @@ public class CamundaService {
                                          List<PermissionTypes> permissionsRequired) {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
-        Gson g = new Gson();
 
-        System.out.println(g.toJson(query));
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
