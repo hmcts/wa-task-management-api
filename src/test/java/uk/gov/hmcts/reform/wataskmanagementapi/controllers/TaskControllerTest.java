@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -121,7 +120,7 @@ class TaskControllerTest {
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
                 singletonList(new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)))
-            );
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());

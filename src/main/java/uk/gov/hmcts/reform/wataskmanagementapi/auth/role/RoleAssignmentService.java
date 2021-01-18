@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
-import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

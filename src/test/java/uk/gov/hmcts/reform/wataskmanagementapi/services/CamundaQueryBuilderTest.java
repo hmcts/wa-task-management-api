@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -278,7 +277,7 @@ class CamundaQueryBuilderTest {
     }
 
     @Test
-    void createQuery_should_build_query_from_search_task_request_with_only_specified_parameter_and_case_category_sorting()
+    void createQuery_should_build_query_from_search_task_request_with_search_parameter_and_case_category_sorting()
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(

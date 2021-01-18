@@ -34,7 +34,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.TooManyMethods"})
 @Service
 public class CamundaQueryBuilder {
 
@@ -117,6 +117,7 @@ public class CamundaQueryBuilder {
      * @param sortingParameters the sorting parameters specified in the request.
      * @return a list of CamundaSortingParameters as per camunda specification.
      */
+    @SuppressWarnings("PMD.UnnecessaryLocalBeforeReturn")
     private List<CamundaSortingExpression> createSortingQueries(List<SortingParameter> sortingParameters) {
 
         //Safe-guard

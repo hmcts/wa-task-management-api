@@ -66,6 +66,7 @@ public class CamundaSearchQuery {
             }
             return this;
         }
+
         public CamundaSearchQuery build() {
             map.put("orQueries", orQueries);
             return new CamundaSearchQuery(map);

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -45,13 +44,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @RestController
 public class TaskController {
 
+    public static final String UNAUTHORIZED = "Unauthorized";
     private static final String BAD_REQUEST = "Bad Request";
     private static final String FORBIDDEN = "Forbidden";
     private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
     private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     private static final String TASK_ID = "task-id";
-    public static final String UNAUTHORIZED = "Unauthorized";
-
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
 
@@ -270,8 +268,8 @@ public class TaskController {
     })
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
-                                             @PathVariable(TASK_ID) String taskId,
-                                             @RequestBody AssigneeRequest assigneeRequest) {
+                                           @PathVariable(TASK_ID) String taskId,
+                                           @RequestBody AssigneeRequest assigneeRequest) {
 
         List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
         List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
@@ -409,7 +407,7 @@ public class TaskController {
     })
     @PostMapping(path = "/{task-id}/cancel")
     public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
-                                             @PathVariable(TASK_ID) String taskId) {
+                                           @PathVariable(TASK_ID) String taskId) {
         List<PermissionTypes> endpointPermissionsRequired = asList(CANCEL);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
