@@ -92,7 +92,7 @@ public class GivensBuilder {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(200);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
