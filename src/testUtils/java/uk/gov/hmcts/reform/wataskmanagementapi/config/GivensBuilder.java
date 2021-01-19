@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -89,6 +90,7 @@ public class GivensBuilder {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
+        waitSeconds(1);
         Response result = camundaApiActions.get(
             "/task" + filter,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
@@ -161,7 +163,7 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().minusSeconds(5).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -190,6 +192,14 @@ public class GivensBuilder {
             roleRequest,
             singletonList(assignment)
         );
+    }
+
+    private void waitSeconds(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private class Modifications {
