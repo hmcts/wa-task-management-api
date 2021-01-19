@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
