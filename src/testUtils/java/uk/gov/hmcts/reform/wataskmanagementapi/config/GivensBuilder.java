@@ -163,7 +163,7 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", ZonedDateTime.now()
+            .withProcessVariable("delayUntil", ZonedDateTime.now().minusSeconds(5)
                 .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
             .build();
 

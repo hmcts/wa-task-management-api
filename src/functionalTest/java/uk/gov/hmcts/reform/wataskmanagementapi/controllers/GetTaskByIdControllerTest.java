@@ -31,7 +31,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
-        Thread.sleep(5000);
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -52,8 +51,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             taskId,
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
-
-        Thread.sleep(5000);
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
