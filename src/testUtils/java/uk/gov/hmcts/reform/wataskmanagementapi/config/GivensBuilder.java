@@ -96,6 +96,8 @@ public class GivensBuilder {
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
+        result.prettyPrint();
+
         return result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and()

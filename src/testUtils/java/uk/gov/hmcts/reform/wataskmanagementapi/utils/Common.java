@@ -55,6 +55,10 @@ public class Common {
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
+        if (response.isEmpty() ) {
+            fail("Search did not yield any results for case id: " + caseId);
+        }
+
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
