@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -90,12 +89,6 @@ public class GivensBuilder {
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
-
-        try {
-            TimeUnit.MILLISECONDS.sleep(200);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         Response result = camundaApiActions.get(
             "/task" + filter,
@@ -169,7 +162,7 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", ZonedDateTime.now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("delayUntil", ZonedDateTime.now().minusSeconds(1).format(CAMUNDA_DATA_TIME_FORMATTER))
             .build();
 
         return processVariables.getProcessVariablesMap();
