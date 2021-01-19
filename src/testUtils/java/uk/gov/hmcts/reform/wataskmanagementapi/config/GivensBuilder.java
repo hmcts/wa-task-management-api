@@ -96,6 +96,8 @@ public class GivensBuilder {
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
+        System.out.println(filter);
+        System.out.println("Response:");
         result.prettyPrint();
 
         return result.then().assertThat()
