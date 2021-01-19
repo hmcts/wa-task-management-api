@@ -40,27 +40,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
 
-    @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
-
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
-
-        Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId));
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
-
-
 
 }
 
