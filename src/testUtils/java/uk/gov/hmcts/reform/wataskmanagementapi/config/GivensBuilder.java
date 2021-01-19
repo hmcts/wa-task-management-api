@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
