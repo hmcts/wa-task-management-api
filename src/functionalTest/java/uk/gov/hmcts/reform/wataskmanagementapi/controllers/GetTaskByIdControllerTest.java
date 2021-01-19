@@ -20,7 +20,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
 
     @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match() {
+    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match() throws InterruptedException {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
         var taskId = task.get("taskId");
@@ -31,6 +31,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
         );
 
+        Thread.sleep(5000);
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -41,7 +42,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
 
     @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
+    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() throws InterruptedException {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
         var taskId = task.get("taskId");
@@ -51,6 +52,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             taskId,
             authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
         );
+
+        Thread.sleep(5000);
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
