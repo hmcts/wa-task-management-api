@@ -20,7 +20,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
 
     @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match() throws InterruptedException {
+    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
         var taskId = task.get("taskId");
@@ -41,7 +41,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
 
     @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() throws InterruptedException {
+    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
 
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
         var taskId = task.get("taskId");
