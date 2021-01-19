@@ -21,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -88,6 +89,13 @@ public class GivensBuilder {
     }
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
+
+        try {
+            System.out.println("waiting");
+            TimeUnit.SECONDS.sleep(5);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
