@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -90,23 +89,12 @@ public class GivensBuilder {
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
 
-        try {
-            System.out.println("waiting");
-            TimeUnit.SECONDS.sleep(5);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         Response result = camundaApiActions.get(
             "/task" + filter,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
-
-        System.out.println(filter);
-        System.out.println("Response:");
-        result.prettyPrint();
 
         return result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -144,7 +132,7 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iUpdateVariablesOfTaskById(String taskId,Map<String, CamundaValue<?>> processVariables) {
+    public GivensBuilder iUpdateVariablesOfTaskById(String taskId, Map<String, CamundaValue<?>> processVariables) {
         Response result = camundaApiActions.post(
             "/task/{task-id}/variables",
             taskId,
@@ -175,8 +163,7 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", ZonedDateTime.now()
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .withProcessVariable("delayUntil", ZonedDateTime.now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .build();
 
         return processVariables.getProcessVariablesMap();
