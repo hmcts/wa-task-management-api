@@ -88,7 +88,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId));
 
-        //common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
