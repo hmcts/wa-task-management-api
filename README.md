@@ -67,7 +67,7 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
 - In order to test if the application is up, you can call its health endpoint:
 
     ```bash
-      curl http://localhost:8090/health
+      curl http://localhost:8087/health
     ```
 
     You should get a response similar to this:
