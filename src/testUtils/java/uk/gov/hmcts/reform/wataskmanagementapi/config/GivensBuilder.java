@@ -17,10 +17,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
@@ -91,6 +90,7 @@ public class GivensBuilder {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
+        waitSeconds(1);
         Response result = camundaApiActions.get(
             "/task" + filter,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
@@ -132,7 +132,7 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iUpdateVariablesOfTaskById(String taskId,Map<String, CamundaValue<?>> processVariables) {
+    public GivensBuilder iUpdateVariablesOfTaskById(String taskId, Map<String, CamundaValue<?>> processVariables) {
         Response result = camundaApiActions.post(
             "/task/{task-id}/variables",
             taskId,
@@ -163,8 +163,7 @@ public class GivensBuilder {
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", ZonedDateTime.now()
-                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -195,6 +194,14 @@ public class GivensBuilder {
         );
     }
 
+    private void waitSeconds(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     private class Modifications {
         private final Map<String, CamundaValue<?>> modifications;
 
@@ -208,3 +215,4 @@ public class GivensBuilder {
         }
     }
 }
+

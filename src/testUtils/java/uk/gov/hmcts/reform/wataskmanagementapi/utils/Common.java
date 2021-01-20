@@ -55,6 +55,10 @@ public class Common {
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
+        if (response.isEmpty()) {
+            fail("Search did not yield any results for case id: " + caseId);
+        }
+
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
@@ -66,8 +70,8 @@ public class Common {
 
     }
 
-    public void updateTaskWithCustomVariablesOverride(Map<String,String> task,
-        Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+    public void updateTaskWithCustomVariablesOverride(Map<String, String> task,
+                                                      Map<CamundaVariableDefinition, String> variablesToUseAsOverride
 
     ) {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
@@ -78,7 +82,7 @@ public class Common {
             .forEach(key -> processVariables
                 .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
 
-        given.iUpdateVariablesOfTaskById(task.get("taskId"),processVariables);
+        given.iUpdateVariablesOfTaskById(task.get("taskId"), processVariables);
     }
 
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
@@ -128,7 +132,7 @@ public class Common {
 
     public void cleanUpTask(String taskId, String reason) {
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-                               authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
 
         Response result = camundaApiActions.get(
             ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
