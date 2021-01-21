@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseIdGenerator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,14 +23,13 @@ public class Common {
     public static final String REASON_DELETED = "deleted";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private static final String ENDPOINT_HISTORY_TASK = "history/task";
-    private final CaseIdGenerator caseIdGenerator;
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public Common(CaseIdGenerator caseIdGenerator, GivensBuilder given,
-                  RestApiActions camundaApiActions, AuthorizationHeadersProvider authorizationHeadersProvider) {
-        this.caseIdGenerator = caseIdGenerator;
+    public Common(GivensBuilder given,
+                  RestApiActions camundaApiActions,
+                  AuthorizationHeadersProvider authorizationHeadersProvider) {
         this.given = given;
         this.camundaApiActions = camundaApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
@@ -40,7 +38,7 @@ public class Common {
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
     ) {
-        String caseId = caseIdGenerator.generate();
+        String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             caseId,
             TRIBUNAL_CASEWORKER_PERMISSIONS
@@ -86,7 +84,7 @@ public class Common {
     }
 
     public Map<String, String> setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
-        String caseId = caseIdGenerator.generate();
+        String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             caseId,
             TRIBUNAL_CASEWORKER_PERMISSIONS
@@ -110,7 +108,8 @@ public class Common {
     }
 
     public Map<String, String> setupTaskAndRetrieveIds(String tribunalCaseworkerPermissions) {
-        String caseId = caseIdGenerator.generate();
+
+        String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, tribunalCaseworkerPermissions)

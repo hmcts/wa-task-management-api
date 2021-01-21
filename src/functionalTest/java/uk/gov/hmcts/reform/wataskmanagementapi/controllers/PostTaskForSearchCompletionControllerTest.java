@@ -4,8 +4,8 @@ import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
@@ -27,7 +27,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "ia", "asylum");
+            task.get("caseId"), "requestRespondentEvidence", "ia", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -39,7 +39,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -62,7 +62,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "ia", "asylum");
+            task.get("caseId"), "requestRespondentEvidence", "ia", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -89,7 +89,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"no_event_id", "ia", "asylum");
+            task.get("caseId"), "no_event_id", "ia", "asylum");
 
 
         Response result = restApiActions.post(
@@ -112,7 +112,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"reviewHearingRequirements", "ia", "asylum");
+            task.get("caseId"), "reviewHearingRequirements", "ia", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -134,7 +134,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),null, "ia", "asylum");
+            task.get("caseId"), null, "ia", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -156,7 +156,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "jurisdiction", "asylum");
+            task.get("caseId"), "requestRespondentEvidence", "jurisdiction", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -176,7 +176,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         var taskId = task.get("taskId");
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"),"requestRespondentEvidence", "IA", "caseType");
+            task.get("caseId"), "requestRespondentEvidence", "IA", "caseType");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

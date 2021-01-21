@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
