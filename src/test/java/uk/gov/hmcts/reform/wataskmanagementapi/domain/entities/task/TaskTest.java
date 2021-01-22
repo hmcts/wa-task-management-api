@@ -33,7 +33,8 @@ public class TaskTest {
             "some-caseTypeId",
             "some-caseId",
             "some-cat",
-            "some-case"
+            "some-case",
+            "No"
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -56,6 +57,7 @@ public class TaskTest {
         Assertions.assertThat(task.getCaseCategory()).isEqualTo("some-cat");
         Assertions.assertThat(task.getCaseName()).isEqualTo("some-case");
         Assertions.assertThat(task.getAutoAssigned()).isTrue();
+        Assertions.assertThat(task.getWarnings()).isEqualTo("No");
 
     }
 }

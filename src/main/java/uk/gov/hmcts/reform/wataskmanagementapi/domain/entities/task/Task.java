@@ -12,7 +12,8 @@ import java.util.Objects;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields", "PMD.ExcessiveParameterList", "PMD.ShortClassName"})
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
+    "PMD.ExcessiveParameterList", "PMD.ShortClassName","PMD.LinguisticNaming"})
 @ApiModel("Task")
 public class Task {
     @ApiModelProperty(
@@ -112,6 +113,10 @@ public class Task {
     )
     private boolean autoAssigned;
 
+    @ApiModelProperty(required = false,
+        notes = "boolean to show if a warning is applied to task by a service task in a subprocess")
+    private String hasWarnings;
+
     private Task() {
         //Hidden constructor
         super();
@@ -136,7 +141,8 @@ public class Task {
                 String caseTypeId,
                 String caseId,
                 String caseCategory,
-                String caseName
+                String caseName,
+                String hasWarnings
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -160,6 +166,7 @@ public class Task {
         this.jurisdiction = jurisdiction;
         this.region = region;
         this.location = location;
+        this.hasWarnings = hasWarnings;
 
 
     }
@@ -242,6 +249,10 @@ public class Task {
 
     public String getCaseName() {
         return caseName;
+    }
+
+    public String getWarnings() {
+        return hasWarnings;
     }
 
 }
