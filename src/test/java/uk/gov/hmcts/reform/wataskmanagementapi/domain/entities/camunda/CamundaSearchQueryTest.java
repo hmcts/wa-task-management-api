@@ -9,6 +9,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
 
+@SuppressWarnings("checkstyle:LineLength")
 class CamundaSearchQueryTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
