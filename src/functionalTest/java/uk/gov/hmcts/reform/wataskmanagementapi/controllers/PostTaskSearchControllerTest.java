@@ -372,7 +372,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
 
     @Test
-    public void should_return_a_200_with_search_results_and_sorted_by_case_id_due_date() {
+    public void should_return_a_200_with_search_results_and_sorted_by_due_date() {
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
         List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
