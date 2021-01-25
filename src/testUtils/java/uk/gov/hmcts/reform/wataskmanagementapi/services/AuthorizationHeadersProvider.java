@@ -41,15 +41,10 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
-
     public Headers getTribunalCaseworkerAAuthorization() {
         /*
-         * Role assignment Properties:
-         * - Organizational case role with:
-         * --classification = PUBLIC
-         * --jurisdiction = IA
-         * --primaryLocation = 765324
-         * -- role name = tribunal-caseworker which has "Read,Refer,Own,Manage,Cancel" permissions
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
          */
         return new Headers(
             getCaseworkerAAuthorizationOnly(),
@@ -57,16 +52,10 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-
     public Headers getTribunalCaseworkerBAuthorization() {
         /*
-         * Role assignment Properties:
-         * - Organizational case role with:
-         * --classification = PUBLIC
-         * --jurisdiction = IA
-         * --primaryLocation = 765324
-         * --region = east-england
-         * -- role name = tribunal-caseworker which has "Read,Refer,Own,Manage,Cancel" permissions
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
          */
         return new Headers(
             getCaseworkerBAuthorizationOnly(),
@@ -74,13 +63,12 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-
-    public Headers getLawFirmBAuthorization() {
+    public Headers getLawFirmAuthorization() {
         /*
-         * No Role assignment
+         * This user is used to create cases in ccd
          */
         return new Headers(
-            getLawFirmBAuthorizationOnly(),
+            getLawFirmAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
     }
@@ -88,32 +76,29 @@ public class AuthorizationHeadersProvider {
 
     public Header getCaseworkerAAuthorizationOnly() {
 
-        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME");
-        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD");
+        String username = System.getenv("TEST_WA_CASEOFFICER_A_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_A_PASSWORD");
 
-        return getAuthorization("CaseworkerA", username, password);
+        return getAuthorization("Caseworker A", username, password);
 
     }
 
     public Header getCaseworkerBAuthorizationOnly() {
 
-        String username = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_USERNAME");
-        String password = System.getenv("TEST_WA_CASEOFFICER_PUBLIC_B_PASSWORD");
-
-        return getAuthorization("CaseworkerB", username, password);
-
-    }
-
-
-    public Header getLawFirmBAuthorizationOnly() {
-
-        String username = System.getenv("TEST_LAW_FIRM_B_USERNAME");
-        String password = System.getenv("TEST_LAW_FIRM_B_PASSWORD");
-
-        return getAuthorization("LawFirmB", username, password);
+        String username = System.getenv("TEST_WA_CASEOFFICER_B_USERNAME");
+        String password = System.getenv("TEST_WA_CASEOFFICER_B_PASSWORD");
+        return getAuthorization("Caseworker B", username, password);
 
     }
 
+    public Header getLawFirmAuthorizationOnly() {
+
+        String username = System.getenv("TEST_WA_LAW_FIRM_USERNAME");
+        String password = System.getenv("TEST_WA_LAW_FIRM_PASSWORD");
+
+        return getAuthorization("LawFirm", username, password);
+
+    }
 
     private Header getAuthorization(String key, String username, String password) {
 
@@ -123,7 +108,6 @@ public class AuthorizationHeadersProvider {
             key,
             user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
         );
-
         return new Header(AUTHORIZATION, accessToken);
     }
 

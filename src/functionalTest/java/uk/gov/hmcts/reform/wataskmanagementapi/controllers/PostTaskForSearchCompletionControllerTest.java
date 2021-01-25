@@ -1,10 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
@@ -15,24 +18,34 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/searchForCompletable";
 
+    private Headers authenticationHeaders;
+
+    @Before
+    public void setUp() {
+        //Reset role assignments
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        common.clearAllRoleAssignments(authenticationHeaders);
+    }
+
     @Test
     public void should_return_a_401_when_the_user_is_unauthorised() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), "requestRespondentEvidence", "ia", "asylum");
+            taskVariables.getCaseId(), "requestRespondentEvidence", "ia", "asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getLawFirmBAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -58,24 +71,26 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
 
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), "requestRespondentEvidence", "ia", "asylum");
+            taskVariables.getCaseId(), "requestRespondentEvidence", "ia", "asylum");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks[0].task_state", equalTo("unassigned"))
-            .body("tasks[0].case_id", equalTo(task.get("caseId")))
-            .body("tasks[0].id", equalTo(task.get("taskId")))
+            .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
+            .body("tasks[0].id", equalTo(taskId))
             .body("tasks[0].type", equalTo("ReviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"));
@@ -85,17 +100,18 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), "no_event_id", "ia", "asylum");
+            taskVariables.getCaseId(), "no_event_id", "ia", "asylum");
 
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -108,16 +124,18 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), "reviewHearingRequirements", "ia", "asylum");
+            taskVariables.getCaseId(), "reviewHearingRequirements", "ia", "asylum");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -130,16 +148,18 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_when_performing_search_when_caseId_correct_eventId_incorrect() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), null, "ia", "asylum");
+            taskVariables.getCaseId(), null, "ia", "asylum");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -152,16 +172,18 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_500_and_when_performing_search_when_jurisdiction_is_incorrect() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), "requestRespondentEvidence", "jurisdiction", "asylum");
+            taskVariables.getCaseId(), "requestRespondentEvidence", "jurisdiction", "asylum");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -172,16 +194,18 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_500_and_when_performing_search_when_caseType_is_incorrect() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            task.get("caseId"), "requestRespondentEvidence", "IA", "caseType");
+            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "caseType");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()

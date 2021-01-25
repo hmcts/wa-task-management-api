@@ -55,10 +55,6 @@ idam:
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api}
-  system:
-    username: ${TEST_LAW_FIRM_A_USERNAME:some_user@hmcts.net}
-    password: ${TEST_LAW_FIRM_A_PASSWORD:password}
-    scope: "openid profile roles"
 
 spring:
   application:

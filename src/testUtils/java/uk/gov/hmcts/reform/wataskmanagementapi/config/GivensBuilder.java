@@ -1,17 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamSystemTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -30,11 +30,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
@@ -46,19 +47,16 @@ public class GivensBuilder {
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    private final IdamSystemTokenGenerator systemTokenGenerator;
     private final CoreCaseDataApi coreCaseDataApi;
 
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider,
-                         IdamSystemTokenGenerator systemTokenGenerator,
                          CoreCaseDataApi coreCaseDataApi
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
-        this.systemTokenGenerator = systemTokenGenerator;
         this.coreCaseDataApi = coreCaseDataApi;
 
     }
@@ -191,27 +189,29 @@ public class GivensBuilder {
     }
 
     public String iCreateACcdCase() {
-        String userToken = systemTokenGenerator.generate();
-        UserInfo userInfo = systemTokenGenerator.getUserInfo(userToken);
-        Header serviceTokenHeader = authorizationHeadersProvider.getServiceAuthorizationHeader();
+        Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
+        String userToken = headers.getValue(AUTHORIZATION);
+        String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
 
         StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
             userToken,
-            serviceTokenHeader.getValue(),
+            serviceToken,
             userInfo.getUid(),
             "IA",
             "Asylum",
             "startAppeal"
         );
 
+        String resourceFilename = "requests/ccd/case_data.json";
+
         Map data = null;
         try {
-            String caseData = new String(
-                (Objects.requireNonNull(Thread.currentThread().getContextClassLoader()
-                    .getResourceAsStream("requests/case_data.json"))).readAllBytes()
-            );
+            String caseDataString =
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
 
-            data = new ObjectMapper().readValue(caseData, Map.class);
+
+            data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -229,7 +229,7 @@ public class GivensBuilder {
         //Fire submit event
         CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
             userToken,
-            serviceTokenHeader.getValue(),
+            serviceToken,
             userInfo.getUid(),
             "IA",
             "Asylum",
@@ -241,7 +241,7 @@ public class GivensBuilder {
 
         StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
             userToken,
-            serviceTokenHeader.getValue(),
+            serviceToken,
             userInfo.getUid(),
             "IA",
             "Asylum",
@@ -258,9 +258,10 @@ public class GivensBuilder {
                 .build())
             .data(data)
             .build();
+
         coreCaseDataApi.submitEventForCaseWorker(
             userToken,
-            serviceTokenHeader.getValue(),
+            serviceToken,
             userInfo.getUid(),
             "IA",
             "Asylum",
