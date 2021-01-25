@@ -12,7 +12,7 @@ def secrets = [
         secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),
         secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
         secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
-        secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_USERNAME'),
+        secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
         secret('wa-test-caseofficer-a-username', 'TEST_WA_CASEOFFICER_A_USERNAME'),
         secret('wa-test-caseofficer-a-password', 'TEST_WA_CASEOFFICER_A_PASSWORD'),
         secret('wa-test-caseofficer-b-username', 'TEST_WA_CASEOFFICER_B_USERNAME'),
