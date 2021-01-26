@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingExpression;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,13 @@ public class CamundaSearchQuery {
         public CamundaAndQueryBuilder andQuery(Map<String, List<String>> searchExpression) {
             if (searchExpression != null && !searchExpression.isEmpty()) {
                 orQueries.add(searchExpression);
+            }
+            return this;
+        }
+
+        public CamundaAndQueryBuilder andSortingQuery(List<CamundaSortingExpression> sortingExpressions) {
+            if (sortingExpressions != null && !sortingExpressions.isEmpty()) {
+                map.put("sorting", sortingExpressions);
             }
             return this;
         }

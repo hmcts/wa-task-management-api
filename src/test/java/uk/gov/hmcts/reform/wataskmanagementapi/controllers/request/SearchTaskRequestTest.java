@@ -5,11 +5,11 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class AssignTaskRequestTest {
+class SearchTaskRequestTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = AssignTaskRequest.class;
+        final Class<?> classUnderTest = SearchTaskRequest.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

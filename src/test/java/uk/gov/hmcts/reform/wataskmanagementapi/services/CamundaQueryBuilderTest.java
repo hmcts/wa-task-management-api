@@ -10,11 +10,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
@@ -215,6 +219,178 @@ class CamundaQueryBuilderTest {
                           + "\t\t]\n"
                           + "\t}\n"
                           + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_only_specified_parameter_and_due_date_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"processVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      }\n"
+                          + "    ]\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_search_parameter_and_case_category_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.CASE_CATEGORY, SortOrder.ASCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"processVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortOrder\": \"asc\",\n"
+                          + "        \"parameters\": {\n"
+                          + "          \"variable\": \"caseCategory\",\n"
+                          + "          \"type\": \"String\"\n"
+                          + "        }\n"
+                          + "      }\n"
+                          + "    ]\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_only_specified_parameter_and_multiple_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+            ),
+            asList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT),
+                new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"processVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortOrder\": \"desc\",\n"
+                          + "        \"parameters\": {\n"
+                          + "          \"variable\": \"caseId\",\n"
+                          + "          \"type\": \"String\"\n"
+                          + "        }\n"
+                          + "      }\n"
+                          + "    ]\n"
+                          + "  }\n"
+                          + "}\n";
 
         JSONAssert.assertEquals(expected, resultJson, false);
     }

@@ -32,7 +32,6 @@ public class RoleAssignmentService {
         requireNonNull(idamUserId, "IdamUserId cannot be null");
 
         GetRoleAssignmentResponse getRoleAssignmentResponse = getRoles(idamUserId, authToken);
-
         return getRoleAssignmentResponse.getRoleAssignmentResponse();
     }
 
