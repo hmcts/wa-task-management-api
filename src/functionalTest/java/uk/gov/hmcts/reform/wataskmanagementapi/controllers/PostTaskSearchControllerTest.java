@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.google.common.collect.Ordering;
 import io.restassured.response.Response;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
@@ -27,10 +29,15 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField.DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.ASCENDANT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.DESCENDANT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
@@ -74,7 +81,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results() {
         Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        String taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -103,7 +110,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        var taskId = task.get("taskId");
+        String taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -134,7 +141,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        var taskId = task.get("taskId");
+        String taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -163,7 +170,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-        var taskId = task.get("taskId");
+        String taskId = task.get("taskId");
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -250,6 +257,156 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     }
 
+
+    @Test
+    public void should_return_a_200_with_search_results_and_sorted_by_case_id_descendant() {
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            ),
+            singletonList(new SortingParameter(CASE_ID, DESCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItems(tasksCreated.get(0).get("taskId"), tasksCreated.get(1).get("taskId")))
+            .body("tasks.case_id", hasItems(tasksCreated.get(0).get("caseId"), tasksCreated.get(1).get("caseId")))
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+
+        List<String> jsonResponse = result.jsonPath().getList("tasks.case_id");
+        assertTrue(Ordering.natural().reverse().isOrdered(jsonResponse));
+
+        tasksCreated.stream()
+            .map(map -> map.get("taskId"))
+            .forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
+    }
+
+
+    @Test
+    public void should_return_a_200_with_search_results_and_sorted_by_case_id_ascendant() {
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            ),
+            singletonList(new SortingParameter(CASE_ID, ASCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItems(tasksCreated.get(0).get("taskId"), tasksCreated.get(1).get("taskId")))
+            .body("tasks.case_id", hasItems(tasksCreated.get(0).get("caseId"), tasksCreated.get(1).get("caseId")))
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+
+        List<String> jsonResponse = result.jsonPath().getList("tasks.case_id");
+        assertTrue(Ordering.natural().isOrdered(jsonResponse));
+
+        tasksCreated.stream()
+            .map(map -> map.get("taskId"))
+            .forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
+    }
+
+    @Test
+    public void should_return_a_200_with_search_results_and_sorted_by_due_date_descendant() {
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            ),
+            singletonList(new SortingParameter(DUE_DATE, DESCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItems(tasksCreated.get(0).get("taskId"), tasksCreated.get(1).get("taskId")))
+            .body("tasks.case_id", hasItems(tasksCreated.get(0).get("caseId"), tasksCreated.get(1).get("caseId")))
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+
+        List<String> jsonResponse = result.jsonPath().getList("tasks.due_date");
+        assertTrue(Ordering.natural().reverse().isOrdered(jsonResponse));
+
+        tasksCreated.stream()
+            .map(map -> map.get("taskId"))
+            .forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
+    }
+
+
+    @Test
+    public void should_return_a_200_with_search_results_and_sorted_by_due_date() {
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<Map<String, String>> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
+                new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            ),
+            singletonList(new SortingParameter(DUE_DATE, ASCENDANT))
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItems(tasksCreated.get(0).get("taskId"), tasksCreated.get(1).get("taskId")))
+            .body("tasks.case_id", hasItems(tasksCreated.get(0).get("caseId"), tasksCreated.get(1).get("caseId")))
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+
+        List<String> jsonResponse = result.jsonPath().getList("tasks.due_date");
+        assertTrue(Ordering.natural().isOrdered(jsonResponse));
+
+        tasksCreated.stream()
+            .map(map -> map.get("taskId"))
+            .forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
+    }
 
     private List<Map<String, String>> createMultipleTasksWithDifferentTaskStates(String[] states) {
         List<Map<String, String>> tasksCreated = new ArrayList<>();

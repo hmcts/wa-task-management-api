@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -218,6 +219,7 @@ public class CamundaService {
                                          List<PermissionTypes> permissionsRequired) {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
+
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
@@ -246,7 +248,7 @@ public class CamundaService {
 
 
             if (taskTypes.isEmpty()) {
-                return new ArrayList<>();
+                return Collections.emptyList();
             } else {
                 CamundaSearchQuery camundaSearchQuery =
                     camundaQueryBuilder.createCompletionQuery(
@@ -268,7 +270,7 @@ public class CamundaService {
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
         return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
-            + "-" + caseTypeId.toLowerCase(Locale.getDefault());
+               + "-" + caseTypeId.toLowerCase(Locale.getDefault());
     }
 
     public Task getTask(String id,
