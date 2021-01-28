@@ -115,7 +115,7 @@ public class Task {
 
     @ApiModelProperty(required = false,
         notes = "boolean to show if a warning is applied to task by a service task in a subprocess")
-    private String hasWarnings;
+    private Boolean hasWarnings;
 
     private Task() {
         //Hidden constructor
@@ -142,7 +142,7 @@ public class Task {
                 String caseId,
                 String caseCategory,
                 String caseName,
-                String hasWarnings
+                Boolean hasWarnings
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -251,7 +251,7 @@ public class Task {
         return caseName;
     }
 
-    public String getWarnings() {
+    public Boolean getWarnings() {
         return hasWarnings;
     }
 

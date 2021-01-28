@@ -41,7 +41,7 @@ class CreateTaskVariableTest {
         localVariables.put("taskSystem", new CamundaVariable("SELF", "string"));
         localVariables.put("jurisdiction", new CamundaVariable("IA", "string"));
         localVariables.put("region", new CamundaVariable("1", "string"));
-        localVariables.put("hasWarnings", new CamundaVariable("No", "string"));
+        localVariables.put("hasWarnings", new CamundaVariable(false, "boolean"));
     }
 
     @Test
@@ -70,7 +70,7 @@ class CreateTaskVariableTest {
         Assertions.assertThat(task.getCaseCategory()).isNull();
         Assertions.assertThat(task.getCaseName()).isNull();
         Assertions.assertThat(task.getAutoAssigned()).isFalse();
-        Assertions.assertThat(task.getWarnings()).isEqualTo("No");
+        Assertions.assertThat(task.getWarnings()).isFalse();
 
 
     }

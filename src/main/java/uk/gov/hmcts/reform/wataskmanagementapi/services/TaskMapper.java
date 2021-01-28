@@ -62,7 +62,7 @@ public class TaskMapper {
         String caseId = getVariableValue(variables.get(CASE_ID.value()), String.class);
         String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
         String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
-        String hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), String.class);
+        Boolean hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), Boolean.class);
 
         return new Task(
             id,
