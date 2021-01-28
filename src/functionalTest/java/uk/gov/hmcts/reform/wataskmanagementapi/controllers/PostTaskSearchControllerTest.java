@@ -108,6 +108,34 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
+
+    @Test
+    public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
+        TestVariables taskVariablesSscs = common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
+        String taskId = taskVariablesSscs.getTaskId();
+
+        common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
+
+        common.setupRestrictedRoleAssignment(taskId, authenticationHeaders);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("SSCS")))
+            .body("tasks.case_id", hasItem(taskVariablesSscs.getCaseId()))
+            .body("tasks.id", hasItem(taskId));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
@@ -283,7 +311,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
 
     }
-
 
     private List<TestVariables> createMultipleTasksWithDifferentTaskStates(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
