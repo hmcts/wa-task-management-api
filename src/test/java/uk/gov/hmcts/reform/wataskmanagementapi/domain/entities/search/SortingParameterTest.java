@@ -1,15 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class AssignTaskRequestTest {
+class SortingParameterTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = AssignTaskRequest.class;
+        final Class<?> classUnderTest = SortingParameter.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

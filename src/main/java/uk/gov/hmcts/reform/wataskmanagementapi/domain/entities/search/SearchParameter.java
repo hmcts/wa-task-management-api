@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -9,6 +11,8 @@ import java.util.List;
     value = "SearchParameter",
     description = "Search parameter containing the key, operator and a list of values"
 )
+@EqualsAndHashCode
+@ToString
 public class SearchParameter {
 
     @ApiModelProperty(required = true)

@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@EqualsAndHashCode
 @ToString
 public final class AssigneeRequest {
     private final String userId;
@@ -22,3 +22,4 @@ public final class AssigneeRequest {
     }
 
 }
+
