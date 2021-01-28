@@ -43,6 +43,7 @@ withPipeline(type, product, component) {
     env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
     env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
     env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
+    env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 
     after('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
