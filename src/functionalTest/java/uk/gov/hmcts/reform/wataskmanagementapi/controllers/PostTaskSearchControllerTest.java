@@ -111,7 +111,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
-        TestVariables taskVariablesSscs = common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
+        TestVariables taskVariablesSscs =
+            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
         String taskId = taskVariablesSscs.getTaskId();
 
         common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
@@ -136,6 +137,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
+
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
