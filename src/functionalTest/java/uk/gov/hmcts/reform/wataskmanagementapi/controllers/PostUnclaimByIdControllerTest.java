@@ -126,7 +126,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     }
 
     @Test
-    public void should_return_a_401_when_unclaiming_a_task_by_id_with_different_credentials() {
+    public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
@@ -146,7 +146,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value())
+            .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))

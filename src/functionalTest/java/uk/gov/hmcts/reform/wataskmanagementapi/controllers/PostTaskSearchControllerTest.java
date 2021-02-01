@@ -114,10 +114,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariablesSscs =
             common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
         String taskId = taskVariablesSscs.getTaskId();
+        String caseId = taskVariablesSscs.getCaseId();
 
         common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
 
-        common.setupRestrictedRoleAssignment(taskId, authenticationHeaders);
+        common.setupRestrictedRoleAssignment(caseId, authenticationHeaders);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
@@ -132,7 +133,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("SSCS")))
-            .body("tasks.case_id", hasItem(taskVariablesSscs.getCaseId()))
+            .body("tasks.case_id", hasItem(caseId))
             .body("tasks.id", hasItem(taskId));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);

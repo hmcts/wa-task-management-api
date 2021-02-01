@@ -320,7 +320,6 @@ public class Common {
                 assignmentRequestBody = assignmentRequestBody.replace("{CASE_ID_PLACEHOLDER}", caseId);
 
             }
-            Gson g = new Gson();
 
             return assignmentRequestBody;
         } catch (IOException e) {
