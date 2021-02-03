@@ -98,7 +98,7 @@ public interface CamundaServiceApi {
 
 
     @PostMapping(
-        value = "/decision-definition/key/{key}/evaluate",
+        value = "/decision-definition/key/{key}/tenant-id/ia/evaluate",
         consumes = APPLICATION_JSON_VALUE
     )
     List<Map<String, CamundaVariable>>   evaluateDMN(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
