@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import feign.FeignException;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
