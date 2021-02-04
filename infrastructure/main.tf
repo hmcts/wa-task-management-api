@@ -25,11 +25,6 @@ resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
-data "azurerm_key_vault_secret" "wa_idam_client_id" {
-  name         = "wa-idam-client-id"
-  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
-}
-
 data "azurerm_key_vault_secret" "wa_idam_client_secret" {
   name          = "wa-idam-client-secret"
   key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
