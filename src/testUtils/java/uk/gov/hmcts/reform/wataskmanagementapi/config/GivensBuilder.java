@@ -108,8 +108,8 @@ public class GivensBuilder {
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
+        waitSeconds(2);
 
-        waitSeconds(1);
         Response result = camundaApiActions.get(
             "/task" + filter,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
