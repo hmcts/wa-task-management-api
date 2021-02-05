@@ -1,9 +1,9 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.services;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 
 import static java.util.Objects.requireNonNull;
 

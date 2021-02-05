@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -18,8 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
@@ -678,7 +678,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
-                                                   new ArrayList<String>(), "name", "givenName", "familyName");
+                new ArrayList<String>(), "name", "givenName", "familyName");
 
             List<PermissionTypes> permissionsRequired = asList(MANAGE);
 
@@ -928,8 +928,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
     @SuppressWarnings({"AbbreviationAsWordInName", "MemberNameCheck"})
     class AutoCompleteTask {
 
-        private String caseJurisdiction = "caseJurisdiction";
-        private String caseType = "caseType";
+        private final String caseJurisdiction = "caseJurisdiction";
+        private final String caseType = "caseType";
 
         @Test
         void should_auto_complete_task_when_same_user() {
@@ -1135,7 +1135,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
         private String getTableKey(String jurisdictionId, String caseTypeId) {
             return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
-                + "-" + caseTypeId.toLowerCase(Locale.getDefault());
+                   + "-" + caseTypeId.toLowerCase(Locale.getDefault());
         }
     }
 

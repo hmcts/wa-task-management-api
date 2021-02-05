@@ -1,14 +1,18 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @ApiModel(
-    value       = "SearchEventAndCase",
+    value = "SearchEventAndCase",
     description = "Search task request with event and case id"
 )
 @SuppressWarnings({"PMD.UnnecessaryAnnotationValueElement"})
+@EqualsAndHashCode
+@ToString
 public class SearchEventAndCase {
 
     @ApiModelProperty(required = true)

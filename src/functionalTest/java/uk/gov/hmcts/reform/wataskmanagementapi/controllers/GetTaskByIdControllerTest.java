@@ -1,10 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
@@ -23,15 +27,25 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLE
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private Headers authenticationHeaders;
+
+    @Before
+    public void setUp() {
+        //Reset role assignments
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        common.clearAllRoleAssignments(authenticationHeaders);
+    }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -51,13 +65,13 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getLawFirmBAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -72,16 +86,52 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, Common.REASON_COMPLETED);
     }
 
-    @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+    @Test
+    public void should_return_a_200_and_retrieve_a_task_by_id_when_restricted_role_assignment_role() {
+
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "SSCS",
+            CamundaVariableDefinition.LOCATION, "17595"
+        );
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+
+        String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match_organisational_role() {
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            authenticationHeaders
         );
 
         result.prettyPeek();
@@ -96,15 +146,18 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
+
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -124,13 +177,22 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA",
+                "region", "east-england"
+            )
+        );
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -143,13 +205,22 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "north-england");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA",
+                "region", "east-england"
+            )
+        );
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerBAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 
 class SearchEventAndCaseTest {
 

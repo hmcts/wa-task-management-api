@@ -18,12 +18,19 @@ def product = "wa"
 def component = "task-management-api"
 
 def secrets = [
-  'wa-${env}' : [
-    secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
-    secret('idam-secret', 'IA_IDAM_SECRET'),
-    secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),
-    secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET')
-  ],
+    'wa-${env}' : [
+        secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+        secret('idam-secret', 'IA_IDAM_SECRET'),
+        secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),
+        secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+        secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
+        secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
+        secret('wa-test-caseofficer-a-username', 'TEST_WA_CASEOFFICER_A_USERNAME'),
+        secret('wa-test-caseofficer-a-password', 'TEST_WA_CASEOFFICER_A_PASSWORD'),
+        secret('wa-test-caseofficer-b-username', 'TEST_WA_CASEOFFICER_B_USERNAME'),
+        secret('wa-test-caseofficer-b-password', 'TEST_WA_CASEOFFICER_B_PASSWORD'),
+    ],
+
   's2s-${env}' : [
     secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
 
@@ -41,11 +48,13 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
-  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+
   env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
   env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
   env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
   env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
+  env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+  env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
 
   loadVaultSecrets(secrets)
 

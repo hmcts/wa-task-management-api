@@ -84,6 +84,10 @@ public class RestApiActions {
         return post(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
     }
 
+    public Response post(String path, String resourceId, Object body, Headers headers) {
+        return post(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+    }
+
     public Response post(String path, Object body, Header header) {
         return post(path, null, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
     }

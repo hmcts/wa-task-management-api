@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CaseIdGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
@@ -24,17 +26,23 @@ public abstract class SpringBootFunctionalBaseTest {
 
     public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
         "There was a problem fetching the variables for task with id: %s";
-
+    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
-    protected CaseIdGenerator caseIdGenerator;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
-    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
-
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
+
+    @Autowired
+    protected CoreCaseDataApi coreCaseDataApi;
+
+    @Autowired
+    protected IdamServiceApi idamServiceApi;
+
+    @Autowired
+    protected RoleAssignmentServiceApi roleAssignmentServiceApi;
 
     @Value("${targets.camunda}")
     private String camundaUrl;
@@ -45,14 +53,20 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-        caseIdGenerator = new CaseIdGenerator();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,
-            authorizationHeadersProvider
+            authorizationHeadersProvider,
+            coreCaseDataApi
         );
-        common = new Common(caseIdGenerator, given, camundaApiActions, authorizationHeadersProvider);
+        common = new Common(
+            given,
+            camundaApiActions,
+            authorizationHeadersProvider,
+            idamServiceApi,
+            roleAssignmentServiceApi
+        );
 
     }
 

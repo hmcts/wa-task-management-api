@@ -1,14 +1,16 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
@@ -22,14 +24,25 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/cancel";
 
+    private Headers authenticationHeaders;
+
+    @Before
+    public void setUp() {
+        //Reset role assignments
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        common.clearAllRoleAssignments(authenticationHeaders);
+    }
+
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -37,7 +50,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -49,20 +62,20 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getLawFirmBAuthorization()
+            authorizationHeadersProvider.getLawFirmAuthorization()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -72,8 +85,10 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-        Map<String, String> task = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -85,7 +100,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(
@@ -97,13 +112,36 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_cancelling_a_task_by_id() {
-        Map<String, String> task = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
-        var taskId = task.get("taskId");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId, REASON_DELETED);
+    }
+
+    @Test
+    public void should_return_a_204_when_cancelling_a_task_by_id_with_restricted_role_assignment() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        String taskId = taskVariables.getTaskId();
+
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), headers);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            headers
         );
 
         result.then().assertThat()

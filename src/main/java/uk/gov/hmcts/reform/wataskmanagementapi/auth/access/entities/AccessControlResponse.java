@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 
 import java.util.List;
 
