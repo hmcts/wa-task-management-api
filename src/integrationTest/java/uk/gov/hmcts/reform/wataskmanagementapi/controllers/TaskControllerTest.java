@@ -12,10 +12,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.util.UUID;
@@ -34,9 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
-    private MockMvc mockMvc;
-    @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
+    @Autowired
+    private MockMvc mockMvc;
     @MockBean
     private IdamServiceApi idamServiceApi;
     @MockBean
@@ -51,8 +51,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     public void setUp() {
         mockServices = new ServiceMocks(idamServiceApi,
-                                        camundaServiceApi,
-                                        roleAssignmentServiceApi);
+            camundaServiceApi,
+            roleAssignmentServiceApi);
     }
 
     @Nested
@@ -65,7 +65,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             final var taskId = UUID.randomUUID().toString();
 
             final var errorMessage = "There was a problem cancelling "
-                + "the task with id: " + taskId;
+                                     + "the task with id: " + taskId;
 
             mockServices.mockServiceAPIs();
 
@@ -140,7 +140,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             final var taskId = UUID.randomUUID().toString();
 
             final var errorMessage = "There was a problem cancelling "
-                + "the task with id: " + taskId;
+                                     + "the task with id: " + taskId;
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "some-caseId",

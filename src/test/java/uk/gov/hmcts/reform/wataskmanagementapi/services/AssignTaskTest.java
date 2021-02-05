@@ -11,11 +11,11 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -48,6 +48,22 @@ class AssignTaskTest extends CamundaServiceBaseTest {
     private AccessControlResponse assignerAccessControlResponse;
     private AccessControlResponse assigneeAccessControlResponse;
     private String taskId;
+
+    private static Stream<Scenario> provideScenario() {
+        Scenario assignerDoesNotHavePermissions = Scenario.builder()
+            .assignerHasAccess(false)
+            .assigneeHasAccess(true)
+            .build();
+        Scenario assigneeDoesNotHavePermissions = Scenario.builder()
+            .assignerHasAccess(true)
+            .assigneeHasAccess(false)
+            .build();
+
+        return Stream.of(
+            assignerDoesNotHavePermissions,
+            assigneeDoesNotHavePermissions
+        );
+    }
 
     @BeforeEach
     void setUp() {
@@ -183,29 +199,6 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             );
     }
 
-    private static Stream<Scenario> provideScenario() {
-        Scenario assignerDoesNotHavePermissions = Scenario.builder()
-            .assignerHasAccess(false)
-            .assigneeHasAccess(true)
-            .build();
-        Scenario assigneeDoesNotHavePermissions = Scenario.builder()
-            .assignerHasAccess(true)
-            .assigneeHasAccess(false)
-            .build();
-
-        return Stream.of(
-            assignerDoesNotHavePermissions,
-            assigneeDoesNotHavePermissions
-        );
-    }
-
-    @Builder
-    static class Scenario {
-        boolean assignerHasAccess;
-        boolean assigneeHasAccess;
-    }
-
-
     @Test
     void assignTask_should_throw_server_error_exception_when_assignTask_fails() {
 
@@ -267,6 +260,12 @@ class AssignTaskTest extends CamundaServiceBaseTest {
                     taskId
                 )
             );
+    }
+
+    @Builder
+    static class Scenario {
+        boolean assignerHasAccess;
+        boolean assigneeHasAccess;
     }
 
 

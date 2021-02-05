@@ -1,8 +1,18 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.ResourceUtils;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.ccd.client.model.Event;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -17,28 +27,37 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
+@Slf4j
 public class GivensBuilder {
 
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
+    private final CoreCaseDataApi coreCaseDataApi;
+
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
-                         AuthorizationHeadersProvider authorizationHeadersProvider) {
+                         AuthorizationHeadersProvider authorizationHeadersProvider,
+                         CoreCaseDataApi coreCaseDataApi
+    ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
+        this.coreCaseDataApi = coreCaseDataApi;
 
     }
 
@@ -167,6 +186,92 @@ public class GivensBuilder {
             .build();
 
         return processVariables.getProcessVariablesMap();
+    }
+
+    public String iCreateACcdCase() {
+        Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
+        String userToken = headers.getValue(AUTHORIZATION);
+        String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
+
+        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "IA",
+            "Asylum",
+            "startAppeal"
+        );
+
+        String resourceFilename = "requests/ccd/case_data.json";
+
+        Map data = null;
+        try {
+            String caseDataString =
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
+
+
+            data = new ObjectMapper().readValue(caseDataString, Map.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .eventToken(startCase.getToken())
+            .event(Event.builder()
+                .id(startCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
+            .data(data)
+            .build();
+
+        //Fire submit event
+        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "IA",
+            "Asylum",
+            true,
+            caseDataContent
+        );
+
+        log.info("Created case [" + caseDetails.getId() + "]");
+
+        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "IA",
+            "Asylum",
+            caseDetails.getId().toString(),
+            "submitAppeal"
+        );
+
+        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
+            .eventToken(submitCase.getToken())
+            .event(Event.builder()
+                .id(submitCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
+            .data(data)
+            .build();
+
+        coreCaseDataApi.submitEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "IA",
+            "Asylum",
+            caseDetails.getId().toString(),
+            true,
+            submitCaseDataContent
+        );
+        log.info("Submitted case [" + caseDetails.getId() + "]");
+
+        return caseDetails.getId().toString();
     }
 
     private RoleAssignmentRequest createRoleAssignmentRequest(String userId, String roleName, String caseId) {
