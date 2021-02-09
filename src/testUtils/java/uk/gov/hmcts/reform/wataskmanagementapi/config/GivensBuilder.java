@@ -271,7 +271,7 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        waitSeconds(2);
+        waitSeconds(4);
         return caseDetails.getId().toString();
     }
 
