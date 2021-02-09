@@ -109,7 +109,7 @@ public class GivensBuilder {
 
         String filter = "?processVariables=" + key + "_eq_" + value;
 
-        waitSeconds(1);
+        waitSeconds(2);
         Response result = camundaApiActions.get(
             "/task" + filter,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
@@ -271,6 +271,7 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
+        waitSeconds(2);
         return caseDetails.getId().toString();
     }
 
