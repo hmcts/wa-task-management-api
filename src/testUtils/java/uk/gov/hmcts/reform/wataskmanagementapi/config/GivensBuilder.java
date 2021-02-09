@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
@@ -110,6 +112,7 @@ public class GivensBuilder {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         waitSeconds(2);
+
         Response result = camundaApiActions.get(
             "/task" + filter,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
@@ -117,6 +120,8 @@ public class GivensBuilder {
 
         return result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("size()", is(1))
             .and()
             .extract()
             .jsonPath().getList("", CamundaTask.class);
@@ -271,7 +276,8 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        waitSeconds(4);
+        waitSeconds(3);
+
         return caseDetails.getId().toString();
     }
 
