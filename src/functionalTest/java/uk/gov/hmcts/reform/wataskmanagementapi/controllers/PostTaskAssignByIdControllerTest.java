@@ -137,6 +137,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(noManagePermission);
         String taskId = taskVariables.getTaskId();
 
+        common.overrideTaskPermissions(taskId, noManagePermission);
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -163,6 +164,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         String noOwnPermission = "Read,Refer,Manage,Cancel";
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(noOwnPermission);
         String taskId = taskVariables.getTaskId();
+
+        common.overrideTaskPermissions(taskId, noOwnPermission);
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 

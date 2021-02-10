@@ -158,11 +158,11 @@ public class GivensBuilder {
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    public GivensBuilder iAddVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
+    public GivensBuilder iUpdateTaskVariable(String taskId, Map<String, CamundaValue<?>> processVariables) {
         Response result = camundaApiActions.post(
             "/task/{task-id}/variables",
             taskId,
-            new Modifications(processVariables.getProcessVariablesMap()),
+            new Modifications(processVariables),
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
@@ -171,6 +171,7 @@ public class GivensBuilder {
 
         return this;
     }
+
 
     public GivensBuilder iUpdateVariablesOfTaskById(String taskId, Map<String, CamundaValue<?>> processVariables) {
         Response result = camundaApiActions.post(

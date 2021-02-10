@@ -108,6 +108,14 @@ public class Common {
         given.iUpdateVariablesOfTaskById(task.getTaskId(), processVariables);
     }
 
+
+    public void overrideTaskPermissions(String taskId, String permissions) {
+        given.iUpdateTaskVariable(
+            taskId,
+            Map.of("tribunal-caseworker", new CamundaValue<>(permissions, "String"))
+        );
+    }
+
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
