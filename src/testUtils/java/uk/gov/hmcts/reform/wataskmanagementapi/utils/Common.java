@@ -267,7 +267,7 @@ public class Common {
                 s2sToken
             );
         } catch (FeignException ex) {
-                ex.printStackTrace();
+            ex.printStackTrace();
         }
     }
 
