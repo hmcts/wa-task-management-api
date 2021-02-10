@@ -191,7 +191,6 @@ public class GivensBuilder {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseId", caseId)
-            .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "A Hearing Centre")
             .withProcessVariable("securityClassification", "PUBLIC")
