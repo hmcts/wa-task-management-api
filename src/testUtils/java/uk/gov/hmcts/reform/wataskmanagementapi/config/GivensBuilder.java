@@ -108,10 +108,10 @@ public class GivensBuilder {
     }
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
-
+        log.info("Attempting to retrieve task with {} = {}", key, value);
+        waitSeconds(3);
         String filter = "?processVariables=" + key + "_eq_" + value;
 
-        waitSeconds(2);
 
         Response result = camundaApiActions.get(
             "/task" + filter,
@@ -276,7 +276,7 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        waitSeconds(3);
+        waitSeconds(2);
 
         return caseDetails.getId().toString();
     }
@@ -308,6 +308,7 @@ public class GivensBuilder {
 
     private void waitSeconds(int seconds) {
         try {
+            log.info("Waiting for {} second(s)", seconds);
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
