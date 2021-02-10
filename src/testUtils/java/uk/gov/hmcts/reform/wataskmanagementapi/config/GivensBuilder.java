@@ -109,7 +109,7 @@ public class GivensBuilder {
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
-        waitSeconds(3);
+        waitSeconds(4);
         String filter = "?processVariables=" + key + "_eq_" + value;
 
 
