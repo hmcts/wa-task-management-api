@@ -37,7 +37,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Slf4j
 public class Common {
 
-    public static final String TRIBUNAL_CASEWORKER_PERMISSIONS = "Read,Refer,Own,Manage,Cancel";
     public static final String REASON_COMPLETED = "completed";
     public static final String REASON_DELETED = "deleted";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
