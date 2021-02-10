@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -30,6 +29,7 @@ import java.util.Map;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.ORGANISATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -260,11 +260,15 @@ public class Common {
                                     String attributes,
                                     String resourceFilename) {
 
-        roleAssignmentServiceApi.createRoleAssignment(
-            getBody(caseId, userInfo, resourceFilename, attributes),
-            bearerUserToken,
-            s2sToken
-        );
+        try {
+            roleAssignmentServiceApi.createRoleAssignment(
+                getBody(caseId, userInfo, resourceFilename, attributes),
+                bearerUserToken,
+                s2sToken
+            );
+        } catch (FeignException ex) {
+                ex.printStackTrace();
+        }
     }
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
@@ -292,7 +296,7 @@ public class Common {
                 .collect(toList());
 
             List<Assignment> caseRoleAssignments = response.getRoleAssignmentResponse().stream()
-                .filter(assignment -> RoleType.CASE.equals(assignment.getRoleType()))
+                .filter(assignment -> CASE.equals(assignment.getRoleType()))
                 .collect(toList());
 
             caseRoleAssignments.forEach(assignment ->
