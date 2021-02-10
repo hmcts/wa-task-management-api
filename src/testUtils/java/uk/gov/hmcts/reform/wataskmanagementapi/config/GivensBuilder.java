@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -116,8 +117,8 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(20, SECONDS)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(5, SECONDS)
             .until(
                 () -> {
                     Response result = camundaApiActions.get(
