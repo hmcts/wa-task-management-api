@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
-import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,21 +67,18 @@ public class PermissionEvaluatorService {
                                    List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
 
-        Gson g = new Gson();
-        System.out.println(g.toJson(roleAssignment));
+        log.info("Evaluating access for {}", roleAssignment);
         // 1. Always Check Role name has required permission
         hasAccess = hasRolePermission(roleAssignment.getRoleName(), variables, permissionsRequired);
-        System.out.println("RoleName permission check");
-        System.out.println(hasAccess);
+
+        log.info("RoleName permission check {}", hasAccess);
         if (hasAccess) {
             // 2. Always Check Security Classification matches the one on the task
             hasAccess = hasSecurityClassificationPermission(
                 roleAssignment.getClassification(),
                 variables
             );
-
-            System.out.println("Security permission check");
-            System.out.println(hasAccess);
+            log.info("Security Classification permission check {}", hasAccess);
             if (roleAssignment.getAttributes() != null) {
 
                 Map<String, String> attributes = roleAssignment.getAttributes();
@@ -91,41 +87,32 @@ public class PermissionEvaluatorService {
                 if (hasAccess && jurisdictionAttributeValue != null) {
 
                     hasAccess = hasJurisdictionPermission(jurisdictionAttributeValue, variables);
-
-                    System.out.println("Jurisdiction permission check");
-                    System.out.println(hasAccess);
+                    log.info("Jurisdiction permission check {}", hasAccess);
                 }
                 // 4. Conditionally check CaseId matches the one on the task
                 String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
                 if (hasAccess && caseIdAttributeValue != null) {
                     hasAccess = hasCaseIdPermission(caseIdAttributeValue, variables);
-
-                    System.out.println("caseId permission check");
-                    System.out.println(hasAccess);
+                    log.info("CaseId permission check {}", hasAccess);
                 }
                 // 5. Conditionally check region matches the one on the task
                 String regionAttributeValue = attributes.get(RoleAttributeDefinition.REGION.value());
                 if (hasAccess && regionAttributeValue != null) {
                     hasAccess = hasRegionPermission(regionAttributeValue, variables);
-
-                    System.out.println("region permission check");
-                    System.out.println(hasAccess);
+                    log.info("Region permission check {}", hasAccess);
                 }
                 // 6. Conditionally check Location ePimms id matches the one on the task
                 String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
                 if (hasAccess && locationAttributeValue != null) {
                     hasAccess = hasLocationPermission(locationAttributeValue, variables);
-                    System.out.println("location permission check");
-                    System.out.println(hasAccess);
+                    log.info("Location permission check {}", hasAccess);
                 }
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
-            System.out.println("beginTime permission check");
-            System.out.println(hasAccess);
+            log.info("Begin time permission check {}", hasAccess);
             hasAccess = hasEndTimePermission(roleAssignment, hasAccess);
-            System.out.println("endtime permission check");
-            System.out.println(hasAccess);
+            log.info("EndTime permission check {}", hasAccess);
         }
 
         return hasAccess;
