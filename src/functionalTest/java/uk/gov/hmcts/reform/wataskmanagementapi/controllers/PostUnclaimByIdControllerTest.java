@@ -163,7 +163,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = setupScenario();
         String taskId = taskVariables.getTaskId();
 
-        common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "north-england"));
+        common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "2"));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             authenticationHeaders,
