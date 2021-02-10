@@ -31,9 +31,12 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -109,22 +112,34 @@ public class GivensBuilder {
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
-        waitSeconds(4);
         String filter = "?processVariables=" + key + "_eq_" + value;
 
+        AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(1, SECONDS)
+            .atMost(20, SECONDS)
+            .until(
+                () -> {
+                    Response result = camundaApiActions.get(
+                        "/task" + filter,
+                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                    );
 
-        Response result = camundaApiActions.get(
-            "/task" + filter,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
-        );
+                    result.then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .body("size()", is(1));
 
-        return result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("size()", is(1))
-            .and()
-            .extract()
-            .jsonPath().getList("", CamundaTask.class);
+                    response.set(
+                        result.then()
+                        .extract()
+                        .jsonPath().getList("", CamundaTask.class)
+                    );
+
+                    return true;
+                });
+
+        return response.get();
     }
 
     public GivensBuilder and() {
