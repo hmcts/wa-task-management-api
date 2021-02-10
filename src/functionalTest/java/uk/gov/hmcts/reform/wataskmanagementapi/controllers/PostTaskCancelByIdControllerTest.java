@@ -68,7 +68,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getLawFirmAuthorization()
+            authenticationHeaders
         );
 
         result.then().assertThat()
