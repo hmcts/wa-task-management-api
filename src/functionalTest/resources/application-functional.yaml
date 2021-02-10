@@ -1,3 +1,3 @@
 targets:
-  instance: ${TEST_URL:http://localhost:8087}
-  camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+  instance: https://wa-task-management-api-pr-130.service.core-compute-preview.internal
+  camunda: http://camunda-api-aat.service.core-compute-aat.internal/engine-rest
