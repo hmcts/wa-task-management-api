@@ -180,7 +180,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
-                "region", "east-england"
+                "region", "1"
             )
         );
 
@@ -208,7 +208,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
-                "region", "east-england"
+                "region", "1"
             )
         );
 

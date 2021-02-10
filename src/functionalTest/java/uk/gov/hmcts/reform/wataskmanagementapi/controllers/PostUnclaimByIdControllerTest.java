@@ -170,7 +170,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
-                "region", "east-england"
+                "region", "1"
             )
         );
 

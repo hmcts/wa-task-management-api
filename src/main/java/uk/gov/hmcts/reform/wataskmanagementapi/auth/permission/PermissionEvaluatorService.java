@@ -110,7 +110,7 @@ public class PermissionEvaluatorService {
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
-            log.info("Begin time permission check {}", hasAccess);
+            log.info("BeginTime permission check {}", hasAccess);
             hasAccess = hasEndTimePermission(roleAssignment, hasAccess);
             log.info("EndTime permission check {}", hasAccess);
         }
