@@ -67,10 +67,7 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
     ) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
-            TRIBUNAL_CASEWORKER_PERMISSIONS
-        );
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
@@ -97,10 +94,7 @@ public class Common {
                                                       Map<CamundaVariableDefinition, String> variablesToUseAsOverride
 
     ) {
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            task.getCaseId(),
-            TRIBUNAL_CASEWORKER_PERMISSIONS
-        );
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(task.getCaseId());
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
                 .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
@@ -118,10 +112,7 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
-            TRIBUNAL_CASEWORKER_PERMISSIONS
-        );
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
         List<CamundaTask> response = given
@@ -136,12 +127,12 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId());
     }
 
-    public TestVariables setupTaskAndRetrieveIds(String tribunalCaseworkerPermissions) {
+    public TestVariables setupTaskAndRetrieveIds() {
 
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, tribunalCaseworkerPermissions)
+            .iCreateATaskWithCaseId(caseId)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 

@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -36,7 +35,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_401_when_the_user_is_unauthorised() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -100,7 +99,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -124,7 +123,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -148,7 +147,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_when_performing_search_when_caseId_correct_eventId_incorrect() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -194,7 +193,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_500_and_when_performing_search_when_caseType_is_incorrect() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(

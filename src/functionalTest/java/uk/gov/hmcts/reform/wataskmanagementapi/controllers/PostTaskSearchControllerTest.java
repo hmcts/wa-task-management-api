@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -85,7 +84,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);

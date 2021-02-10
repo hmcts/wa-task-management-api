@@ -86,13 +86,9 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId,
-                                                String tribunalCaseworkerPermissions) {
+    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
 
-        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(
-            caseId,
-            tribunalCaseworkerPermissions
-        );
+        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -133,8 +129,8 @@ public class GivensBuilder {
 
                     response.set(
                         result.then()
-                        .extract()
-                        .jsonPath().getList("", CamundaTask.class)
+                            .extract()
+                            .jsonPath().getList("", CamundaTask.class)
                     );
 
                     return true;
@@ -187,8 +183,7 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId,
-                                                                   String tribunalCaseworkerPermissions) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseId", caseId)
@@ -201,7 +196,7 @@ public class GivensBuilder {
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("taskState", "unconfigured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .build();
