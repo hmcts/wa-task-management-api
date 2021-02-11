@@ -168,7 +168,6 @@ public class GivensBuilder {
         return this;
     }
 
-
     public GivensBuilder iUpdateVariablesOfTaskById(String taskId, Map<String, CamundaValue<?>> processVariables) {
         Response result = camundaApiActions.post(
             "/task/{task-id}/variables",
