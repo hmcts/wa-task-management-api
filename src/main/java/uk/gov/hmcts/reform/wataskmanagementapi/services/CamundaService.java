@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 
+@Slf4j
 @Service
 @SuppressWarnings({
     "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter",
@@ -220,6 +222,7 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
+        log.debug("Camunda search query: {}",query.getQueries());
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
