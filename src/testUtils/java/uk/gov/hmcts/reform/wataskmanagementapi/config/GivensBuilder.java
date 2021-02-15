@@ -31,9 +31,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
@@ -80,13 +86,9 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId,
-                                                String tribunalCaseworkerPermissions) {
+    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
 
-        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(
-            caseId,
-            tribunalCaseworkerPermissions
-        );
+        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -106,20 +108,35 @@ public class GivensBuilder {
     }
 
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
-
+        log.info("Attempting to retrieve task with {} = {}", key, value);
         String filter = "?processVariables=" + key + "_eq_" + value;
 
-        waitSeconds(1);
-        Response result = camundaApiActions.get(
-            "/task" + filter,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
-        );
+        AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+                    Response result = camundaApiActions.get(
+                        "/task" + filter,
+                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                    );
 
-        return result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and()
-            .extract()
-            .jsonPath().getList("", CamundaTask.class);
+                    result.then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .body("size()", is(1));
+
+                    response.set(
+                        result.then()
+                            .extract()
+                            .jsonPath().getList("", CamundaTask.class)
+                    );
+
+                    return true;
+                });
+
+        return response.get();
     }
 
     public GivensBuilder and() {
@@ -137,11 +154,11 @@ public class GivensBuilder {
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    public GivensBuilder iAddVariablesToTaskWithId(String taskId, CamundaProcessVariables processVariables) {
+    public GivensBuilder iUpdateTaskVariable(String taskId, Map<String, CamundaValue<?>> processVariables) {
         Response result = camundaApiActions.post(
             "/task/{task-id}/variables",
             taskId,
-            new Modifications(processVariables.getProcessVariablesMap()),
+            new Modifications(processVariables),
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
@@ -165,22 +182,20 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId,
-                                                                   String tribunalCaseworkerPermissions) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseId", caseId)
-            .withProcessVariable("region", "east-england")
+            .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "A Hearing Centre")
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
-            .withProcessVariable("taskState", "configured")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("taskState", "configured")
+            .withProcessVariable("taskState", "unconfigured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", tribunalCaseworkerPermissions)
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariableBoolean("hasWarnings", false)
@@ -272,6 +287,8 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
+        waitSeconds(2);
+
         return caseDetails.getId().toString();
     }
 
@@ -302,6 +319,7 @@ public class GivensBuilder {
 
     private void waitSeconds(int seconds) {
         try {
+            log.info("Waiting for {} second(s)", seconds);
             TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();

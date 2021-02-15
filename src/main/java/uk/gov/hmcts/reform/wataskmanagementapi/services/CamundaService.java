@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 
+@Slf4j
 @Service
 @SuppressWarnings({
     "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter",
@@ -61,6 +64,7 @@ public class CamundaService {
     private final AuthTokenGenerator authTokenGenerator;
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final Gson gson = new Gson();
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
@@ -220,6 +224,7 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
+        log.info("Camunda search query: {}", gson.toJson(query.getQueries()));
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }

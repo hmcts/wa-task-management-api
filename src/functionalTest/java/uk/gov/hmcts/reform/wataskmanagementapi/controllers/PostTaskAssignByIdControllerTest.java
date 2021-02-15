@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -66,7 +65,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -87,7 +86,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id_with_restricted_role_assignment() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
@@ -109,7 +108,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
@@ -134,9 +133,10 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
         String noManagePermission = "Read,Refer,Own,Cancel";
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(noManagePermission);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
+        common.overrideTaskPermissions(taskId, noManagePermission);
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -161,8 +161,10 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
         String noOwnPermission = "Read,Refer,Manage,Cancel";
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(noOwnPermission);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
+
+        common.overrideTaskPermissions(taskId, noOwnPermission);
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 

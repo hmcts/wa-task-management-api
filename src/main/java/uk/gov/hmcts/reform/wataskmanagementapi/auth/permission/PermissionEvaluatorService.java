@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -30,6 +31,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
+@Slf4j
 @Service
 @SuppressWarnings({
     "java:S3776",
@@ -65,43 +67,52 @@ public class PermissionEvaluatorService {
                                    List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
 
+        log.debug("Evaluating access for {}", roleAssignment);
         // 1. Always Check Role name has required permission
         hasAccess = hasRolePermission(roleAssignment.getRoleName(), variables, permissionsRequired);
 
+        log.debug("RoleName permission check {}", hasAccess);
         if (hasAccess) {
             // 2. Always Check Security Classification matches the one on the task
             hasAccess = hasSecurityClassificationPermission(
                 roleAssignment.getClassification(),
                 variables
             );
-
+            log.debug("Security Classification permission check {}", hasAccess);
             if (roleAssignment.getAttributes() != null) {
 
                 Map<String, String> attributes = roleAssignment.getAttributes();
                 // 3. Conditionally check Jurisdiction matches the one on the task
                 String jurisdictionAttributeValue = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
                 if (hasAccess && jurisdictionAttributeValue != null) {
+
                     hasAccess = hasJurisdictionPermission(jurisdictionAttributeValue, variables);
+                    log.debug("Jurisdiction permission check {}", hasAccess);
                 }
                 // 4. Conditionally check CaseId matches the one on the task
                 String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
                 if (hasAccess && caseIdAttributeValue != null) {
                     hasAccess = hasCaseIdPermission(caseIdAttributeValue, variables);
+                    log.debug("CaseId permission check {}", hasAccess);
                 }
                 // 5. Conditionally check region matches the one on the task
                 String regionAttributeValue = attributes.get(RoleAttributeDefinition.REGION.value());
                 if (hasAccess && regionAttributeValue != null) {
                     hasAccess = hasRegionPermission(regionAttributeValue, variables);
+                    log.debug("Region permission check {}", hasAccess);
                 }
                 // 6. Conditionally check Location ePimms id matches the one on the task
                 String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
                 if (hasAccess && locationAttributeValue != null) {
                     hasAccess = hasLocationPermission(locationAttributeValue, variables);
+                    log.debug("Location permission check {}", hasAccess);
                 }
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
+            log.debug("BeginTime permission check {}", hasAccess);
             hasAccess = hasEndTimePermission(roleAssignment, hasAccess);
+            log.debug("EndTime permission check {}", hasAccess);
         }
 
         return hasAccess;
