@@ -110,4 +110,3 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
