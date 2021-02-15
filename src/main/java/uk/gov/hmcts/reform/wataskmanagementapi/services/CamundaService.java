@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.microsoft.applicationinsights.core.dependencies.google.gson.Gson;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -222,7 +223,8 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
-        log.info("Camunda search query: {}", query.getQueries());
+        Gson g = new Gson();
+        log.info("Camunda search query: {}", g.toJson(query.getQueries()));
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
