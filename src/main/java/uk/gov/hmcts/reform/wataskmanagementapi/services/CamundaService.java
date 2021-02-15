@@ -225,6 +225,7 @@ public class CamundaService {
 
         Gson g = new Gson();
         log.info("Camunda search query: {}", g.toJson(query.getQueries()));
+
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
