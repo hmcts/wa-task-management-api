@@ -64,6 +64,7 @@ public class CamundaService {
     private final AuthTokenGenerator authTokenGenerator;
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CamundaObjectMapper camundaObjectMapper;
+    private final Gson gson = new Gson();
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
@@ -223,8 +224,7 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
-        Gson g = new Gson();
-        log.info("Camunda search query: {}", g.toJson(query.getQueries()));
+        log.info("Camunda search query: {}", gson.toJson(query.getQueries()));
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
