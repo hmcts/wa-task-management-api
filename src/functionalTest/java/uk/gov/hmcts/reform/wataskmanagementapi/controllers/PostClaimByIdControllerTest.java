@@ -99,7 +99,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -120,7 +120,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -141,7 +141,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         Response resultAfterClaimedBySameUser = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -152,7 +152,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         resultAfterClaimedBySameUser.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -244,7 +244,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-        assertions.taskVariableWasUpdated(taskId, "taskState", "assigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
