@@ -11,7 +11,6 @@ def secrets = [
     'wa-${env}' : [
         secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
         secret('idam-secret', 'IA_IDAM_SECRET'),
-        secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),
         secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
         secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
         secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
