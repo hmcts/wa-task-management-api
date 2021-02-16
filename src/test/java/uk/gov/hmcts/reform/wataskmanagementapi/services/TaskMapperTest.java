@@ -39,7 +39,8 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
@@ -78,7 +79,8 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Task result = taskMapper.mapToTaskObject(new HashMap<String, CamundaVariable>(), camundaTask);
@@ -103,7 +105,8 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
@@ -144,7 +147,8 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();

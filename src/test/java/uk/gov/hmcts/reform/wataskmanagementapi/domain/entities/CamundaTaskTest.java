@@ -21,7 +21,8 @@ class CamundaTaskTest {
             dueDate,
             "some-description",
             "some-owner",
-            "formKey"
+            "formKey",
+            "processInstanceId"
         );
 
         Assertions.assertThat(camundaTask.getId()).isEqualTo("some-id");
@@ -32,5 +33,6 @@ class CamundaTaskTest {
         Assertions.assertThat(camundaTask.getDescription()).isEqualTo("some-description");
         Assertions.assertThat(camundaTask.getOwner()).isEqualTo("some-owner");
         Assertions.assertThat(camundaTask.getFormKey()).isEqualTo("formKey");
+        Assertions.assertThat(camundaTask.getProcessInstanceId()).isEqualTo("processInstanceId");
     }
 }
