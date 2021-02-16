@@ -11,12 +11,15 @@ public class TestVariables {
 
     private final String caseId;
     private final String taskId;
+    private final String processInstanceId;
 
-    public TestVariables(String caseId, String taskId) {
+    public TestVariables(String caseId, String taskId, String processInstanceId) {
         Objects.requireNonNull(caseId, "caseId must not be null");
         Objects.requireNonNull(taskId, "taskId must not be null");
+        Objects.requireNonNull(processInstanceId, "processInstanceId must not be null");
         this.caseId = caseId;
         this.taskId = taskId;
+        this.processInstanceId = processInstanceId;
     }
 
     public String getCaseId() {
@@ -25,5 +28,9 @@ public class TestVariables {
 
     public String getTaskId() {
         return taskId;
+    }
+
+    public String getProcessInstanceId() {
+        return processInstanceId;
     }
 }

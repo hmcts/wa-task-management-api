@@ -23,6 +23,7 @@ public class CamundaTask {
     private String description;
     private String owner;
     private String formKey;
+    private String processInstanceId;
 
     private CamundaTask() {
         //Hidden constructor
@@ -36,7 +37,9 @@ public class CamundaTask {
                        ZonedDateTime due,
                        String description,
                        String owner,
-                       String formKey) {
+                       String formKey,
+                       String processInstanceId
+                       ) {
         this.id = id;
         this.name = name;
         this.assignee = assignee;
@@ -45,6 +48,7 @@ public class CamundaTask {
         this.description = description;
         this.owner = owner;
         this.formKey = formKey;
+        this.processInstanceId = processInstanceId;
     }
 
     public String getId() {
@@ -77,5 +81,9 @@ public class CamundaTask {
 
     public String getFormKey() {
         return formKey;
+    }
+
+    public String getProcessInstanceId() {
+        return processInstanceId;
     }
 }
