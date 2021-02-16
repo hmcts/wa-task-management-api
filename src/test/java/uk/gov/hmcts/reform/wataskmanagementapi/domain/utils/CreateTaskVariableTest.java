@@ -29,7 +29,7 @@ class CreateTaskVariableTest {
 
         camundaTask = new CamundaTask("some-id", "some-name", "some-assignee",
             created, dueDate, "some-description",
-            "some-owner", "formKey"
+            "some-owner", "formKey", "processInstanceId"
         );
 
 

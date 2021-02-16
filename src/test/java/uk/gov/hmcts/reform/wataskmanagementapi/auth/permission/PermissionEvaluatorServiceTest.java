@@ -552,7 +552,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.REGION.value(), "east-england")
+            Map.of(RoleAttributeDefinition.REGION.value(), "1")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -677,7 +677,7 @@ class PermissionEvaluatorServiceTest {
         variables.put(LOCATION.value(), new CamundaVariable("012345", "String"));
         variables.put(LOCATION_NAME.value(), new CamundaVariable("A Hearing Centre", "String"));
         variables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PUBLIC", "String"));
-        variables.put(REGION.value(), new CamundaVariable("east-england", "String"));
+        variables.put(REGION.value(), new CamundaVariable("1", "String"));
         variables.put(JURISDICTION.value(), new CamundaVariable("IA", "String"));
         variables.put(
             "tribunal-caseworker",

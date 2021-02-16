@@ -23,10 +23,10 @@ public class Assertions {
         this.authorizationHeadersProvider = authorizationHeadersProvider;
     }
 
-    public void taskVariableWasUpdated(String taskId, String variable, String value) {
+    public void taskVariableWasUpdated(String processInstanceId, String variable, String value) {
 
         Response result = camundaApiActions.get(
-            "/history/variable-instance?taskIdIn=" + taskId,
+            "/history/variable-instance?processInstanceId=" + processInstanceId,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 

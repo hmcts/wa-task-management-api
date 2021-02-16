@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -30,6 +29,7 @@ import java.util.Map;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.ORGANISATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -37,7 +37,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Slf4j
 public class Common {
 
-    public static final String TRIBUNAL_CASEWORKER_PERMISSIONS = "Read,Refer,Own,Manage,Cancel";
     public static final String REASON_COMPLETED = "completed";
     public static final String REASON_DELETED = "deleted";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
@@ -67,10 +66,7 @@ public class Common {
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
     ) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
-            TRIBUNAL_CASEWORKER_PERMISSIONS
-        );
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
@@ -89,7 +85,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
 
     }
 
@@ -97,10 +93,7 @@ public class Common {
                                                       Map<CamundaVariableDefinition, String> variablesToUseAsOverride
 
     ) {
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            task.getCaseId(),
-            TRIBUNAL_CASEWORKER_PERMISSIONS
-        );
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(task.getCaseId());
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
                 .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
@@ -108,12 +101,17 @@ public class Common {
         given.iUpdateVariablesOfTaskById(task.getTaskId(), processVariables);
     }
 
+
+    public void overrideTaskPermissions(String taskId, String permissions) {
+        given.iUpdateTaskVariable(
+            taskId,
+            Map.of("tribunal-caseworker", new CamundaValue<>(permissions, "String"))
+        );
+    }
+
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
-            caseId,
-            TRIBUNAL_CASEWORKER_PERMISSIONS
-        );
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
         List<CamundaTask> response = given
@@ -125,15 +123,15 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public TestVariables setupTaskAndRetrieveIds(String tribunalCaseworkerPermissions) {
+    public TestVariables setupTaskAndRetrieveIds() {
 
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, tribunalCaseworkerPermissions)
+            .iCreateATaskWithCaseId(caseId)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
@@ -141,7 +139,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
     public void cleanUpTask(String taskId, String reason) {
@@ -260,11 +258,15 @@ public class Common {
                                     String attributes,
                                     String resourceFilename) {
 
-        roleAssignmentServiceApi.createRoleAssignment(
-            getBody(caseId, userInfo, resourceFilename, attributes),
-            bearerUserToken,
-            s2sToken
-        );
+        try {
+            roleAssignmentServiceApi.createRoleAssignment(
+                getBody(caseId, userInfo, resourceFilename, attributes),
+                bearerUserToken,
+                s2sToken
+            );
+        } catch (FeignException ex) {
+            ex.printStackTrace();
+        }
     }
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
@@ -292,7 +294,7 @@ public class Common {
                 .collect(toList());
 
             List<Assignment> caseRoleAssignments = response.getRoleAssignmentResponse().stream()
-                .filter(assignment -> RoleType.CASE.equals(assignment.getRoleType()))
+                .filter(assignment -> CASE.equals(assignment.getRoleType()))
                 .collect(toList());
 
             caseRoleAssignments.forEach(assignment ->

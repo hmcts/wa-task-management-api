@@ -38,6 +38,103 @@ class CamundaQueryBuilderTest {
     }
 
     @Test
+    void createQuery_should_build_query_for_task_state_unassigned()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned"))
+        ));
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"processVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"unassigned\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ]\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_for_task_state_assigned()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(STATE, SearchOperator.IN, asList("assigned"))
+        ));
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"processVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"assigned\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ]\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_for_task_state_assigned_and_unassigned()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(STATE, SearchOperator.IN, asList("assigned", "unassigned"))
+        ));
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"processVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"assigned\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"unassigned\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ]\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
     void createQuery_should_build_query_from_search_task_request_with_OR_and_AND_queries()
         throws JsonProcessingException, JSONException {
 
