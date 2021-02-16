@@ -97,7 +97,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             ZonedDateTime.now().plusDays(1),
             "someCamundaTaskDescription",
             "someCamundaTaskOwner",
-            "someCamundaTaskFormKey"
+            "someCamundaTaskFormKey",
+            "someProcessInstanceId"
         );
     }
 
@@ -246,7 +247,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 dueDate,
                 null,
                 null,
-                "someFormKey"
+                "someFormKey",
+                "someProcessInstanceId"
             );
 
             Map<String, CamundaVariable> variables = mockVariables();
@@ -307,7 +309,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 dueDate,
                 null,
                 null,
-                "someFormKey"
+                "someFormKey",
+                "someProcessInstanceId"
             );
 
             Map<String, CamundaVariable> variables = mockVariables();
@@ -944,7 +947,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 dueDate,
                 null,
                 null,
-                "someFormKey"
+                "someFormKey",
+                "someProcessInstanceId"
             );
 
             Map<String, CamundaVariable> variables = mockVariables();
@@ -1011,7 +1015,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 dueDate,
                 null,
                 null,
-                "someFormKey"
+                "someFormKey",
+                "someProcessInstanceId"
             );
 
             Map<String, CamundaVariable> variables = mockVariables();

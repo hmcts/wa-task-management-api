@@ -75,7 +75,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "completed");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -97,7 +97,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "completed");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

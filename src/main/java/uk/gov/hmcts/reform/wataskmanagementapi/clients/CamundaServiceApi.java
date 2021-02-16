@@ -7,14 +7,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 
 import java.util.List;
 import java.util.Map;
@@ -64,13 +62,6 @@ public interface CamundaServiceApi {
     void unclaimTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                      @PathVariable("task-id") String id);
 
-    @GetMapping(
-        value = "/history/variable-instance",
-        produces = APPLICATION_JSON_VALUE
-    )
-    List<HistoryVariableInstance> getTaskVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                                   @RequestParam("taskIdIn") String taskId);
-
     @PostMapping(
         value = "/task/{task-id}/complete",
         consumes = APPLICATION_JSON_VALUE,
@@ -81,7 +72,7 @@ public interface CamundaServiceApi {
                       CompleteTaskVariables variables);
 
     @PostMapping(
-        value = "/task/{id}/localVariables",
+        value = "/task/{id}/variables",
         consumes = APPLICATION_JSON_VALUE
     )
     void addLocalVariablesToTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
@@ -101,9 +92,9 @@ public interface CamundaServiceApi {
         value = "/decision-definition/key/{key}/tenant-id/ia/evaluate",
         consumes = APPLICATION_JSON_VALUE
     )
-    List<Map<String, CamundaVariable>>   evaluateDMN(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                    @PathVariable("key") String key,
-                    @RequestBody Map<String,Map<String,CamundaVariable>> body);
+    List<Map<String, CamundaVariable>> evaluateDMN(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                   @PathVariable("key") String key,
+                                                   @RequestBody Map<String, Map<String, CamundaVariable>> body);
 
 
     @GetMapping(
@@ -119,8 +110,8 @@ public interface CamundaServiceApi {
         consumes = APPLICATION_JSON_VALUE
     )
     void bpmnEscalation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                    @PathVariable("task-id") String id,
-                    @RequestBody Map<String, String> body);
+                        @PathVariable("task-id") String id,
+                        @RequestBody Map<String, String> body);
 
 
 }
