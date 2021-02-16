@@ -113,6 +113,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
