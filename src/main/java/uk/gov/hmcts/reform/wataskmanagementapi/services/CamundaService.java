@@ -222,7 +222,6 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
-        log.debug("Camunda search query: {}", query.getQueries());
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }

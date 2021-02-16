@@ -85,7 +85,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
 
     }
 
@@ -123,7 +123,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
     public TestVariables setupTaskAndRetrieveIds() {
@@ -139,7 +139,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
     public void cleanUpTask(String taskId, String reason) {
