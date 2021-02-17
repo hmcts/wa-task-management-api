@@ -3,23 +3,23 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static java.util.Objects.requireNonNull;
 
 @Component
 public class IdamService {
 
-    private final IdamServiceApi idamServiceApi;
+    private final IdamWebApi idamWebApi;
 
     @Autowired
-    public IdamService(IdamServiceApi idamServiceApi) {
-        this.idamServiceApi = idamServiceApi;
+    public IdamService(IdamWebApi idamWebApi) {
+        this.idamWebApi = idamWebApi;
     }
 
     public UserInfo getUserInfo(String accessToken) {
         requireNonNull(accessToken, "access token must not be null");
-        return idamServiceApi.userInfo(accessToken);
+        return idamWebApi.userInfo(accessToken);
     }
 
     public String getUserId(String authToken) {

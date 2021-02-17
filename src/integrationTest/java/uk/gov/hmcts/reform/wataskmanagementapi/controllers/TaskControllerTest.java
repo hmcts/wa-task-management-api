@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
@@ -38,7 +38,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private MockMvc mockMvc;
     @MockBean
-    private IdamServiceApi idamServiceApi;
+    private IdamWebApi idamWebApi;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @MockBean
@@ -50,7 +50,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     public void setUp() {
-        mockServices = new ServiceMocks(idamServiceApi,
+        mockServices = new ServiceMocks(idamWebApi,
             camundaServiceApi,
             roleAssignmentServiceApi);
     }

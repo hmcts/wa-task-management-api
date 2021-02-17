@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -20,13 +20,13 @@ import static org.mockito.Mockito.when;
 class IdamServiceTest {
 
     @Mock
-    private IdamServiceApi idamServiceApi;
+    private IdamWebApi idamWebApi;
 
     private IdamService idamService;
 
     @BeforeEach
     public void setUp() {
-        idamService = new IdamService(idamServiceApi);
+        idamService = new IdamService(idamWebApi);
     }
 
     @Test
@@ -43,12 +43,12 @@ class IdamServiceTest {
             "someFamilyName"
         );
 
-        when(idamServiceApi.userInfo(accessToken)).thenReturn(mockedUserInfo);
+        when(idamWebApi.userInfo(accessToken)).thenReturn(mockedUserInfo);
 
         UserInfo userInfoResponse = idamService.getUserInfo(accessToken);
 
-        verify(idamServiceApi, times(1)).userInfo(accessToken);
-        verifyNoMoreInteractions(idamServiceApi);
+        verify(idamWebApi, times(1)).userInfo(accessToken);
+        verifyNoMoreInteractions(idamWebApi);
 
         assertEquals(userInfoResponse, mockedUserInfo);
     }
@@ -67,15 +67,15 @@ class IdamServiceTest {
             "someFamilyName"
         );
 
-        when(idamServiceApi.userInfo(accessToken)).thenReturn(mockedUserInfo);
+        when(idamWebApi.userInfo(accessToken)).thenReturn(mockedUserInfo);
 
         assertThatThrownBy(() -> idamService.getUserId(accessToken))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("User id must not be null")
             .hasNoCause();
 
-        verify(idamServiceApi, times(1)).userInfo(accessToken);
-        verifyNoMoreInteractions(idamServiceApi);
+        verify(idamWebApi, times(1)).userInfo(accessToken);
+        verifyNoMoreInteractions(idamWebApi);
 
     }
 
@@ -93,12 +93,12 @@ class IdamServiceTest {
             "someFamilyName"
         );
 
-        when(idamServiceApi.userInfo(accessToken)).thenReturn(mockedUserInfo);
+        when(idamWebApi.userInfo(accessToken)).thenReturn(mockedUserInfo);
 
         String userIdResponse = idamService.getUserId(accessToken);
 
-        verify(idamServiceApi, times(1)).userInfo(accessToken);
-        verifyNoMoreInteractions(idamServiceApi);
+        verify(idamWebApi, times(1)).userInfo(accessToken);
+        verifyNoMoreInteractions(idamWebApi);
 
         assertEquals(userIdResponse, mockedUserInfo.getUid());
     }

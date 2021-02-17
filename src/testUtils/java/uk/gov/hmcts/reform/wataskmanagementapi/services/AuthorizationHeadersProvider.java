@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.RoleCode;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAccount;
 
@@ -35,14 +36,13 @@ public class AuthorizationHeadersProvider {
     @Value("${idam.scope}") protected String userScope;
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
     @Value("${spring.security.oauth2.client.registration.oidc.client-secret}") protected String idamClientSecret;
-
+    ObjectMapper mapper = new ObjectMapper();
+    @Autowired
+    private IdamWebApi idamWebApi;
     @Autowired
     private IdamServiceApi idamServiceApi;
-
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
-
-    ObjectMapper mapper = new ObjectMapper();
 
     public Header getServiceAuthorizationHeader() {
         String serviceToken = tokens.computeIfAbsent(
@@ -119,7 +119,7 @@ public class AuthorizationHeadersProvider {
 
         String accessToken = tokens.computeIfAbsent(
             key,
-            user -> "Bearer " + idamServiceApi.token(body).getAccessToken()
+            user -> "Bearer " + idamWebApi.token(body).getAccessToken()
         );
         return new Header(AUTHORIZATION, accessToken);
     }
@@ -161,7 +161,7 @@ public class AuthorizationHeadersProvider {
             body.add("forename", "WAFTAccount");
             body.add("surname", "Test");
             body.add("roles", mapper.writeValueAsString(requiredRoles));
-            body.add("userGroup",mapper.writeValueAsString(userGroup));
+            body.add("userGroup", mapper.writeValueAsString(userGroup));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -173,7 +173,7 @@ public class AuthorizationHeadersProvider {
     }
 
     public UserInfo getUserInfo(String userToken) {
-        return idamServiceApi.userInfo(userToken);
+        return idamWebApi.userInfo(userToken);
     }
 
     public Headers getServiceAuthorizationHeadersOnly() {
