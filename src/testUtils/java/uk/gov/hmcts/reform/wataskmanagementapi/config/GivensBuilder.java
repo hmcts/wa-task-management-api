@@ -198,6 +198,7 @@ public class GivensBuilder {
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariableBoolean("hasWarnings", false)
             .build();
 
         return processVariables.getProcessVariablesMap();
