@@ -16,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -136,7 +137,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId));
+            .and().body("task.id", equalTo(taskId))
+            .body("task.warnings", is(false));
+
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
