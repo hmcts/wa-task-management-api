@@ -98,7 +98,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "unassigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -119,7 +119,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskId, "taskState", "unassigned");
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

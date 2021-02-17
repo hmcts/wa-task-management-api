@@ -85,7 +85,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
 
     }
 
@@ -123,7 +123,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
     public TestVariables setupTaskAndRetrieveIds() {
@@ -139,7 +139,7 @@ public class Common {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
-        return new TestVariables(caseId, response.get(0).getId());
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
     public void cleanUpTask(String taskId, String reason) {
@@ -296,6 +296,16 @@ public class Common {
             List<Assignment> caseRoleAssignments = response.getRoleAssignmentResponse().stream()
                 .filter(assignment -> CASE.equals(assignment.getRoleType()))
                 .collect(toList());
+
+            //Check if there are 'orphaned' restricted roles
+            if (organisationalRoleAssignments.isEmpty() && !caseRoleAssignments.isEmpty()) {
+                log.info("Orphaned Restricted role assignments were found.");
+                log.info("Creating a temporary role assignment to perform cleanup");
+                //Create a temporary organisational role
+                setupOrganisationalRoleAssignment(headers);
+                //Recursive
+                clearAllRoleAssignments(headers);
+            }
 
             caseRoleAssignments.forEach(assignment ->
                 roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken));
