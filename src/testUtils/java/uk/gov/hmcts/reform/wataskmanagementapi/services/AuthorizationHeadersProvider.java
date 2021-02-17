@@ -154,18 +154,19 @@ public class AuthorizationHeadersProvider {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
         RoleCode userGroup = new RoleCode("caseworker");
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        Map<String, String> body = new ConcurrentHashMap<>();
         try {
-            body.add("email", email);
-            body.add("password", password);
-            body.add("forename", "WAFTAccount");
-            body.add("surname", "Test");
-            body.add("roles", mapper.writeValueAsString(requiredRoles));
-            body.add("userGroup", mapper.writeValueAsString(userGroup));
+            body.put("email", email);
+            body.put("password", password);
+            body.put("forename", "WAFTAccount");
+            body.put("surname", "Test");
+            body.put("roles", mapper.writeValueAsString(requiredRoles));
+            body.put("userGroup", mapper.writeValueAsString(userGroup));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
 
+        log.info("request {}", body);
         idamServiceApi.createTestUser(body);
 
         log.info("Test account created successfully");
