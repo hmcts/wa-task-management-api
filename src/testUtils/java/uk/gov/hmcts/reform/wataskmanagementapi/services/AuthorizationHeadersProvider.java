@@ -155,7 +155,7 @@ public class AuthorizationHeadersProvider {
         body.put("email", email);
         body.put("password", password);
         body.put("forename", "WAFTAccount");
-        body.put("surname", "Test");
+        body.put("surname", "Functional");
         body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
 
