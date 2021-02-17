@@ -166,7 +166,6 @@ public class AuthorizationHeadersProvider {
             e.printStackTrace();
         }
 
-        log.info("request {}", body);
         idamServiceApi.createTestUser(body);
 
         log.info("Test account created successfully");
