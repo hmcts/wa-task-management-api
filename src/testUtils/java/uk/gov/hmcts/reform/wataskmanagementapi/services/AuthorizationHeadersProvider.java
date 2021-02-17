@@ -1,7 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -10,17 +13,24 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.RoleCode;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAccount;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
+@Slf4j
 @Service
 public class AuthorizationHeadersProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
+    private final Map<String, TestAccount> accounts = new ConcurrentHashMap<>();
     @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
     @Value("${idam.scope}") protected String userScope;
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
@@ -31,6 +41,8 @@ public class AuthorizationHeadersProvider {
 
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
+
+    ObjectMapper mapper = new ObjectMapper();
 
     public Header getServiceAuthorizationHeader() {
         String serviceToken = tokens.computeIfAbsent(
@@ -76,18 +88,19 @@ public class AuthorizationHeadersProvider {
 
     public Header getCaseworkerAAuthorizationOnly() {
 
-        String username = System.getenv("TEST_WA_CASEOFFICER_A_USERNAME");
-        String password = System.getenv("TEST_WA_CASEOFFICER_A_PASSWORD");
+        String key = "Caseworker A";
 
-        return getAuthorization("Caseworker A", username, password);
+        TestAccount caseworker = getIdamCredentials(key);
+        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
 
     }
 
     public Header getCaseworkerBAuthorizationOnly() {
 
-        String username = System.getenv("TEST_WA_CASEOFFICER_B_USERNAME");
-        String password = System.getenv("TEST_WA_CASEOFFICER_B_PASSWORD");
-        return getAuthorization("Caseworker B", username, password);
+        String key = "Caseworker B";
+
+        TestAccount caseworker = getIdamCredentials(key);
+        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
 
     }
 
@@ -111,6 +124,14 @@ public class AuthorizationHeadersProvider {
         return new Header(AUTHORIZATION, accessToken);
     }
 
+    private TestAccount getIdamCredentials(String key) {
+
+        return accounts.computeIfAbsent(
+            key,
+            user -> generateIdamTestAccount()
+        );
+    }
+
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "password");
@@ -122,6 +143,33 @@ public class AuthorizationHeadersProvider {
         body.add("scope", userScope);
 
         return body;
+    }
+
+    private TestAccount generateIdamTestAccount() {
+        String email = "wa-ft-test-" + UUID.randomUUID() + "@fake.hmcts.net";
+        String password = String.valueOf(UUID.randomUUID());
+
+        log.info("Attempting to create a new test account {}", email);
+
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
+        RoleCode userGroup = new RoleCode("caseworker");
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        try {
+            body.add("email", email);
+            body.add("password", password);
+            body.add("forename", "WAFTAccount");
+            body.add("surname", "Test");
+            body.add("roles", mapper.writeValueAsString(requiredRoles));
+            body.add("userGroup",mapper.writeValueAsString(userGroup));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        idamServiceApi.createTestUser(body);
+
+        log.info("Test account created successfully");
+        return new TestAccount(email, password);
     }
 
     public UserInfo getUserInfo(String userToken) {

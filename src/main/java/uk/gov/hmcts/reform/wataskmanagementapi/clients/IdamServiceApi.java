@@ -33,4 +33,13 @@ public interface IdamServiceApi {
         consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
     )
     Token token(@RequestBody Map<String, ?> form);
+
+    @PostMapping(
+        value = "/testing-support/accounts",
+        produces = APPLICATION_JSON_VALUE,
+        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+    )
+    void createTestUser(@RequestBody Map<String, ?> form);
+
+
 }
