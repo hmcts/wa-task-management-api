@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +34,6 @@ public class AuthorizationHeadersProvider {
     @Value("${idam.scope}") protected String userScope;
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
     @Value("${spring.security.oauth2.client.registration.oidc.client-secret}") protected String idamClientSecret;
-    ObjectMapper mapper = new ObjectMapper();
     @Autowired
     private IdamWebApi idamWebApi;
     @Autowired
@@ -154,17 +151,13 @@ public class AuthorizationHeadersProvider {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
         RoleCode userGroup = new RoleCode("caseworker");
 
-        Map<String, String> body = new ConcurrentHashMap<>();
-        try {
-            body.put("email", email);
-            body.put("password", password);
-            body.put("forename", "WAFTAccount");
-            body.put("surname", "Test");
-            body.put("roles", mapper.writeValueAsString(requiredRoles));
-            body.put("userGroup", mapper.writeValueAsString(userGroup));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        Map<String, Object> body = new ConcurrentHashMap<>();
+        body.put("email", email);
+        body.put("password", password);
+        body.put("forename", "WAFTAccount");
+        body.put("surname", "Test");
+        body.put("roles", requiredRoles);
+        body.put("userGroup", userGroup);
 
         idamServiceApi.createTestUser(body);
 
