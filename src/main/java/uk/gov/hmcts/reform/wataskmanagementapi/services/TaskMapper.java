@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
@@ -27,6 +28,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 
 @Service
+@SuppressWarnings("PMD.LinguisticNaming")
 public class TaskMapper {
 
 
@@ -60,6 +62,8 @@ public class TaskMapper {
         String caseId = getVariableValue(variables.get(CASE_ID.value()), String.class);
         String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
         String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
+        Boolean hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), Boolean.class);
+
 
         return new Task(
             id,
@@ -81,7 +85,8 @@ public class TaskMapper {
             caseTypeId,
             caseId,
             caseCategory,
-            caseName
+            caseName,
+            hasWarnings
 
         );
     }
