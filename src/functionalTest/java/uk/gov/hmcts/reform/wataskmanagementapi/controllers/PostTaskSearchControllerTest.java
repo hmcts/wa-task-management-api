@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -85,7 +84,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(Common.TRIBUNAL_CASEWORKER_PERMISSIONS);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -108,6 +107,64 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
+    @Test
+    public void should_return_a_200_with_search_results_based_on_state_unassigned() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.task_state", everyItem(is("unassigned")));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_with_search_results_based_on_state_assigned() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response claimResult = restApiActions.post(
+            "task/{task-id}/claim",
+            taskId,
+            authenticationHeaders
+        );
+
+        claimResult.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.task_state", everyItem(is("assigned")));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
 
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
@@ -117,6 +174,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String caseId = taskVariablesSscs.getCaseId();
 
         common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
+
 
         common.setupRestrictedRoleAssignment(caseId, authenticationHeaders);
 

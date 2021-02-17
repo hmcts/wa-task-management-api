@@ -3,15 +3,15 @@
     {
       "actorId": "{ACTOR_ID_PLACEHOLDER}",
       "actorIdType": "IDAM",
-      "attributes": {
-        "caseId": "{CASE_ID_PLACEHOLDER}"
-      },
       "classification": "RESTRICTED",
       "grantType": "SPECIFIC",
       "readOnly": false,
       "roleCategory": "STAFF",
       "roleName": "tribunal-caseworker",
-      "roleType": "CASE"
+      "roleType": "CASE",
+      "attributes": {
+        "caseId": "{CASE_ID_PLACEHOLDER}"
+      }
     }
   ],
   "roleRequest": {
