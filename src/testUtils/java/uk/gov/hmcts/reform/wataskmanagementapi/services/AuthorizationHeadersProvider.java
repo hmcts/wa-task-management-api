@@ -144,7 +144,7 @@ public class AuthorizationHeadersProvider {
 
     private TestAccount generateIdamTestAccount() {
         String email = "wa-ft-test-" + UUID.randomUUID() + "@fake.hmcts.net";
-        String password = "TestingFT01";
+        String password = "London01";
 
         log.info("Attempting to create a new test account {}", email);
 
