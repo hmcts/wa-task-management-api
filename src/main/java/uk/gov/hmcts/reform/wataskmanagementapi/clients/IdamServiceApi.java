@@ -19,8 +19,7 @@ public interface IdamServiceApi {
 
     @PostMapping(
         value = "/testing-support/accounts",
-        produces = APPLICATION_JSON_VALUE,
-        consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+        consumes = APPLICATION_JSON_VALUE
     )
     void createTestUser(@RequestBody Map<String, ?> form);
 
