@@ -18,7 +18,9 @@ public enum CamundaVariableDefinition {
     TASK_STATE("taskState"),
     TASK_SYSTEM("taskSystem"),
     TITLE("title"),
-    TYPE("type");
+    TYPE("type"),
+    HAS_WARNINGS("hasWarnings");
+
 
     private final String value;
 
