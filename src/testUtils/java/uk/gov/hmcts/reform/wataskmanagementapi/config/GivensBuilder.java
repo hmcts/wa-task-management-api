@@ -114,7 +114,7 @@ public class GivensBuilder {
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(10, SECONDS)
+            .atMost(20, SECONDS)
             .until(
                 () -> {
                     Response result = camundaApiActions.get(
@@ -198,6 +198,7 @@ public class GivensBuilder {
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariableBoolean("hasWarnings", false)
             .build();
 
         return processVariables.getProcessVariablesMap();
