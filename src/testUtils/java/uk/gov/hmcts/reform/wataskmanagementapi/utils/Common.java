@@ -12,7 +12,7 @@ import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -45,7 +45,7 @@ public class Common {
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    private final IdamServiceApi idamServiceApi;
+    private final IdamWebApi idamWebApi;
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
 
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -53,12 +53,12 @@ public class Common {
     public Common(GivensBuilder given,
                   RestApiActions camundaApiActions,
                   AuthorizationHeadersProvider authorizationHeadersProvider,
-                  IdamServiceApi idamServiceApi,
+                  IdamWebApi idamWebApi,
                   RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.given = given;
         this.camundaApiActions = camundaApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
-        this.idamServiceApi = idamServiceApi;
+        this.idamWebApi = idamWebApi;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
 
@@ -157,13 +157,13 @@ public class Common {
     }
 
     public void clearAllRoleAssignments(Headers headers) {
-        UserInfo userInfo = idamServiceApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
     public void setupOrganisationalRoleAssignment(Headers headers) {
 
-        UserInfo userInfo = idamServiceApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -199,7 +199,7 @@ public class Common {
 
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
 
-        UserInfo userInfo = idamServiceApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
@@ -218,7 +218,7 @@ public class Common {
 
     public void setupRestrictedRoleAssignment(String caseId, Headers headers) {
 
-        UserInfo userInfo = idamServiceApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "jurisdiction", "IA",

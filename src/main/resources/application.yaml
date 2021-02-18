@@ -55,6 +55,8 @@ idam:
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
+  api:
+    baseUrl: ${IDAM_API_URL:http://sidam-api}
 
 spring:
   application:

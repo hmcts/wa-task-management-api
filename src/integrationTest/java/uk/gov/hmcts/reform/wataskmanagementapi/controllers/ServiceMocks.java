@@ -12,7 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -33,14 +33,14 @@ public class ServiceMocks {
     private static final String IDAM_USER_ID = "IDAM_USER_ID";
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private IdamServiceApi idamServiceApi;
+    private IdamWebApi idamWebApi;
     private CamundaServiceApi camundaServiceApi;
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
 
-    public ServiceMocks(IdamServiceApi idamServiceApi,
+    public ServiceMocks(IdamWebApi idamWebApi,
                         CamundaServiceApi camundaServiceApi,
                         RoleAssignmentServiceApi roleAssignmentServiceApi) {
-        this.idamServiceApi = idamServiceApi;
+        this.idamWebApi = idamWebApi;
         this.camundaServiceApi = camundaServiceApi;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
@@ -48,10 +48,10 @@ public class ServiceMocks {
     public void mockServiceAPIs() {
         var userToken = "user_token";
 
-        mockUserInfo(idamServiceApi);
+        mockUserInfo(idamWebApi);
         mockRoleAssignments(roleAssignmentServiceApi);
 
-        when(idamServiceApi.token(any())).thenReturn(new Token(userToken, "scope"));
+        when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
         mockVariables(camundaServiceApi);
     }
@@ -114,9 +114,9 @@ public class ServiceMocks {
         );
     }
 
-    private void mockUserInfo(IdamServiceApi idamServiceApi) {
+    private void mockUserInfo(IdamWebApi idamWebApi) {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
-        when(idamServiceApi.userInfo(any())).thenReturn(mockedUserInfo);
+        when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
     }
 
     private void mockVariables(CamundaServiceApi camundaServiceApi) {
