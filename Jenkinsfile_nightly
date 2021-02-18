@@ -59,6 +59,7 @@ withNightlyPipeline(type, product, component) {
 
   loadVaultSecrets(secrets)
 
+  enableSecurityScan()
   enableMutationTest()
   enableSlackNotifications('#wa-build')
 }
