@@ -20,12 +20,6 @@
    ]]></notes>
     <cve>CVE-2007-1652</cve>
   </suppress>
-  <suppress until="2030-01-01">
-    <notes><![CDATA[
-     Suppressing as it's a false positive we are currently using apache tomcat 9.0.39
-   ]]></notes>
-    <cve>CVE-2020-13943</cve>
-  </suppress>
   <suppress>
     <notes><![CDATA[
 			Jar: com.nimbusds:oauth2-oidc-sdk-7.1.1.jar
