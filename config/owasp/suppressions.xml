@@ -20,14 +20,6 @@
    ]]></notes>
     <cve>CVE-2007-1652</cve>
   </suppress>
-  <suppress>
-    <notes><![CDATA[
-			Jar: com.nimbusds:oauth2-oidc-sdk-7.1.1.jar
-			Analysis: False positive, https://github.com/jeremylong/DependencyCheck/issues/713
-		]]></notes>
-    <cve>CVE-2007-1651</cve>
-    <cve>CVE-2007-1652</cve>
-  </suppress>
   <!-- This vulnerability can only be exploited from the local network -->
   <suppress>
     <gav regex="true">^com\.nimbusds:lang-tag:.*$</gav>
