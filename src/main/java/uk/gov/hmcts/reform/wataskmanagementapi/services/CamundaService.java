@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -37,6 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 
 @Slf4j
@@ -366,10 +369,31 @@ public class CamundaService {
                 query.getQueries()
             );
 
+            //Extract all processIds to be used as a lookup when collecting all variables
+            List<String> searchResultsProcessIds = searchResults.stream()
+                .map(CamundaTask::getProcessInstanceId)
+                .collect(Collectors.toList());
+
+            //Retrieve all variables for processIds
+            Map<String, List<String>> body = Map.of("variableScopeIdIn", searchResultsProcessIds);
+            List<CamundaVariableInstance> allVariables =
+                camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
+
+            Map<String, List<CamundaVariableInstance>> variablesByProcessId = allVariables.stream()
+                .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
+
             //Loop through all search results
             searchResults.forEach(camundaTask -> {
                 //2. Get Variables for the task
-                Map<String, CamundaVariable> variables = performGetVariablesAction(camundaTask.getId());
+                List<CamundaVariableInstance> variablesForProcessId =
+                    variablesByProcessId.get(camundaTask.getProcessInstanceId());
+
+                //Format variables
+                Map<String, CamundaVariable> variables = variablesForProcessId.stream()
+                    .collect(toMap(
+                        CamundaVariableInstance::getName,
+                        var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)
+                    );
 
                 //3. Evaluate access to task
                 boolean hasAccess = permissionEvaluatorService

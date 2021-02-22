@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -123,6 +125,22 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             taskId,
             new AddLocalVariableRequest(modifications)
         );
+    }
+
+    private List<CamundaVariableInstance> mockedVariablesResponse() {
+        Map<String, CamundaVariable> mockVariables = mockVariables();
+
+        return mockVariables.keySet().stream()
+            .map(
+                mockVarKey ->
+                    new CamundaVariableInstance(
+                        mockVariables.get(mockVarKey).getValue(),
+                        mockVariables.get(mockVarKey).getType(),
+                        mockVarKey,
+                        "someProcessInstanceId"
+                    ))
+            .collect(Collectors.toList());
+
     }
 
     @Nested
@@ -251,19 +269,19 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            Map<String, CamundaVariable> variables = mockVariables();
-
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
             when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
-            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
-                .thenReturn(variables);
+            when(camundaServiceApi.getAllVariables(
+                BEARER_SERVICE_TOKEN,
+                Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
+            )).thenReturn(mockedVariablesResponse());
 
             when(permissionEvaluatorService.hasAccess(
-                variables,
-                roleAssignment,
-                permissionsRequired
+                anyMap(),
+                eq(roleAssignment),
+                eq(permissionsRequired)
             )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
@@ -290,7 +308,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
-                .getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId());
+                .getAllVariables(
+                    BEARER_SERVICE_TOKEN,
+                    Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
+                );
             verifyNoMoreInteractions(camundaServiceApi);
         }
 
@@ -313,19 +334,20 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            Map<String, CamundaVariable> variables = mockVariables();
-
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
             when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
-            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId()))
-                .thenReturn(variables);
+            when(camundaServiceApi.getAllVariables(
+                BEARER_SERVICE_TOKEN,
+                Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
+            )).thenReturn(mockedVariablesResponse());
+
 
             when(permissionEvaluatorService.hasAccess(
-                variables,
-                roleAssignment,
-                permissionsRequired
+                anyMap(),
+                eq(roleAssignment),
+                eq(permissionsRequired)
             )).thenReturn(false);
 
             List<Task> results = camundaService.searchWithCriteria(
@@ -343,7 +365,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
-                .getVariables(BEARER_SERVICE_TOKEN, camundaTask.getId());
+                .getAllVariables(
+                    BEARER_SERVICE_TOKEN,
+                    Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
+                );
             verifyNoMoreInteractions(camundaServiceApi);
         }
 
@@ -366,7 +391,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(singletonList(mock(
                 CamundaTask.class)));
 
-            when(camundaServiceApi.getVariables(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(
+            when(camundaServiceApi.getAllVariables(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(
                 new TestFeignClientException(
                     HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
@@ -378,7 +403,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 camundaService.searchWithCriteria(searchTaskRequest, roleAssignment, permissionsRequired)
             )
                 .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(ResourceNotFoundException.class)
+                .hasCauseInstanceOf(TestFeignClientException.class)
                 .hasMessage("There was a problem performing the search");
 
 
