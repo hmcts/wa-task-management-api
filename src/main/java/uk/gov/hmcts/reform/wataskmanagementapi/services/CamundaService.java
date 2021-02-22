@@ -369,6 +369,11 @@ public class CamundaService {
                 query.getQueries()
             );
 
+            //Safe guard in case no search results were returned
+            if (searchResults.isEmpty()) {
+                return response;
+            }
+
             //Extract all processIds to be used as a lookup when collecting all variables
             List<String> searchResultsProcessIds = searchResults.stream()
                 .map(CamundaTask::getProcessInstanceId)
@@ -378,6 +383,11 @@ public class CamundaService {
             Map<String, List<String>> body = Map.of("variableScopeIdIn", searchResultsProcessIds);
             List<CamundaVariableInstance> allVariables =
                 camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
+
+            //Safe guard in case no variables where returned
+            if (allVariables.isEmpty()) {
+                return response;
+            }
 
             Map<String, List<CamundaVariableInstance>> variablesByProcessId = allVariables.stream()
                 .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
