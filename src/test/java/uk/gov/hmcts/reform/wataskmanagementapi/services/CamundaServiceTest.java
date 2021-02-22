@@ -405,8 +405,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .isInstanceOf(ServerErrorException.class)
                 .hasCauseInstanceOf(TestFeignClientException.class)
                 .hasMessage("There was a problem performing the search");
-
-
         }
 
         @Test
