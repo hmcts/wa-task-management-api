@@ -235,7 +235,7 @@ def versions = [
   junit           : '5.7.0',
   junitPlatform   : '1.7.0',
   reformLogging   : '5.1.5',
-  springBoot      : springBoot.class.package.implementationVersion,
+  springBoot      : '2.4.2',
   springfoxSwagger: '2.9.2',
   serenity        : '2.2.12',
   gradlePitest    : '1.5.1',
@@ -273,8 +273,8 @@ dependencies {
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
 
-  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.40'
-  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.40'
+  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.43'
+  compile group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.43'
 
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
 
