@@ -397,24 +397,26 @@ public class CamundaService {
                 //2. Get Variables for the task
                 List<CamundaVariableInstance> variablesForProcessId =
                     variablesByProcessId.get(camundaTask.getProcessInstanceId());
+                if (variablesForProcessId != null) {
+                    //Format variables
+                    Map<String, CamundaVariable> variables = variablesForProcessId.stream()
+                        .collect(toMap(
+                            CamundaVariableInstance::getName,
+                            var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)
+                        );
 
-                //Format variables
-                Map<String, CamundaVariable> variables = variablesForProcessId.stream()
-                    .collect(toMap(
-                        CamundaVariableInstance::getName,
-                        var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)
-                    );
+                    //3. Evaluate access to task
+                    boolean hasAccess = permissionEvaluatorService
+                        .hasAccess(variables, roleAssignments, permissionsRequired);
 
-                //3. Evaluate access to task
-                boolean hasAccess = permissionEvaluatorService
-                    .hasAccess(variables, roleAssignments, permissionsRequired);
-
-                if (hasAccess) {
-                    //4. If user had sufficient access to this task map to a task object and add to response
-                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                    response.add(task);
+                    if (hasAccess) {
+                        //4. If user had sufficient access to this task map to a task object and add to response
+                        Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                        response.add(task);
+                    }
                 }
             });
+
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
             throw new ServerErrorException("There was a problem performing the search", ex);

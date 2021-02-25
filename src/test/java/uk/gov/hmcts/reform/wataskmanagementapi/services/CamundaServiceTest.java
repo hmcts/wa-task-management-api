@@ -384,6 +384,57 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verifyNoMoreInteractions(camundaServiceApi);
         }
 
+
+        @Test
+        void searchWithCriteria_should_succeed_and_return_empty_list_if_task_had_no_variables() {
+            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<PermissionTypes> permissionsRequired = singletonList(READ);
+            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
+            CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
+            ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+            CamundaTask camundaTask = new CamundaTask(
+                "someId",
+                "someTaskName",
+                "someAssignee",
+                ZonedDateTime.now(),
+                dueDate,
+                null,
+                null,
+                "someFormKey",
+                "someProcessInstanceId"
+            );
+
+            when(camundaQueryBuilder.createQuery(searchTaskRequest))
+                .thenReturn(camundaSearchQueryMock);
+            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+                .thenReturn(singletonList(camundaTask));
+            when(camundaServiceApi.getAllVariables(
+                BEARER_SERVICE_TOKEN,
+                Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
+            )).thenReturn(mockedVariablesResponse("anotherProcessInstanceId"));
+
+            List<Task> results = camundaService.searchWithCriteria(
+                searchTaskRequest,
+                roleAssignment,
+                permissionsRequired
+            );
+
+            assertNotNull(results);
+            assertEquals(0, results.size());
+            verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
+            verifyNoMoreInteractions(camundaQueryBuilder);
+            verify(camundaServiceApi, times(1)).searchWithCriteria(
+                BEARER_SERVICE_TOKEN,
+                camundaSearchQueryMock.getQueries()
+            );
+            verify(camundaServiceApi, times(1))
+                .getAllVariables(
+                    BEARER_SERVICE_TOKEN,
+                    Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
+                );
+            verifyNoMoreInteractions(camundaServiceApi);
+        }
+
         @Test
         void should_succeed_when_multiple_tasks_returned_and_sufficient_permission() {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
