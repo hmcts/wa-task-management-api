@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 
 import java.util.List;
@@ -29,6 +30,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public interface CamundaServiceApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
+
+    @PostMapping(value = "/variable-instance",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    List<CamundaVariableInstance> getAllVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                  @RequestBody Map<String, List<String>> body);
 
     @PostMapping(value = "/task",
         consumes = APPLICATION_JSON_VALUE,
