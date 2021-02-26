@@ -129,14 +129,15 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
+        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
+
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
         );
-
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
