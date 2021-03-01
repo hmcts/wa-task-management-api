@@ -11,14 +11,9 @@ def secrets = [
     'wa-${env}' : [
         secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
         secret('idam-secret', 'IA_IDAM_SECRET'),
-        secret('wa-idam-client-id', 'WA_IDAM_CLIENT_ID'),
         secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
         secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
         secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
-        secret('wa-test-caseofficer-a-username', 'TEST_WA_CASEOFFICER_A_USERNAME'),
-        secret('wa-test-caseofficer-a-password', 'TEST_WA_CASEOFFICER_A_PASSWORD'),
-        secret('wa-test-caseofficer-b-username', 'TEST_WA_CASEOFFICER_B_USERNAME'),
-        secret('wa-test-caseofficer-b-password', 'TEST_WA_CASEOFFICER_B_PASSWORD'),
     ],
     's2s-${env}': [
         secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
