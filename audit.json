@@ -49,7 +49,8 @@
   "100000_A Client Error response code ****s returned by the server_http://****-task-management-api-aat.service.core-compute-aat.internal/task/task-id/unclaim_POST": "ignore",
   "100000_A Client Error response code ****s returned by the server_http://****-task-management-api-aat.service.core-compute-aat.internal/task/task-id_GET": "ignore",
   "100000_A Client Error response code ****s returned by the server_http://****-task-management-api-aat.service.core-compute-aat.internal/task/task-id/complete_POST": "ignore",
-  "100000_A Client Error response code ****s returned by the server_http://task-management-api-aat.service.core-compute-aat.internal/task/task-id/assign_POST": "ignore"
+  "100000_A Client Error response code ****s returned by the server_http://task-management-api-aat.service.core-compute-aat.internal/task/task-id/assign_POST": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/cancel_POST": "ignore"
 
 
 }
