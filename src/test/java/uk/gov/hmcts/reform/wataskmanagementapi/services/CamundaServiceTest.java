@@ -552,6 +552,82 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verifyNoMoreInteractions(camundaServiceApi);
         }
 
+        @Test
+        void should_succeed_when_multiple_tasks_returned_and_only_one_with_variables_sufficient_permission() {
+            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<PermissionTypes> permissionsRequired = singletonList(READ);
+            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
+            CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
+            ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+            CamundaTask camundaTask = new CamundaTask(
+                "someId",
+                "someTaskName",
+                "someAssignee",
+                ZonedDateTime.now(),
+                dueDate,
+                null,
+                null,
+                "someFormKey",
+                "someProcessInstanceId"
+            );
+
+            CamundaTask camundaTask2 = new CamundaTask(
+                "someId2",
+                "someTaskName2",
+                "someAssignee2",
+                ZonedDateTime.now(),
+                dueDate,
+                null,
+                null,
+                "someFormKey2",
+                "someProcessInstanceId2"
+            );
+
+            when(camundaQueryBuilder.createQuery(searchTaskRequest))
+                .thenReturn(camundaSearchQueryMock);
+            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+                .thenReturn(asList(camundaTask, camundaTask2));
+            when(camundaServiceApi.getAllVariables(
+                BEARER_SERVICE_TOKEN,
+                Map.of("variableScopeIdIn", asList("someProcessInstanceId", "someProcessInstanceId2"))
+            )).thenReturn(mockedVariablesResponse("someProcessInstanceId"));
+
+            when(permissionEvaluatorService.hasAccess(
+                anyMap(),
+                eq(roleAssignment),
+                eq(permissionsRequired)
+            )).thenReturn(true);
+
+            List<Task> results = camundaService.searchWithCriteria(
+                searchTaskRequest,
+                roleAssignment,
+                permissionsRequired
+            );
+
+            assertNotNull(results);
+            assertEquals(1, results.size());
+            assertEquals("configured", results.get(0).getTaskState());
+            assertEquals(dueDate, results.get(0).getDueDate());
+            assertEquals("someCaseName", results.get(0).getCaseName());
+            assertEquals("someCaseType", results.get(0).getCaseTypeId());
+            assertEquals("someTaskName", results.get(0).getName());
+            assertNotNull(results.get(0).getLocation());
+            assertEquals("someStaffLocationName", results.get(0).getLocationName());
+            assertNotNull(results.get(0).getAssignee());
+            assertEquals("someAssignee", results.get(0).getAssignee());
+            verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
+            verifyNoMoreInteractions(camundaQueryBuilder);
+            verify(camundaServiceApi, times(1)).searchWithCriteria(
+                BEARER_SERVICE_TOKEN,
+                camundaSearchQueryMock.getQueries()
+            );
+            verify(camundaServiceApi, times(1))
+                .getAllVariables(
+                    BEARER_SERVICE_TOKEN,
+                    Map.of("variableScopeIdIn", asList("someProcessInstanceId", "someProcessInstanceId2"))
+                );
+            verifyNoMoreInteractions(camundaServiceApi);
+        }
 
         @Test
         void should_succeed_and_return_empty_list_when_multiple_tasks_returned_and_not_sufficient_permission() {
