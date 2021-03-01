@@ -28,7 +28,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +36,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
@@ -225,6 +225,11 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
+        //Safe-guard to avoid sending empty orQueries to camunda and abort early
+        if (query == null) {
+            return emptyList();
+        }
+
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
@@ -253,7 +258,7 @@ public class CamundaService {
 
 
             if (taskTypes.isEmpty()) {
-                return Collections.emptyList();
+                return emptyList();
             } else {
                 CamundaSearchQuery camundaSearchQuery =
                     camundaQueryBuilder.createCompletionQuery(
@@ -416,7 +421,6 @@ public class CamundaService {
                     }
                 }
             });
-
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
             throw new ServerErrorException("There was a problem performing the search", ex);

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import io.restassured.http.Headers;
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
@@ -27,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.ORGANISATION;
@@ -143,17 +141,18 @@ public class Common {
     }
 
     public void cleanUpTask(String taskId, String reason) {
+        log.info("Cleaning task {}", taskId);
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
 
-        Response result = camundaApiActions.get(
-            ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("[0].deleteReason", is(reason));
+        //Response result = camundaApiActions.get(
+        //    ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
+        //    authorizationHeadersProvider.getServiceAuthorizationHeader()
+        //);
+        //
+        //result.then().assertThat()
+        //    .statusCode(HttpStatus.OK.value())
+        //    .body("[0].deleteReason", is(reason));
     }
 
     public void clearAllRoleAssignments(Headers headers) {
