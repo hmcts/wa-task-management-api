@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
