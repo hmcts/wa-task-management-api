@@ -1,3 +1,6 @@
 targets:
   instance: ${TEST_URL:http://localhost:8087}
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
+features:
+  manually-create-camunda-task: ${FEATURE_MANUALLY_CREATE_CAMUNDA_TASK:false}

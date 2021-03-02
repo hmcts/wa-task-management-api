@@ -7,6 +7,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
@@ -50,6 +52,9 @@ public class Common {
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
+    @Value("${features.manually-create-camunda-task}")
+    private boolean isManualTaskCreationEnabled;
+
     public Common(GivensBuilder given,
                   RestApiActions camundaApiActions,
                   AuthorizationHeadersProvider authorizationHeadersProvider,
@@ -65,7 +70,8 @@ public class Common {
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
         Map<CamundaVariableDefinition, String> variablesToUseAsOverride
     ) {
-        String caseId = given.iCreateACcdCase();
+        //String caseId = given.iCreateACcdCase();
+        String caseId = "wa-functional-test" + UUID.randomUUID();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
 
         variablesToUseAsOverride.keySet()
@@ -110,7 +116,8 @@ public class Common {
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
-        String caseId = given.iCreateACcdCase();
+        String caseId = "wa-functional-test" + UUID.randomUUID();
+        //String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -130,13 +137,16 @@ public class Common {
 
         String caseId = given.iCreateACcdCase();
 
-        List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId)
-            .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+        List<CamundaTask> response;
 
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        if (isManualTaskCreationEnabled) {
+            response = given
+                .iCreateATaskWithCaseId(caseId)
+                .and()
+                .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+        } else {
+            response = given
+                .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
         }
 
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
