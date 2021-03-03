@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -66,6 +67,31 @@ class RoleAssignmentServiceTest {
     }
 
     @Test
+    void getRolesForUser_should_succeed_and_return_role_assignments_when_roleCategory_is_unknown() {
+        String idamUserId = "someIdamUserId";
+        String mockedAuthToken = "authToken";
+        String mockedServiceToken = "serviceToken";
+
+        List<Assignment> mockedRoleAssignments = createMockRoleAssignmentWithUnknownCategory(idamUserId);
+        when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
+        when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
+            .thenReturn(new GetRoleAssignmentResponse(mockedRoleAssignments));
+
+        List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken);
+
+        result.forEach(roleAssignment -> {
+
+            assertThat(
+                roleAssignment.getRoleName(),
+                either(is("someCaseRoleName")).or(is("someOrganisationalRoleName"))
+            );
+            assertThat(roleAssignment.getRoleType(), either(is(RoleType.ORGANISATION)).or(is(RoleType.CASE)));
+            assertThat(roleAssignment.getRoleCategory(), is(RoleCategory.UNKNOWN));
+            assertEquals(idamUserId, roleAssignment.getActorId());
+        });
+    }
+
+    @Test
     void getRolesForUser_should_throw_an_InsufficientPermissionsException_when_feign_exception_is_thrown() {
 
         String idamUserId = "someIdamUserId";
@@ -106,6 +132,18 @@ class RoleAssignmentServiceTest {
             when(assignment.getActorId()).thenReturn(idamUserId);
             mockedAssignments.add(assignment);
         }
+        return mockedAssignments;
+    }
+
+    private List<Assignment> createMockRoleAssignmentWithUnknownCategory(String idamUserId) {
+        List<Assignment> mockedAssignments = new ArrayList<>();
+        Assignment assignment = mock(Assignment.class);
+        when(assignment.getRoleType()).thenReturn(RoleType.CASE);
+        when(assignment.getRoleName()).thenReturn("someCaseRoleName");
+        when(assignment.getActorId()).thenReturn(idamUserId);
+        when(assignment.getRoleCategory()).thenReturn(RoleCategory.UNKNOWN);
+        mockedAssignments.add(assignment);
+
         return mockedAssignments;
     }
 
