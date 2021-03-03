@@ -48,6 +48,7 @@ public class RoleAssignmentRequest {
         return Objects.hashCode(roleRequest, requestedRoles);
     }
 
+
     @Override
     public String toString() {
         return "RoleAssignmentRequest{"
