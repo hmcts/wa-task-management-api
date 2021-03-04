@@ -3,8 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.Application;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -17,10 +16,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes = {
-        Application.class
-})
-public class AssignmentTest {
+class AssignmentTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private ObjectMapper objectMapper;

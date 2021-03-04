@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.RoleCode;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAccount;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -147,8 +148,7 @@ public class AuthorizationHeadersProvider {
 
         log.info("Attempting to create a new test account {}", email);
 
-        //List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-        // new RoleCode("caseworker-ia-caseofficer"));
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
@@ -156,7 +156,7 @@ public class AuthorizationHeadersProvider {
         body.put("password", password);
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
-        body.put("roles", asList("caseworker-ia","caseworker-ia-caseofficer"));
+        body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
 
         idamServiceApi.createTestUser(body);
