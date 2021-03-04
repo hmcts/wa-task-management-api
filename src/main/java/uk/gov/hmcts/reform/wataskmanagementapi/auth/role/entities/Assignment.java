@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import lombok.Builder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -37,15 +39,16 @@ public class Assignment {
         //Hidden constructor
     }
 
-    public Assignment(ActorIdType actorIdType,
-                      String actorId,
-                      RoleType roleType,
-                      String roleName,
-                      Classification classification,
-                      GrantType grantType,
-                      RoleCategory roleCategory,
-                      boolean readOnly,
-                      Map<String, String> attributes
+    @JsonCreator
+    public Assignment(@JsonProperty("actorIdType") ActorIdType actorIdType,
+                      @JsonProperty("actorId") String actorId,
+                      @JsonProperty("roleType") RoleType roleType,
+                      @JsonProperty("roleName") String roleName,
+                      @JsonProperty("classification") Classification classification,
+                      @JsonProperty("grantType") GrantType grantType,
+                      @JsonProperty("roleCategory") RoleCategory roleCategory,
+                      @JsonProperty("readOnly") boolean readOnly,
+                      @JsonProperty("attributes") Map<String, String> attributes
     ) {
         this.actorIdType = actorIdType;
         this.actorId = actorId;
@@ -58,20 +61,21 @@ public class Assignment {
         this.attributes = attributes;
     }
 
-    public Assignment(String id,
-                      ActorIdType actorIdType,
-                      String actorId,
-                      RoleType roleType,
-                      String roleName,
-                      Classification classification,
-                      GrantType grantType,
-                      RoleCategory roleCategory,
-                      boolean readOnly,
-                      LocalDateTime beginTime,
-                      LocalDateTime endTime,
-                      LocalDateTime created,
-                      Map<String, String> attributes,
-                      List<String> authorisations) {
+    @JsonCreator
+    public Assignment(@JsonProperty("id") String id,
+                      @JsonProperty("actorIdType") ActorIdType actorIdType,
+                      @JsonProperty("actorId") String actorId,
+                      @JsonProperty("roleType") RoleType roleType,
+                      @JsonProperty("roleName") String roleName,
+                      @JsonProperty("classification") Classification classification,
+                      @JsonProperty("grantType") GrantType grantType,
+                      @JsonProperty("roleCategory") RoleCategory roleCategory,
+                      @JsonProperty("readOnly") boolean readOnly,
+                      @JsonProperty("beginTime") LocalDateTime beginTime,
+                      @JsonProperty("endTime") LocalDateTime endTime,
+                      @JsonProperty("created") LocalDateTime created,
+                      @JsonProperty("attributes") Map<String, String> attributes,
+                      @JsonProperty("authorisations") List<String> authorisations) {
         this.id = id;
         this.actorIdType = actorIdType;
         this.actorId = actorId;
