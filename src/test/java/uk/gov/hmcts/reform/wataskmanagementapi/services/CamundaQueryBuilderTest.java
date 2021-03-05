@@ -457,68 +457,6 @@ class CamundaQueryBuilderTest {
     }
 
     @Test
-    void createQuery_should_build_query_from_search_task_request_with_only_specified_parameter_and_multiple_sorting()
-        throws JsonProcessingException, JSONException {
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            asList(
-                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
-            ),
-            asList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT),
-                new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)
-            )
-        );
-
-        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
-
-        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
-        String expected = "{\n"
-                          + "  \"queries\": {\n"
-                          + "    \"orQueries\": [\n"
-                          + "      {\n"
-                          + "        \"assigneeIn\": [\n"
-                          + "          \"someUser\",\n"
-                          + "          \"anotherUser\"\n"
-                          + "        ]\n"
-                          + "      },\n"
-                          + "      {\n"
-                          + "        \"processVariables\": [\n"
-                          + "          {\n"
-                          + "            \"name\": \"location\",\n"
-                          + "            \"operator\": \"eq\",\n"
-                          + "            \"value\": \"someLocation\"\n"
-                          + "          },\n"
-                          + "          {\n"
-                          + "            \"name\": \"location\",\n"
-                          + "            \"operator\": \"eq\",\n"
-                          + "            \"value\": \"anotherLocation\"\n"
-                          + "          }\n"
-                          + "        ]\n"
-                          + "      }\n"
-                          + "    ],\n"
-                          + "    \"sorting\": [\n"
-                          + "      {\n"
-                          + "        \"sortBy\": \"dueDate\",\n"
-                          + "        \"sortOrder\": \"desc\"\n"
-                          + "      },\n"
-                          + "      {\n"
-                          + "        \"sortBy\": \"processVariable\",\n"
-                          + "        \"sortOrder\": \"desc\",\n"
-                          + "        \"parameters\": {\n"
-                          + "          \"variable\": \"caseId\",\n"
-                          + "          \"type\": \"String\"\n"
-                          + "        }\n"
-                          + "      }\n"
-                          + "    ]\n"
-                          + "  }\n"
-                          + "}\n";
-
-        JSONAssert.assertEquals(expected, resultJson, false);
-    }
-
-    @Test
     void createQuery_should_throw_an_unsupported_exception_if_search_operator_is_not_supported() {
 
 

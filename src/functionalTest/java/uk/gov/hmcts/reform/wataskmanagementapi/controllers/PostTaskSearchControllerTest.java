@@ -376,31 +376,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     }
 
-    @Test
-    public void should_return_a_200_with_search_results_based_on_caseID() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskId))
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(1))
-            .body("tasks.id", hasItem(taskId));
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
-
     private List<TestVariables> createMultipleTasksWithDifferentTaskStates(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
         for (String state : states) {
