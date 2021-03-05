@@ -161,7 +161,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             doThrow(mockFeignException).when(camundaServiceApi).evaluateDMN(any(), any(), any());
 
             mockMvc.perform(
-                post("/task/searchForCompletable")
+                post("/task/search-for-completable")
                     .header(
                         "Authorization",
                         authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()

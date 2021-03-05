@@ -270,7 +270,6 @@ public class CamundaService {
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
-
     }
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
