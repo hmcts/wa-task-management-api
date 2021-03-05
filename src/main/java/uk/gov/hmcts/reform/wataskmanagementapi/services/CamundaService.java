@@ -247,12 +247,16 @@ public class CamundaService {
                     dmnRequest
                 );
 
+            if (evaluateDmnResult.isEmpty() || evaluateDmnResult == null) {
+                return Collections.emptyList();
+            }
+
             List<String> taskTypes = evaluateDmnResult.stream()
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
                 .collect(Collectors.toList());
 
 
-            if (taskTypes.isEmpty()) {
+            if (taskTypes.isEmpty() || evaluateDmnResult == null) {
                 return Collections.emptyList();
             } else {
                 CamundaSearchQuery camundaSearchQuery =
