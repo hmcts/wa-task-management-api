@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import lombok.Builder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -39,16 +37,15 @@ public class Assignment {
         //Hidden constructor
     }
 
-    @JsonCreator
-    public Assignment(@JsonProperty("actorIdType") ActorIdType actorIdType,
-                      @JsonProperty("actorId") String actorId,
-                      @JsonProperty("roleType") RoleType roleType,
-                      @JsonProperty("roleName") String roleName,
-                      @JsonProperty("classification") Classification classification,
-                      @JsonProperty("grantType") GrantType grantType,
-                      @JsonProperty("roleCategory") RoleCategory roleCategory,
-                      @JsonProperty("readOnly") boolean readOnly,
-                      @JsonProperty("attributes") Map<String, String> attributes
+    public Assignment(ActorIdType actorIdType,
+                      String actorId,
+                      RoleType roleType,
+                      String roleName,
+                      Classification classification,
+                      GrantType grantType,
+                      RoleCategory roleCategory,
+                      boolean readOnly,
+                      Map<String, String> attributes
     ) {
         this.actorIdType = actorIdType;
         this.actorId = actorId;
@@ -61,34 +58,26 @@ public class Assignment {
         this.attributes = attributes;
     }
 
-    @JsonCreator
-    public Assignment(@JsonProperty("id") String id,
-                      @JsonProperty("actorIdType") ActorIdType actorIdType,
-                      @JsonProperty("actorId") String actorId,
-                      @JsonProperty("roleType") RoleType roleType,
-                      @JsonProperty("roleName") String roleName,
-                      @JsonProperty("classification") Classification classification,
-                      @JsonProperty("grantType") GrantType grantType,
-                      @JsonProperty("roleCategory") RoleCategory roleCategory,
-                      @JsonProperty("readOnly") boolean readOnly,
-                      @JsonProperty("beginTime") LocalDateTime beginTime,
-                      @JsonProperty("endTime") LocalDateTime endTime,
-                      @JsonProperty("created") LocalDateTime created,
-                      @JsonProperty("attributes") Map<String, String> attributes,
-                      @JsonProperty("authorisations") List<String> authorisations) {
+    public Assignment(String id,
+                      ActorIdType actorIdType,
+                      String actorId,
+                      RoleType roleType,
+                      String roleName,
+                      Classification classification,
+                      GrantType grantType,
+                      RoleCategory roleCategory,
+                      boolean readOnly,
+                      LocalDateTime beginTime,
+                      LocalDateTime endTime,
+                      LocalDateTime created,
+                      Map<String, String> attributes,
+                      List<String> authorisations) {
+        this(actorIdType, actorId, roleType
+            , roleName, classification, grantType, roleCategory, readOnly, attributes);
         this.id = id;
-        this.actorIdType = actorIdType;
-        this.actorId = actorId;
-        this.roleType = roleType;
-        this.roleName = roleName;
-        this.classification = classification;
-        this.grantType = grantType;
-        this.roleCategory = roleCategory;
-        this.readOnly = readOnly;
         this.beginTime = beginTime;
         this.endTime = endTime;
         this.created = created;
-        this.attributes = attributes;
         this.authorisations = authorisations;
     }
 
