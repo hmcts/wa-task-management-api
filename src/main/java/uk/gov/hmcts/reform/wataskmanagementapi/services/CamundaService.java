@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -239,13 +240,21 @@ public class CamundaService {
             eventVariable.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "String"));
             Map<String, Map<String, CamundaVariable>> dmnRequest = new HashMap<>();
             dmnRequest.put("variables", eventVariable);
-            // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
-            List<Map<String, CamundaVariable>> evaluateDmnResult =
-                camundaServiceApi.evaluateDMN(
-                    authTokenGenerator.generate(),
-                    getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
-                    dmnRequest
-                );
+            List<Map<String, CamundaVariable>> evaluateDmnResult;
+            if (searchEventAndCase.getCaseJurisdiction().equals("ia")
+                && searchEventAndCase.getCaseType().equals("asylum")) {
+                // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
+                evaluateDmnResult =
+                    camundaServiceApi.evaluateDMN(
+                        authTokenGenerator.generate(),
+                        getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
+                        dmnRequest
+                    );
+            } else {
+                throw new BadRequestException("Please check your request. "
+                                              + "This endpoint currently only supports"
+                                              + " the Immigration & Asylum service");
+            }
 
             if (evaluateDmnResult.isEmpty()) {
                 return Collections.emptyList();
@@ -256,7 +265,7 @@ public class CamundaService {
                 .collect(Collectors.toList());
 
 
-            if (taskTypes.isEmpty() || evaluateDmnResult == null) {
+            if (taskTypes.isEmpty()) {
                 return Collections.emptyList();
             } else {
                 CamundaSearchQuery camundaSearchQuery =

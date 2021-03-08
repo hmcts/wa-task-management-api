@@ -56,7 +56,7 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
   api:
-    baseUrl: ${IDAM_API_URL:http://sidam-api}
+    baseUrl: ${IDAM_API_URL:http://sidam-simulator}
 
 spring:
   application:
