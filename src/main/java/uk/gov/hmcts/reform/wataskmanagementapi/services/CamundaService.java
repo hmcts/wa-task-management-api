@@ -247,7 +247,7 @@ public class CamundaService {
                     dmnRequest
                 );
 
-            if (evaluateDmnResult.isEmpty() || evaluateDmnResult == null) {
+            if (evaluateDmnResult.isEmpty()) {
                 return Collections.emptyList();
             }
 

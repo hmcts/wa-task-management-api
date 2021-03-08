@@ -127,7 +127,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "no_event_id", "PROBATE", "GrantOfRepresentation");
+            taskVariables.getCaseId(), "solicitorCreateApplication", "PROBATE", "GrantOfRepresentation");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
