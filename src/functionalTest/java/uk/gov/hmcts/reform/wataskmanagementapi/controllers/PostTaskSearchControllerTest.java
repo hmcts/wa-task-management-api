@@ -169,7 +169,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
         TestVariables taskVariablesSscs =
-            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
+            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
         String taskId = taskVariablesSscs.getTaskId();
         String caseId = taskVariablesSscs.getCaseId();
 
@@ -179,7 +179,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupRestrictedRoleAssignment(caseId, authenticationHeaders);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         Response result = restApiActions.post(
@@ -190,7 +190,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.jurisdiction", everyItem(is("SSCS")))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(caseId))
             .body("tasks.id", hasItem(taskId));
 

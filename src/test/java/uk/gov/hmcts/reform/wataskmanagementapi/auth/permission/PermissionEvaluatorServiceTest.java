@@ -389,7 +389,7 @@ class PermissionEvaluatorServiceTest {
             .roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .roleCategory(RoleCategory.STAFF)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
             .endTime(endTime)
             .build();
     }
@@ -448,7 +448,7 @@ class PermissionEvaluatorServiceTest {
             .roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .grantType(GrantType.SPECIFIC)
-            .roleCategory(RoleCategory.STAFF)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
             .beginTime(beginTime)
             .build();
     }
@@ -661,7 +661,7 @@ class PermissionEvaluatorServiceTest {
             roleName,
             classification,
             GrantType.SPECIFIC,
-            RoleCategory.STAFF,
+            RoleCategory.LEGAL_OPERATIONS,
             false,
             attributes
         );
