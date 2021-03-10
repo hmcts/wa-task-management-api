@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -134,6 +135,21 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
                 )
             );
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    protected ResponseEntity<ErrorMessage> handleBadRequestsException(
+        Exception ex
+    ) {
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorMessage(
+                      ex,
+                      HttpStatus.BAD_REQUEST,
+                      systemDateProvider.nowWithTime()
+                  )
+            );
+    }
+
 
 
 

@@ -122,7 +122,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match_not_ia() {
+    public void should_return_a_400_and_when_event_id_does_not_match_not_ia() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -139,7 +139,10 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("message",equalTo("Please check your request. "
+                                    + "This endpoint currently only supports "
+                                    + "the Immigration & Asylum service"));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -193,7 +196,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_500_and_when_performing_search_when_jurisdiction_is_incorrect() {
+    public void should_return_a_400_and_when_performing_search_when_jurisdiction_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
         String taskId = taskVariables.getTaskId();
 
@@ -209,13 +212,13 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            .statusCode(HttpStatus.BAD_REQUEST.value());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
-    public void should_return_a_500_and_when_performing_search_when_caseType_is_incorrect() {
+    public void should_return_a_400_and_when_performing_search_when_caseType_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -231,7 +234,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            .statusCode(HttpStatus.BAD_REQUEST.value());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
