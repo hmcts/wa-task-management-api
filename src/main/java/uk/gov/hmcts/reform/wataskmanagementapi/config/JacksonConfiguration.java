@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
@@ -39,6 +40,7 @@ public class JacksonConfiguration {
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         objectMapper.setDateFormat(df);
         objectMapper.registerModule(new Jdk8Module());
+        objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true);
         return objectMapper;
     }
 

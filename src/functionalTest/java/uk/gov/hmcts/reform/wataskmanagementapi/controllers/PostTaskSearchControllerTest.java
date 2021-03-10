@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
@@ -112,11 +112,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
         TestVariables taskVariablesSscs =
-            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
+            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableKeys.JURISDICTION, "SSCS");
         String taskId = taskVariablesSscs.getTaskId();
         String caseId = taskVariablesSscs.getCaseId();
 
-        common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
+        common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableKeys.JURISDICTION, "IA");
 
         common.setupRestrictedRoleAssignment(caseId, authenticationHeaders);
 
@@ -141,9 +141,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
-        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-            CamundaVariableDefinition.JURISDICTION, "IA",
-            CamundaVariableDefinition.LOCATION, "765324"
+        Map<CamundaVariableKeys, String> variablesOverride = Map.of(
+            CamundaVariableKeys.JURISDICTION, "IA",
+            CamundaVariableKeys.LOCATION, "765324"
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
@@ -174,9 +174,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_empty_search_results_location_did_not_match() {
-        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-            CamundaVariableDefinition.JURISDICTION, "IA",
-            CamundaVariableDefinition.LOCATION, "17595"
+        Map<CamundaVariableKeys, String> variablesOverride = Map.of(
+            CamundaVariableKeys.JURISDICTION, "IA",
+            CamundaVariableKeys.LOCATION, "17595"
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
@@ -204,10 +204,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_state_filters() {
-        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-            CamundaVariableDefinition.JURISDICTION, "IA",
-            CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_STATE, "unassigned"
+        Map<CamundaVariableKeys, String> variablesOverride = Map.of(
+            CamundaVariableKeys.JURISDICTION, "IA",
+            CamundaVariableKeys.LOCATION, "765324",
+            CamundaVariableKeys.TASK_STATE, "unassigned"
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
@@ -318,8 +318,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private List<TestVariables> createMultipleTasksWithDifferentTaskStates(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
         for (String state : states) {
-            Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-                CamundaVariableDefinition.TASK_STATE, state
+            Map<CamundaVariableKeys, String> variablesOverride = Map.of(
+                CamundaVariableKeys.TASK_STATE, state
             );
 
             TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);

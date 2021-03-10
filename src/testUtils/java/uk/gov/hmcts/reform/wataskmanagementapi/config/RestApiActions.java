@@ -119,6 +119,7 @@ public class RestApiActions {
             .accept(accept)
             .headers(headers)
             .body(body)
+            .log().body(true)
             .when()
             .post(path, resourceId)
             : given()

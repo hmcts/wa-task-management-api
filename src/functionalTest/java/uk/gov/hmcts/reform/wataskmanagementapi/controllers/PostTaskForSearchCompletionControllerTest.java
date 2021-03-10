@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.Map;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
@@ -62,13 +62,13 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_event_and_case_match() {
-        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-            CamundaVariableDefinition.JURISDICTION, "IA",
-            CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TYPE, "ReviewTheAppeal",
-            CamundaVariableDefinition.TASK_ID, "ReviewTheAppeal",
-            CamundaVariableDefinition.TASK_STATE, "unassigned",
-            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
+        Map<CamundaVariableKeys, String> variablesOverride = Map.of(
+            CamundaVariableKeys.JURISDICTION, "IA",
+            CamundaVariableKeys.LOCATION, "765324",
+            CamundaVariableKeys.TYPE, "ReviewTheAppeal",
+            CamundaVariableKeys.TASK_ID, "ReviewTheAppeal",
+            CamundaVariableKeys.TASK_STATE, "unassigned",
+            CamundaVariableKeys.CASE_TYPE_ID, "Asylum"
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);

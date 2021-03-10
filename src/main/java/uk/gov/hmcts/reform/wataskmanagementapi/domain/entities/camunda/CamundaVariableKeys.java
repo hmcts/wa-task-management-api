@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
-public enum CamundaVariableDefinition {
+public enum CamundaVariableKeys {
     APPEAL_TYPE("appealType"),
     ASSIGNEE("assignee"),
     CASE_ID("caseId"),
@@ -22,7 +22,7 @@ public enum CamundaVariableDefinition {
 
     private final String value;
 
-    CamundaVariableDefinition(String value) {
+    CamundaVariableKeys(String value) {
         this.value = value;
     }
 

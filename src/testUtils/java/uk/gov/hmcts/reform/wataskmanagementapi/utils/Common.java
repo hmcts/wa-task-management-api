@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class Common {
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-        Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+        Map<CamundaVariableKeys, String> variablesToUseAsOverride
     ) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
@@ -94,7 +94,7 @@ public class Common {
     }
 
     public void updateTaskWithCustomVariablesOverride(TestVariables task,
-                                                      Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+                                                      Map<CamundaVariableKeys, String> variablesToUseAsOverride
 
     ) {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
@@ -108,7 +108,7 @@ public class Common {
         given.iUpdateVariablesOfTaskById(task.getTaskId(), processVariables);
     }
 
-    public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
+    public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableKeys key, String value) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
             caseId,

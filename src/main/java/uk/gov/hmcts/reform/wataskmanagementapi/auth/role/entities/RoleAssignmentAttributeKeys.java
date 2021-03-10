@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
-public enum RoleAttributeDefinition {
+public enum RoleAssignmentAttributeKeys {
 
     CASE_ID("caseId"),
     JURISDICTION("jurisdiction"),
@@ -9,7 +9,7 @@ public enum RoleAttributeDefinition {
 
     private final String value;
 
-    RoleAttributeDefinition(String value) {
+    RoleAssignmentAttributeKeys(String value) {
         this.value = value;
     }
 

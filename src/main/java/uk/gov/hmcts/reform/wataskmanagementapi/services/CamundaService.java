@@ -17,7 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.TASK_STATE;
 
 @Service
 @SuppressWarnings({
@@ -87,8 +87,13 @@ public class CamundaService {
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        boolean hasAccess = permissionEvaluatorService
-            .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+        boolean hasAccess =
+            permissionEvaluatorService
+                .hasAccess(
+                    variables,
+                    accessControlResponse.getRoleAssignments(),
+                    permissionsRequired
+                );
 
         if (hasAccess) {
             performClaimTaskAction(
@@ -462,7 +467,7 @@ public class CamundaService {
 
     private void updateTaskStateTo(String taskId, TaskState newState) {
         Map<String, CamundaValue<String>> variable = Map.of(
-            CamundaVariableDefinition.TASK_STATE.value(), CamundaValue.stringValue(newState.value())
+            CamundaVariableKeys.TASK_STATE.value(), CamundaValue.stringValue(newState.value())
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
         camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);

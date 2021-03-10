@@ -6,7 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOrQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchExpression;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaProcessVariableSortingExpression;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingExpression;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingParameters;
@@ -53,17 +53,17 @@ public class CamundaQueryBuilder {
         List<CamundaSortingExpression> sortingQueries = createSortingQueries(searchTaskRequest.getSortingParameters());
 
         CamundaOrQuery.CamundaOrQueryBuilder jurisdictionQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.JURISDICTION,
+            CamundaVariableKeys.JURISDICTION,
             searchParametersMap.get(SearchParameterKey.JURISDICTION)
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder locationQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.LOCATION,
+            CamundaVariableKeys.LOCATION,
             searchParametersMap.get(SearchParameterKey.LOCATION)
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.TASK_STATE,
+            CamundaVariableKeys.TASK_STATE,
             searchParametersMap.get(SearchParameterKey.STATE)
         );
 
@@ -88,18 +88,18 @@ public class CamundaQueryBuilder {
      */
     public CamundaSearchQuery createCompletionQuery(String caseId, List<String> taskTypes) {
         CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.CASE_ID,
+            CamundaVariableKeys.CASE_ID,
             new SearchParameter(SearchParameterKey.CASE_ID,
                 SearchOperator.IN, singletonList(caseId))
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder taskTypeQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.TYPE,
+            CamundaVariableKeys.TYPE,
             new SearchParameter(SearchParameterKey.TASK_TYPE,
                 SearchOperator.IN, taskTypes));
 
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.TASK_STATE,
+            CamundaVariableKeys.TASK_STATE,
             new SearchParameter(SearchParameterKey.STATE,
                 SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value(), REFERRED.value())));
 
@@ -144,7 +144,7 @@ public class CamundaQueryBuilder {
      * @param searchParameter the searchParameter as provided in the request.
      * @return CamundaQueryBuilder object with the process variable query.
      */
-    private CamundaOrQuery.CamundaOrQueryBuilder createProcessVariableQueriesFor(CamundaVariableDefinition key,
+    private CamundaOrQuery.CamundaOrQueryBuilder createProcessVariableQueriesFor(CamundaVariableKeys key,
                                                                                  SearchParameter searchParameter) {
         Set<CamundaSearchExpression> jurisdictionExpressions = buildSearchExpressions(key.value(), searchParameter);
         return asOrQuery(jurisdictionExpressions);

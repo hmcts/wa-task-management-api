@@ -17,7 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -115,7 +115,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
     private void verifyTaskStateUpdateWasCalled(String taskId, TaskState newTaskState) {
         Map<String, CamundaValue<String>> modifications = Map.of(
-            CamundaVariableDefinition.TASK_STATE.value(), CamundaValue.stringValue(newTaskState.value())
+            CamundaVariableKeys.TASK_STATE.value(), CamundaValue.stringValue(newTaskState.value())
         );
         verify(camundaServiceApi).addLocalVariablesToTask(
             BEARER_SERVICE_TOKEN,

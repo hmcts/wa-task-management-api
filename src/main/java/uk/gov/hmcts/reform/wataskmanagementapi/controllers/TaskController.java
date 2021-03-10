@@ -57,6 +57,7 @@ public class TaskController {
     public TaskController(CamundaService camundaService,
                           AccessControlService accessControlService
     ) {
+        //TODO call it TaskManager??
         this.camundaService = camundaService;
         this.accessControlService = accessControlService;
     }
@@ -189,7 +190,9 @@ public class TaskController {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        //TODO pass Operation/Action name?  Have endpoint permissions as an Enum
         camundaService.claimTask(taskId, accessControlResponse, endpointPermissionsRequired);
+
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
@@ -357,7 +360,8 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/searchForCompletable", consumes = APPLICATION_JSON_VALUE,
+    @PostMapping(path = "/searchForCompletable",
+        consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,

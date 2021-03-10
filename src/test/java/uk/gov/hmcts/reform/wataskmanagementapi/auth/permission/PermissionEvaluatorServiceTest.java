@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,8 +9,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.verifiers.OperationPermissionVerifier;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.verifiers.PermissionRuleVerifier;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.verifiers.Verifier;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.verifiers.SecurityClassificationVerifier;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.verifiers.DateTimeVerifier;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.verifiers.mappings.TaskAttributeMappings;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentAttributeKeys;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -33,15 +40,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableKeys.TASK_STATE;
 
 @ExtendWith(MockitoExtension.class)
 class PermissionEvaluatorServiceTest {
@@ -50,9 +57,22 @@ class PermissionEvaluatorServiceTest {
 
     private Map<String, CamundaVariable> defaultVariables;
 
+
+    //TODO - Test needs fixing after refactoring
+    final List<Verifier<VerificationData>> verifiers =
+        ImmutableList.of(
+            new OperationPermissionVerifier(new CamundaObjectMapper()),
+            new SecurityClassificationVerifier(new CamundaObjectMapper()),
+            new PermissionRuleVerifier(new CamundaObjectMapper(), new TaskAttributeMappings()),
+            new DateTimeVerifier() {
+            }
+        );
+
     @BeforeEach
     public void setUp() {
-        permissionEvaluatorService = new PermissionEvaluatorService(new CamundaObjectMapper());
+        permissionEvaluatorService = new PermissionEvaluatorService(
+            verifiers
+        );
         defaultVariables = getDefaultVariables();
     }
 
@@ -467,7 +487,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA")
+            Map.of(RoleAssignmentAttributeKeys.JURISDICTION.value(), "IA")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -488,7 +508,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.JURISDICTION.value(), "AnotherJurisdiction")
+            Map.of(RoleAssignmentAttributeKeys.JURISDICTION.value(), "AnotherJurisdiction")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -509,7 +529,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.CASE_ID.value(), "123456789")
+            Map.of(RoleAssignmentAttributeKeys.CASE_ID.value(), "123456789")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -530,7 +550,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.CASE_ID.value(), "AnotherCaseId")
+            Map.of(RoleAssignmentAttributeKeys.CASE_ID.value(), "AnotherCaseId")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -552,7 +572,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.REGION.value(), "east-england")
+            Map.of(RoleAssignmentAttributeKeys.REGION.value(), "east-england")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -573,7 +593,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.REGION.value(), "anotherRegion")
+            Map.of(RoleAssignmentAttributeKeys.REGION.value(), "anotherRegion")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -595,7 +615,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.PRIMARY_LOCATION.value(), "012345")
+            Map.of(RoleAssignmentAttributeKeys.PRIMARY_LOCATION.value(), "012345")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -616,7 +636,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.PRIMARY_LOCATION.value(), "anotherLocationId")
+            Map.of(RoleAssignmentAttributeKeys.PRIMARY_LOCATION.value(), "anotherLocationId")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -636,15 +656,15 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                    Assignment roleAssignment = createBaseAssignment(
-                        UUID.randomUUID().toString(),
-                        "tribunal-caseworker",
-                        roleType,
-                        roleClassification,
-                        roleAttributes
-                    );
-                    allTestRoles.add(roleAssignment);
-                }
+                         Assignment roleAssignment = createBaseAssignment(
+                             UUID.randomUUID().toString(),
+                             "tribunal-caseworker",
+                             roleType,
+                             roleClassification,
+                             roleAttributes
+                         );
+                         allTestRoles.add(roleAssignment);
+                     }
             ));
         return allTestRoles;
     }
