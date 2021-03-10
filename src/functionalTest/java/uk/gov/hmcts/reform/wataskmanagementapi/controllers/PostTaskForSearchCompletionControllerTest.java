@@ -138,9 +138,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .contentType(APPLICATION_JSON_VALUE);
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

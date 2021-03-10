@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteT
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -1449,8 +1450,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
     @SuppressWarnings({"AbbreviationAsWordInName", "MemberNameCheck"})
     class AutoCompleteTask {
 
-        private final String caseJurisdiction = "caseJurisdiction";
-        private final String caseType = "caseType";
+        private final String caseJurisdiction = "ia";
+        private final String caseType = "asylum";
 
         @Test
         void should_auto_complete_task_when_same_user() {
