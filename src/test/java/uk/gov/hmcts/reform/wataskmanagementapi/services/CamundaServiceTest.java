@@ -48,12 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
@@ -1488,9 +1483,11 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Map<String, CamundaVariable> body = new HashMap<>();
             body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
 
-            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN),
+            when(camundaServiceApi.evaluateDMN(
+                eq(BEARER_SERVICE_TOKEN),
                 eq(getTableKey(caseJurisdiction, caseType)),
-                any())
+                any()
+                 )
             ).thenReturn(mockDMN());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -1505,7 +1502,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             List<Task> tasks = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
-                accessControlResponse);
+                accessControlResponse
+            );
 
 
             assertNotNull(tasks);
@@ -1553,9 +1551,11 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(searchEventAndCase.getCaseJurisdiction()).thenReturn(caseJurisdiction);
             when(searchEventAndCase.getCaseType()).thenReturn(caseType);
 
-            when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN),
+            when(camundaServiceApi.evaluateDMN(
+                eq(BEARER_SERVICE_TOKEN),
                 eq(getTableKey(caseJurisdiction, caseType)),
-                any())
+                any()
+                 )
             ).thenReturn(mockDMN());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -1576,7 +1576,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             List<Task> tasks = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
-                accessControlResponse);
+                accessControlResponse
+            );
 
             assertNotNull(tasks);
             assertEquals(1, tasks.size());
@@ -1601,7 +1602,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo,
-                singletonList(mockedRoleAssignment));
+                singletonList(mockedRoleAssignment)
+            );
 
             TestFeignClientException exception =
                 new TestFeignClientException(
@@ -1615,10 +1617,11 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
 
             assertThatThrownBy(() ->
-                camundaService.searchForCompletableTasks(
-                    searchEventAndCase,
-                    permissionsRequired,
-                    accessControlResponse)
+                                   camundaService.searchForCompletableTasks(
+                                       searchEventAndCase,
+                                       permissionsRequired,
+                                       accessControlResponse
+                                   )
             )
                 .isInstanceOf(ServerErrorException.class)
                 .hasMessage("There was a problem evaluating DMN")
@@ -1637,7 +1640,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             body.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "string"));
 
             when(camundaServiceApi.evaluateDMN(eq(BEARER_SERVICE_TOKEN), eq(getTableKey(caseJurisdiction, caseType)),
-                any()))
+                                               any()
+            ))
                 .thenReturn(new ArrayList<>());
 
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -1650,12 +1654,42 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             List<Task> tasks = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
-                accessControlResponse);
+                accessControlResponse
+            );
 
 
             assertNotNull(tasks);
             assertEquals(0, tasks.size());
         }
+
+        @Test
+        void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_takes_wrong_caseType() {
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "caseId", "eventId", "caseJurisdiction", "caseType");
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo,
+                singletonList(mockedRoleAssignment));
+
+
+            lenient().when(authTokenGenerator.generate()).thenReturn(String.valueOf(true));
+
+            assertThatThrownBy(() ->
+                                   camundaService.searchForCompletableTasks(
+                                       searchEventAndCase,
+                                       permissionsRequired,
+                                       accessControlResponse)
+            )
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("Please check your request. This endpoint "
+                            + "currently only supports the Immigration & "
+                            + "Asylum service");
+        }
+
 
         private String getTableKey(String jurisdictionId, String caseTypeId) {
             return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
