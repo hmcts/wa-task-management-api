@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -86,7 +87,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, Common.REASON_COMPLETED);
     }
 
-
+    @Ignore
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_when_restricted_role_assignment_role() {
 
