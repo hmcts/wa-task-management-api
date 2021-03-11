@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.ORGANISATION;
@@ -143,6 +143,7 @@ public class Common {
     }
 
     public void cleanUpTask(String taskId, String reason) {
+        log.info("Cleaning task {}", taskId);
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
 
