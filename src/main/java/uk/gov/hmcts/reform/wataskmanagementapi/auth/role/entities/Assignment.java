@@ -72,19 +72,12 @@ public class Assignment {
                       LocalDateTime created,
                       Map<String, String> attributes,
                       List<String> authorisations) {
+        this(actorIdType, actorId, roleType,
+             roleName, classification, grantType, roleCategory, readOnly, attributes);
         this.id = id;
-        this.actorIdType = actorIdType;
-        this.actorId = actorId;
-        this.roleType = roleType;
-        this.roleName = roleName;
-        this.classification = classification;
-        this.grantType = grantType;
-        this.roleCategory = roleCategory;
-        this.readOnly = readOnly;
         this.beginTime = beginTime;
         this.endTime = endTime;
         this.created = created;
-        this.attributes = attributes;
         this.authorisations = authorisations;
     }
 

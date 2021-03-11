@@ -6,7 +6,7 @@
       "classification": "PUBLIC",
       "grantType": "STANDARD",
       "readOnly": false,
-      "roleCategory": "STAFF",
+      "roleCategory": "LEGAL_OPERATIONS",
       "roleName": "tribunal-caseworker",
       "roleType": "ORGANISATION",
       "attributes": "{ATTRIBUTES_PLACEHOLDER}"
