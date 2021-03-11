@@ -67,18 +67,18 @@ public class PermissionEvaluatorService {
                                    List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
 
-        log.info("Evaluating access for {}", roleAssignment);
+        log.debug("Evaluating access for {}", roleAssignment);
         // 1. Always Check Role name has required permission
         hasAccess = hasRolePermission(roleAssignment.getRoleName(), variables, permissionsRequired);
 
-        log.info("RoleName permission check {}", hasAccess);
+        log.debug("RoleName permission check {}", hasAccess);
         if (hasAccess) {
             // 2. Always Check Security Classification matches the one on the task
             hasAccess = hasSecurityClassificationPermission(
                 roleAssignment.getClassification(),
                 variables
             );
-            log.info("Security Classification permission check {}", hasAccess);
+            log.debug("Security Classification permission check {}", hasAccess);
             if (roleAssignment.getAttributes() != null) {
 
                 Map<String, String> attributes = roleAssignment.getAttributes();
@@ -87,32 +87,32 @@ public class PermissionEvaluatorService {
                 if (hasAccess && jurisdictionAttributeValue != null) {
 
                     hasAccess = hasJurisdictionPermission(jurisdictionAttributeValue, variables);
-                    log.info("Jurisdiction permission check {}", hasAccess);
+                    log.debug("Jurisdiction permission check {}", hasAccess);
                 }
                 // 4. Conditionally check CaseId matches the one on the task
                 String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
                 if (hasAccess && caseIdAttributeValue != null) {
                     hasAccess = hasCaseIdPermission(caseIdAttributeValue, variables);
-                    log.info("CaseId permission check {}", hasAccess);
+                    log.debug("CaseId permission check {}", hasAccess);
                 }
                 // 5. Conditionally check region matches the one on the task
                 String regionAttributeValue = attributes.get(RoleAttributeDefinition.REGION.value());
                 if (hasAccess && regionAttributeValue != null) {
                     hasAccess = hasRegionPermission(regionAttributeValue, variables);
-                    log.info("Region permission check {}", hasAccess);
+                    log.debug("Region permission check {}", hasAccess);
                 }
                 // 6. Conditionally check Location ePimms id matches the one on the task
                 String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
                 if (hasAccess && locationAttributeValue != null) {
                     hasAccess = hasLocationPermission(locationAttributeValue, variables);
-                    log.info("Location permission check {}", hasAccess);
+                    log.debug("Location permission check {}", hasAccess);
                 }
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
-            log.info("BeginTime permission check {}", hasAccess);
+            log.debug("BeginTime permission check {}", hasAccess);
             hasAccess = hasEndTimePermission(roleAssignment, hasAccess);
-            log.info("EndTime permission check {}", hasAccess);
+            log.debug("EndTime permission check {}", hasAccess);
         }
 
         return hasAccess;

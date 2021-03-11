@@ -91,7 +91,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_and_retrieve_a_task_by_id_when_restricted_role_assignment_role() {
 
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.JURISDICTION, "SSCS",
             CamundaVariableDefinition.LOCATION, "17595"
         );
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);

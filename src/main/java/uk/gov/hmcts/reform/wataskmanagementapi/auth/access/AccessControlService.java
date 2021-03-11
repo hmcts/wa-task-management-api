@@ -29,7 +29,7 @@ public class AccessControlService {
         UserInfo userInfo = idamService.getUserInfo(authToken);
         List<Assignment> assignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
 
-        assignments.forEach(role -> log.info("Response from role assignment service {}", role.toString()));
+        assignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
         return new AccessControlResponse(userInfo, assignments);
     }
 
