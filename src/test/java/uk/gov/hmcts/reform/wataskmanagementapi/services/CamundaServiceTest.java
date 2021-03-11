@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -328,6 +330,27 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
+        @MockitoSettings(strictness = Strictness.LENIENT)
+        void searchWithCriteria_should_succeed_and_return_empty_list_if_camunda_query_was_null() {
+            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<PermissionTypes> permissionsRequired = singletonList(READ);
+            SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
+
+            when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(null);
+
+            List<Task> results = camundaService.searchWithCriteria(
+                searchTaskRequest,
+                roleAssignment,
+                permissionsRequired
+            );
+
+            assertNotNull(results);
+            assertEquals(0, results.size());
+            verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
+            verifyNoMoreInteractions(camundaQueryBuilder);
+        }
+
+        @Test
         void searchWithCriteria_should_succeed_and_return_empty_list_if_user_did_not_have_sufficient_permission() {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -386,7 +409,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
 
         @Test
-        void searchWithCriteria_should_succeed_and_return_empty_list_if_task_had_no_variables() {
+        @MockitoSettings(strictness = Strictness.LENIENT)
+        void searchWithCriteria_should_succeed_and_return_empty_list_if_task_did_not_have_variables() {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
@@ -411,7 +435,14 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
                 Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
-            )).thenReturn(mockedVariablesResponse("anotherProcessInstanceId"));
+            )).thenReturn(mockedVariablesResponse("someProcessInstanceId2"));
+
+
+            when(permissionEvaluatorService.hasAccess(
+                anyMap(),
+                eq(roleAssignment),
+                eq(permissionsRequired)
+            )).thenReturn(false);
 
             List<Task> results = camundaService.searchWithCriteria(
                 searchTaskRequest,
