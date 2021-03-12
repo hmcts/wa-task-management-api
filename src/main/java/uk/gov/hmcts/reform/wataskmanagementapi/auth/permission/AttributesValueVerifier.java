@@ -20,6 +20,12 @@ public class AttributesValueVerifier {
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
+    protected boolean hasJurisdictionPermission(String roleAssignmentJurisdiction,
+                                                Map<String, CamundaVariable> variables) {
+        String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
+        return roleAssignmentJurisdiction.equals(taskJurisdiction);
+    }
+
     protected boolean hasLocationPermission(String roleAssignmentLocation, Map<String, CamundaVariable> variables) {
         String taskLocation = getVariableValue(variables.get(LOCATION.value()), String.class);
         return roleAssignmentLocation.equals(taskLocation);
@@ -39,12 +45,6 @@ public class AttributesValueVerifier {
     protected boolean hasCaseTypeIdPermission(String roleAssignmentCaseTypeId, Map<String, CamundaVariable> variables) {
         String caseTypeId = getVariableValue(variables.get(CASE_TYPE_ID.value()), String.class);
         return roleAssignmentCaseTypeId.equals(caseTypeId);
-    }
-
-    protected boolean hasJurisdictionPermission(String roleAssignmentJurisdiction,
-                                              Map<String, CamundaVariable> variables) {
-        String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
-        return roleAssignmentJurisdiction.equals(taskJurisdiction);
     }
 
     private <T> T getVariableValue(CamundaVariable variable, Class<T> type) {

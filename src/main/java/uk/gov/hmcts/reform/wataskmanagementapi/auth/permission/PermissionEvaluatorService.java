@@ -102,40 +102,40 @@ public class PermissionEvaluatorService {
                 jurisdictionAttributeValue, variables);
             log.debug("Jurisdiction permission check {}", hasAccess);
         }
-        // 4. Conditionally check CaseId matches the one on the task
-        String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
-        if (hasAccess && caseIdAttributeValue != null) {
-            hasAccess = attributeEvaluatorService.hasCaseIdPermission(caseIdAttributeValue, variables);
-            log.debug("CaseId permission check {}", hasAccess);
-        }
-        // 5. Conditionally check caseTypeId matches the one on the task
-        String caseTypeValue = attributes.get(RoleAttributeDefinition.CASE_TYPE.value());
-        if (hasAccess && caseTypeValue != null) {
-            hasAccess = attributeEvaluatorService.hasCaseTypeIdPermission(caseTypeValue, variables);
-            log.debug("CaseTypeId permission check {}", hasAccess);
-        }
-
-        if (hasAccess) {
-            hasAccess = optionalAttributesCheck(variables, attributeEvaluatorService, attributes);
-        }
-        return hasAccess;
-    }
-
-    private boolean optionalAttributesCheck(Map<String, CamundaVariable> variables,
-                                            AttributesValueVerifier attributeEvaluatorService,
-                                            Map<String, String> attributes) {
-        boolean hasAccess = true;
-        // 6. Conditionally check region matches the one on the task
+        // 4. Conditionally check region matches the one on the task
         String regionAttributeValue = attributes.get(RoleAttributeDefinition.REGION.value());
         if (hasAccess && regionAttributeValue != null) {
             hasAccess = attributeEvaluatorService.hasRegionPermission(regionAttributeValue, variables);
             log.debug("Region permission check {}", hasAccess);
         }
-        // 7. Conditionally check Location ePimms id matches the one on the task
+        // 5. Conditionally check Location ePimms id matches the one on the task
         String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
         if (hasAccess && locationAttributeValue != null) {
             hasAccess = attributeEvaluatorService.hasLocationPermission(locationAttributeValue, variables);
             log.debug("Location permission check {}", hasAccess);
+        }
+
+        if (hasAccess) {
+            hasAccess = restrictedAttributesCheck(variables, attributeEvaluatorService, attributes);
+        }
+        return hasAccess;
+    }
+
+    private boolean restrictedAttributesCheck(Map<String, CamundaVariable> variables,
+                                              AttributesValueVerifier attributeEvaluatorService,
+                                              Map<String, String> attributes) {
+        boolean hasAccess = true;
+        // 6. Conditionally check CaseId matches the one on the task
+        String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
+        if (hasAccess && caseIdAttributeValue != null) {
+            hasAccess = attributeEvaluatorService.hasCaseIdPermission(caseIdAttributeValue, variables);
+            log.debug("CaseId permission check {}", hasAccess);
+        }
+        // 7. Conditionally check caseTypeId matches the one on the task
+        String caseTypeValue = attributes.get(RoleAttributeDefinition.CASE_TYPE.value());
+        if (hasAccess && caseTypeValue != null) {
+            hasAccess = attributeEvaluatorService.hasCaseTypeIdPermission(caseTypeValue, variables);
+            log.debug("CaseTypeId permission check {}", hasAccess);
         }
         return hasAccess;
     }
