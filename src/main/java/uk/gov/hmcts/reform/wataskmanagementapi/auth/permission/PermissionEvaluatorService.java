@@ -96,7 +96,7 @@ public class PermissionEvaluatorService {
         Map<String, String> attributes = roleAssignment.getAttributes();
         // 3. Conditionally check Jurisdiction matches the one on the task
         String jurisdictionAttributeValue = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
-        if (hasAccess && jurisdictionAttributeValue != null) {
+        if (jurisdictionAttributeValue != null) {
 
             hasAccess = attributeEvaluatorService.hasJurisdictionPermission(
                 jurisdictionAttributeValue, variables);
@@ -127,7 +127,7 @@ public class PermissionEvaluatorService {
         boolean hasAccess = true;
         // 6. Conditionally check CaseId matches the one on the task
         String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
-        if (hasAccess && caseIdAttributeValue != null) {
+        if (caseIdAttributeValue != null) {
             hasAccess = attributeEvaluatorService.hasCaseIdPermission(caseIdAttributeValue, variables);
             log.debug("CaseId permission check {}", hasAccess);
         }
