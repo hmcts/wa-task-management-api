@@ -2,3 +2,8 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  keyVaults:
+    wa:
+      secrets:
+        - wa-test-law-firm-a-username
+        - wa-test-law-firm-a-password
