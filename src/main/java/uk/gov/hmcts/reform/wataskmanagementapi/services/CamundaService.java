@@ -239,8 +239,8 @@ public class CamundaService {
 
         try {
             //Safe-guard against unsupported Jurisdictions and case types.
-            if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction()) ||
-                !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
+            if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
+                || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
                 throw new BadRequestException("Please check your request. "
                                               + "This endpoint currently only supports"
                                               + " the Immigration & Asylum service");
