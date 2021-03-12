@@ -629,6 +629,48 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
+    @Test
+    void hasAccess_should_succeed_when_looking_for_caseTypeId_permission_and_return_true() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccess(
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
+    void hasAccess_should_fail_when_looking_for_caseTypeId_permission_and_return_false() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "invalidAsylum")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccess(
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
     private List<Assignment> createTestAssignments(List<String> roleNames,
                                                    Classification roleClassification,
                                                    Map<String, String> roleAttributes) {
@@ -672,7 +714,7 @@ class PermissionEvaluatorServiceTest {
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put(CASE_ID.value(), new CamundaVariable("123456789", "String"));
         variables.put(CASE_NAME.value(), new CamundaVariable("someCaseName", "String"));
-        variables.put(CASE_TYPE_ID.value(), new CamundaVariable("someCaseType", "String"));
+        variables.put(CASE_TYPE_ID.value(), new CamundaVariable("Asylum", "String"));
         variables.put(TASK_STATE.value(), new CamundaVariable("configured", "String"));
         variables.put(LOCATION.value(), new CamundaVariable("012345", "String"));
         variables.put(LOCATION_NAME.value(), new CamundaVariable("A Hearing Centre", "String"));
