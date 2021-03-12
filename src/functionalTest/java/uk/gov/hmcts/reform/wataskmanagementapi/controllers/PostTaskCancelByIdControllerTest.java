@@ -84,7 +84,9 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
+        TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
+            JURISDICTION, "SSCS"
+        );
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
