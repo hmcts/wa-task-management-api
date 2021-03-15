@@ -345,6 +345,10 @@ public class TaskController {
             message = "Bad Request"
         ),
         @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
             code = 403,
             message = "Forbidden"
         ),
