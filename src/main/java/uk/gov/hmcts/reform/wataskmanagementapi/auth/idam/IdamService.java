@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static java.util.Objects.requireNonNull;
 
-@CacheConfig(cacheNames={"idamDetails"})
+@CacheConfig(cacheNames = {"idamDetails"})
 @Component
 public class IdamService {
 
