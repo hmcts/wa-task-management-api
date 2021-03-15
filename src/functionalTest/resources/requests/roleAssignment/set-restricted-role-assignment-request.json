@@ -6,7 +6,7 @@
       "classification": "RESTRICTED",
       "grantType": "SPECIFIC",
       "readOnly": false,
-      "roleCategory": "STAFF",
+      "roleCategory": "LEGAL_OPERATIONS",
       "roleName": "tribunal-caseworker",
       "roleType": "CASE",
       "attributes": {

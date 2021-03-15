@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.access;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class AccessControlService {
 
@@ -27,6 +29,7 @@ public class AccessControlService {
         UserInfo userInfo = idamService.getUserInfo(authToken);
         List<Assignment> assignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
 
+        assignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
         return new AccessControlResponse(userInfo, assignments);
     }
 

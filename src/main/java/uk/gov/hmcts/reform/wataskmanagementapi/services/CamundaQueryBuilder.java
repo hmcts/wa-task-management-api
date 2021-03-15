@@ -67,14 +67,19 @@ public class CamundaQueryBuilder {
             searchParametersMap.get(SearchParameterKey.STATE)
         );
 
-        return camundaQuery()
+        CamundaSearchQuery.CamundaAndQueryBuilder queries = camundaQuery()
             .andQuery(userQueries)
             .andQuery(jurisdictionQueries)
             .andQuery(locationQueries)
             .andQuery(stateQueries)
-            .andSortingQuery(sortingQueries)
-            .build();
+            .andSortingQuery(sortingQueries);
 
+        //Safe-guard to avoid sending empty orQueries to camunda
+        if (queries.getOrQueries().isEmpty()) {
+            return null;
+        }
+
+        return queries.build();
     }
 
 

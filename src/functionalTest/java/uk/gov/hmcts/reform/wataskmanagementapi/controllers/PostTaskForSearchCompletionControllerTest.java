@@ -22,7 +22,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLE
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "task/searchForCompletable";
+    private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
     private Headers authenticationHeaders;
 
@@ -103,7 +103,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "no_event_id", "ia", "asylum");
+            taskVariables.getCaseId(), "solicitorCreateApplication", "ia", "asylum");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -117,6 +117,32 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_400_and_when_event_id_does_not_match_not_ia() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            taskVariables.getCaseId(), "solicitorCreateApplication", "PROBATE", "GrantOfRepresentation");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("message",equalTo("Please check your request. "
+                                    + "This endpoint currently only supports "
+                                    + "the Immigration & Asylum service"));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -170,7 +196,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_500_and_when_performing_search_when_jurisdiction_is_incorrect() {
+    public void should_return_a_400_and_when_performing_search_when_jurisdiction_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
         String taskId = taskVariables.getTaskId();
 
@@ -186,13 +212,13 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            .statusCode(HttpStatus.BAD_REQUEST.value());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
-    public void should_return_a_500_and_when_performing_search_when_caseType_is_incorrect() {
+    public void should_return_a_400_and_when_performing_search_when_caseType_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -208,7 +234,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            .statusCode(HttpStatus.BAD_REQUEST.value());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
