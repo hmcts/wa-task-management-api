@@ -23,8 +23,6 @@ class IdamServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    private String USER_TOKEN;
-
     @Autowired
     private IdamService idamService;
 
@@ -33,6 +31,8 @@ class IdamServiceTest extends SpringBootIntegrationBaseTest {
 
     @Test
     public void should_cache_response() {
+
+        String userTokenValue;
 
         UserInfo first = new UserInfo(
             "email1@example.net",
@@ -53,25 +53,25 @@ class IdamServiceTest extends SpringBootIntegrationBaseTest {
         );
 
         Header userToken = authorizationHeadersProvider.getLawFirmAuthorizationOnly();
-        USER_TOKEN = userToken.getValue();
+        userTokenValue = userToken.getValue();
 
-        when(idamService.getUserInfo(USER_TOKEN)).thenReturn(first, second);
+        when(idamService.getUserInfo(userTokenValue)).thenReturn(first, second);
 
         //First invocation should return first mock value
-        String resultFirstInvocation = idamService.getUserId(USER_TOKEN);
+        String resultFirstInvocation = idamService.getUserId(userTokenValue);
         assertEquals(first.getUid(), resultFirstInvocation);
 
         // Second invocation should return cached value and not the second value as defined in mock
-        String resultSecondInvocation = idamService.getUserId(USER_TOKEN);
+        String resultSecondInvocation = idamService.getUserId(userTokenValue);
         assertEquals(first.getUid(), resultSecondInvocation);
 
-        verify(idamWebApi, times(1)).userInfo(USER_TOKEN);
+        verify(idamWebApi, times(1)).userInfo(userTokenValue);
 
         // Third invocation with different access token should triggers the second invocation of mock
         Header userToken2 = authorizationHeadersProvider.getCaseworkerAAuthorizationOnly();
-        USER_TOKEN = userToken2.getValue();
+        userTokenValue = userToken2.getValue();
 
-        String resultThirdInvocation = idamService.getUserId(USER_TOKEN);
+        String resultThirdInvocation = idamService.getUserId(userTokenValue);
         assertEquals(second.getUid(), resultThirdInvocation);
 
     }
