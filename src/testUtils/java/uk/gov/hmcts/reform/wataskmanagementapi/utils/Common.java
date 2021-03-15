@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
@@ -111,6 +112,25 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        processVariables.put(key.value(), new CamundaValue<>(value, "String"));
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCustomVariables(processVariables)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
+    public TestVariables setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
+        CamundaVariableDefinition key, String value
+    ) {
+        final String caseId = UUID.randomUUID().toString();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
