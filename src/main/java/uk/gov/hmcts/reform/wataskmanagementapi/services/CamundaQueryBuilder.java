@@ -91,7 +91,7 @@ public class CamundaQueryBuilder {
      * @param taskTypes the task types.
      * @return a mapped search query as specified by camunda as CamundaSearchQuery
      */
-    public CamundaSearchQuery createCompletionQuery(String caseId, List<String> taskTypes) {
+    public CamundaSearchQuery createCompletableTasksQuery(String caseId, List<String> taskTypes) {
         CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createProcessVariableQueriesFor(
             CamundaVariableDefinition.CASE_ID,
             new SearchParameter(SearchParameterKey.CASE_ID,

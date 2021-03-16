@@ -102,7 +102,7 @@ public class TaskController {
 
         List<Task> tasks = camundaService.searchWithCriteria(
             searchTaskRequest,
-            accessControlResponse.getRoleAssignments(),
+            accessControlResponse,
             endpointPermissionsRequired
         );
         return ResponseEntity
