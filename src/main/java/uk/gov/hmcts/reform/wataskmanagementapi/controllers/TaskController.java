@@ -345,6 +345,10 @@ public class TaskController {
             message = "Bad Request"
         ),
         @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
             code = 403,
             message = "Forbidden"
         ),
@@ -357,7 +361,7 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/searchForCompletable", consumes = APPLICATION_JSON_VALUE,
+    @PostMapping(path = "/search-for-completable", consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,

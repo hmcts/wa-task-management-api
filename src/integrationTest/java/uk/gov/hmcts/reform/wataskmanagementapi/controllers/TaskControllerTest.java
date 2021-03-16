@@ -145,8 +145,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "some-caseId",
                 "some-eventId",
-                "some-caseJurisdiction",
-                "some-caseType"
+                "ia",
+                "asylum"
             );
             ObjectMapper mapper = new ObjectMapper();
             final var searchContent = mapper.writeValueAsString(searchEventAndCase);
@@ -161,7 +161,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             doThrow(mockFeignException).when(camundaServiceApi).evaluateDMN(any(), any(), any());
 
             mockMvc.perform(
-                post("/task/searchForCompletable")
+                post("/task/search-for-completable")
                     .header(
                         "Authorization",
                         authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()

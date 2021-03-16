@@ -25,17 +25,12 @@ import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PRIVATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.RESTRICTED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 
 @Slf4j
 @Service
 @SuppressWarnings({
-    "java:S3776",
-    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.AvoidDeeplyNestedIfStmts", "PMD.CyclomaticComplexity"
+    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"
 })
 public class PermissionEvaluatorService {
 
@@ -66,6 +61,8 @@ public class PermissionEvaluatorService {
                                    Assignment roleAssignment,
                                    List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
+        AttributesValueVerifier attributeEvaluatorService =
+            new AttributesValueVerifier(camundaObjectMapper);
 
         log.debug("Evaluating access for {}", roleAssignment);
         // 1. Always Check Role name has required permission
@@ -79,34 +76,8 @@ public class PermissionEvaluatorService {
                 variables
             );
             log.debug("Security Classification permission check {}", hasAccess);
-            if (roleAssignment.getAttributes() != null) {
-
-                Map<String, String> attributes = roleAssignment.getAttributes();
-                // 3. Conditionally check Jurisdiction matches the one on the task
-                String jurisdictionAttributeValue = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
-                if (hasAccess && jurisdictionAttributeValue != null) {
-
-                    hasAccess = hasJurisdictionPermission(jurisdictionAttributeValue, variables);
-                    log.debug("Jurisdiction permission check {}", hasAccess);
-                }
-                // 4. Conditionally check CaseId matches the one on the task
-                String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
-                if (hasAccess && caseIdAttributeValue != null) {
-                    hasAccess = hasCaseIdPermission(caseIdAttributeValue, variables);
-                    log.debug("CaseId permission check {}", hasAccess);
-                }
-                // 5. Conditionally check region matches the one on the task
-                String regionAttributeValue = attributes.get(RoleAttributeDefinition.REGION.value());
-                if (hasAccess && regionAttributeValue != null) {
-                    hasAccess = hasRegionPermission(regionAttributeValue, variables);
-                    log.debug("Region permission check {}", hasAccess);
-                }
-                // 6. Conditionally check Location ePimms id matches the one on the task
-                String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
-                if (hasAccess && locationAttributeValue != null) {
-                    hasAccess = hasLocationPermission(locationAttributeValue, variables);
-                    log.debug("Location permission check {}", hasAccess);
-                }
+            if (roleAssignment.getAttributes() != null && hasAccess) {
+                hasAccess = attributesPermissionCheck(variables, roleAssignment, attributeEvaluatorService);
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
@@ -115,6 +86,57 @@ public class PermissionEvaluatorService {
             log.debug("EndTime permission check {}", hasAccess);
         }
 
+        return hasAccess;
+    }
+
+    private boolean attributesPermissionCheck(Map<String, CamundaVariable> variables,
+                                              Assignment roleAssignment,
+                                              AttributesValueVerifier attributeEvaluatorService) {
+        boolean hasAccess = true;
+        Map<String, String> attributes = roleAssignment.getAttributes();
+        // 3. Conditionally check Jurisdiction matches the one on the task
+        String jurisdictionAttributeValue = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
+        if (jurisdictionAttributeValue != null) {
+
+            hasAccess = attributeEvaluatorService.hasJurisdictionPermission(
+                jurisdictionAttributeValue, variables);
+            log.debug("Jurisdiction permission check {}", hasAccess);
+        }
+        // 4. Conditionally check region matches the one on the task
+        String regionAttributeValue = attributes.get(RoleAttributeDefinition.REGION.value());
+        if (hasAccess && regionAttributeValue != null) {
+            hasAccess = attributeEvaluatorService.hasRegionPermission(regionAttributeValue, variables);
+            log.debug("Region permission check {}", hasAccess);
+        }
+        // 5. Conditionally check Location ePimms id matches the one on the task
+        String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
+        if (hasAccess && locationAttributeValue != null) {
+            hasAccess = attributeEvaluatorService.hasLocationPermission(locationAttributeValue, variables);
+            log.debug("Location permission check {}", hasAccess);
+        }
+
+        if (hasAccess) {
+            hasAccess = restrictedAttributesCheck(variables, attributeEvaluatorService, attributes);
+        }
+        return hasAccess;
+    }
+
+    private boolean restrictedAttributesCheck(Map<String, CamundaVariable> variables,
+                                              AttributesValueVerifier attributeEvaluatorService,
+                                              Map<String, String> attributes) {
+        boolean hasAccess = true;
+        // 6. Conditionally check CaseId matches the one on the task
+        String caseIdAttributeValue = attributes.get(RoleAttributeDefinition.CASE_ID.value());
+        if (caseIdAttributeValue != null) {
+            hasAccess = attributeEvaluatorService.hasCaseIdPermission(caseIdAttributeValue, variables);
+            log.debug("CaseId permission check {}", hasAccess);
+        }
+        // 7. Conditionally check caseTypeId matches the one on the task
+        String caseTypeValue = attributes.get(RoleAttributeDefinition.CASE_TYPE.value());
+        if (hasAccess && caseTypeValue != null) {
+            hasAccess = attributeEvaluatorService.hasCaseTypeIdPermission(caseTypeValue, variables);
+            log.debug("CaseTypeId permission check {}", hasAccess);
+        }
         return hasAccess;
     }
 
@@ -142,28 +164,6 @@ public class PermissionEvaluatorService {
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
         return hasAccess;
-    }
-
-    private boolean hasLocationPermission(String roleAssignmentLocation, Map<String, CamundaVariable> variables) {
-        String taskLocation = getVariableValue(variables.get(LOCATION.value()), String.class);
-        return roleAssignmentLocation.equals(taskLocation);
-    }
-
-    private boolean hasRegionPermission(String roleAssignmentRegion, Map<String, CamundaVariable> variables) {
-        String taskRegion = getVariableValue(variables.get(REGION.value()), String.class);
-        return roleAssignmentRegion.equals(taskRegion);
-    }
-
-    private boolean hasCaseIdPermission(String roleAssignmentCaseId, Map<String, CamundaVariable> variables) {
-        String taskCaseId = getVariableValue(variables.get(CASE_ID.value()), String.class);
-        return roleAssignmentCaseId.equals(taskCaseId);
-
-    }
-
-    private boolean hasJurisdictionPermission(String roleAssignmentJurisdiction,
-                                              Map<String, CamundaVariable> variables) {
-        String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
-        return roleAssignmentJurisdiction.equals(taskJurisdiction);
     }
 
     private boolean hasSecurityClassificationPermission(Classification roleAssignmentClassification,

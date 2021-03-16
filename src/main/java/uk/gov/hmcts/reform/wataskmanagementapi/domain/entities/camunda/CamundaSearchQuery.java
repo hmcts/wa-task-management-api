@@ -32,6 +32,10 @@ public class CamundaSearchQuery {
             return new CamundaAndQueryBuilder();
         }
 
+        public List<Object> getOrQueries() {
+            return orQueries;
+        }
+
         public CamundaAndQueryBuilder withKeyValue(String key, String value) {
             map.put(key, singletonList(value));
             return this;

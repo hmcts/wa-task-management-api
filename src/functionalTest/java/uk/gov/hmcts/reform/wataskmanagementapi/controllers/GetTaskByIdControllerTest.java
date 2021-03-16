@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -86,7 +87,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, Common.REASON_COMPLETED);
     }
 
-
+    @Ignore
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_when_restricted_role_assignment_role() {
 
@@ -147,7 +148,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
+        TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
+            JURISDICTION, "SSCS"
+        );
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);

@@ -23,12 +23,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
@@ -225,6 +226,11 @@ public class CamundaService {
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
+        //Safe-guard to avoid sending empty orQueries to camunda and abort early
+        if (query == null) {
+            return emptyList();
+        }
+
         return performSearchAction(query, roleAssignments, permissionsRequired);
 
     }
@@ -239,13 +245,25 @@ public class CamundaService {
             eventVariable.put("eventId", new CamundaVariable(searchEventAndCase.getEventId(), "String"));
             Map<String, Map<String, CamundaVariable>> dmnRequest = new HashMap<>();
             dmnRequest.put("variables", eventVariable);
-            // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
-            List<Map<String, CamundaVariable>> evaluateDmnResult =
-                camundaServiceApi.evaluateDMN(
-                    authTokenGenerator.generate(),
-                    getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
-                    dmnRequest
-                );
+            List<Map<String, CamundaVariable>> evaluateDmnResult;
+            if (searchEventAndCase.getCaseJurisdiction().equals("ia")
+                && searchEventAndCase.getCaseType().equals("asylum")) {
+                // A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
+                evaluateDmnResult =
+                    camundaServiceApi.evaluateDMN(
+                        authTokenGenerator.generate(),
+                        getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
+                        dmnRequest
+                    );
+            } else {
+                throw new BadRequestException("Please check your request. "
+                                              + "This endpoint currently only supports"
+                                              + " the Immigration & Asylum service");
+            }
+
+            if (evaluateDmnResult.isEmpty()) {
+                return emptyList();
+            }
 
             List<String> taskTypes = evaluateDmnResult.stream()
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
@@ -253,7 +271,7 @@ public class CamundaService {
 
 
             if (taskTypes.isEmpty()) {
-                return Collections.emptyList();
+                return emptyList();
             } else {
                 CamundaSearchQuery camundaSearchQuery =
                     camundaQueryBuilder.createCompletionQuery(
@@ -270,7 +288,6 @@ public class CamundaService {
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
-
     }
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
@@ -416,7 +433,6 @@ public class CamundaService {
                     }
                 }
             });
-
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
             throw new ServerErrorException("There was a problem performing the search", ex);
