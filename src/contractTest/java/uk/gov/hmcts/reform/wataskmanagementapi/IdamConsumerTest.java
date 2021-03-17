@@ -186,7 +186,6 @@ public class IdamConsumerTest {
             .stringValue("sub", PACT_TEST_EMAIL_VALUE)
             .stringValue("givenName", "Case")
             .stringValue("familyName", "Officer")
-            .minArrayLike("roles", 1, PactDslJsonRootValue.stringType("caseworker-ia-legalrep-solicitor"), 1)
-            .stringType("IDAM_ADMIN_USER");
+            .minArrayLike("roles", 1, PactDslJsonRootValue.stringType("caseworker-ia-legalrep-solicitor"), 1);
     }
 }
