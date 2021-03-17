@@ -562,7 +562,7 @@ class CamundaQueryBuilderTest {
         taskTypes.add("Test Task Type");
 
 
-        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createCompletionQuery("caseId", taskTypes);
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createCompletableTasksQuery("caseId", taskTypes);
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
         String expected = "{\n"
