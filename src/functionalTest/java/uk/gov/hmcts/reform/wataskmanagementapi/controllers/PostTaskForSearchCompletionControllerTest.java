@@ -65,7 +65,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     public void should_return_a_200_and_retrieve_a_task_by_event_and_case_match() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
-            CamundaVariableDefinition.LOCATION, "765324", //The task-configuration-api set this var to this location automatically
+            //The task-configuration-api set this var to this location automatically
+            CamundaVariableDefinition.LOCATION, "765324",
             CamundaVariableDefinition.TYPE, "ReviewTheAppeal",
             CamundaVariableDefinition.TASK_ID, "ReviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
