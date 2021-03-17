@@ -108,8 +108,8 @@ public class PermissionEvaluatorService {
             hasAccess = attributeEvaluatorService.hasRegionPermission(regionAttributeValue, variables);
             log.debug("Region permission check {}", hasAccess);
         }
-        // 5. Conditionally check Location ePimms id matches the one on the task
-        String locationAttributeValue = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
+        // 5. Conditionally check baseLocation id matches the one on the task
+        String locationAttributeValue = attributes.get(RoleAttributeDefinition.BASE_LOCATION.value());
         if (hasAccess && locationAttributeValue != null) {
             hasAccess = attributeEvaluatorService.hasLocationPermission(locationAttributeValue, variables);
             log.debug("Location permission check {}", hasAccess);
