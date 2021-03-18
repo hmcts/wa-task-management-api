@@ -61,6 +61,9 @@ withPipeline(type, product, component) {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
     }
 
+    //Temporary enable pact test at PR level
+    enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+
     onMaster() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
     }
