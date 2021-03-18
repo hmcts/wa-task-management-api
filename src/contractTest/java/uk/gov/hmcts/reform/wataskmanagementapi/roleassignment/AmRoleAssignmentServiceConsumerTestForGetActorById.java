@@ -70,9 +70,9 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
                 roleAssignmentResponse -> roleAssignmentResponse
                     .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
                     .stringValue("actorIdType", "IDAM")
-                    .stringValue("actorId", ACTOR_ID)
+                    .stringType("actorId", ACTOR_ID)
                     .stringValue("roleType", "ORGANISATION")
-                    .stringValue("roleName", "tribunal-caseworker")
+                    .stringType("roleName", "tribunal-caseworker")
                     .stringValue("classification", "PUBLIC")
                     .stringValue("grantType", "STANDARD")
                     .stringType("roleCategory", "LEGAL_OPERATIONS")
