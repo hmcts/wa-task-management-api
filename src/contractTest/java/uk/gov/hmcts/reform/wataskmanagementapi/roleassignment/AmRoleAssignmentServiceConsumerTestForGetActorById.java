@@ -26,11 +26,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBootContractBaseTest {
 
-    private static final String ACTOR_ID = "5f24d8a2-d83b-4a16-bb8d-8700e1cc8497";
+    private static final String ACTOR_ID = "23486";
     private static final String RAS_GET_ACTOR_BY_ID_URL = "/am/role-assignments/actors/" + ACTOR_ID;
 
 
-    @Pact(provider = "am_role_assignment_service", consumer = "wa_task_management_api")
+    @Pact(provider = "am_role_assignment_service_get_actor_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetActorByIdAndGet200(PactDslWithProvider builder) {
 
         return builder
@@ -70,18 +70,19 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
                 roleAssignmentResponse -> roleAssignmentResponse
                     .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
                     .stringValue("actorIdType", "IDAM")
-                    .stringType("actorId", ACTOR_ID)
+                    .stringValue("actorId", ACTOR_ID)
                     .stringValue("roleType", "ORGANISATION")
-                    .stringType("roleName", "tribunal-caseworker")
-                    .stringValue("classification", "PUBLIC")
+                    .stringValue("roleName", "senior-tribunal-caseworker")
+                    .stringValue("classification", "PRIVATE")
                     .stringValue("grantType", "STANDARD")
                     .stringType("roleCategory", "LEGAL_OPERATIONS")
                     .booleanValue("readOnly", false)
                     .stringType("created", "2021-03-11T14:22:12.961474Z")
                     .object("attributes", attribute -> attribute
-                        .stringType("primaryLocation", "198444")
-                        .stringType("jurisdiction", "IA")
-                    )
+                        .stringType("region", "north-east")
+                        .stringType("contractType", "SALARIED")
+                        .stringType("caseId", "1234567890123456"))
+
             )).build();
     }
 
