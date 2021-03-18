@@ -35,7 +35,8 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
         return builder
             .given("An actor with provided id is available in role assignment service")
-            .uponReceiving("Provider receives a GET /am/role-assignments/actors/{user-id} request from a WA API")
+            .uponReceiving(
+                "Provider receives a GET /am/role-assignments/actors/{user-id} request from a WA API")
             .path(RAS_GET_ACTOR_BY_ID_URL)
             .method(HttpMethod.GET.toString())
             .willRespondWith()
@@ -47,7 +48,8 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     @Test
     @PactTestFor(pactMethod = "executeGetActorByIdAndGet200")
-    void should_get_actor_by_id_and_receive_actor_information_with_200_response(MockServer mockServer) throws JSONException {
+    void should_get_actor_by_id_and_receive_actor_information_with_200_response(MockServer mockServer)
+        throws JSONException {
         String actualResponseBody =
             SerenityRest
                 .given()
@@ -79,7 +81,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
                     .object("attributes", attribute -> attribute
                         .stringType("primaryLocation", "198444")
                         .stringType("jurisdiction", "IA")
-                        )
+                    )
             )).build();
     }
 

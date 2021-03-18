@@ -27,7 +27,7 @@ public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
     private static final String IDAM_OPENID_TOKEN_URL = "/o/token";
 
     @Pact(provider = "Idam_api", consumer = "wa_task_management_api")
-    public RequestResponsePact executeGetIdamAccessTokenAndGet200(PactDslWithProvider builder) throws JSONException {
+    public RequestResponsePact executeGetIdamAccessTokenAndGet200(PactDslWithProvider builder) {
 
         Map<String, String> responseheaders = Maps.newHashMap();
         responseheaders.put("Content-Type", "application/json");

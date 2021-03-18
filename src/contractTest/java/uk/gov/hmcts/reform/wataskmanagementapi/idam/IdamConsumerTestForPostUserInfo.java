@@ -17,19 +17,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest.AUTHORIZATION_BEARER_TOKEN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest.PACT_TEST_CLIENT_ID_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest.PACT_TEST_CLIENT_SECRET_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest.PACT_TEST_EMAIL_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest.PACT_TEST_PASSWORD_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest.PACT_TEST_SCOPES_VALUE;
 
-public class IdamConsumerTestForPostUserInfo {
+public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest {
 
     private static final String IDAM_OPENID_USERINFO_URL = "/o/userinfo";
 
