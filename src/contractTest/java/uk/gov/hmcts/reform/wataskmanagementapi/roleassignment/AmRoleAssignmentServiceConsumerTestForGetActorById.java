@@ -86,19 +86,11 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
             )).build();
     }
 
-    @NotNull
     private Map<String, String> getResponseHeaders() {
         Map<String, String> responseHeaders = Maps.newHashMap();
         responseHeaders.put("Content-Type",
             "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0");
         return responseHeaders;
-    }
-
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("ServiceAuthorization", SERVICE_BEARER_TOKEN);
-        headers.add("Authorization", AUTHORIZATION_BEARER_TOKEN);
-        return headers;
     }
 
 }
