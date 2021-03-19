@@ -85,3 +85,7 @@ feign:
         readTimeout: 30000
         loggerLevel: basic
 
+launchDarkly:
+  sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
+  connectionTimeout: 5000
+  socketTimeout: 5000
