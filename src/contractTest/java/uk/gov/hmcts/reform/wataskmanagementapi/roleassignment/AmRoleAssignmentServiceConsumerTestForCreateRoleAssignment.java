@@ -28,7 +28,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
 
     private static final String RAS_CREATE_ROLE_ASSIGNMENT_URL = "/am/role-assignments";
 
-    @Pact(provider = "am_role_assignment_service_create", consumer = "am_org_role_mapping")
+    @Pact(provider = "am_role_assignment_service_create", consumer = "wa_task_management_api")
     public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
 
         return builder
