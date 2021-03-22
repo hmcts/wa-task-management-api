@@ -17,39 +17,9 @@ def type = "java"
 def product = "wa"
 def component = "task-management-api"
 
-def secrets = [
-    'wa-${env}' : [
-        secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
-        secret('idam-secret', 'IA_IDAM_SECRET'),
-        secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
-    ],
-
-  's2s-${env}' : [
-    secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
-
-  ]
-]
-
-static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
-  [$class     : 'AzureKeyVaultSecret',
-   secretType : 'Secret',
-   name       : secretName,
-   version    : '',
-   envVariable: envVar
-  ]
-}
-
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
   env.Rules = params.SecurityRules
-
-  env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
-  env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
-  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
-  env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
-  env.IDAM_API_URL = "https://idam-api.aat.platform.hmcts.net"
-  env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
-  env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
 
   loadVaultSecrets(secrets)
 
