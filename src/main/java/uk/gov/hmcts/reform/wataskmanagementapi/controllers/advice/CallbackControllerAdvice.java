@@ -93,16 +93,12 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)
-    protected ResponseEntity<ErrorMessage> handleUnsupportedOperationException(
+    protected ResponseEntity<ErrorMessageSummary> handleUnsupportedOperationException(
         Exception ex
     ) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.BAD_REQUEST,
-                    systemDateProvider.nowWithTime()
-                )
+            .body(new ErrorMessageSummary(ex)
             );
     }
 

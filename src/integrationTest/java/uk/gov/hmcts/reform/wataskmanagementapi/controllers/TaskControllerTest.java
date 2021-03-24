@@ -10,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -46,13 +48,19 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
 
+    @MockBean
+    private AccessControlService accessControlService;
+
     private ServiceMocks mockServices;
 
     @BeforeEach
     public void setUp() {
-        mockServices = new ServiceMocks(idamWebApi,
+        mockServices = new ServiceMocks(
+            idamWebApi,
             camundaServiceApi,
-            roleAssignmentServiceApi);
+            roleAssignmentServiceApi
+        );
+
     }
 
     @Nested
@@ -75,7 +83,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
                 .thenReturn(mockServices.createCamundaTestException(
                     "aCamundaErrorType", String.format(
                         "There was a problem cancelling the task with id: %s",
-                        taskId)));
+                        taskId
+                    )));
             doThrow(mockFeignException).when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
             mockMvc.perform(
@@ -94,6 +103,37 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             verify(camundaServiceApi, times(1))
                 .bpmnEscalation(any(), any(), any());
         }
+
+        @DisplayName("Bad Request test")
+        @Test
+        void should_return_a_400_when_bad_request() throws Exception {
+
+            final String taskId = UUID.randomUUID().toString();
+
+            mockServices.mockServiceAPIs();
+
+            when(accessControlService.getRoles(any(String.class)))
+                .thenThrow(new UnsupportedOperationException(
+                    String.format(
+                        "There was a problem with Role Assignment call with task: %s",
+                        taskId
+                    )));
+
+            MvcResult response = mockMvc.perform(
+                post("/task/" + taskId + "/cancel")
+                    .header(
+                        "Authorization",
+                        authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+                    )
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andReturn();
+
+            System.out.println(response.getResponse().getContentType());
+            System.out.println(response.getResponse().getStatus());
+
+            System.out.println("Response: " + response);
+        }
+
     }
 
     @Nested
@@ -177,5 +217,9 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             verify(camundaServiceApi, times(1))
                 .evaluateDMN(any(), any(), any());
         }
+    }
+
+    void bad_request() {
+
     }
 }

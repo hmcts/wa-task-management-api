@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
@@ -47,6 +49,7 @@ public class TaskController {
     public static final String UNAUTHORIZED = "Unauthorized";
     private static final String BAD_REQUEST = "Bad Request";
     private static final String FORBIDDEN = "Forbidden";
+    private static final String NOT_FOUND = "Not Found";
     private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
     private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     private static final String TASK_ID = "task-id";
@@ -125,6 +128,10 @@ public class TaskController {
         @ApiResponse(
             code = 403,
             message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 404,
+            message = NOT_FOUND
         ),
         @ApiResponse(
             code = 401,

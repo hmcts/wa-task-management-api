@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,6 +10,7 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 
 @ActiveProfiles("integration")
 @RunWith(SpringRunner.class)

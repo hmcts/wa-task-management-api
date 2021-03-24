@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Optional;
+
 @ApiModel(
     value = "SearchEventAndCase",
     description = "Search task request with event and case id"
@@ -27,6 +29,12 @@ public class SearchEventAndCase {
     @ApiModelProperty(required = true)
     @JsonProperty(value = "case-type")
     private String caseType;
+
+    private String searchType;
+
+    public Optional<String> getSearchType() {
+        return Optional.ofNullable(searchType);
+    }
 
     private SearchEventAndCase() {
         //Default constructor for deserialization

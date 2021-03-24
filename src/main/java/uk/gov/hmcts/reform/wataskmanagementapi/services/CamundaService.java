@@ -202,6 +202,14 @@ public class CamundaService {
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
+        CompletionOptions completionOptions = new CompletionOptions();
+
+        TaskManager
+            CamundaHandler
+                CompletionHandler
+                    canComplete(CompletionData(CompletionOptions.getAllowReassigment))
+                    ReassignAndCompleteHandler
+
         boolean hasAccess = permissionEvaluatorService
             .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
