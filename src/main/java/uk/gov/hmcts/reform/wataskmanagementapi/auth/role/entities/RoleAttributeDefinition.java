@@ -5,6 +5,7 @@ public enum RoleAttributeDefinition {
     CASE_ID("caseId"),
     JURISDICTION("jurisdiction"),
     PRIMARY_LOCATION("primaryLocation"),
+    BASE_LOCATION("baseLocation"),
     CASE_TYPE("caseType"),
     REGION("region");
 
