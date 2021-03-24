@@ -168,29 +168,19 @@ public class CamundaService {
     public void unclaimTask(String taskId,
                             AccessControlResponse accessControlResponse,
                             List<PermissionTypes> permissionsRequired) {
-        String userId = accessControlResponse.getUserInfo().getUid();
-        requireNonNull(userId, "UserId must be null");
-        CamundaTask camundaTask = performGetCamundaTaskAction(taskId);
+        Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        boolean isSameUser = userId.equals(camundaTask.getAssignee());
+        boolean hasAccess = permissionEvaluatorService
+            .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
-        if (isSameUser) {
-            Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
-
-            boolean hasAccess = permissionEvaluatorService
-                .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
-
-            if (hasAccess) {
-                String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-                boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
-                performUnclaimTaskAction(taskId, taskHasUnassigned);
-            } else {
-                throw new InsufficientPermissionsException(
-                    String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
-                );
-            }
+        if (hasAccess) {
+            String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+            boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
+            performUnclaimTaskAction(taskId, taskHasUnassigned);
         } else {
-            throw new InsufficientPermissionsException("Task was not claimed by this user");
+            throw new InsufficientPermissionsException(
+                String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
+            );
         }
     }
 
