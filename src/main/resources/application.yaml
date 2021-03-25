@@ -38,6 +38,7 @@ security:
     - "/v2/api-docs"
     - "/webjars/springfox-swagger-ui/**"
     - "/favicon.ico"
+    - "/products/**"
 
 auth:
   provider:
