@@ -167,7 +167,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
-    @Ignore
+    @Ignore("https://tools.hmcts.net/jira/browse/RWA-411")
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
         TestVariables taskVariablesSscs =
