@@ -13,7 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -51,7 +53,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -63,6 +65,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     public void should_return_a_200_and_retrieve_a_task_by_event_and_case_match() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
+            //The task-configuration-api set this var to this location automatically
             CamundaVariableDefinition.LOCATION, "765324",
             CamundaVariableDefinition.TYPE, "ReviewTheAppeal",
             CamundaVariableDefinition.TASK_ID, "ReviewTheAppeal",
@@ -78,21 +81,31 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        await()
+            .ignoreException(AssertionError.class)
+            .atMost(6, TimeUnit.SECONDS) // retry three times
+            .pollInterval(2, TimeUnit.SECONDS)
+            .until(() -> {
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks[0].task_state", equalTo("unassigned"))
-            .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
-            .body("tasks[0].id", equalTo(taskId))
-            .body("tasks[0].type", equalTo("ReviewTheAppeal"))
-            .body("tasks[0].jurisdiction", equalTo("IA"))
-            .body("tasks[0].case_type_id", equalTo("Asylum"));
+                Response result = restApiActions.post(
+                    ENDPOINT_BEING_TESTED,
+                    searchEventAndCase,
+                    authenticationHeaders
+                );
+
+                result.then().assertThat()
+                    .statusCode(HttpStatus.OK.value())
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .body("tasks[0].task_state", equalTo("unassigned"))
+                    .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
+                    .body("tasks[0].id", equalTo(taskId))
+                    .body("tasks[0].type", equalTo("ReviewTheAppeal"))
+                    .body("tasks[0].jurisdiction", equalTo("IA"))
+                    .body("tasks[0].case_type_id", equalTo("Asylum"));
+
+                return true;
+
+            });
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -140,9 +153,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("message",equalTo("Please check your request. "
-                                    + "This endpoint currently only supports "
-                                    + "the Immigration & Asylum service"));
+            .body("message", equalTo("Please check your request. "
+                                         + "This endpoint currently only supports "
+                                         + "the Immigration & Asylum service"));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
