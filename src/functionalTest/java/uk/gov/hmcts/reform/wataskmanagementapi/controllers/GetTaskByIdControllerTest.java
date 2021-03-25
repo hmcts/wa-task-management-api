@@ -87,7 +87,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, Common.REASON_COMPLETED);
     }
 
-    @Ignore
+    @Ignore("https://tools.hmcts.net/jira/browse/RWA-411")
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_when_restricted_role_assignment_role() {
 
