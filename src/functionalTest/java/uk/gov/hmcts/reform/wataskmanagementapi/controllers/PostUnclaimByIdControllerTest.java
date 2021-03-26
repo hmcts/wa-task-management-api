@@ -54,7 +54,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
-                "There was a problem fetching the task with id: %s",
+                "There was a problem fetching the variables for task with id: %s",
                 nonExistentTaskId
             )));
     }
@@ -125,7 +125,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     }
 
     @Test
-    public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_credentials() {
+    public void should_return_a_204_when_unclaiming_a_task_by_id_with_different_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
@@ -146,13 +146,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo("Task was not claimed by this user"));
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
