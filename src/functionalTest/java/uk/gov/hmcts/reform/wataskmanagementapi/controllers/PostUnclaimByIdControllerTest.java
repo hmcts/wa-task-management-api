@@ -146,12 +146,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("status", equalTo(HttpStatus.NO_CONTENT.value()))
-            .body("message", equalTo("Task was not claimed by this user"));
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
