@@ -65,8 +65,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_assigning_a_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
+        TestVariables testVariables = common.setupTaskAndRetrieveIds();
+        String taskId = testVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         Response result = restApiActions.post(
@@ -79,7 +79,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskVariableWasUpdated(testVariables.getProcessInstanceId(), "taskState", "assigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

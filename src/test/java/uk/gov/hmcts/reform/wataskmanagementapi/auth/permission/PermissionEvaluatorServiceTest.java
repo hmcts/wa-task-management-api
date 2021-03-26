@@ -29,10 +29,10 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -616,7 +616,7 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.PRIMARY_LOCATION.value(), "anotherLocationId")
+            Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "anotherLocationId")
         );
 
         testCases.forEach(roleAssignment -> {
