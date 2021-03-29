@@ -135,6 +135,76 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
+    void hasAccessWithUserIdAssigneeCheck_should_succeed_senior_tribunal_case_worker() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                null,
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
+    void hasAccessWithUserIdAssigneeCheck_should_succeed_tribunal_case_worker_assigned_to_task() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                "someUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+
+    @Test
+    void hasAccessWithUserIdAssigneeCheck_should_fail_different_tribunal_case_worker_assigned_to_task() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
     void hasAccess_should_succeed_when_looking_for_read_permission_and_return_true() {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
@@ -670,7 +740,7 @@ class PermissionEvaluatorServiceTest {
             .forEach(roleType -> {
                     Assignment roleAssignment = createBaseAssignment(
                         UUID.randomUUID().toString(),
-                        "tribunal-caseworker",
+                        roleName,
                         roleType,
                         roleClassification,
                         roleAttributes
