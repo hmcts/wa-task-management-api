@@ -8,20 +8,4 @@
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
   </suppress>
-  <suppress>
-    <notes><![CDATA[
-			Jar: com.nimbusds:oauth2-oidc-sdk-7.1.1.jar
-			Analysis: False positive, https://github.com/jeremylong/DependencyCheck/issues/713
-		]]></notes>
-    <cve>CVE-2007-1651</cve>
-    <cve>CVE-2007-1652</cve>
-  </suppress>
-  <!-- This vulnerability can only be exploited from the local network -->
-  <suppress>
-    <gav regex="true">^com\.nimbusds:lang-tag:.*$</gav>
-    <cve>CVE-2020-29242</cve>
-    <cve>CVE-2020-29243</cve>
-    <cve>CVE-2020-29244</cve>
-    <cve>CVE-2020-29245</cve>
-  </suppress>
 </suppressions>
