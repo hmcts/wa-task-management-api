@@ -54,7 +54,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
-                "There was a problem fetching the variables for task with id: %s",
+                "There was a problem fetching the task with id: %s",
                 nonExistentTaskId
             )));
     }
@@ -149,7 +149,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message", equalTo("Task was not claimed by this user"));
+            .body("message", equalTo(String.format(
+                "User did not have sufficient permissions to unclaim task with id: %s", taskId)));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
