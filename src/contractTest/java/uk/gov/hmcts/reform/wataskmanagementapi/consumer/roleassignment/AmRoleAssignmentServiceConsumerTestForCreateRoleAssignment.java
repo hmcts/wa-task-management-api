@@ -1,11 +1,11 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.roleassignment;
+package uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment;
 
 import au.com.dius.pact.consumer.MockServer;
-import au.com.dius.pact.consumer.Pact;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.model.RequestResponsePact;
+import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.Maps;
 import io.restassured.http.ContentType;
 import net.serenitybdd.rest.SerenityRest;

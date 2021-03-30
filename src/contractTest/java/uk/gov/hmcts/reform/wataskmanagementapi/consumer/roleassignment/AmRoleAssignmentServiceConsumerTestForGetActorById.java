@@ -1,11 +1,11 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.roleassignment;
+package uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment;
 
 import au.com.dius.pact.consumer.MockServer;
-import au.com.dius.pact.consumer.Pact;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
-import au.com.dius.pact.model.RequestResponsePact;
+import au.com.dius.pact.core.model.RequestResponsePact;
+import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.Maps;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONArray;
@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBootContractBaseTest {
 
-    private static final String ORG_ROLE_ACTOR_ID = "00001";
+    private static final String ORG_ROLE_ACTOR_ID = "23486";
     private static final String RAS_GET_ACTOR_BY_ID_URL = "/am/role-assignments/actors/";
 
 
