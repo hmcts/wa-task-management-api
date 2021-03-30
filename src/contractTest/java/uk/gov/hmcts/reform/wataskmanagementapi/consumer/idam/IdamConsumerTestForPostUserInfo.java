@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ContextConfiguration(classes = {uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam.IdamConsumerApplication.class})
-@TestPropertySource(locations = {"classpath:application.properties"}, properties = {"idam.baseUrl=http://localhost:8892"})
 public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest {
 
     @Autowired

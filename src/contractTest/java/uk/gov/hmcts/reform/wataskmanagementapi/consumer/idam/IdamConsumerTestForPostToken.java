@@ -22,7 +22,6 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ContextConfiguration(classes = {uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam.IdamConsumerApplication.class})
-@TestPropertySource(locations = {"classpath:application.properties"}, properties = {"idam.baseUrl=http://localhost:8892"})
 public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
 
     @Autowired
