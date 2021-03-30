@@ -272,7 +272,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
             UserInfo userInfoMock = mock(UserInfo.class);
             String someAssignee = "someAssignee";
-            when(userInfoMock.getUid()).thenReturn(someAssignee);
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfoMock, roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
@@ -298,6 +297,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 BEARER_SERVICE_TOKEN,
                 Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId"));
+
+            when(permissionEvaluatorService.hasAccess(
+                anyMap(),
+                eq(accessControlResponse.getRoleAssignments()),
+                eq(permissionsRequired)
+            )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
                 searchTaskRequest,
@@ -363,7 +368,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(permissionEvaluatorService.hasAccess(
                 anyMap(),
-                eq(roleAssignment),
+                eq(accessControlResponse.getRoleAssignments()),
                 eq(permissionsRequired)
             )).thenReturn(true);
 
