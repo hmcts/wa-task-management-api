@@ -28,7 +28,7 @@ public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
     @Autowired
     IdamWebApi idamApi;
 
-    @Pact(provider = "idamApi_oidc", consumer = "wa_taskManagementApi")
+    @Pact(provider = "idamApi_oidc", consumer = "wa_task_management_api")
     public RequestResponsePact generatePactFragmentToken(PactDslWithProvider builder) throws JSONException {
 
         Map<String, String> responseheaders = ImmutableMap.<String, String>builder()

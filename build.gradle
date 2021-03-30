@@ -134,7 +134,7 @@ task contract(type: Test) {
 }
 
 project.ext {
-  pacticipant = 'wa_taskManagementApi'
+  pacticipant = 'wa_task_management_api'
   pacticipantVersion = getCheckedOutGitCommitHash()
 }
 

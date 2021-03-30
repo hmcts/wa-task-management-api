@@ -27,7 +27,7 @@ public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest 
     @Autowired
     IdamWebApi idamApi;
 
-    @Pact(provider = "idamApi_oidc", consumer = "wa_taskManagementApi")
+    @Pact(provider = "idamApi_oidc", consumer = "wa_task_management_api")
     public RequestResponsePact generatePactFragmentUserInfo(PactDslWithProvider builder) throws JSONException {
 
         return builder
