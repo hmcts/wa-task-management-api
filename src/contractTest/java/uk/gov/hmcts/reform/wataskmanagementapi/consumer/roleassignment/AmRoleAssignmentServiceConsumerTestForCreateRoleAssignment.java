@@ -92,7 +92,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                         "14a21569-eb80-4681-b62c-6ae2ed069e5f")
                     .booleanValue("replaceExisting", true)
                     .stringValue("status", "APPROVED")
-                    .stringType("created", "2021-02-18T09:15:12.114078Z")
+                    //.stringType("created", "2021-02-18T09:15:12.114078Z")
                     .stringType("log", "Request has been approved")
                 )
                 .minArrayLike("requestedRoles", 1, 1, requestedRoles -> requestedRoles

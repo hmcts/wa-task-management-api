@@ -76,7 +76,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
                     .stringValue("grantType", "STANDARD")
                     .stringType("roleCategory", "LEGAL_OPERATIONS")
                     .booleanValue("readOnly", false)
-                    .stringType("created", "2021-03-11T14:22:12.961474Z")
+                    //.stringType("created", "2021-03-11T14:22:12.961474Z")
                     .object("attributes", attribute -> attribute
                         .stringType("primaryLocation", "198444")
                         .stringType("jurisdiction", "IA")
