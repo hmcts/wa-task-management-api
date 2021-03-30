@@ -4,21 +4,25 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.zalando.problem.Status;
 import org.zalando.problem.violations.ConstraintViolationProblem;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.Product;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.ProductBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskNotFoundProblem;
 
 import java.net.URI;
 import java.util.List;
 import javax.validation.ConstraintViolationException;
+import javax.validation.Valid;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @RestController
@@ -57,8 +61,10 @@ class ProductResource {
             case "p4":
                 throw new RuntimeException("This is a generic exception");
             case "p5":
-                throw new ConstraintViolationException("overridden exception",
-                                                       ImmutableSet.of());
+                throw new ConstraintViolationException(
+                    "overridden exception",
+                    ImmutableSet.of()
+                );
             default:
                 System.out.println("Default . . . returning success.");
         }
@@ -72,5 +78,14 @@ class ProductResource {
         throw new UnsupportedOperationException();
     }
 
-}
+    @RequestMapping(method = POST, value = "/do-something-with-body", produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> getProducts(@Valid @RequestBody ProductBody productBody) {
 
+        System.out.println("Received: " + productBody);
+
+        return ResponseEntity.ok()
+            .build();
+
+    }
+
+}

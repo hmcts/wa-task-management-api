@@ -263,6 +263,8 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
 
   implementation 'org.zalando:problem-spring-web-starter:0.26.2'
+  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.2.0.Final'
+
 
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
