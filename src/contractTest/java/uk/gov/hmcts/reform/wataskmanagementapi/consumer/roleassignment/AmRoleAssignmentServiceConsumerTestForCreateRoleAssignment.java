@@ -65,7 +65,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                   + "    }\n"
                   + "  ],\n"
                   + "  \"roleRequest\": {\n"
-                  + "    \"assignerId\": \"3168da13-00b3-41e3-81fa-cbc71ac28a0f\",\n"
+                  + "    \"assignerId\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
                   + "    \"process\": \"staff-organisational-role-mapping\",\n"
                   + "    \"reference\": \"14a21569-eb80-4681-b62c-6ae2ed069e5f\",\n"
                   + "    \"replaceExisting\": true\n"
