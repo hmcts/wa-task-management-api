@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
-@ContextConfiguration(classes = {uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam.IdamConsumerApplication.class})
+@ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest {
 
     @Autowired

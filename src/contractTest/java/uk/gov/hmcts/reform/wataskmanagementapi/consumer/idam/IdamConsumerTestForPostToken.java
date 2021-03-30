@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ContextConfiguration(classes = {uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam.IdamConsumerApplication.class})
+@ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
 
     @Autowired
