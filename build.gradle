@@ -20,7 +20,7 @@ plugins {
   id 'info.solidsoft.pitest' version '1.5.2'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'io.freefair.lombok' version '5.3.0'
-  id 'au.com.dius.pact' version '4.0.4'
+  id 'au.com.dius.pact' version '4.1.0'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -134,8 +134,10 @@ task contract(type: Test) {
 }
 
 project.ext {
-  pactVersion = getCheckedOutGitCommitHash()
+  pacticipant = 'wa_taskManagementApi'
+  pacticipantVersion = getCheckedOutGitCommitHash()
 }
+
 checkstyle {
   maxWarnings = 0
   toolVersion = '8.29'
@@ -260,7 +262,7 @@ def versions = [
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
-  pactVersion       : '3.5.24'
+  pactVersion     : '4.1.7'
 
 ]
 
@@ -329,13 +331,12 @@ dependencies {
   testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
 
   //Pact contract testing
-  contractTestCompile group: 'au.com.dius', name: 'pact-jvm-consumer-junit5_2.12', version: versions.pactVersion
-  contractTestCompile group: 'au.com.dius', name: 'pact-jvm-consumer-java8_2.12', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
-//  contractTestCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
-  contractTestRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: versions.junit
-  contractTestImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: versions.junit
-
+  contractTestCompile("org.junit.jupiter:junit-jupiter-api:5.6.2")
+  contractTestRuntime("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+  contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.6.2')
 
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath
@@ -366,11 +367,13 @@ task runAndPublishConsumerPactTests(type: Test) {
 runAndPublishConsumerPactTests.finalizedBy pactPublish
 
 pact {
-  publish {
-    pactDirectory = 'target/pacts'
+  broker {
     pactBrokerUrl = System.getenv("PACT_BROKER_FULL_URL") ?: 'http://localhost:80'
+  }
+  publish {
+    pactDirectory = 'pacts'
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
-    version = project.pactVersion
+    version = project.pacticipantVersion
   }
 }
 
