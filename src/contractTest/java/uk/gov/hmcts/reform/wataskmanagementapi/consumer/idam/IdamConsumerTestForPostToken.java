@@ -20,6 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@PactTestFor(providerName = "wa_task_management_api", port = "8892")
 @ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
 

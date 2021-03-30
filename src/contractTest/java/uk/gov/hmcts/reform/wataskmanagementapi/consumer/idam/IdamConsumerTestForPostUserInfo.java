@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
+@PactTestFor(providerName = "wa_task_management_api", port = "8892")
 @ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest {
 
