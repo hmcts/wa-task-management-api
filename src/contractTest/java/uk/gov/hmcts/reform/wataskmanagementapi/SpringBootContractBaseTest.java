@@ -13,7 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(PactConsumerTestExt.class)
 @ExtendWith(SpringExtension.class)
 @PactFolder("pacts")
-@PactTestFor(providerName = "wa_taskManagementApi", port = "8892")
+@PactTestFor(providerName = "wa_task_management_api", port = "8892")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class SpringBootContractBaseTest {
 
