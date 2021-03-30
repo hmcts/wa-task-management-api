@@ -35,10 +35,40 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class PermissionEvaluatorService {
 
     private final CamundaObjectMapper camundaObjectMapper;
+    private final AttributesValueVerifier attributeEvaluatorService;
 
     @Autowired
-    public PermissionEvaluatorService(CamundaObjectMapper camundaObjectMapper) {
+    public PermissionEvaluatorService(CamundaObjectMapper camundaObjectMapper,
+                                      AttributesValueVerifier attributeEvaluatorService) {
         this.camundaObjectMapper = camundaObjectMapper;
+        this.attributeEvaluatorService = attributeEvaluatorService;
+    }
+
+    public boolean hasAccessWithUserIdAssigneeCheck(String taskAssignee,
+                                                    String userId,
+                                                    Map<String, CamundaVariable> variables,
+                                                    List<Assignment> roleAssignments,
+                                                    List<PermissionTypes> permissionsRequired) {
+
+        boolean hasAccess = false;
+        // Loop through the roleAssignments and attempt to find a role with sufficient permissions
+        for (Assignment roleAssignment : roleAssignments) {
+            //Safe-guard
+            if (hasAccess) {
+                break;
+            }
+
+            // If a user is a senior-tribunal-caseworker he might still be able to perform actions on it
+            if ("senior-tribunal-caseworker".equals(roleAssignment.getRoleName())) {
+                hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
+            } else {
+                if (taskAssignee != null && taskAssignee.equals(userId)) {
+                    hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
+                }
+
+            }
+        }
+        return hasAccess;
     }
 
     public boolean hasAccess(Map<String, CamundaVariable> variables,
@@ -61,8 +91,6 @@ public class PermissionEvaluatorService {
                                    Assignment roleAssignment,
                                    List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
-        AttributesValueVerifier attributeEvaluatorService =
-            new AttributesValueVerifier(camundaObjectMapper);
 
         log.debug("Evaluating access for {}", roleAssignment);
         // 1. Always Check Role name has required permission
@@ -77,7 +105,7 @@ public class PermissionEvaluatorService {
             );
             log.debug("Security Classification permission check {}", hasAccess);
             if (roleAssignment.getAttributes() != null && hasAccess) {
-                hasAccess = attributesPermissionCheck(variables, roleAssignment, attributeEvaluatorService);
+                hasAccess = attributesPermissionCheck(variables, roleAssignment);
             }
 
             hasAccess = hasBeginTimePermission(roleAssignment, hasAccess);
@@ -90,14 +118,12 @@ public class PermissionEvaluatorService {
     }
 
     private boolean attributesPermissionCheck(Map<String, CamundaVariable> variables,
-                                              Assignment roleAssignment,
-                                              AttributesValueVerifier attributeEvaluatorService) {
+                                              Assignment roleAssignment) {
         boolean hasAccess = true;
         Map<String, String> attributes = roleAssignment.getAttributes();
         // 3. Conditionally check Jurisdiction matches the one on the task
         String jurisdictionAttributeValue = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
         if (jurisdictionAttributeValue != null) {
-
             hasAccess = attributeEvaluatorService.hasJurisdictionPermission(
                 jurisdictionAttributeValue, variables);
             log.debug("Jurisdiction permission check {}", hasAccess);
