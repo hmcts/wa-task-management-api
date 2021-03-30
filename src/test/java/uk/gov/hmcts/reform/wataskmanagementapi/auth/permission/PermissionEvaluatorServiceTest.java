@@ -158,6 +158,29 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
+    void hasAccessWithUserIdAssigneeCheck_should_succeed_senior_tribunal_case_worker_another_user_assigned() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
     void hasAccessWithUserIdAssigneeCheck_should_succeed_tribunal_case_worker_assigned_to_task() {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
