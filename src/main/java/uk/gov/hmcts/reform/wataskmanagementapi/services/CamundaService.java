@@ -419,6 +419,7 @@ public class CamundaService {
                     if (camundaTask.getAssignee() != null && camundaTask.getAssignee().equals(userId)) {
                         Task task = taskMapper.mapToTaskObject(variables, camundaTask);
                         response.add(task);
+                        return;
                     }
 
                     //3. Evaluate access to task
