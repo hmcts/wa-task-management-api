@@ -23,7 +23,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public interface IdamWebApi {
     @GetMapping(
         value = "/o/userinfo",
-        produces = APPLICATION_JSON_VALUE
+        produces = APPLICATION_JSON_VALUE,
+        consumes = APPLICATION_JSON_VALUE
     )
     UserInfo userInfo(@RequestHeader(AUTHORIZATION) String userToken);
 
