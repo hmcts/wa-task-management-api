@@ -272,7 +272,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
             UserInfo userInfoMock = mock(UserInfo.class);
             String someAssignee = "someAssignee";
-            when(userInfoMock.getUid()).thenReturn(someAssignee);
             AccessControlResponse accessControlResponse = new AccessControlResponse(userInfoMock, roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
@@ -298,6 +297,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 BEARER_SERVICE_TOKEN,
                 Map.of("variableScopeIdIn", singletonList("someProcessInstanceId"))
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId"));
+
+            when(permissionEvaluatorService.hasAccess(
+                anyMap(),
+                eq(accessControlResponse.getRoleAssignments()),
+                eq(permissionsRequired)
+            )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
                 searchTaskRequest,
@@ -363,7 +368,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(permissionEvaluatorService.hasAccess(
                 anyMap(),
-                eq(roleAssignment),
+                eq(accessControlResponse.getRoleAssignments()),
                 eq(permissionsRequired)
             )).thenReturn(true);
 
@@ -1184,24 +1189,28 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
     @DisplayName("unclaimTask()")
     class UnclaimTask {
         @Test
-        void unclaimTask_should_succeed() {
+        void unclaimTask_should_succeed_when_same_user() {
 
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
-                new ArrayList<String>(), "name", "givenName", "familyName");
+                emptyList(), "name", "givenName", "familyName");
 
             List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
-
+            CamundaTask mockedCamundaTask = createMockCamundaTask();
+            when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedCamundaTask);
             when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
 
-            when(permissionEvaluatorService.hasAccess(
+            when(permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                mockedCamundaTask.getAssignee(),
+                mockedUserInfo.getUid(),
                 mockedVariables,
                 singletonList(mockedRoleAssignment),
                 permissionsRequired
             )).thenReturn(true);
+
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -1257,12 +1266,22 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
+
+            UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
+                emptyList(), "name", "givenName", "familyName");
+
             AccessControlResponse accessControlResponse =
-                new AccessControlResponse(UserInfo.builder().build(), singletonList(mockedRoleAssignment));
+                new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
 
             when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
 
-            when(permissionEvaluatorService.hasAccess(
+            CamundaTask mockedCamundaTask = createMockCamundaTask();
+            when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedCamundaTask);
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                mockedCamundaTask.getAssignee(),
+                mockedUserInfo.getUid(),
                 mockedVariables,
                 singletonList(mockedRoleAssignment),
                 permissionsRequired
@@ -1287,14 +1306,23 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
 
-            when(permissionEvaluatorService.hasAccess(
+            UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
+                emptyList(), "name", "givenName", "familyName");
+
+            CamundaTask mockedCamundaTask = createMockCamundaTask();
+            when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedCamundaTask);
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            when(permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                mockedCamundaTask.getAssignee(),
+                mockedUserInfo.getUid(),
                 mockedVariables,
                 singletonList(mockedRoleAssignment),
                 permissionsRequired
             )).thenReturn(true);
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(
-                UserInfo.builder().build(), singletonList(mockedRoleAssignment)
+                mockedUserInfo, singletonList(mockedRoleAssignment)
             );
 
             doThrow(FeignException.class)
@@ -1550,12 +1578,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            Map<String, CamundaVariable> variables = mockVariables();
-
             when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
                 .thenReturn(singletonList(camundaTask));
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
-
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
             when(searchEventAndCase.getCaseId()).thenReturn("caseId");
@@ -1582,6 +1606,13 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId"));
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
+
+            when(permissionEvaluatorService.hasAccess(
+                any(),
+                eq(accessControlResponse.getRoleAssignments()),
+                eq(permissionsRequired)
+            )).thenReturn(true);
+
             List<Task> tasks = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
@@ -1621,7 +1652,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
                 .thenReturn(singletonList(camundaTask));
-            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
             when(searchEventAndCase.getCaseId()).thenReturn("caseId");

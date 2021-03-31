@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.permission;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 
@@ -12,10 +14,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 
+@Service
 public class AttributesValueVerifier {
 
     private final CamundaObjectMapper camundaObjectMapper;
 
+    @Autowired
     protected AttributesValueVerifier(CamundaObjectMapper camundaObjectMapper) {
         this.camundaObjectMapper = camundaObjectMapper;
     }

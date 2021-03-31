@@ -9,10 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -46,20 +46,20 @@ public class Common {
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    private final IdamWebApi idamWebApi;
+    private final IdamService idamService;
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Common(GivensBuilder given,
                   RestApiActions camundaApiActions,
                   AuthorizationHeadersProvider authorizationHeadersProvider,
-                  IdamWebApi idamWebApi,
+                  IdamService idamService,
                   RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.given = given;
         this.camundaApiActions = camundaApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
-        this.idamWebApi = idamWebApi;
+        this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
 
@@ -178,13 +178,13 @@ public class Common {
     }
 
     public void clearAllRoleAssignments(Headers headers) {
-        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
-    public void setupOrganisationalRoleAssignment(Headers headers) {
+    public void setupOrganisationalRoleAssignment(Headers headers, String roleName) {
 
-        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -203,6 +203,34 @@ public class Common {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
+            roleName,
+            toJsonString(attributes),
+            "requests/roleAssignment/set-organisational-role-assignment-request.json"
+        );
+    }
+
+    public void setupOrganisationalRoleAssignment(Headers headers) {
+
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", "IA"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json"
         );
@@ -222,7 +250,7 @@ public class Common {
 
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
 
-        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
@@ -234,6 +262,7 @@ public class Common {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
+            "tribunal-caseworker",
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json"
         );
@@ -241,7 +270,7 @@ public class Common {
 
     public void setupRestrictedRoleAssignment(String caseId, Headers headers) {
 
-        UserInfo userInfo = idamWebApi.userInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "jurisdiction", "IA",
@@ -258,6 +287,7 @@ public class Common {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
+            "tribunal-caseworker",
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json"
         );
@@ -269,6 +299,7 @@ public class Common {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
+            "tribunal-caseworker",
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json"
         );
@@ -278,12 +309,13 @@ public class Common {
                                     String bearerUserToken,
                                     String s2sToken,
                                     UserInfo userInfo,
+                                    String roleName,
                                     String attributes,
                                     String resourceFilename) {
 
         try {
             roleAssignmentServiceApi.createRoleAssignment(
-                getBody(caseId, userInfo, resourceFilename, attributes),
+                getBody(caseId, userInfo, roleName, resourceFilename, attributes),
                 bearerUserToken,
                 s2sToken
             );
@@ -340,6 +372,7 @@ public class Common {
 
     private String getBody(final String caseId,
                            final UserInfo userInfo,
+                           final String roleName,
                            final String resourceFilename,
                            final String attributes) {
         String assignmentRequestBody = null;
@@ -347,6 +380,7 @@ public class Common {
             assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
             assignmentRequestBody = assignmentRequestBody.replace("{ACTOR_ID_PLACEHOLDER}", userInfo.getUid());
             assignmentRequestBody = assignmentRequestBody.replace("{ASSIGNER_ID_PLACEHOLDER}", userInfo.getUid());
+            assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);
             if (attributes != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
             }

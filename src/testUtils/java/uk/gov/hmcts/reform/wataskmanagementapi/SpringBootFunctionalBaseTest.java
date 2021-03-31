@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -39,7 +39,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected CoreCaseDataApi coreCaseDataApi;
 
     @Autowired
-    protected IdamWebApi idamWebApi;
+    protected IdamService idamService;
 
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -64,7 +64,7 @@ public abstract class SpringBootFunctionalBaseTest {
             given,
             camundaApiActions,
             authorizationHeadersProvider,
-            idamWebApi,
+            idamService,
             roleAssignmentServiceApi
         );
 
