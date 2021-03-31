@@ -25,7 +25,6 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.either;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
@@ -163,35 +162,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("assigned")));
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
-
-    @Test
-    public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
-        TestVariables taskVariablesSscs =
-            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
-        final String taskId = taskVariablesSscs.getTaskId();
-        final String caseId = taskVariablesSscs.getCaseId();
-
-        common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
-
-
-        common.setupRestrictedRoleAssignment(caseId, authenticationHeaders);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks", empty());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

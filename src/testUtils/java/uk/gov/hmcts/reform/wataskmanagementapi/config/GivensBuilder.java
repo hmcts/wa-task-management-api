@@ -114,7 +114,7 @@ public class GivensBuilder {
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     Response result = camundaApiActions.get(

@@ -48,12 +48,12 @@ public class ServiceMocks {
     public void mockServiceAPIs() {
         var userToken = "user_token";
 
-        mockUserInfo(idamWebApi);
+        mockUserInfo();
         mockRoleAssignments(roleAssignmentServiceApi);
 
         when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
-        mockVariables(camundaServiceApi);
+        mockVariables();
     }
 
     public String createCamundaTestException(String type, String message) {
@@ -114,12 +114,12 @@ public class ServiceMocks {
         );
     }
 
-    protected void mockUserInfo(IdamWebApi idamWebApi) {
+    protected void mockUserInfo() {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
     }
 
-    protected void mockVariables(CamundaServiceApi camundaServiceApi) {
+    protected void mockVariables() {
         Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
 
         processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
