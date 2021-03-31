@@ -1,8 +1,19 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
+import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
+import au.com.dius.pact.core.model.annotations.PactFolder;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+@Slf4j
+@ExtendWith(PactConsumerTestExt.class)
+@ExtendWith(SpringExtension.class)
+@PactFolder("pacts")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(locations = {"classpath:application.properties"})
 public abstract class SpringBootContractBaseTest {
 

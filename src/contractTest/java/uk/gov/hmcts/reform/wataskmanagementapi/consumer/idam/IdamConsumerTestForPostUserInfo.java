@@ -4,31 +4,22 @@ import au.com.dius.pact.consumer.dsl.PactDslJsonArray;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslJsonRootValue;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
-import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
-
-@ExtendWith(SpringExtension.class)
-@ExtendWith(PactConsumerTestExt.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
 @PactTestFor(providerName = "wa_task_management_api", port = "8892")
 @ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest {
@@ -37,14 +28,14 @@ public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest 
     IdamWebApi idamApi;
 
     @Pact(provider = "idamApi_oidc", consumer = "wa_task_management_api")
-    public RequestResponsePact generatePactFragmentUserInfo(PactDslWithProvider builder) throws JSONException {
+    public RequestResponsePact generatePactFragmentUserInfo(PactDslWithProvider builder) {
 
         return builder
             .given("userinfo is requested")
             .uponReceiving("A request for a UserInfo")
             .path("/o/userinfo")
-            .method("GET")
-            .matchHeader("Authorization", AUTH_TOKEN)
+            .method(HttpMethod.GET.toString())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .willRespondWith()
             .status(200)

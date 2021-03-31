@@ -2,21 +2,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam;
 
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
-import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.google.common.collect.ImmutableMap;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -24,12 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-
-@ExtendWith(SpringExtension.class)
-@ExtendWith(PactConsumerTestExt.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@PactFolder("pacts")
 @PactTestFor(providerName = "wa_task_management_api", port = "8892")
 @ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
@@ -38,10 +28,10 @@ public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
     IdamWebApi idamApi;
 
     @Pact(provider = "idamApi_oidc", consumer = "wa_task_management_api")
-    public RequestResponsePact generatePactFragmentToken(PactDslWithProvider builder) throws JSONException {
+    public RequestResponsePact generatePactFragmentToken(PactDslWithProvider builder) {
 
         Map<String, String> responseheaders = ImmutableMap.<String, String>builder()
-            .put("Content-Type", "application/json")
+            .put("Content-Type", APPLICATION_JSON_VALUE)
             .build();
 
         return builder
@@ -81,7 +71,7 @@ public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
             .put("grant_type", "password")
             .put("username", PACT_TEST_EMAIL_VALUE)
             .put("password", PACT_TEST_PASSWORD_VALUE)
-            .put("scope", PACT_TEST_ROLES_VALUE)
+            .put("scope", PACT_TEST_SCOPES_VALUE)
             .build();
         return tokenRequestMap;
     }
