@@ -169,28 +169,27 @@ public class CamundaService {
                             AccessControlResponse accessControlResponse,
                             List<PermissionTypes> permissionsRequired) {
         String userId = accessControlResponse.getUserInfo().getUid();
-        requireNonNull(userId, "UserId must be null");
         CamundaTask camundaTask = performGetCamundaTaskAction(taskId);
 
-        boolean isSameUser = userId.equals(camundaTask.getAssignee());
+        Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        if (isSameUser) {
-            Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+        boolean hasAccess = permissionEvaluatorService
+            .hasAccessWithUserIdAssigneeCheck(
+                camundaTask.getAssignee(),
+                userId,
+                variables,
+                accessControlResponse.getRoleAssignments(),
+                permissionsRequired
+            );
 
-            boolean hasAccess = permissionEvaluatorService
-                .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
-
-            if (hasAccess) {
-                String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-                boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
-                performUnclaimTaskAction(taskId, taskHasUnassigned);
-            } else {
-                throw new InsufficientPermissionsException(
-                    String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
-                );
-            }
+        if (hasAccess) {
+            String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+            boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
+            performUnclaimTaskAction(taskId, taskHasUnassigned);
         } else {
-            throw new InsufficientPermissionsException("Task was not claimed by this user");
+            throw new InsufficientPermissionsException(
+                String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
+            );
         }
     }
 
@@ -257,7 +256,6 @@ public class CamundaService {
             List<String> taskTypes = evaluateDmnResult.stream()
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
                 .collect(Collectors.toList());
-
 
             if (taskTypes.isEmpty()) {
                 return emptyList();
@@ -409,8 +407,6 @@ public class CamundaService {
             Map<String, List<CamundaVariableInstance>> variablesByProcessId = allVariables.stream()
                 .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
 
-            String userId = accessControlResponse.getUserInfo().getUid();
-
             //Loop through all search results
             searchResults.forEach(camundaTask -> {
 
@@ -425,15 +421,13 @@ public class CamundaService {
                             var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)
                         );
 
-                    //Safe-guard if task is assigned to same user should have access
-                    if (camundaTask.getAssignee() != null && camundaTask.getAssignee().equals(userId)) {
-                        Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                        response.add(task);
-                    }
-
                     //3. Evaluate access to task
                     boolean hasAccess = permissionEvaluatorService
-                        .hasAccess(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+                        .hasAccess(
+                            variables,
+                            accessControlResponse.getRoleAssignments(),
+                            permissionsRequired
+                        );
 
                     if (hasAccess) {
                         //4. If user had sufficient access to this task map to a task object and add to response
