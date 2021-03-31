@@ -2,6 +2,8 @@
 
 @Library("Infrastructure")
 
+import uk.gov.hmcts.contino.AppPipelineDsl
+
 def type = "java"
 def product = "wa"
 def component = "task-management-api"
@@ -14,6 +16,8 @@ def secrets = [
         secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
         secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
         secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
+        secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+
     ],
     's2s-${env}': [
         secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
@@ -40,6 +44,7 @@ withPipeline(type, product, component) {
     env.IDAM_API_URL = "https://idam-api.aat.platform.hmcts.net"
     env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
     env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
+    env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
 
     after('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
@@ -54,5 +59,13 @@ withPipeline(type, product, component) {
     after('functionalTest:aat') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+    }
+
+    onMaster() {
+        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+    }
+
+    onPR() {
+        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
     }
 }

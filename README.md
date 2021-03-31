@@ -107,6 +107,30 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
        ```
            ./gradlew tests
        ```
+   
+### Running contract or pact tests:
+
+You can run contract or pact tests as follows:
+
+```
+./gradlew contract
+```
+
+You can then publish your pact tests locally by first running the pact docker-compose:
+
+```
+docker-compose -f docker-pactbroker-compose.yml up
+
+```
+
+and then using it to publish your tests:
+
+```
+./gradlew pactPublish
+```
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+

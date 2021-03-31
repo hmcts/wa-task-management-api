@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -202,6 +203,27 @@ class CallbackControllerAdviceTest {
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
         assertEquals(HttpStatus.FORBIDDEN.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.FORBIDDEN.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
+    }
+
+    @Test
+    void should_handle_bad_request_exception() {
+
+        final String exceptionMessage = "Some exception message";
+        final BadRequestException exception =
+            new BadRequestException(exceptionMessage, new Exception());
+
+        LocalDateTime mockedTimestamp = LocalDateTime.now();
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleBadRequestsException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.BAD_REQUEST.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 }

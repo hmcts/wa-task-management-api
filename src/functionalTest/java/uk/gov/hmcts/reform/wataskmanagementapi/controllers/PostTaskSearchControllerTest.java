@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -166,6 +167,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
+    @Ignore("https://tools.hmcts.net/jira/browse/RWA-411")
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
         TestVariables taskVariablesSscs =

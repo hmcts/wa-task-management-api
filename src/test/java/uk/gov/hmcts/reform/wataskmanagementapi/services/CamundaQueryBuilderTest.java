@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
@@ -35,6 +37,30 @@ class CamundaQueryBuilderTest {
     public void setUp() {
         camundaQueryBuilder = new CamundaQueryBuilder();
         objectMapper = new ObjectMapper();
+    }
+
+    @Test
+    void createQuery_should_return_null_when_orQueries_is_empty() {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        assertNull(camundaSearchQuery);
+    }
+
+    @Test
+    void createQuery_should_return_null_when_orQueries_is_empty_but_has_order_by() {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            emptyList(),
+            singletonList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+            ));
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        assertNull(camundaSearchQuery);
     }
 
     @Test
@@ -536,7 +562,7 @@ class CamundaQueryBuilderTest {
         taskTypes.add("Test Task Type");
 
 
-        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createCompletionQuery("caseId", taskTypes);
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createCompletableTasksQuery("caseId", taskTypes);
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
         String expected = "{\n"

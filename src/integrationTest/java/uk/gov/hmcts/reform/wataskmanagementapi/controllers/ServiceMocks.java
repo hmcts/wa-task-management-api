@@ -108,7 +108,7 @@ public class ServiceMocks {
             roleName,
             classification,
             GrantType.SPECIFIC,
-            RoleCategory.STAFF,
+            RoleCategory.LEGAL_OPERATIONS,
             false,
             attributes
         );
