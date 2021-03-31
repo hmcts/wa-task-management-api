@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -26,6 +25,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.either;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
@@ -167,13 +167,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
-    @Ignore("https://tools.hmcts.net/jira/browse/RWA-411")
     @Test
     public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
         TestVariables taskVariablesSscs =
             common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
-        String taskId = taskVariablesSscs.getTaskId();
-        String caseId = taskVariablesSscs.getCaseId();
+        final String taskId = taskVariablesSscs.getTaskId();
+        final String caseId = taskVariablesSscs.getCaseId();
 
         common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
 
@@ -192,9 +191,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.jurisdiction", everyItem(is("SSCS")))
-            .body("tasks.case_id", hasItem(caseId))
-            .body("tasks.id", hasItem(taskId));
+            .body("tasks", empty());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

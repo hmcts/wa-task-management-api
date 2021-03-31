@@ -96,7 +96,7 @@ public class ServiceMocks {
         return allTestRoles;
     }
 
-    private Assignment createBaseAssignment(String actorId,
+    protected Assignment createBaseAssignment(String actorId,
                                             String roleName,
                                             RoleType roleType,
                                             Classification classification,
@@ -114,12 +114,12 @@ public class ServiceMocks {
         );
     }
 
-    private void mockUserInfo(IdamWebApi idamWebApi) {
+    protected void mockUserInfo(IdamWebApi idamWebApi) {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
     }
 
-    private void mockVariables(CamundaServiceApi camundaServiceApi) {
+    protected void mockVariables(CamundaServiceApi camundaServiceApi) {
         Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
 
         processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));

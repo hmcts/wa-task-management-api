@@ -13,13 +13,26 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -45,6 +58,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
     private AuthTokenGenerator authTokenGenerator;
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private ServiceMocks mockServices;
 
@@ -103,7 +118,6 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_a_500_when_id_invalid() throws Exception {
             final var taskId = UUID.randomUUID().toString();
 
-
             mockServices.mockServiceAPIs();
 
             FeignException mockFeignException = mock(FeignException.FeignServerException.class);
@@ -128,6 +142,68 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             verify(camundaServiceApi, times(1))
                 .getTask(any(), any());
         }
+
+
+        @Test
+        void should_return_a_400_when_restricted_role_is_given() throws Exception {
+            final var taskId = UUID.randomUUID().toString();
+
+            final var userToken = "user_token";
+
+            mockServices.mockUserInfo(idamWebApi);
+
+            final List<String> roleNames = asList("tribunal-caseworker");
+
+            Map<String, String> roleAttributes = new HashMap<>();
+            roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+
+            // Role attribute is IA
+            List<Assignment> allTestRoles = new ArrayList<>();
+            roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+                .forEach(roleType -> {
+                    Assignment roleAssignment = mockServices.createBaseAssignment(
+                        UUID.randomUUID().toString(), "tribunal-caseworker",
+                        roleType,
+                        Classification.PUBLIC,
+                        roleAttributes
+                    );
+                    allTestRoles.add(roleAssignment);
+                }));
+
+            GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
+                allTestRoles
+            );
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
+
+            // Task created with Jurisdiction SCSS
+            mockCamundaVariables();
+
+            mockMvc.perform(
+                get("/task/" + taskId)
+                    .header(
+                        "Authorization",
+                        authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+                    )
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpect(status().is4xxClientError());
+
+        }
+
+        private void mockCamundaVariables() {
+            Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
+
+            processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
+            processVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
+            processVariables.put("jurisdiction", new CamundaVariable("SCSS", "string"));
+
+            when(camundaServiceApi.getVariables(any(), any()))
+                .thenReturn(processVariables);
+        }
+
     }
 
     @Nested

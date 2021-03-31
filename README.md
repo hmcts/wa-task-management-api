@@ -96,8 +96,10 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
 - To run all functional tests or single test you can run as Junit, make sure the env is set
     ```
         OPEN_ID_IDAM_URL=http://'minikubeIP:port'
+        Using simulator: OPEN_ID_IDAM_URL=http://sidam-simulator
     ```
   Note: Make sure the BPMN and DMN are deployed onto Camunda locally.
+        Services wa_workflow_api, wa_task_configuration, ia-case-api, ia-case-documents, ia-case-notifications should be running.
 
  - To run all tests including junit, integration and functional. You can run the command
     ```
