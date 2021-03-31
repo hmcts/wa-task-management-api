@@ -2,16 +2,21 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam;
 
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
+import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.core.model.annotations.PactFolder;
 import com.google.common.collect.ImmutableMap;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -20,6 +25,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+@ExtendWith(SpringExtension.class)
+@ExtendWith(PactConsumerTestExt.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@PactFolder("pacts")
 @PactTestFor(providerName = "wa_task_management_api", port = "8892")
 @ContextConfiguration(classes = {IdamConsumerApplication.class})
 public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
