@@ -7,7 +7,7 @@
       "grantType": "SPECIFIC",
       "readOnly": false,
       "roleCategory": "LEGAL_OPERATIONS",
-      "roleName": "tribunal-caseworker",
+      "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "CASE",
       "attributes": {
         "caseId": "{CASE_ID_PLACEHOLDER}"
