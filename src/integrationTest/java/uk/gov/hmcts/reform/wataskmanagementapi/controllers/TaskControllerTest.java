@@ -31,7 +31,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -190,7 +189,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
-            // Task created with Jurisdiction SCSS
+            // Task created with Jurisdiction SSCS
             mockCamundaVariables();
 
             mockMvc.perform(
@@ -256,23 +255,12 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
-            CamundaTask camundaTask = new CamundaTask(
-                "some-id",
-                "some-name",
-                "some-assignee",
-                ZonedDateTime.now(),
-                ZonedDateTime.now(),
-                "some-description",
-                "some-owner",
-                "formKey",
-                "processInstanceId"
-            );
-
-            List<CamundaTask> camundaTasks = List.of(camundaTask);
+            List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
             when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
 
-            // Task created with Jurisdiction SCSS
-            when(camundaServiceApi.getAllVariables(any(), any())).thenReturn(mockedAllVariables("processInstanceId"));
+            // Task created with Jurisdiction SSCS
+            when(camundaServiceApi.getAllVariables(any(), any()))
+                .thenReturn(mockedAllVariables("processInstanceId", "SSCS"));
 
             SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
                 new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
@@ -291,11 +279,64 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
         }
 
-        private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId) {
+        /*
+            Single Task is created with two role assignments one with IA and Organisation and
+            other with SSCS and Case.
+            When a task is searched with SSCS , test returns only single result with SSCS Jurisdiction
+         */
+        @Test
+        void should_Return_Single_Task_when_two_role_assignments_with_one_restricted_is_given() throws Exception {
+            final var userToken = "user_token";
+
+            mockServices.mockUserInfo();
+
+            // create role assignments with IA, Organisation and SCSS , Case
+            GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
+                mockServices.createRoleAssignmentsWithSCSSandIA()
+            );
+
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
+
+            List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
+            when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
+
+            // Task created with Jurisdiction SCSS
+            when(camundaServiceApi.getAllVariables(any(), any()))
+                .thenReturn(mockedAllVariables("processInstanceId", "SSCS"));
+
+            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
+            ));
+
+            final var searchContent = objectMapper.writeValueAsString(searchTaskRequest);
+            mockMvc.perform(
+                post("/task")
+                    .header(
+                        "Authorization",
+                        authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+                    )
+                    .content(searchContent)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk(),
+                    jsonPath("$.tasks").isNotEmpty(),
+                    jsonPath("$.tasks.length()").value(1),
+                    jsonPath("$.tasks[0].jurisdiction").value("SSCS")
+                ));
+        }
+
+        private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId, String jurisdiction) {
             Map<String, CamundaVariable> mockVariables = new HashMap<>();
-            mockVariables.put("jurisdiction", new CamundaVariable("SCSS", "String"));
-            mockVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
-            mockVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
+            mockVariables.put("jurisdiction", new CamundaVariable(jurisdiction, "String"));
+            mockVariables.put("securityClassification", new CamundaVariable("PUBLIC", "String"));
+            mockVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "String"));
+            mockVariables.put("caseId", new CamundaVariable("caseId1", "String"));
+
             return mockVariables.keySet().stream()
                 .map(
                     mockVarKey ->

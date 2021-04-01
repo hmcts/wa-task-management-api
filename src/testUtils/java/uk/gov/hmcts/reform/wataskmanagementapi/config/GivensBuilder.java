@@ -107,6 +107,27 @@ public class GivensBuilder {
         return this;
     }
 
+    public GivensBuilder iCreateATaskWithCaseIdForSCSS(String caseId) {
+
+        Map<String, CamundaValue<?>> processVariables = createTaskVariablesForSCSS(caseId);
+
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables
+        );
+
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
+    }
+
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
         String filter = "?processVariables=" + key + "_eq_" + value;
@@ -114,7 +135,7 @@ public class GivensBuilder {
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .atMost(60, SECONDS)
             .until(
                 () -> {
                     Response result = camundaApiActions.get(
@@ -185,6 +206,28 @@ public class GivensBuilder {
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseId", caseId)
+            .withProcessVariable("region", "1")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "A Hearing Centre")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("group", "TCW")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", "wa-task-configuration-api-task")
+            .withProcessVariable("taskState", "unconfigured")
+            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariableBoolean("hasWarnings", false)
+            .build();
+
+        return processVariables.getProcessVariablesMap();
+    }
+
+    public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("jurisdiction", "SCSS")
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
