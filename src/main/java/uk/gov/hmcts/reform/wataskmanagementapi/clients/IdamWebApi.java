@@ -17,7 +17,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @FeignClient(
     name = "idam-web-api",
-    url = "${idam.baseUrl}",
+    url = "${idam.api.baseUrl}",
     configuration = FeignConfiguration.class
 )
 public interface IdamWebApi {
