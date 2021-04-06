@@ -26,11 +26,13 @@ public abstract class SpringBootContractBaseTest {
     public static final String AUTHORIZATION_BEARER_TOKEN = "Bearer eyJ0eXAiOiJKV1QiLCJraWQiOiJiL082T3ZWdeRre";
     public static final String SERVICE_BEARER_TOKEN = "Bearer eyJ0eXAiOiJKV1QiLCJ6aXAiOiJOT05FIiwia2lkIjoiYi9PNk92V";
     public static final String AUTH_TOKEN = "Bearer someAuthorizationToken";
+    public static final String EXPERIMENTAL = "true";
 
 
     public HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.add("ServiceAuthorization", SERVICE_BEARER_TOKEN);
+        headers.add("Experimental", EXPERIMENTAL);
         headers.add("Authorization", AUTHORIZATION_BEARER_TOKEN);
         return headers;
     }
