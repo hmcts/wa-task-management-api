@@ -27,12 +27,14 @@ public abstract class SpringBootContractBaseTest {
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
     public static final String AUTH_TOKEN = "Bearer someAuthorizationToken";
     public static final String SERVICE_AUTH_TOKEN = "Bearer someServiceAuthorizationToken";
+    public static final String EXPERIMENTAL = "true";
 
 
     public HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.add(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN);
         headers.add(AUTHORIZATION, AUTH_TOKEN);
+        headers.add("Experimental", EXPERIMENTAL);
         return headers;
     }
 }
