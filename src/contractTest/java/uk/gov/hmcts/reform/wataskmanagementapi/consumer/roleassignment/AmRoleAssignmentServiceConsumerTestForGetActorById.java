@@ -1,31 +1,53 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment;
 
-import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.Maps;
-import net.serenitybdd.rest.SerenityRest;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 
+import java.util.List;
 import java.util.Map;
 
 import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
+@PactTestFor(providerName = "am_role_assignment_service_get_actor_by_id", port = "8991")
+@ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBootContractBaseTest {
 
     private static final String ORG_ROLE_ACTOR_ID = "23486";
     private static final String RAS_GET_ACTOR_BY_ID_URL = "/am/role-assignments/actors/";
+
+    @Autowired
+    RoleAssignmentServiceApi roleAssignmentApi;
+
+    @MockBean
+    AuthTokenGenerator authTokenGenerator;
+
+    private RoleAssignmentService roleAssignmentService;
+
+    @BeforeEach
+    void setUp() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator);
+    }
 
 
     @Pact(provider = "am_role_assignment_service_get_actor_by_id", consumer = "wa_task_management_api")
@@ -38,6 +60,8 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
                 "Provider receives a GET /am/role-assignments/actors/{user-id} request from a WA API")
             .path(RAS_GET_ACTOR_BY_ID_URL + ORG_ROLE_ACTOR_ID)
             .method(HttpMethod.GET.toString())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .headers(getResponseHeaders())
@@ -47,20 +71,10 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     @Test
     @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
-    void should_get_actor_by_id_and_receive_organisational_role_assignment_with_200_response(MockServer mockServer)
-        throws JSONException {
-        String actualResponseBody =
-            SerenityRest
-                .given()
-                .headers(getHttpHeaders())
-                .get(mockServer.getUrl() + RAS_GET_ACTOR_BY_ID_URL + ORG_ROLE_ACTOR_ID)
-                .then()
-                .extract().asString();
+    void verifyGetActorById() {
+        List<Assignment> roleAssignmentsResponse = roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
 
-        JSONObject jsonResponse = new JSONObject(actualResponseBody);
-        JSONArray roleAssignmentResponse = (JSONArray) jsonResponse.get("roleAssignmentResponse");
-        JSONObject first = (JSONObject) roleAssignmentResponse.get(0);
-        assertThat(first.get("actorId"), equalTo(ORG_ROLE_ACTOR_ID));
+        assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
     }
 
     private DslPart createResponseForOrgRoleAssignment() {

@@ -15,6 +15,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 
 import java.util.Map;
@@ -23,7 +24,8 @@ import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-
+@PactTestFor(providerName = "am_role_assignment_service_create", port = "8991")
+@ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends SpringBootContractBaseTest {
 
     private static final String RAS_CREATE_ROLE_ASSIGNMENT_URL = "/am/role-assignments";
@@ -133,7 +135,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                 .body(createRoleAssignmentRequest())
                 .post(mockServer.getUrl() + RAS_CREATE_ROLE_ASSIGNMENT_URL)
                 .then()
-                .log().all().extract().asString();
+                .extract().asString();
 
         JSONObject response = new JSONObject(actualResponseBody);
         Assertions.assertThat(response).isNotNull();
