@@ -43,7 +43,7 @@ public class TaskMapper {
         // Camunda Attributes
         String id = camundaTask.getId();
         String name = camundaTask.getName();
-        String task = camundaTask.getFormKey();
+        String type = camundaTask.getFormKey();
         ZonedDateTime createdDate = camundaTask.getCreated();
         ZonedDateTime dueDate = camundaTask.getDue();
         String assignee = camundaTask.getAssignee();
@@ -64,11 +64,10 @@ public class TaskMapper {
         String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
         Boolean hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), Boolean.class);
 
-
         return new Task(
             id,
             name,
-            task,
+            type,
             taskState,
             taskSystem,
             securityClassification,

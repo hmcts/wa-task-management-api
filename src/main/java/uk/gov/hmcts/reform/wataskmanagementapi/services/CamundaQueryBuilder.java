@@ -98,9 +98,9 @@ public class CamundaQueryBuilder {
                 SearchOperator.IN, singletonList(caseId))
         );
 
-        CamundaOrQuery.CamundaOrQueryBuilder taskTypeQueries = createProcessVariableQueriesFor(
-            CamundaVariableDefinition.TYPE,
-            new SearchParameter(SearchParameterKey.TASK_TYPE,
+        CamundaOrQuery.CamundaOrQueryBuilder taskIdQueries = createProcessVariableQueriesFor(
+            CamundaVariableDefinition.TASK_ID,
+            new SearchParameter(SearchParameterKey.TASK_ID,
                 SearchOperator.IN, taskTypes));
 
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createProcessVariableQueriesFor(
@@ -109,7 +109,7 @@ public class CamundaQueryBuilder {
                 SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value(), REFERRED.value())));
 
         return camundaQuery()
-            .andQuery(taskTypeQueries)
+            .andQuery(taskIdQueries)
             .andQuery(stateQueries)
             .andQuery(caseIdQueries)
             .build();
