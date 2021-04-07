@@ -13,9 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -41,7 +39,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "ia", "asylum");
+            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -53,7 +51,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -65,10 +63,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     public void should_return_a_200_and_retrieve_a_task_by_event_and_case_match() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
-            //The task-configuration-api set this var to this location automatically
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TYPE, "ReviewTheAppeal",
-            CamundaVariableDefinition.TASK_ID, "ReviewTheAppeal",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
@@ -76,36 +72,27 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "ia", "asylum");
-
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
-        await()
-            .ignoreException(AssertionError.class)
-            .atMost(6, TimeUnit.SECONDS) // retry three times
-            .pollInterval(2, TimeUnit.SECONDS)
-            .until(() -> {
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
 
-                Response result = restApiActions.post(
-                    ENDPOINT_BEING_TESTED,
-                    searchEventAndCase,
-                    authenticationHeaders
-                );
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
 
-                result.then().assertThat()
-                    .statusCode(HttpStatus.OK.value())
-                    .contentType(APPLICATION_JSON_VALUE)
-                    .body("tasks[0].task_state", equalTo("unassigned"))
-                    .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
-                    .body("tasks[0].id", equalTo(taskId))
-                    .body("tasks[0].type", equalTo("ReviewTheAppeal"))
-                    .body("tasks[0].jurisdiction", equalTo("IA"))
-                    .body("tasks[0].case_type_id", equalTo("Asylum"));
-
-                return true;
-
-            });
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].task_state", equalTo("unassigned"))
+            .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
+            .body("tasks[0].id", equalTo(taskId))
+            .body("tasks[0].type", equalTo("reviewTheAppeal"))
+            .body("tasks[0].jurisdiction", equalTo("IA"))
+            .body("tasks[0].case_type_id", equalTo("Asylum"));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -116,7 +103,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "solicitorCreateApplication", "ia", "asylum");
+            taskVariables.getCaseId(), "solicitorCreateApplication", "IA", "Asylum");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -154,8 +141,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("message", equalTo("Please check your request. "
-                                         + "This endpoint currently only supports "
-                                         + "the Immigration & Asylum service"));
+                                     + "This endpoint currently only supports "
+                                     + "the Immigration & Asylum service"));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -166,7 +153,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "reviewHearingRequirements", "ia", "asylum");
+            taskVariables.getCaseId(), "reviewHearingRequirements", "IA", "Asylum");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -190,7 +177,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "someEventId", "ia", "asylum");
+            taskVariables.getCaseId(), "someEventId", "IA", "Asylum");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -214,7 +201,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "jurisdiction", "asylum");
+            taskVariables.getCaseId(), "requestRespondentEvidence", "jurisdiction", "Asylum");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
