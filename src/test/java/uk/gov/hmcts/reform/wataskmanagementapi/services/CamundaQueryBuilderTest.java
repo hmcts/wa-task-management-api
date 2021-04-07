@@ -580,7 +580,7 @@ class CamundaQueryBuilderTest {
                           + "\t\t\t{\n"
                           + "\t\t\t\t\"processVariables\": [\n"
                           + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"type\",\n"
+                          + "\t\t\t\t\t\t\"name\": \"taskId\",\n"
                           + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
                           + "\t\t\t\t\t\t\"value\": \"Test Task Type\"\n"
                           + "\t\t\t\t\t}\n"

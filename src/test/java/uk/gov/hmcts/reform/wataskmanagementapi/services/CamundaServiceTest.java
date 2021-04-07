@@ -111,6 +111,16 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         );
     }
 
+    private List<Map<String, CamundaVariable>> mockDMN2() {
+
+        //A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
+        Map<String, CamundaVariable> dmnResult = new HashMap<>();
+        dmnResult.put("completion_mode", new CamundaVariable("Auto", "String"));
+        dmnResult.put("task_type", new CamundaVariable("reviewTheAppeal", "String"));
+        return asList(dmnResult);
+    }
+
+
     private List<Map<String, CamundaVariable>> mockDMN() {
 
         //A List (Array) with a map (One object) with objects inside the object (String and CamundaVariable).
