@@ -21,8 +21,6 @@ withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
   env.Rules = params.SecurityRules
 
-  loadVaultSecrets(secrets)
-
   enableSecurityScan()
   enableMutationTest()
   enableSlackNotifications('#wa-build')
