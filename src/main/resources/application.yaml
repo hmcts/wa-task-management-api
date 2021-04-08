@@ -19,7 +19,7 @@ camunda:
   dmnKeys:
     complete-task: "completeTask_IA_Asylum"
 
-role-assignment:
+role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
 
 core_case_data:
