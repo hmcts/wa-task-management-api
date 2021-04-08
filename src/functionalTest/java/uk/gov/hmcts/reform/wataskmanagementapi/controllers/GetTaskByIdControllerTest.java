@@ -3,13 +3,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.LocalDateTime;
@@ -85,34 +83,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
         common.cleanUpTask(taskId, Common.REASON_COMPLETED);
-    }
-
-    @Ignore("https://tools.hmcts.net/jira/browse/RWA-411")
-    @Test
-    public void should_return_a_200_and_retrieve_a_task_by_id_when_restricted_role_assignment_role() {
-
-        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-            CamundaVariableDefinition.JURISDICTION, "SSCS",
-            CamundaVariableDefinition.LOCATION, "17595"
-        );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
-
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
-
-        String taskId = taskVariables.getTaskId();
-
-        Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId));
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test

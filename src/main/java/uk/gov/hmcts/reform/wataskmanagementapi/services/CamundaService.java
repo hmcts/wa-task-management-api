@@ -434,6 +434,7 @@ public class CamundaService {
                         Task task = taskMapper.mapToTaskObject(variables, camundaTask);
                         response.add(task);
                     }
+
                 }
             });
 
