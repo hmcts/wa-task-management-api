@@ -94,5 +94,5 @@ launchDarkly:
 logging:
   level:
     root: INFO
-    org.springframework.boot: DEBUG
+    org.springframework.cloud: DEBUG
     feign.*: DEBUG
