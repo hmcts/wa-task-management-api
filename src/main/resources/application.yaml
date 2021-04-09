@@ -94,5 +94,4 @@ launchDarkly:
 logging:
   level:
     root: INFO
-    uk.gov.hmcts: DEBUG
     org.springframework.boot: DEBUG
