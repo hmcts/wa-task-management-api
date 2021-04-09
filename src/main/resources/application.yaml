@@ -83,7 +83,7 @@ feign:
       default:
         connectTimeout: 30000
         readTimeout: 30000
-        loggerLevel: debug
+        loggerLevel: FULL
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
