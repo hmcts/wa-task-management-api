@@ -90,8 +90,3 @@ launchDarkly:
   connectionTimeout: 5000
   socketTimeout: 5000
 
-
-logging:
-  level:
-    root: INFO
-    org.springframework.cloud: DEBUG
