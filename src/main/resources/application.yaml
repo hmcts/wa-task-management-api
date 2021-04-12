@@ -83,9 +83,14 @@ feign:
       default:
         connectTimeout: 30000
         readTimeout: 30000
-        loggerLevel: basic
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
   connectionTimeout: 5000
   socketTimeout: 5000
+
+
+logging:
+  level:
+    root: INFO
+    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
