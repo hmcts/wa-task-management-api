@@ -152,7 +152,7 @@ class TaskControllerTest {
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
-        ResponseEntity<String> response = taskController.unclaimTask(authToken, taskId);
+        ResponseEntity<Void> response = taskController.unclaimTask(authToken, taskId);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
