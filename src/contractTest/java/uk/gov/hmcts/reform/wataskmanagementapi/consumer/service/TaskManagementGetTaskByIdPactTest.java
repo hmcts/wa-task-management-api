@@ -57,7 +57,6 @@ public class TaskManagementGetTaskByIdPactTest {
         setInitiMock();
     }
 
-
     private void setInitiMock() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
     }
