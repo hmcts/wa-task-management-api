@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -181,10 +183,11 @@ public class TaskController {
             message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/claim",
         produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
-                                            @PathVariable(TASK_ID) String taskId) {
+    public ResponseEntity<Void> claimTask(@RequestHeader("Authorization") String authToken,
+                                          @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
@@ -224,6 +227,7 @@ public class TaskController {
             message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
@@ -266,6 +270,7 @@ public class TaskController {
             message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
@@ -317,6 +322,7 @@ public class TaskController {
             message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/complete")
     public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable(TASK_ID) String taskId) {
@@ -409,6 +415,7 @@ public class TaskController {
             message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/cancel")
     public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
                                            @PathVariable(TASK_ID) String taskId) {

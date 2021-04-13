@@ -1,8 +1,9 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.LaunchDarklyClient;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;

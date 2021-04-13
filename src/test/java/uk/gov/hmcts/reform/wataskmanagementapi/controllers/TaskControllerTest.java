@@ -89,7 +89,7 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        ResponseEntity<String> response = taskController.claimTask(IDAM_AUTH_TOKEN, taskId);
+        ResponseEntity<Void> response = taskController.claimTask(IDAM_AUTH_TOKEN, taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
