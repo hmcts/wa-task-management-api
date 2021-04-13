@@ -26,15 +26,24 @@ public abstract class SpringBootContractBaseTest {
     public static final String PACT_TEST_SCOPES_VALUE = "openid profile roles";
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
     public static final String AUTH_TOKEN = "Bearer someAuthorizationToken";
+<<<<<<< HEAD
     public static final String SERVICE_AUTH_TOKEN = "Bearer someServiceAuthorizationToken";
+=======
+>>>>>>> 6e477b6c078906bb1812d0fd38917be42e32989d
     public static final String EXPERIMENTAL = "true";
 
 
     public HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
+<<<<<<< HEAD
         headers.add(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN);
         headers.add(AUTHORIZATION, AUTH_TOKEN);
         headers.add("Experimental", EXPERIMENTAL);
+=======
+        headers.add("ServiceAuthorization", SERVICE_BEARER_TOKEN);
+        headers.add("Experimental", EXPERIMENTAL);
+        headers.add("Authorization", AUTHORIZATION_BEARER_TOKEN);
+>>>>>>> 6e477b6c078906bb1812d0fd38917be42e32989d
         return headers;
     }
 }
