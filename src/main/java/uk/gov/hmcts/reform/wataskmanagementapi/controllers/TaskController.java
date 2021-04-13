@@ -230,7 +230,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> unclaimTask(@RequestHeader("Authorization") String authToken,
                                               @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
