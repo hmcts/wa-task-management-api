@@ -20,7 +20,7 @@ plugins {
   id 'info.solidsoft.pitest' version '1.5.2'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'io.freefair.lombok' version '5.3.0'
-  id 'au.com.dius.pact' version '4.1.0'
+  id 'au.com.dius.pact' version '4.1.14'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -334,6 +334,11 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
+
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
+
   contractTestCompile("org.junit.jupiter:junit-jupiter-api:5.6.2")
   contractTestRuntime("org.junit.jupiter:junit-jupiter-engine:5.6.2")
   contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.6.2')
@@ -376,6 +381,24 @@ pact {
     version = project.pacticipantVersion
   }
 }
+
+//Provider PACT tasks
+task contractTest(type: Test) {
+  logger.lifecycle("Runnning contract Tests")
+  useJUnitPlatform()
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+}
+
+task runProviderPactVerification(type: Test) {
+  logger.lifecycle("Runs pact Tests")
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+}
+
+runProviderPactVerification.dependsOn contractTest
+
+runProviderPactVerification.finalizedBy pactVerify
 
 def getCheckedOutGitCommitHash() {
   'git rev-parse --verify --short HEAD'.execute().text.trim()
