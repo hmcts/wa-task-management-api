@@ -8,23 +8,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
 public class SwaggerTest extends SpringBootFunctionalBaseTest {
 
-    private static final String SWAGGER_URL = "/swagger-ui";
+    private static final String SWAGGER_URL = "/swagger-ui/index.html";
 
     @Test
     public void swagger_ui_should_be_accessible_with_no_auth_long_url() {
-
-        Response result = restApiActions.get(
-            SWAGGER_URL + "/index.html",
-            new Header("Content-type", "application/json")
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value());
-
-    }
-
-    @Test
-    public void swagger_ui_should_be_accessible_with_no_auth_short_url() {
 
         Response result = restApiActions.get(
             SWAGGER_URL,
