@@ -1,8 +1,7 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.consumer.service;
+package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
-import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
@@ -23,7 +22,7 @@ import java.time.ZonedDateTime;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@IgnoreNoPactsToVerify
+
 @ExtendWith(SpringExtension.class)
 @Provider("task_management_get_task_by_id")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}")
@@ -54,10 +53,10 @@ public class TaskManagementGetTaskByIdPactTest {
 
     }
 
-    //@State({"will return a task by task id."})
-    //public void getTaskById() {
-    //    setInitiMock();
-    //}
+    @State({"will return a task by task id."})
+    public void getTaskById() {
+        setInitiMock();
+    }
 
     private void setInitiMock() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
