@@ -26,7 +26,6 @@ public abstract class SpringBootFunctionalBaseTest {
 
     public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
         "There was a problem fetching the variables for task with id: %s";
-    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
