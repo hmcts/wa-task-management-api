@@ -22,6 +22,8 @@ import java.time.ZonedDateTime;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+
+@IgnoreNoPactsToVerify
 @ExtendWith(SpringExtension.class)
 @Provider("task_management_get_task_by_id")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}")
