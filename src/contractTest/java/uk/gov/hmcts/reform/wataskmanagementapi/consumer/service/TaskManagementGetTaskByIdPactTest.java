@@ -23,7 +23,6 @@ import java.time.ZonedDateTime;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-
 @IgnoreNoPactsToVerify
 @ExtendWith(SpringExtension.class)
 @Provider("task_management_get_task_by_id")
@@ -55,10 +54,10 @@ public class TaskManagementGetTaskByIdPactTest {
 
     }
 
-    @State({"will return a task by task id."})
-    public void getTaskById() {
-        setInitiMock();
-    }
+    //@State({"will return a task by task id."})
+    //public void getTaskById() {
+    //    setInitiMock();
+    //}
 
     private void setInitiMock() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
