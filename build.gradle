@@ -82,16 +82,7 @@ sourceSets {
     java {
       compileClasspath += main.output
       runtimeClasspath += main.output
-      srcDir file('src/contractTest/java/uk/gov/hmcts/reform/wataskmanagemntapi/consumer')
-    }
-    resources.srcDir file('src/contractTest/resources')
-  }
-
-  providerTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/contractTest/java/uk/gov/hmcts/reform/wataskmanagemntapi/provider')
+      srcDir file('src/contractTest/java')
     }
     resources.srcDir file('src/contractTest/resources')
   }
@@ -401,8 +392,8 @@ task contractTest(type: Test) {
 
 task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs pact Tests")
-  testClassesDirs = sourceSets.providerTest.output.classesDirs
-  classpath = sourceSets.providerTest.runtimeClasspath
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
 }
 
 runProviderPactVerification.dependsOn contractTest
