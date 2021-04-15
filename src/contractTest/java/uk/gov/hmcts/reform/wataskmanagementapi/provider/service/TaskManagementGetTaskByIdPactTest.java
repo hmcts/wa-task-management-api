@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(SpringExtension.class)
-@Provider("WorkAllocation_api_task")
+@Provider("wa_task_management_api_get_task_by_d")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}")
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagementGetTaskByIdPactTest {
