@@ -5,6 +5,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
@@ -24,8 +25,11 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(SpringExtension.class)
-@Provider("wa_task_management_api_get_task_by_id")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}", host = "${PACT_BROKER_URL:localhost}")
+@Provider("wa_task_management_get_task_by_id")
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
+    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
+    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
+    @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagementGetTaskByIdPactTest {
 
