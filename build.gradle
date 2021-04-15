@@ -384,7 +384,7 @@ pact {
 }
 
 task runProviderPactVerification(type: Test) {
-  logger.lifecycle("Runs pact Tests")
+  logger.lifecycle("Runs pact provider Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
 }
