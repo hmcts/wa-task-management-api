@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
@@ -25,12 +26,13 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(SpringExtension.class)
-@Provider("wa_task_management_get_task_by_id")
+@Provider("wa_task_management_api_get_task_by_id")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
     host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
     port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
     @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
+@IgnoreNoPactsToVerify
 public class TaskManagementGetTaskByIdPactTest {
 
     @Autowired
@@ -42,7 +44,9 @@ public class TaskManagementGetTaskByIdPactTest {
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
-        context.verifyInteraction();
+        if (context != null) {
+            context.verifyInteraction();
+        }
     }
 
     @BeforeEach
@@ -57,7 +61,7 @@ public class TaskManagementGetTaskByIdPactTest {
 
     }
 
-    @State({"will return a task by task id."})
+    @State({"appropriate task is returned"})
     public void getTaskById() {
         setInitiMock();
     }
