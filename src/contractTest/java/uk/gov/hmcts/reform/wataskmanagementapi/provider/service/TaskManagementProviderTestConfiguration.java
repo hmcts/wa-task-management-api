@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.provider;
+package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;

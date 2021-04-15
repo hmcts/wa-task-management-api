@@ -82,19 +82,11 @@ sourceSets {
     java {
       compileClasspath += main.output
       runtimeClasspath += main.output
-      srcDir file('src/contractTest/java/uk/gov/hmcts/reform/wataskmanagementapi/consumer')
+      srcDir file('src/contractTest/java')
     }
     resources.srcDir file('src/contractTest/resources')
   }
 
-  providerTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/contractTest/java/uk/gov/hmcts/reform/wataskmanagementapi/provider')
-    }
-    resources.srcDir file('src/contractTest/resources')
-  }
 }
 
 tasks.withType(JavaCompile) {
@@ -390,14 +382,14 @@ pact {
     version = project.pacticipantVersion
   }
 }
-
-task runProviderPactVerification(type: Test) {
-  logger.lifecycle("Runs pact Tests")
-  testClassesDirs = sourceSets.providerTest.output.classesDirs
-  classpath = sourceSets.providerTest.runtimeClasspath
-}
-
-runProviderPactVerification.finalizedBy pactVerify
+//
+//task runProviderPactVerification(type: Test) {
+//  logger.lifecycle("Runs pact Tests")
+//  testClassesDirs = sourceSets.providerTest.output.classesDirs
+//  classpath = sourceSets.providerTest.runtimeClasspath
+//}
+//
+//runProviderPactVerification.finalizedBy pactVerify
 
 def getCheckedOutGitCommitHash() {
   'git rev-parse --verify --short HEAD'.execute().text.trim()

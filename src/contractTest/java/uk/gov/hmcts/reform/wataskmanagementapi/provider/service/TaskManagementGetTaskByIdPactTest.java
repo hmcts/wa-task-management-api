@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.provider;
+package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
