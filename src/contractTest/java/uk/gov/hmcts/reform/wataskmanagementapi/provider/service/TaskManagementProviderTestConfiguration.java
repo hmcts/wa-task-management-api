@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.provider;
+package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
