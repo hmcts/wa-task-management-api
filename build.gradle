@@ -382,14 +382,14 @@ pact {
     version = project.pacticipantVersion
   }
 }
-//
-//task runProviderPactVerification(type: Test) {
-//  logger.lifecycle("Runs pact Tests")
-//  testClassesDirs = sourceSets.providerTest.output.classesDirs
-//  classpath = sourceSets.providerTest.runtimeClasspath
-//}
-//
-//runProviderPactVerification.finalizedBy pactVerify
+
+task runProviderPactVerification(type: Test) {
+  logger.lifecycle("Runs pact Tests")
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+}
+
+runProviderPactVerification.finalizedBy pactVerify
 
 def getCheckedOutGitCommitHash() {
   'git rev-parse --verify --short HEAD'.execute().text.trim()
