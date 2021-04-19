@@ -126,14 +126,6 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
-task contract(type: Test) {
-  description = "Runs the consumer Pact tests"
-  group = 'Verification'
-  useJUnitPlatform()
-  testClassesDirs = sourceSets.contractTest.output.classesDirs
-  classpath = sourceSets.contractTest.runtimeClasspath
-}
-
 project.ext {
   pacticipant = 'wa_task_management_api'
   pacticipantVersion = getCheckedOutGitCommitHash()
@@ -340,6 +332,9 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
   contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
 
+  testImplementation "au.com.dius.pact.provider:junit5:4.1.7"
+  testImplementation "au.com.dius.pact.provider:junit5spring:4.1.7"
+
   contractTestCompile("org.junit.jupiter:junit-jupiter-api:5.6.2")
   contractTestRuntime("org.junit.jupiter:junit-jupiter-engine:5.6.2")
   contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.6.2')
@@ -383,11 +378,23 @@ pact {
   }
 }
 
-task runProviderPactVerification(type: Test) {
-  logger.lifecycle("Runs pact provider Tests")
+task contract(type: Test) {
+  description = "Runs the consumer Pact tests"
+  group = 'Verification'
+  useJUnitPlatform()
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
 }
+
+task runProviderPactVerification(type: Test) {
+  logger.lifecycle("Runs provider pact Tests")
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
+  systemProperty 'pact.provider.version', project.pacticipantVersion
+}
+
+runProviderPactVerification.dependsOn contract
 
 runProviderPactVerification.finalizedBy pactVerify
 
