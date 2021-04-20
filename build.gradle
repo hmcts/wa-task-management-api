@@ -236,6 +236,7 @@ dependencyManagement {
     }
     //
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
   }
 }
 
