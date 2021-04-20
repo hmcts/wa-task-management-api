@@ -17,6 +17,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
@@ -66,8 +68,30 @@ public class TaskManagementGetTaskByIdPactTest {
         setInitiMock();
     }
 
+    @State({"appropriate task is returned"})
+    public void responseError404Response() {
+        setInitiMockPermissions();
+    }
+
+    @State({"appropriate task is returned"})
+    public void responseError401Response() {
+        setInitiMockPermissions();
+    }
+
     private void setInitiMock() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
+    }
+
+    private void setInitiMockPermissions() {
+        when(camundaService.getTask(any(),any(),any())).thenThrow(new InsufficientPermissionsException(
+            "User did not have sufficient permissions to access task with id: 0000-0000-0000-0000")
+        );
+    }
+
+    private void setInitiMockResources() {
+        when(camundaService.getTask(any(),any(),any())).thenThrow(new ResourceNotFoundException(
+            "There was a problem fetching the variables for task with id", null)
+        );
     }
 
     public Task createTask() {
@@ -92,7 +116,9 @@ public class TaskManagementGetTaskByIdPactTest {
                          "processApplication",
                          "caseName",
                          true);
-
     }
+
+
+
 }
 
