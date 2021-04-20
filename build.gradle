@@ -303,7 +303,7 @@ dependencies {
 
   compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.2.5.RELEASE'
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
+  compile group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
 
   compile group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
 
