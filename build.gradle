@@ -126,6 +126,14 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
+task contract(type: Test) {
+  description = "Runs the consumer Pact tests"
+  group = 'Verification'
+  useJUnitPlatform()
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+}
+
 project.ext {
   pacticipant = 'wa_task_management_api'
   pacticipantVersion = getCheckedOutGitCommitHash()
@@ -377,14 +385,6 @@ pact {
     tags = [System.getenv("PACT_BRANCH_NAME") ?: 'Dev']
     version = project.pacticipantVersion
   }
-}
-
-task contract(type: Test) {
-  description = "Runs the consumer Pact tests"
-  group = 'Verification'
-  useJUnitPlatform()
-  testClassesDirs = sourceSets.contractTest.output.classesDirs
-  classpath = sourceSets.contractTest.runtimeClasspath
 }
 
 task runProviderPactVerification(type: Test) {
