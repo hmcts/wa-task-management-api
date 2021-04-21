@@ -20,7 +20,7 @@ plugins {
   id 'info.solidsoft.pitest' version '1.5.2'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'io.freefair.lombok' version '5.3.0'
-  id 'au.com.dius.pact' version '4.1.14'
+  id 'au.com.dius.pact' version '4.1.0'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -263,7 +263,7 @@ def versions = [
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
-  pactVersion     : '4.1.14'
+  pactVersion     : '4.1.7'
 
 ]
 
@@ -373,7 +373,17 @@ task runAndPublishConsumerPactTests(type: Test) {
 
 }
 
+task runProviderPactVerification(type: Test) {
+  logger.lifecycle("Runs provider pact Tests")
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+}
+
 runAndPublishConsumerPactTests.finalizedBy pactPublish
+
+runProviderPactVerification.dependsOn contract
+
+runProviderPactVerification.finalizedBy pactVerify
 
 pact {
   broker {
@@ -385,16 +395,6 @@ pact {
     version = project.pacticipantVersion
   }
 }
-
-task runProviderPactVerification(type: Test) {
-  logger.lifecycle("Runs provider pact Tests")
-  testClassesDirs = sourceSets.contractTest.output.classesDirs
-  classpath = sourceSets.contractTest.runtimeClasspath
-}
-
-runProviderPactVerification.dependsOn contract
-
-runProviderPactVerification.finalizedBy pactVerify
 
 def getCheckedOutGitCommitHash() {
   'git rev-parse --verify --short HEAD'.execute().text.trim()
