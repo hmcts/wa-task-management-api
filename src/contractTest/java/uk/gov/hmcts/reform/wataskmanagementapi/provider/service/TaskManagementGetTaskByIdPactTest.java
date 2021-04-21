@@ -70,7 +70,7 @@ public class TaskManagementGetTaskByIdPactTest {
 
     @State({"returns 404 from a get task call"})
     public void responseError404Response() {
-        setInitiMockPermissions();
+        setInitiMockResources();
     }
 
     @State({"returns 401 from a get task call"})
