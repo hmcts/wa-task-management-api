@@ -86,7 +86,6 @@ sourceSets {
     }
     resources.srcDir file('src/contractTest/resources')
   }
-
 }
 
 tasks.withType(JavaCompile) {
@@ -264,7 +263,7 @@ def versions = [
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
-  pactVersion     : '4.1.7'
+  pactVersion     : '4.1.14'
 
 ]
 
@@ -337,9 +336,9 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
 
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.14'
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: versions.pactVersion
 
   testImplementation "au.com.dius.pact.provider:junit5:4.1.7"
   testImplementation "au.com.dius.pact.provider:junit5spring:4.1.7"
