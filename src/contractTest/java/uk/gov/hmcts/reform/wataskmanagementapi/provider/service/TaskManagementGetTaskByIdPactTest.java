@@ -68,12 +68,12 @@ public class TaskManagementGetTaskByIdPactTest {
         setInitiMock();
     }
 
-    @State({"appropriate task is returned"})
+    @State({"returns 404 from a get task call"})
     public void responseError404Response() {
         setInitiMockPermissions();
     }
 
-    @State({"appropriate task is returned"})
+    @State({"returns 401 from a get task call"})
     public void responseError401Response() {
         setInitiMockPermissions();
     }
