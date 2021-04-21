@@ -377,9 +377,14 @@ task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
+  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
+  systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
+
 runAndPublishConsumerPactTests.finalizedBy pactPublish
+
+runProviderPactVerification.dependsOn contract
 
 runProviderPactVerification.finalizedBy pactVerify
 
