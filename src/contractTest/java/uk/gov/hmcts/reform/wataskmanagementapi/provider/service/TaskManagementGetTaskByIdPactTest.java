@@ -65,30 +65,30 @@ public class TaskManagementGetTaskByIdPactTest {
 
     @State({"appropriate task is returned"})
     public void getTaskById() {
-        setInitiMock();
+        setInitMock();
     }
 
     @State({"returns 404 from a get task call"})
     public void responseError404Response() {
-        setInitiMockResources();
+        setInitMockResources();
     }
 
     @State({"returns 401 from a get task call"})
     public void responseError401Response() {
-        setInitiMockPermissions();
+        setInitMockPermissions();
     }
 
-    private void setInitiMock() {
+    private void setInitMock() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
     }
 
-    private void setInitiMockPermissions() {
+    private void setInitMockPermissions() {
         when(camundaService.getTask(any(),any(),any())).thenThrow(new InsufficientPermissionsException(
             "User did not have sufficient permissions to access task with id: 0000-0000-0000-0000")
         );
     }
 
-    private void setInitiMockResources() {
+    private void setInitMockResources() {
         when(camundaService.getTask(any(),any(),any())).thenThrow(new ResourceNotFoundException(
             "There was a problem fetching the variables for task with id: 0000-0000-0000-0000", null)
         );
