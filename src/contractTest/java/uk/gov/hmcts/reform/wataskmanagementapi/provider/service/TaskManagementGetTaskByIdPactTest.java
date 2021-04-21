@@ -90,7 +90,7 @@ public class TaskManagementGetTaskByIdPactTest {
 
     private void setInitiMockResources() {
         when(camundaService.getTask(any(),any(),any())).thenThrow(new ResourceNotFoundException(
-            "There was a problem fetching the variables for task with id", null)
+            "There was a problem fetching the variables for task with id: 0000-0000-0000-0000", null)
         );
     }
 
