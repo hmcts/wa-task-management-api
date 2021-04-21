@@ -16,8 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskMapper;
 
-
-@TestConfiguration
 public class TaskManagementProviderTestConfiguration {
 
     @MockBean
