@@ -16,6 +16,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_DELETED;
 

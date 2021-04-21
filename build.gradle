@@ -243,6 +243,7 @@ dependencyManagement {
     }
     //
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
   }
 }
 
@@ -257,7 +258,7 @@ def versions = [
   junitPlatform   : '1.7.0',
   reformLogging   : '5.1.5',
   springBoot      : '2.4.2',
-  springfoxSwagger: '2.9.2',
+  springfoxSwagger: '3.0.0',
   serenity        : '2.2.12',
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
@@ -284,9 +285,9 @@ dependencies {
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: versions.springBoot
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
 
-
-  implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
+  implementation group: 'io.springfox', name: 'springfox-boot-starter', version: versions.springfoxSwagger
   compile group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
+
   compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
 
   implementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
