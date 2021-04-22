@@ -22,6 +22,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -34,7 +36,7 @@ import static org.mockito.Mockito.when;
     @VersionSelector(tag = "master")})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class TaskManagementGetTaskByIdPactTest {
+public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @Autowired
     private AccessControlService accessControlService;
@@ -63,27 +65,23 @@ public class TaskManagementGetTaskByIdPactTest {
 
     }
 
-    @State({"appropriate task is returned"})
-    public void getTaskById() {
-        setInitMockTask();
+    @State({"appropriate tasks are returned by criteria"})
+    public void getTaskByCriteria() {
+        setInitMockForsearchTask();
     }
 
-    @State({"returns 404 from a get task call"})
+    @State({"returns 404 from a post task call"})
     public void responseError404Response() {
         setInitMockResources();
     }
 
-    @State({"returns 401 from a get task call"})
+    @State({"returns 401 from a post task call"})
     public void responseError401Response() {
         setInitMockPermissions();
     }
 
-    private void setInitMockTask() {
-        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
-    }
-
-    private void setInitMock() {
-        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
+    private void setInitMockForsearchTask() {
+        when(camundaService.searchWithCriteria(any(),any(),any())).thenReturn(createTasks());
     }
 
     private void setInitMockPermissions() {
@@ -98,28 +96,56 @@ public class TaskManagementGetTaskByIdPactTest {
         );
     }
 
-    public Task createTask() {
-        return new Task("id",
-                         "Jake",
-                         "ReviewTheAppeal",
-                         "unconfigured",
-                         "main",
-                         "PRIVATE",
-                         "review",
-                         ZonedDateTime.now(),
-                         ZonedDateTime.now(),
-                         "Mark Alistair",
-                         true,
-                         "Time extension",
-                         "IA",
-                         "South",
-                         "12345",
-                         "Newcastle",
-                         "Asylum",
-                         "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                         "processApplication",
-                         "caseName",
-                         true);
+    public List<Task> createTasks() {
+        var tasks = new ArrayList<Task>();
+        var taskOne = new Task("id",
+                                  "Jake",
+                                  "ReviewTheAppeal",
+                                  "unconfigured",
+                                  "main",
+                                  "PRIVATE",
+                                  "review",
+                                  ZonedDateTime.now(),
+                                  ZonedDateTime.now(),
+                                  "Mark Alistair",
+                                  true,
+                                  "Time extension",
+                                  "IA",
+                                  "South",
+                                  "12345",
+                                  "Newcastle",
+                                  "Asylum",
+                                  "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+                                  "processApplication",
+                                  "caseName",
+                                  true);
+
+        var taskTwo = new Task("123",
+                               "Nadia",
+                               "ReviewTheAppeal",
+                               "configured",
+                               "main",
+                               "PRIVATE",
+                               "review",
+                               ZonedDateTime.now(),
+                               ZonedDateTime.now(),
+                               "Jean Lucas",
+                               true,
+                               "Time extension",
+                               "IA",
+                               "South",
+                               "67890",
+                               "Hatton Cross",
+                               "Asylum",
+                               "4d4b3a4e-c91f-433f-92ac-e4563434f72a",
+                               "processApplication",
+                               "inProcess",
+                               false);
+
+        tasks.add(taskOne);
+        tasks.add(taskTwo);
+
+        return tasks;
     }
 
 
