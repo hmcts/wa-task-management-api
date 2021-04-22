@@ -227,56 +227,84 @@ public class CamundaService {
         if (query == null) {
             return emptyList();
         }
+        try {
+            //1. Perform the search
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            );
 
-        return performSearchAction(query, accessControlResponse, permissionsRequired);
-
+            //Safe guard in case no search results were returned
+            if (searchResults.isEmpty()) {
+                return emptyList();
+            }
+            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
+        } catch (FeignException exp) {
+            throw new ServerErrorException("There was a problem performing the search", exp);
+        }
     }
 
     public List<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                 List<PermissionTypes> permissionsRequired,
                                                 AccessControlResponse accessControlResponse) {
 
-        try {
-            //Safe-guard against unsupported Jurisdictions and case types.
-            if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
-                || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
-                throw new BadRequestException("Please check your request. "
+        //Safe-guard against unsupported Jurisdictions and case types.
+        if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
+            || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
+            throw new BadRequestException("Please check your request. "
                                               + "This endpoint currently only supports"
                                               + " the Immigration & Asylum service");
+        }
+
+        List<String> taskTypes = evaluateDmn(searchEventAndCase);
+        if (taskTypes.isEmpty()) {
+            return emptyList();
+        }
+        //2. Build query and perform search
+        CamundaSearchQuery camundaSearchQuery =
+            camundaQueryBuilder.createCompletableTasksQuery(searchEventAndCase.getCaseId(), taskTypes);
+        try {
+            //3. Perform the search
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(),
+                camundaSearchQuery.getQueries()
+            );
+
+            //Safe guard in case no search results were returned
+            if (searchResults.isEmpty()) {
+                return emptyList();
             }
-            //1. Perform the DMN evaluation
+            //4. Extract if a task is assigned and assignee is idam userId
+            String idamUserId = accessControlResponse.getUserInfo().getUid();
+            final List<CamundaTask> assigneeTaskList = searchResults.stream().filter(
+                task -> idamUserId.equals(task.getAssignee()))
+                .collect(Collectors.toList());
+
+            if (!assigneeTaskList.isEmpty()) {
+                searchResults = assigneeTaskList;
+            }
+
+            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
+        } catch (FeignException exp) {
+            throw new ServerErrorException("There was a problem performing the search", exp);
+        }
+    }
+
+    private List<String> evaluateDmn(SearchEventAndCase searchEventAndCase) {
+        try {
             List<Map<String, CamundaVariable>> evaluateDmnResult =
                 camundaServiceApi.evaluateDMN(
                     authTokenGenerator.generate(),
                     getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
                     createEventIdDmnRequest(searchEventAndCase.getEventId())
                 );
-
             // Collect task types
-            List<String> taskTypes = evaluateDmnResult.stream()
+            return evaluateDmnResult.stream()
                 .map(result -> getVariableValue(result.get("task_type"), String.class))
                 .collect(Collectors.toList());
-
-            if (taskTypes.isEmpty()) {
-                return emptyList();
-            } else {
-                //2. Build query and perform search
-                CamundaSearchQuery camundaSearchQuery =
-                    camundaQueryBuilder.createCompletableTasksQuery(
-                        searchEventAndCase.getCaseId(),
-                        taskTypes
-                    );
-
-                return performSearchAction(
-                    camundaSearchQuery,
-                    accessControlResponse,
-                    permissionsRequired
-                );
-            }
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
-
     }
 
     private Map<String, Map<String, CamundaVariable>> createEventIdDmnRequest(String eventId) {
@@ -371,23 +399,13 @@ public class CamundaService {
         }
     }
 
-    private List<Task> performSearchAction(CamundaSearchQuery query,
+    private List<Task> performSearchAction(List<CamundaTask> searchResults,
                                            AccessControlResponse accessControlResponse,
                                            List<PermissionTypes> permissionsRequired) {
 
 
         List<Task> response = new ArrayList<>();
         try {
-            //1. Perform the search
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            );
-
-            //Safe guard in case no search results were returned
-            if (searchResults.isEmpty()) {
-                return response;
-            }
 
             //Extract all processIds to be used as a lookup when collecting all variables
             List<String> searchResultsProcessIds = searchResults.stream()
