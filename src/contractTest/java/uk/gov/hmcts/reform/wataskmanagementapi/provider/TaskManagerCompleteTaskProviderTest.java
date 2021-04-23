@@ -23,7 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(SpringExtension.class)
-@Provider("wa_task_management_api_claim_task_by_id")
+@Provider("wa_task_management_api_complete_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
 //@PactFolder("target/pacts")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.doNothing;
     @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class TaskManagerClaimTaskProviderTest {
+public class TaskManagerCompleteTaskProviderTest {
 
     @Autowired
     private AccessControlService accessControlService;
@@ -61,12 +61,12 @@ public class TaskManagerClaimTaskProviderTest {
 
     }
 
-    @State({"claim a task using taskId"})
-    public void claimTaskById() {
+    @State({"complete a task using taskId"})
+    public void completeTaskById() {
         setInitMock();
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).claimTask(any(),any(),any());
+        doNothing().when(camundaService).completeTask(any(),any(),any());
     }
 }
