@@ -2,12 +2,16 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
+@ToString
+@EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CamundaTask {
 
@@ -39,7 +43,7 @@ public class CamundaTask {
                        String owner,
                        String formKey,
                        String processInstanceId
-                       ) {
+    ) {
         this.id = id;
         this.name = name;
         this.assignee = assignee;
