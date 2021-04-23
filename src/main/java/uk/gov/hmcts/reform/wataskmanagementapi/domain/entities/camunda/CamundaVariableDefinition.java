@@ -21,7 +21,6 @@ public enum CamundaVariableDefinition {
     TITLE("title"),
     HAS_WARNINGS("hasWarnings");
 
-
     private final String value;
 
     CamundaVariableDefinition(String value) {
