@@ -20,7 +20,7 @@ plugins {
   id 'info.solidsoft.pitest' version '1.5.2'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'io.freefair.lombok' version '5.3.0'
-  id 'au.com.dius.pact' version '4.1.7'
+  id 'au.com.dius.pact' version '4.1.14'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -329,9 +329,9 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
 
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.7'
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.7'
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.7'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
 
   testImplementation "au.com.dius.pact.provider:junit5:4.1.7"
   testImplementation "au.com.dius.pact.provider:junit5spring:4.1.7"
