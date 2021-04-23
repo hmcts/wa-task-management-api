@@ -328,6 +328,7 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
+
   contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.14'
   contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
   contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
@@ -365,20 +366,7 @@ task runAndPublishConsumerPactTests(type: Test) {
 
 }
 
-task runProviderPactVerification(type: Test) {
-  logger.lifecycle("Runs provider pact Tests")
-  testClassesDirs = sourceSets.contractTest.output.classesDirs
-  classpath = sourceSets.contractTest.runtimeClasspath
-  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
-  systemProperty 'pact.provider.version', project.pacticipantVersion
-}
-
-
 runAndPublishConsumerPactTests.finalizedBy pactPublish
-
-runProviderPactVerification.dependsOn contract
-
-runProviderPactVerification.finalizedBy pactVerify
 
 pact {
   broker {
