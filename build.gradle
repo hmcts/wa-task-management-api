@@ -20,7 +20,7 @@ plugins {
   id 'info.solidsoft.pitest' version '1.5.2'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'io.freefair.lombok' version '5.3.0'
-  id 'au.com.dius.pact' version '4.1.0'
+  id 'au.com.dius.pact' version '4.1.14'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -86,6 +86,7 @@ sourceSets {
     }
     resources.srcDir file('src/contractTest/resources')
   }
+
 }
 
 tasks.withType(JavaCompile) {
@@ -123,14 +124,6 @@ task smoke(type: Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
-}
-
-task contract(type: Test) {
-  description = "Runs the consumer Pact tests"
-  group = 'Verification'
-  useJUnitPlatform()
-  testClassesDirs = sourceSets.contractTest.output.classesDirs
-  classpath = sourceSets.contractTest.runtimeClasspath
 }
 
 project.ext {
@@ -336,9 +329,9 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
 
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: versions.pactVersion
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: versions.pactVersion
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
 
   testImplementation "au.com.dius.pact.provider:junit5:4.1.7"
   testImplementation "au.com.dius.pact.provider:junit5spring:4.1.7"
@@ -373,20 +366,7 @@ task runAndPublishConsumerPactTests(type: Test) {
 
 }
 
-task runProviderPactVerification(type: Test) {
-  logger.lifecycle("Runs provider pact Tests")
-  testClassesDirs = sourceSets.contractTest.output.classesDirs
-  classpath = sourceSets.contractTest.runtimeClasspath
-  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
-  systemProperty 'pact.provider.version', project.pacticipantVersion
-}
-
-
 runAndPublishConsumerPactTests.finalizedBy pactPublish
-
-runProviderPactVerification.dependsOn contract
-
-runProviderPactVerification.finalizedBy pactVerify
 
 pact {
   broker {
@@ -398,6 +378,26 @@ pact {
     version = project.pacticipantVersion
   }
 }
+
+task contract(type: Test) {
+  description = "Runs the consumer Pact tests"
+  group = 'Verification'
+  useJUnitPlatform()
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+}
+
+task runProviderPactVerification(type: Test) {
+  logger.lifecycle("Runs provider pact Tests")
+  testClassesDirs = sourceSets.contractTest.output.classesDirs
+  classpath = sourceSets.contractTest.runtimeClasspath
+  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
+  systemProperty 'pact.provider.version', project.pacticipantVersion
+}
+
+runProviderPactVerification.dependsOn contract
+
+runProviderPactVerification.finalizedBy pactVerify
 
 def getCheckedOutGitCommitHash() {
   'git rev-parse --verify --short HEAD'.execute().text.trim()
