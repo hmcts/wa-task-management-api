@@ -5,11 +5,11 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class CamundaSendMessageRequestTest {
+class CompleteTaskVariablesTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = CamundaSendMessageRequest.class;
+        final Class<?> classUnderTest = CompleteTaskVariables.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -19,6 +19,5 @@ class CamundaSendMessageRequestTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-
 
 }
