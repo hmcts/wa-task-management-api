@@ -30,7 +30,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +39,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 
 @Slf4j
 @Service
@@ -54,7 +55,6 @@ public class CamundaService {
         "User did not have sufficient permissions to assign task with id: %s";
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK =
         "User did not have sufficient permissions to claim task with id: %s";
-    public static final String WA_TASK_COMPLETION_TABLE_NAME = "wa-task-completion";
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
@@ -252,11 +252,10 @@ public class CamundaService {
         if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
             || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
             throw new BadRequestException("Please check your request. "
-                                              + "This endpoint currently only supports"
-                                              + " the Immigration & Asylum service");
+                                          + "This endpoint currently only supports"
+                                          + " the Immigration & Asylum service");
         }
-
-        List<String> taskTypes = evaluateDmn(searchEventAndCase);
+        List<String> taskTypes = evaluateTaskCompletionDmn(searchEventAndCase);
         if (taskTypes.isEmpty()) {
             return emptyList();
         }
@@ -290,17 +289,25 @@ public class CamundaService {
         }
     }
 
-    private List<String> evaluateDmn(SearchEventAndCase searchEventAndCase) {
+    private List<String> evaluateTaskCompletionDmn(SearchEventAndCase searchEventAndCase) {
         try {
+
+            String taskCompletionDecisionTableKey = WA_TASK_COMPLETION.getTableKey(
+                searchEventAndCase.getCaseJurisdiction(),
+                searchEventAndCase.getCaseType()
+            );
+
             List<Map<String, CamundaVariable>> evaluateDmnResult =
                 camundaServiceApi.evaluateDMN(
                     authTokenGenerator.generate(),
-                    getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
+                    taskCompletionDecisionTableKey,
                     createEventIdDmnRequest(searchEventAndCase.getEventId())
                 );
             // Collect task types
             return evaluateDmnResult.stream()
-                .map(result -> getVariableValue(result.get("task_type"), String.class))
+                .map(result -> {
+                    return getVariableValue(result.get(TASK_TYPE.value()), String.class);
+                })
                 .collect(Collectors.toList());
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
@@ -314,11 +321,6 @@ public class CamundaService {
             Map.of("eventId", new CamundaVariable(eventId, "String"));
 
         return Map.of("variables", eventIdCamundaVariable);
-    }
-
-    private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
-               + "-" + caseTypeId.toLowerCase(Locale.getDefault());
     }
 
     public Task getTask(String id,
@@ -408,12 +410,12 @@ public class CamundaService {
         try {
 
             //Extract all processIds to be used as a lookup when collecting all variables
-            List<String> searchResultsProcessIds = searchResults.stream()
-                .map(CamundaTask::getProcessInstanceId)
+            List<String> searchResultsTaskIds = searchResults.stream()
+                .map(CamundaTask::getId)
                 .collect(Collectors.toList());
 
-            //Retrieve all variables for processIds
-            Map<String, List<String>> body = Map.of("variableScopeIdIn", searchResultsProcessIds);
+            //Retrieve all variables for taskIds
+            Map<String, List<String>> body = Map.of("taskIdIn", searchResultsTaskIds);
             List<CamundaVariableInstance> allVariables =
                 camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
 
