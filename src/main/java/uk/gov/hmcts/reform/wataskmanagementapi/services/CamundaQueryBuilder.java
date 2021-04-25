@@ -40,7 +40,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 @Service
 public class CamundaQueryBuilder {
 
-    private static final String WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY = "wa-task-initiation-ia-asylum";
+    public static final String WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY = "wa-task-initiation-ia-asylum";
 
     /**
      * Builds a search query using the orQueries and sorting if provided from the search task request.

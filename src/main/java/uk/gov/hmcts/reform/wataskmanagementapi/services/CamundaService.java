@@ -42,6 +42,7 @@ import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 @Slf4j
 @Service
@@ -415,7 +416,10 @@ public class CamundaService {
                 .collect(Collectors.toList());
 
             //Retrieve all variables for taskIds
-            Map<String, List<String>> body = Map.of("taskIdIn", searchResultsTaskIds);
+            Map<String, Object> body = Map.of(
+                "taskIdIn", searchResultsTaskIds,
+                "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY);
+
             List<CamundaVariableInstance> allVariables =
                 camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
 
@@ -424,18 +428,18 @@ public class CamundaService {
                 return response;
             }
 
-            Map<String, List<CamundaVariableInstance>> variablesByProcessId = allVariables.stream()
-                .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
+            Map<String, List<CamundaVariableInstance>> variablesByTaskId = allVariables.stream()
+                .collect(groupingBy(CamundaVariableInstance::getTaskId));
 
             //Loop through all search results
             searchResults.forEach(camundaTask -> {
 
                 //2. Get Variables for the task
-                List<CamundaVariableInstance> variablesForProcessId =
-                    variablesByProcessId.get(camundaTask.getProcessInstanceId());
-                if (variablesForProcessId != null) {
+                List<CamundaVariableInstance> variablesForTaskId =
+                    variablesByTaskId.get(camundaTask.getId());
+                if (variablesForTaskId != null) {
                     //Format variables
-                    Map<String, CamundaVariable> variables = variablesForProcessId.stream()
+                    Map<String, CamundaVariable> variables = variablesForTaskId.stream()
                         .collect(toMap(
                             CamundaVariableInstance::getName,
                             var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)

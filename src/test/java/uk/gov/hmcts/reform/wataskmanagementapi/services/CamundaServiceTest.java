@@ -64,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 class CamundaServiceTest extends CamundaServiceBaseTest {
 
@@ -307,7 +308,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of("taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
+
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
             when(permissionEvaluatorService.hasAccess(
@@ -342,7 +346,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
             verifyNoMoreInteractions(permissionEvaluatorService);
@@ -375,7 +381,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of(
+                    "taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
             when(permissionEvaluatorService.hasAccess(
@@ -410,7 +419,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -465,7 +476,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of("taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
 
@@ -492,7 +505,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -526,7 +541,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of("taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("anotherProcessInstanceId", "someTaskId"));
 
             List<Task> results = camundaService.searchWithCriteria(
@@ -546,7 +563,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -590,7 +609,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(asList(camundaTask, camundaTask2));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", asList("someTaskId", "someTaskId2"))
+                Map.of("taskIdIn", asList("someTaskId", "someTaskId2"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
             when(permissionEvaluatorService.hasAccess(
@@ -634,7 +655,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", asList("someTaskId", "someTaskId2"))
+                    Map.of("taskIdIn", asList("someTaskId", "someTaskId2"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -678,7 +701,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(asList(camundaTask, camundaTask2));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", asList("someTaskId", "someTaskId2"))
+                Map.of("taskIdIn", asList("someTaskId", "someTaskId2"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
             when(permissionEvaluatorService.hasAccess(
@@ -713,7 +738,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", asList("someTaskId", "someTaskId2"))
+                    Map.of("taskIdIn", asList("someTaskId", "someTaskId2"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -757,7 +784,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(asList(camundaTask, camundaTask2));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", asList("someTaskId", "someTaskId2"))
+                Map.of("taskIdIn", asList("someTaskId", "someTaskId2"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
             when(permissionEvaluatorService.hasAccess(
@@ -783,7 +812,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", asList("someTaskId", "someTaskId2"))
+                    Map.of("taskIdIn", asList("someTaskId", "someTaskId2"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -815,7 +846,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of("taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
             when(permissionEvaluatorService.hasAccess(
@@ -850,7 +883,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -883,7 +918,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of("taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponseForMultipleProcessIds());
 
             when(permissionEvaluatorService.hasAccess(
@@ -909,7 +946,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -1011,7 +1050,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of("taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(emptyList());
 
             List<Task> results = camundaService.searchWithCriteria(
@@ -1031,7 +1072,9 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaServiceApi, times(1))
                 .getAllVariables(
                     BEARER_SERVICE_TOKEN,
-                    Map.of("taskIdIn", singletonList("someTaskId"))
+                    Map.of("taskIdIn", singletonList("someTaskId"),
+                        "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                    )
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
@@ -1622,7 +1665,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of(
+                    "taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
@@ -1712,7 +1758,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of(
+                    "taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
@@ -1859,7 +1908,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
-                Map.of("taskIdIn", singletonList("someTaskId"))
+                Map.of(
+                    "taskIdIn", singletonList("someTaskId"),
+                    "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+                )
             )).thenReturn(mockedVariablesResponse("someProcessInstanceId", "someTaskId"));
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
