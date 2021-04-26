@@ -68,16 +68,6 @@ public class TaskManagementGetTaskByIdPactTest {
         setInitMockTask();
     }
 
-    @State({"returns 404 from a get task call"})
-    public void responseError404Response() {
-        setInitMockResources();
-    }
-
-    @State({"returns 401 from a get task call"})
-    public void responseError401Response() {
-        setInitMockPermissions();
-    }
-
     private void setInitMockTask() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
     }
@@ -86,39 +76,27 @@ public class TaskManagementGetTaskByIdPactTest {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
     }
 
-    private void setInitMockPermissions() {
-        when(camundaService.getTask(any(),any(),any())).thenThrow(new InsufficientPermissionsException(
-            "User did not have sufficient permissions to access task with id: 0000-0000-0000-0000")
-        );
-    }
-
-    private void setInitMockResources() {
-        when(camundaService.getTask(any(),any(),any())).thenThrow(new ResourceNotFoundException(
-            "There was a problem fetching the variables for task with id", null)
-        );
-    }
-
     public Task createTask() {
-        return new Task("id",
+        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
                          "Jake",
                          "ReviewTheAppeal",
                          "unconfigured",
-                         "main",
+                         "SELF",
                          "PRIVATE",
-                         "review",
-                         ZonedDateTime.now(),
-                         ZonedDateTime.now(),
+                         "task name",
+                          ZonedDateTime.now(),
+                          ZonedDateTime.now(),
                          "Mark Alistair",
                          true,
                          "Time extension",
                          "IA",
-                         "South",
-                         "12345",
+                         "1",
+                         "765324",
                          "Newcastle",
                          "Asylum",
                          "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
                          "processApplication",
-                         "caseName",
+                         "Bob Smith",
                          true);
     }
 
