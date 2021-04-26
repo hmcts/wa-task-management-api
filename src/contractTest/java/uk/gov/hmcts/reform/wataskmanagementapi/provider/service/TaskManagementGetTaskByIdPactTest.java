@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
     port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
     @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
-@IgnoreNoPactsToVerify
+//@IgnoreNoPactsToVerify
 public class TaskManagementGetTaskByIdPactTest {
 
     @Autowired
@@ -71,10 +71,6 @@ public class TaskManagementGetTaskByIdPactTest {
     }
 
     private void setInitMockTask() {
-        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
-    }
-
-    private void setInitMock() {
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
     }
 
