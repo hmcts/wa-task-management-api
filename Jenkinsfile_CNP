@@ -45,6 +45,9 @@ withPipeline(type, product, component) {
     env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
     env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
     env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
+    env.PACT_BROKER_URL = "pact-broker.platform.hmcts.net"
+    env.PACT_BROKER_PORT = "443"
+    env.PACT_BROKER_SCHEME = "https"
 
     after('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
@@ -63,9 +66,11 @@ withPipeline(type, product, component) {
 
     onMaster() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
     }
 
     onPR() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
     }
 }

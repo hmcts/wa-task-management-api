@@ -33,7 +33,7 @@ class CamundaSearchQueryTest {
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
 
-        String expected = "{\"queries\":{\"aKey\":[\"aValue\"],\"orQueries\":[]}}";
+        String expected = "{\"queries\":{\"aKey\":\"aValue\",\"orQueries\":[]}}";
 
         assertEquals(expected, resultJson);
     }

@@ -32,7 +32,6 @@ class CreateTaskVariableTest {
             "some-owner", "formKey", "processInstanceId"
         );
 
-
         localVariables = new HashMap<>();
         localVariables.put("taskState", new CamundaVariable(TaskState.ASSIGNED.value(), "string"));
         localVariables.put("securityClassification", new CamundaVariable("some-classification", "string"));
@@ -42,6 +41,7 @@ class CreateTaskVariableTest {
         localVariables.put("jurisdiction", new CamundaVariable("IA", "string"));
         localVariables.put("region", new CamundaVariable("1", "string"));
         localVariables.put("hasWarnings", new CamundaVariable(false, "boolean"));
+        localVariables.put("taskType", new CamundaVariable("task-type", "string"));
 
     }
 
@@ -53,7 +53,7 @@ class CreateTaskVariableTest {
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
         Assertions.assertThat(task.getName()).isEqualTo("some-name");
-        Assertions.assertThat(task.getType()).isEqualTo("formKey");
+        Assertions.assertThat(task.getType()).isEqualTo("task-type");
         Assertions.assertThat(task.getAssignee()).isEqualTo("some-assignee");
         Assertions.assertThat(task.getTaskState()).isEqualTo("assigned");
         Assertions.assertThat(task.getTaskSystem()).isEqualTo("SELF");
@@ -72,8 +72,6 @@ class CreateTaskVariableTest {
         Assertions.assertThat(task.getCaseName()).isNull();
         Assertions.assertThat(task.getAutoAssigned()).isFalse();
         Assertions.assertThat(task.getWarnings()).isFalse();
-
-
 
     }
 }
