@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
     port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
     @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
-//@IgnoreNoPactsToVerify
+@IgnoreNoPactsToVerify
 public class TaskManagementGetTaskByIdPactTest {
 
     @Autowired
