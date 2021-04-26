@@ -29,9 +29,11 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+//@PactFolder("target/pacts")
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
+    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
+    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
+    @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskByIdPactTest {
