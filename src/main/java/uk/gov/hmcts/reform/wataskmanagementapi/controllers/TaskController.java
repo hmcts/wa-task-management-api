@@ -48,6 +48,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @RestController
 public class TaskController {
 
+    private static final String APP_NAME = "wa-task-management-api";
+
     public static final String UNAUTHORIZED = "Unauthorized";
     private static final String BAD_REQUEST = "Bad Request";
     private static final String FORBIDDEN = "Forbidden";
@@ -56,7 +58,6 @@ public class TaskController {
     private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
-    private final String appname = "wa-task-management-api";
 
     @Autowired
     public TaskController(CamundaService camundaService,
@@ -100,7 +101,7 @@ public class TaskController {
 
         log.info(
             "'{}' request received for path: '{}'.",
-            appname,
+            APP_NAME,
             "/task"
         );
 
@@ -119,7 +120,8 @@ public class TaskController {
         );
 
         log.info(
-            "wa-task-management-api request handled for path '{}'",
+            "'{}' request handled for path: '{}'",
+            APP_NAME,
             "/task"
         );
 
