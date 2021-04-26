@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -43,6 +44,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
     consumes = APPLICATION_JSON_VALUE,
     produces = APPLICATION_JSON_VALUE
 )
+@Slf4j
 @RestController
 public class TaskController {
 
@@ -54,6 +56,7 @@ public class TaskController {
     private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
+    private final String appname = "wa-task-management-api";
 
     @Autowired
     public TaskController(CamundaService camundaService,
@@ -94,6 +97,13 @@ public class TaskController {
     @PostMapping(produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
                                                                      @RequestBody SearchTaskRequest searchTaskRequest) {
+
+        log.info(
+            "'{}' request received for path: '{}'.",
+            appname,
+            "/task"
+        );
+
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -107,6 +117,12 @@ public class TaskController {
             accessControlResponse,
             endpointPermissionsRequired
         );
+
+        log.info(
+            "wa-task-management-api request handled for path '{}'",
+            "/task"
+        );
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
