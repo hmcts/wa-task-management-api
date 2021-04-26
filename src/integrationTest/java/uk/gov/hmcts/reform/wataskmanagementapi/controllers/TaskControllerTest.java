@@ -43,6 +43,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -256,7 +257,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
-            when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
+            when(camundaServiceApi.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SSCS
             when(camundaServiceApi.getAllVariables(any(), any()))
@@ -302,7 +303,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
-            when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
+            when(camundaServiceApi.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SCSS
             when(camundaServiceApi.getAllVariables(any(), any()))

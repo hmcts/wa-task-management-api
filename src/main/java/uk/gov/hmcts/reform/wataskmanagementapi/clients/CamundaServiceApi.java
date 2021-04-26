@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
@@ -39,12 +40,14 @@ public interface CamundaServiceApi {
     List<CamundaVariableInstance> getAllVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                                   @RequestBody Map<String, List<String>> body);
 
-    @PostMapping(value = "/task",
+    @PostMapping(value = "/task?firstResult={firstResult}&maxResults={maxResults}",
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
     List<CamundaTask> searchWithCriteria(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                         @RequestParam int firstResult,
+                                         @RequestParam int maxResults,
                                          @RequestBody Map<String, Object> body);
 
     @GetMapping(
