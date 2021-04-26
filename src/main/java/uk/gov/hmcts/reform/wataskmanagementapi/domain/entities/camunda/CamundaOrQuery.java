@@ -5,31 +5,31 @@ import java.util.List;
 
 public class CamundaOrQuery {
 
-    private final List<CamundaSearchExpression> processVariables;
+    private final List<CamundaSearchExpression> taskVariables;
 
-    public CamundaOrQuery(List<CamundaSearchExpression> processVariables) {
-        this.processVariables = processVariables;
+    public CamundaOrQuery(List<CamundaSearchExpression> taskVariables) {
+        this.taskVariables = taskVariables;
     }
 
-    public List<CamundaSearchExpression> getProcessVariables() {
-        return processVariables;
+    public List<CamundaSearchExpression> getTaskVariables() {
+        return taskVariables;
     }
 
     public static class CamundaOrQueryBuilder {
 
-        private final List<CamundaSearchExpression> processVariables = new ArrayList<>();
+        private final List<CamundaSearchExpression> taskVariables = new ArrayList<>();
 
         public static CamundaOrQueryBuilder orQuery() {
             return new CamundaOrQueryBuilder();
         }
 
         public CamundaOrQueryBuilder query(CamundaSearchExpression searchQuery) {
-            processVariables.add(searchQuery);
+            taskVariables.add(searchQuery);
             return this;
         }
 
         public CamundaOrQuery build() {
-            return new CamundaOrQuery(processVariables);
+            return new CamundaOrQuery(taskVariables);
         }
 
     }

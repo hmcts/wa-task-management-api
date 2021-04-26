@@ -205,20 +205,25 @@ public class GivensBuilder {
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseId", caseId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "A Hearing Centre")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
+            .withProcessVariable("taskId", "reviewTheAppeal")
+            .withProcessVariable("taskType", "reviewTheAppeal")
+            .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
             .build();
 
