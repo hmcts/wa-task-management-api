@@ -71,77 +71,55 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         setInitMockForSearchByCompletableTask();
     }
 
-    @State({"returns 404 from a post task call"})
-    public void responseError404Response() {
-        setInitMockResources();
-    }
-
-    @State({"returns 401 from a post task call"})
-    public void responseError401Response() {
-        setInitMockPermissions();
-    }
-
     private void setInitMockForSearchByCompletableTask() {
         when(camundaService.searchWithCriteria(any(),any(),any())).thenReturn(createTasks());
     }
 
-    private void setInitMockPermissions() {
-        when(camundaService.getTask(any(),any(),any())).thenThrow(new InsufficientPermissionsException(
-            "User did not have sufficient permissions to access task with id: 0000-0000-0000-0000")
-        );
-    }
-
-    private void setInitMockResources() {
-        when(camundaService.getTask(any(),any(),any())).thenThrow(new ResourceNotFoundException(
-            "There was a problem fetching the variables for task with id", null)
-        );
-    }
-
     public List<Task> createTasks() {
         var tasks = new ArrayList<Task>();
-        var taskOne = new Task("id",
-                                  "Jake",
-                                  "ReviewTheAppeal",
-                                  "unconfigured",
-                                  "main",
-                                  "PRIVATE",
-                                  "review",
-                                  ZonedDateTime.now(),
-                                  ZonedDateTime.now(),
-                                  "Mark Alistair",
-                                  true,
-                                  "Time extension",
-                                  "IA",
-                                  "South",
-                                  "12345",
-                                  "Newcastle",
-                                  "Asylum",
-                                  "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                                  "processApplication",
-                                  "caseName",
-                                  true);
+        var taskOne =  new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+                                "Jake",
+                                "ReviewTheAppeal",
+                                "unconfigured",
+                                "SELF",
+                                "PRIVATE",
+                                "task name",
+                                ZonedDateTime.now(),
+                                ZonedDateTime.now(),
+                                "Mark Alistair",
+                                true,
+                                "Time extension",
+                                "IA",
+                                "1",
+                                "765324",
+                                "Newcastle",
+                                "Asylum",
+                                "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+                                "processApplication",
+                                "Bob Smith",
+                                true);
 
-        var taskTwo = new Task("123",
-                               "Nadia",
-                               "ReviewTheAppeal",
-                               "configured",
-                               "main",
-                               "PRIVATE",
-                               "review",
-                               ZonedDateTime.now(),
-                               ZonedDateTime.now(),
-                               "Jean Lucas",
-                               true,
-                               "Time extension",
-                               "IA",
-                               "South",
-                               "67890",
-                               "Hatton Cross",
-                               "Asylum",
-                               "4d4b3a4e-c91f-433f-92ac-e4563434f72a",
-                               "processApplication",
-                               "inProcess",
-                               false);
+        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
+                                "Megan",
+                                "ReviewTheAppeal",
+                                "unconfigured",
+                                "SELF",
+                                "PRIVATE",
+                                "task name",
+                                ZonedDateTime.now(),
+                                ZonedDateTime.now(),
+                                "Jean Pierre",
+                                true,
+                                "Time extension",
+                                "IA",
+                                "1",
+                                "766524",
+                                "Newcastle",
+                                "Asylum",
+                                "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
+                                "processApplication",
+                                "Bob Smith",
+                                true);
 
         tasks.add(taskOne);
         tasks.add(taskTwo);
