@@ -12,10 +12,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @ActiveProfiles("integration")
 @RunWith(SpringRunner.class)
-@TestPropertySource(properties = {
-    "IDAM_API_URL=https://idam-api.aat.platform.hmcts.net",
-    "OPEN_ID_IDAM_URL=https://idam-web-public.aat.platform.hmcts.net"
-})
 @AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class SpringBootIntegrationBaseTest {
