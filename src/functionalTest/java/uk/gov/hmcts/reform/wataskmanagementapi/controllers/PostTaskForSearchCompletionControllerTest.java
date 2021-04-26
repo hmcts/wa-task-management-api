@@ -70,7 +70,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
