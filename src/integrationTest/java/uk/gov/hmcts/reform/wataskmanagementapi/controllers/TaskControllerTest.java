@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -303,7 +302,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
-            List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
+            List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", taskId));
             when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SCSS
@@ -335,23 +334,37 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
         private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                                  String jurisdiction,
                                                                  String taskId) {
-            Map<String, CamundaVariable> mockVariables = new HashMap<>();
-            mockVariables.put("jurisdiction", new CamundaVariable(jurisdiction, "String"));
-            mockVariables.put("securityClassification", new CamundaVariable("PUBLIC", "String"));
-            mockVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "String"));
-            mockVariables.put("caseId", new CamundaVariable("caseId1", "String"));
 
-            return mockVariables.keySet().stream()
-                .map(
-                    mockVarKey ->
-                        new CamundaVariableInstance(
-                            mockVariables.get(mockVarKey).getValue(),
-                            mockVariables.get(mockVarKey).getType(),
-                            mockVarKey,
-                            processInstanceId,
-                            taskId
-                        ))
-                .collect(Collectors.toList());
+            return asList(
+                new CamundaVariableInstance(
+                    jurisdiction,
+                    "String",
+                    "jurisdiction",
+                    processInstanceId,
+                    taskId
+                ),
+                new CamundaVariableInstance(
+                    "PUBLIC",
+                    "String",
+                    "securityClassification",
+                    processInstanceId,
+                    taskId
+                ),
+                new CamundaVariableInstance(
+                    "Read,Refer,Own,Manager,Cancel",
+                    "String",
+                    "tribunal-caseworker",
+                    processInstanceId,
+                    taskId
+                ),
+                new CamundaVariableInstance(
+                    "caseId1",
+                    "String",
+                    "caseId",
+                    processInstanceId,
+                    taskId
+                )
+            );
 
         }
 
