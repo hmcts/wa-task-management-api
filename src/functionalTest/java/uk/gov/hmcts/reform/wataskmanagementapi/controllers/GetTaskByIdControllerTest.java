@@ -16,6 +16,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -171,6 +172,56 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_with_task_and_correct_properties() {
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA",
+                "region", "1"
+            )
+        );
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("task.id", notNullValue())
+            .body("task.name", notNullValue())
+            .body("task.type", notNullValue())
+            .body("task.task_state", notNullValue())
+            .body("task.task_system", notNullValue())
+            .body("task.security_classification", notNullValue())
+            .body("task.task_title", notNullValue())
+            .body("task.created_date", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.location_name", notNullValue())
+            .body("task.location", notNullValue())
+            .body("task.execution_type", notNullValue())
+            .body("task.jurisdiction", notNullValue())
+            .body("task.region", notNullValue())
+            .body("task.case_type_id", notNullValue())
+            .body("task.case_id", notNullValue())
+            .body("task.case_type_id", notNullValue())
+            .body("task.case_category", notNullValue())
+            .body("task.case_name", notNullValue())
+            .body("task.auto_assigned", notNullValue())
+            .body("task.warnings", notNullValue());
+
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

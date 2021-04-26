@@ -211,7 +211,7 @@ public class Common {
 
     public void setupOrganisationalRoleAssignment(Headers headers) {
 
-        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -363,10 +363,12 @@ public class Common {
             }
 
             caseRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken));
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+            );
 
             organisationalRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken));
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+            );
         }
     }
 

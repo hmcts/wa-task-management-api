@@ -37,7 +37,7 @@ public interface CamundaServiceApi {
     )
     @ResponseBody
     List<CamundaVariableInstance> getAllVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                                  @RequestBody Map<String, List<String>> body);
+                                                  @RequestBody Map<String, Object> body);
 
     @PostMapping(value = "/task",
         consumes = APPLICATION_JSON_VALUE,
@@ -81,7 +81,7 @@ public interface CamundaServiceApi {
                       CompleteTaskVariables variables);
 
     @PostMapping(
-        value = "/task/{id}/variables",
+        value = "/task/{id}/localVariables",
         consumes = APPLICATION_JSON_VALUE
     )
     void addLocalVariablesToTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
