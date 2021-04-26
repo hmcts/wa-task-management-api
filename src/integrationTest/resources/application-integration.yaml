@@ -1,5 +1,6 @@
+# properties needed or the publish swagger specs github task
 api:
-  baseUrl: ${IDAM_API_URL:http://sidam-api}
+  baseUrl: ${IDAM_API_URL:https://idam-api.aat.platform.hmcts.net
 
 idam:
-  baseUrl: ${OPEN_ID_IDAM_URL:http://sidam-api}
+  baseUrl: ${OPEN_ID_IDAM_URL:https://idam-web-public.aat.platform.hmcts.net}
