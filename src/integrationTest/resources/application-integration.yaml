@@ -1,2 +1,5 @@
-config:
-  stacktraceEnabled: false
+api:
+  baseUrl: ${IDAM_API_URL:http://sidam-api}
+
+idam:
+  baseUrl: ${OPEN_ID_IDAM_URL:http://sidam-api}
