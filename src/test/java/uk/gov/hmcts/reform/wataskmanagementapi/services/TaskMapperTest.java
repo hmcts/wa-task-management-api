@@ -39,11 +39,12 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
-        variables.put("ccdId", new CamundaVariable("00000", "String"));
+        variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("caseTypeId", new CamundaVariable("someCaseTypeId", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
@@ -78,7 +79,8 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Task result = taskMapper.mapToTaskObject(new HashMap<String, CamundaVariable>(), camundaTask);
@@ -103,15 +105,18 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
-        variables.put("ccdId", new CamundaVariable("00000", "String"));
+        variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("appealType", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));
         variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
+        variables.put("hasWarnings", new CamundaVariable(false, "Boolean"));
+
 
 
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
@@ -124,6 +129,8 @@ class TaskMapperTest {
         assertEquals("someAssignee", result.getAssignee());
         assertEquals("someCaseName", result.getCaseName());
         assertEquals("someClassification", result.getSecurityClassification());
+        assertEquals(false, result.getWarnings());
+
 
     }
 
@@ -140,11 +147,12 @@ class TaskMapperTest {
             dueDate,
             null,
             null,
-            "some-key"
+            "some-key",
+            "someProcessInstanceId"
         );
 
         Map<String, CamundaVariable> variables = new HashMap<>();
-        variables.put("ccdId", new CamundaVariable("00000", "String"));
+        variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
         variables.put("caseTypeId", new CamundaVariable("someCaseType", "String"));
         variables.put("taskState", new CamundaVariable("configured", "String"));

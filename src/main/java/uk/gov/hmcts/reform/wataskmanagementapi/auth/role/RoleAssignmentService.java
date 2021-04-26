@@ -7,7 +7,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 
 import java.util.List;
 
@@ -32,7 +32,6 @@ public class RoleAssignmentService {
         requireNonNull(idamUserId, "IdamUserId cannot be null");
 
         GetRoleAssignmentResponse getRoleAssignmentResponse = getRoles(idamUserId, authToken);
-
         return getRoleAssignmentResponse.getRoleAssignmentResponse();
     }
 
@@ -44,7 +43,7 @@ public class RoleAssignmentService {
                 serviceAuthTokenGenerator.generate()
             );
         } catch (FeignException ex) {
-            throw new InsufficientPermissionsException(
+            throw new UnAuthorizedException(
                 "User did not have sufficient permissions to perform this action", ex);
         }
     }

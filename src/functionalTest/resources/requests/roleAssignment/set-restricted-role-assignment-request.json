@@ -1,0 +1,23 @@
+{
+  "requestedRoles": [
+    {
+      "actorId": "{ACTOR_ID_PLACEHOLDER}",
+      "actorIdType": "IDAM",
+      "classification": "RESTRICTED",
+      "grantType": "SPECIFIC",
+      "readOnly": false,
+      "roleCategory": "LEGAL_OPERATIONS",
+      "roleName": "{ROLE_NAME_PLACEHOLDER}",
+      "roleType": "CASE",
+      "attributes": {
+        "caseId": "{CASE_ID_PLACEHOLDER}"
+      }
+    }
+  ],
+  "roleRequest": {
+    "assignerId": "{ASSIGNER_ID_PLACEHOLDER}",
+    "process": "case-allocation",
+    "reference": "{CASE_ID_PLACEHOLDER}/tribunal-caseworker",
+    "replaceExisting": true
+  }
+}

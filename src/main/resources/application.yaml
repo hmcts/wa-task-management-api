@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: 8087
 
 management:
   endpoint:
@@ -16,8 +16,10 @@ config:
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+  dmnKeys:
+    complete-task: "completeTask_IA_Asylum"
 
-role-assignment:
+role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
 
 security:
@@ -27,8 +29,9 @@ security:
     - "/health/liveness"
     - "/health/readiness"
     - "/loggers/**"
-    - "/swagger-ui.html"
     - "/swagger-resources/**"
+    - "/swagger-ui/**"
+    - "/swagger-ui/index.html"
     - "/v2/api-docs"
     - "/webjars/springfox-swagger-ui/**"
     - "/favicon.ico"
@@ -48,7 +51,9 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
+  api:
+    baseUrl: ${IDAM_API_URL:http://sidam-api}
 
 spring:
   application:
@@ -75,4 +80,14 @@ feign:
       default:
         connectTimeout: 30000
         readTimeout: 30000
-        loggerLevel: basic
+
+launchDarkly:
+  sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
+  connectionTimeout: 5000
+  socketTimeout: 5000
+
+
+logging:
+  level:
+    root: INFO
+    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG

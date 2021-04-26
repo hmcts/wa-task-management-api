@@ -7,7 +7,7 @@ public class InsufficientPermissionsException extends RuntimeException {
     public InsufficientPermissionsException(
         String message
     ) {
-        this(message, null);
+        super(message);
     }
 
     public InsufficientPermissionsException(

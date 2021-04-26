@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
 class CamundaObjectMapperTest {
@@ -30,7 +31,7 @@ class CamundaObjectMapperTest {
     void should_convert_object_to_camunda_json_camel_case() {
 
         CamundaProcessVariables testObject = processVariables()
-            .withProcessVariable("ccdId", "0000000")
+            .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
@@ -39,14 +40,10 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asCamundaJsonString(testObject);
 
         String expected = "{\"processVariablesMap\":"
-                          + "{\"dueDate\":{\"value\":\"2020-09-27\","
-                          + "\"type\":\"String\"},"
-                          + "\"ccdId\":{\"value\":\"0000000\","
-                          + "\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\","
-                          + "\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\","
-                          + "\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
+                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 
@@ -66,7 +63,7 @@ class CamundaObjectMapperTest {
     void should_convert_object_to_json_snake_case() {
 
         CamundaProcessVariables testObject = processVariables()
-            .withProcessVariable("ccdId", "0000000")
+            .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
@@ -75,14 +72,16 @@ class CamundaObjectMapperTest {
         String result = camundaObjectMapper.asJsonString(testObject);
 
         String expected = "{\"process_variables_map\":"
-                          + "{\"dueDate\":{\"value\":\"2020-09-27\","
-                          + "\"type\":\"String\"},"
-                          + "\"ccdId\":{\"value\":\"0000000\","
-                          + "\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\","
-                          + "\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\","
-                          + "\"type\":\"String\"}}}";
+                          + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
+                          + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
+                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
+    }
+
+    @Test
+    void should_throw_IllegalArgumentException_when_invalid_object_is_passed() {
+        assertThrows(IllegalArgumentException.class, () ->
+            camundaObjectMapper.asCamundaJsonString(new Object()));
     }
 }

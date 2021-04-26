@@ -4,9 +4,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 @ExtendWith(MockitoExtension.class)
 class GetTaskResponseTest {
@@ -23,5 +25,19 @@ class GetTaskResponseTest {
         assertThat(camundaTaskGetTaskResponse.getTask()).isEqualTo(mappedTask);
 
     }
+
+    @Test
+    void isWellImplemented() {
+        final Class<?> classUnderTest = GetTaskResponse.class;
+
+        assertPojoMethodsFor(classUnderTest)
+            .testing(Method.GETTER)
+            .testing(Method.CONSTRUCTOR)
+            .testing(Method.TO_STRING)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
+            .areWellImplemented();
+    }
+
 
 }

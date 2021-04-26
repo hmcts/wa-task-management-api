@@ -1,12 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingExpression;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 
 @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public class CamundaSearchQuery {
@@ -30,14 +31,18 @@ public class CamundaSearchQuery {
             return new CamundaAndQueryBuilder();
         }
 
+        public List<Object> getOrQueries() {
+            return orQueries;
+        }
+
         public CamundaAndQueryBuilder withKeyValue(String key, String value) {
-            map.put(key, singletonList(value));
+            map.put(key, value);
             return this;
         }
 
         public CamundaAndQueryBuilder andQuery(CamundaOrQuery.CamundaOrQueryBuilder searchQuery) {
             CamundaOrQuery query = searchQuery.build();
-            if (!query.getProcessVariables().isEmpty()) {
+            if (!query.getTaskVariables().isEmpty()) {
                 orQueries.add(query);
             }
             return this;
@@ -54,6 +59,13 @@ public class CamundaSearchQuery {
         public CamundaAndQueryBuilder andQuery(Map<String, List<String>> searchExpression) {
             if (searchExpression != null && !searchExpression.isEmpty()) {
                 orQueries.add(searchExpression);
+            }
+            return this;
+        }
+
+        public CamundaAndQueryBuilder andSortingQuery(List<CamundaSortingExpression> sortingExpressions) {
+            if (sortingExpressions != null && !sortingExpressions.isEmpty()) {
+                map.put("sorting", sortingExpressions);
             }
             return this;
         }

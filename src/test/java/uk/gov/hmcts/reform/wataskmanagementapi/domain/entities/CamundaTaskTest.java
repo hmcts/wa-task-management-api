@@ -1,36 +1,26 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 
-import java.time.ZonedDateTime;
+import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class CamundaTaskTest {
 
+
     @Test
-    void should_create_full_object_and_get_values() {
+    void isWellImplemented() {
+        final Class<?> classUnderTest = CamundaTask.class;
 
-        ZonedDateTime created = ZonedDateTime.now();
-        ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
-        CamundaTask camundaTask = new CamundaTask(
-            "some-id",
-            "some-name",
-            "some-assignee",
-            created,
-            dueDate,
-            "some-description",
-            "some-owner",
-            "formKey"
-        );
-
-        Assertions.assertThat(camundaTask.getId()).isEqualTo("some-id");
-        Assertions.assertThat(camundaTask.getName()).isEqualTo("some-name");
-        Assertions.assertThat(camundaTask.getAssignee()).isEqualTo("some-assignee");
-        Assertions.assertThat(camundaTask.getCreated()).isEqualTo(created);
-        Assertions.assertThat(camundaTask.getDue()).isEqualTo(dueDate);
-        Assertions.assertThat(camundaTask.getDescription()).isEqualTo("some-description");
-        Assertions.assertThat(camundaTask.getOwner()).isEqualTo("some-owner");
-        Assertions.assertThat(camundaTask.getFormKey()).isEqualTo("formKey");
+        assertPojoMethodsFor(classUnderTest)
+            .testing(Method.GETTER)
+            .testing(Method.CONSTRUCTOR)
+            .testing(Method.TO_STRING)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
+            .areWellImplemented();
     }
+
+
 }

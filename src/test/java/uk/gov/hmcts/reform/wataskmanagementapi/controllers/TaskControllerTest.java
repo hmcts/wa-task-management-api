@@ -9,17 +9,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.UUID;
 
@@ -37,29 +41,25 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 class TaskControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
-    private static final String USER_ID = "IDAM_USER_ID";
     @Mock
     private CamundaService camundaService;
     @Mock
-    private IdamService idamService;
-    @Mock
     private AccessControlService accessControlService;
+    @Mock
+    private Assignment mockedRoleAssignment;
+    @Mock
+    private UserInfo mockedUserInfo;
 
     private TaskController taskController;
-    private Assignment mockedRoleAssignment;
-    private UserInfo mockedUserInfo;
 
     @BeforeEach
     void setUp() {
 
         taskController = new TaskController(
             camundaService,
-            idamService,
             accessControlService
         );
 
-        mockedRoleAssignment = mock(Assignment.class);
-        mockedUserInfo = mock(UserInfo.class);
     }
 
     @Test
@@ -89,7 +89,7 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
 
-        ResponseEntity<String> response = taskController.claimTask(IDAM_AUTH_TOKEN, taskId);
+        ResponseEntity<Void> response = taskController.claimTask(IDAM_AUTH_TOKEN, taskId);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -111,6 +111,32 @@ class TaskControllerTest {
     }
 
     @Test
+    void should_succeed_when_performing_search_with_sorting_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
+            IDAM_AUTH_TOKEN,
+            new SearchTaskRequest(
+                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+                singletonList(new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)))
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void should_return_a_400_when_performing_search_with_null_parameters() {
+
+        ResponseEntity<GetTasksResponse<Task>> response =
+            taskController.searchWithCriteria(IDAM_AUTH_TOKEN, new SearchTaskRequest(null));
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
     void should_return_a_400_when_performing_search_with_no_parameters() {
 
         ResponseEntity<GetTasksResponse<Task>> response =
@@ -126,7 +152,7 @@ class TaskControllerTest {
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
-        ResponseEntity<String> response = taskController.unclaimTask(authToken, taskId);
+        ResponseEntity<Void> response = taskController.unclaimTask(authToken, taskId);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
@@ -136,11 +162,12 @@ class TaskControllerTest {
 
         String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
-        String userId = UUID.randomUUID().toString();
 
-        when(idamService.getUserId(authToken)).thenReturn(userId);
-
-        ResponseEntity<String> response = taskController.assignTask(authToken, taskId);
+        ResponseEntity<Void> response = taskController.assignTask(
+            authToken,
+            taskId,
+            new AssigneeRequest("userId")
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -150,6 +177,24 @@ class TaskControllerTest {
     void should_complete_a_task() {
         String taskId = UUID.randomUUID().toString();
         ResponseEntity response = taskController.completeTask(IDAM_AUTH_TOKEN, taskId);
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void should_auto_complete_a_task() {
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "caseId", "eventId", "caseJurisdiction", "caseType");
+        ResponseEntity response =
+            taskController.searchWithCriteriaForAutomaticCompletion(IDAM_AUTH_TOKEN, searchEventAndCase);
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    void should_cancel_a_task() {
+        String taskId = UUID.randomUUID().toString();
+        ResponseEntity response = taskController.cancelTask(IDAM_AUTH_TOKEN, taskId);
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }

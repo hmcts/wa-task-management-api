@@ -24,6 +24,7 @@ class AssigneeEnumTest {
         assertEquals("unassigned", unassigned);
         assertEquals("unconfigured", unconfigured);
         assertEquals("referred", referred);
+        assertEquals("referred", TaskState.REFERRED.toString());
     }
 
     @Test

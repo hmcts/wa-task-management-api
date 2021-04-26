@@ -12,10 +12,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CCD_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
@@ -23,10 +24,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 
 
 @Service
+@SuppressWarnings("PMD.LinguisticNaming")
 public class TaskMapper {
 
 
@@ -41,11 +44,11 @@ public class TaskMapper {
         // Camunda Attributes
         String id = camundaTask.getId();
         String name = camundaTask.getName();
-        String task = camundaTask.getFormKey();
         ZonedDateTime createdDate = camundaTask.getCreated();
         ZonedDateTime dueDate = camundaTask.getDue();
         String assignee = camundaTask.getAssignee();
         // Local Variables
+        String type = getVariableValue(variables.get(TASK_TYPE.value()), String.class);
         String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
         String securityClassification = getVariableValue(variables.get(SECURITY_CLASSIFICATION.value()), String.class);
         String taskTitle = getVariableValue(variables.get(TITLE.value()), String.class);
@@ -57,14 +60,15 @@ public class TaskMapper {
         String location = getVariableValue(variables.get(LOCATION.value()), String.class);
         String locationName = getVariableValue(variables.get(LOCATION_NAME.value()), String.class);
         String caseTypeId = getVariableValue(variables.get(CASE_TYPE_ID.value()), String.class);
-        String caseId = getVariableValue(variables.get(CCD_ID.value()), String.class);
+        String caseId = getVariableValue(variables.get(CASE_ID.value()), String.class);
         String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
         String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
+        Boolean hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), Boolean.class);
 
         return new Task(
             id,
             name,
-            task,
+            type,
             taskState,
             taskSystem,
             securityClassification,
@@ -81,7 +85,8 @@ public class TaskMapper {
             caseTypeId,
             caseId,
             caseCategory,
-            caseName
+            caseName,
+            hasWarnings
 
         );
     }

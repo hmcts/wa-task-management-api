@@ -1,17 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import org.junit.jupiter.api.Test;
+import pl.pojo.tester.api.assertion.Method;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 public class AssignTaskRequestTest {
 
     @Test
-    void should_create_object_and_get_value() {
+    void isWellImplemented() {
+        final Class<?> classUnderTest = AssignTaskRequest.class;
 
-        final AssignTaskRequest assignTaskRequest = new AssignTaskRequest("some-user");
-        assertThat(assignTaskRequest.getUserId()).isEqualTo("some-user");
-
+        assertPojoMethodsFor(classUnderTest)
+            .testing(Method.GETTER)
+            .testing(Method.CONSTRUCTOR)
+            .testing(Method.TO_STRING)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
+            .areWellImplemented();
     }
+
 
 }

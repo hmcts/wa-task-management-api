@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,28 +13,31 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.IdamService;
 
 import java.util.List;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 @RequestMapping(
     path = "/task",
     consumes = APPLICATION_JSON_VALUE,
@@ -42,16 +46,20 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @RestController
 public class TaskController {
 
+    public static final String UNAUTHORIZED = "Unauthorized";
+    private static final String BAD_REQUEST = "Bad Request";
+    private static final String FORBIDDEN = "Forbidden";
+    private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+    private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
-    private final IdamService idamService;
     private final AccessControlService accessControlService;
 
     @Autowired
     public TaskController(CamundaService camundaService,
-                          IdamService idamService,
-                          AccessControlService accessControlService) {
+                          AccessControlService accessControlService
+    ) {
         this.camundaService = camundaService;
-        this.idamService = idamService;
         this.accessControlService = accessControlService;
     }
 
@@ -64,19 +72,23 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
@@ -92,7 +104,7 @@ public class TaskController {
 
         List<Task> tasks = camundaService.searchWithCriteria(
             searchTaskRequest,
-            accessControlResponse.getRoleAssignments(),
+            accessControlResponse,
             endpointPermissionsRequired
         );
         return ResponseEntity
@@ -110,24 +122,28 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
-                                                         @PathVariable("task-id") String id) {
+                                                         @PathVariable(TASK_ID) String id) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -148,25 +164,30 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/claim",
         produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> claimTask(@RequestHeader("Authorization") String authToken,
-                                            @PathVariable("task-id") String taskId) {
+    public ResponseEntity<Void> claimTask(@RequestHeader("Authorization") String authToken,
+                                          @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
@@ -187,25 +208,30 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> unclaimTask(@RequestHeader("Authorization") String authToken,
-                                              @PathVariable("task-id") String taskId) {
+    public ResponseEntity<Void> unclaimTask(@RequestHeader("Authorization") String authToken,
+                                              @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
 
@@ -225,31 +251,48 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
-            message = "Bad Request"
+            message = BAD_REQUEST
         ),
         @ApiResponse(
             code = 403,
-            message = "Forbidden"
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 415,
-            message = "Unsupported Media Type"
+            message = UNSUPPORTED_MEDIA_TYPE
         ),
         @ApiResponse(
             code = 500,
-            message = "Internal Server Error"
+            message = INTERNAL_SERVER_ERROR
         )
     })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<String> assignTask(@RequestHeader("Authorization") String authToken,
-                                             @PathVariable("task-id") String taskId) {
+    public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
+                                           @PathVariable(TASK_ID) String taskId,
+                                           @RequestBody AssigneeRequest assigneeRequest) {
 
-        String userId = idamService.getUserId(authToken);
-        camundaService.assignTask(taskId, userId);
-        return ResponseEntity
-            .noContent()
-            .cacheControl(CacheControl.noCache())
-            .build();
+        List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
+        List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
+
+        AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
+        AccessControlResponse assigneeAccessControlResponse = accessControlService.getRolesGivenUserId(
+            assigneeRequest.getUserId(),
+            assignerAuthToken
+        );
+
+        camundaService.assignTask(
+            taskId,
+            assignerAccessControlResponse,
+            assignerPermissionsRequired,
+            assigneeAccessControlResponse,
+            assigneePermissionsRequired
+        );
+        return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
 
     @ApiOperation("Completes a Task identified by an id.")
@@ -260,7 +303,56 @@ public class TaskController {
         ),
         @ApiResponse(
             code = 400,
+            message = BAD_REQUEST
+        ),
+        @ApiResponse(
+            code = 403,
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
+            code = 415,
+            message = UNSUPPORTED_MEDIA_TYPE
+        ),
+        @ApiResponse(
+            code = 500,
+            message = INTERNAL_SERVER_ERROR
+        )
+    })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
+    @PostMapping(path = "/{task-id}/complete")
+    public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
+                                             @PathVariable(TASK_ID) String taskId) {
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
+    }
+
+    @ApiOperation("Retrieve a list of Task resources identified by set of search"
+                  + " criteria that are eligible for automatic completion")
+    @ApiResponses({
+        @ApiResponse(
+            code = 200,
+            message = "OK",
+            response = GetTasksResponse.class
+        ),
+        @ApiResponse(
+            code = 400,
             message = "Bad Request"
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
         ),
         @ApiResponse(
             code = 403,
@@ -275,14 +367,62 @@ public class TaskController {
             message = "Internal Server Error"
         )
     })
-    @PostMapping(path = "/{task-id}/complete")
-    public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
-                                             @PathVariable("task-id") String taskId) {
-        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
+    @PostMapping(path = "/search-for-completable", consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
+        @RequestHeader("Authorization") String authToken,
+        @RequestBody SearchEventAndCase searchEventAndCase) {
 
+        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        List<Task> tasks = camundaService.searchForCompletableTasks(
+            searchEventAndCase,
+            endpointPermissionsRequired,
+            accessControlResponse
+
+        );
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(new GetTasksResponse<>(tasks));
+    }
+
+    @ApiOperation("Cancel a Task identified by an id.")
+    @ApiResponses({
+        @ApiResponse(
+            code = 204,
+            message = "Task has been cancelled"
+        ),
+        @ApiResponse(
+            code = 400,
+            message = BAD_REQUEST
+        ),
+        @ApiResponse(
+            code = 403,
+            message = FORBIDDEN
+        ),
+        @ApiResponse(
+            code = 401,
+            message = UNAUTHORIZED
+        ),
+        @ApiResponse(
+            code = 415,
+            message = UNSUPPORTED_MEDIA_TYPE
+        ),
+        @ApiResponse(
+            code = 500,
+            message = INTERNAL_SERVER_ERROR
+        )
+    })
+    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
+    @PostMapping(path = "/{task-id}/cancel")
+    public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
+                                           @PathVariable(TASK_ID) String taskId) {
+        List<PermissionTypes> endpointPermissionsRequired = asList(CANCEL);
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        camundaService.cancelTask(taskId, accessControlResponse, endpointPermissionsRequired);
 
         return ResponseEntity
             .noContent()
