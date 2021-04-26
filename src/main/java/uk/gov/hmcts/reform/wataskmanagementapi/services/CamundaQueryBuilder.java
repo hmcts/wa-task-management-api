@@ -40,6 +40,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 @Service
 public class CamundaQueryBuilder {
 
+    private static final String WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY = "wa-task-initiation-ia-asylum";
+
     /**
      * Builds a search query using the orQueries and sorting if provided from the search task request.
      * This method is used when performing searches.
@@ -70,6 +72,7 @@ public class CamundaQueryBuilder {
         );
 
         CamundaSearchQuery.CamundaAndQueryBuilder queries = camundaQuery()
+            .withKeyValue("processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY)
             .andQuery(userQueries)
             .andQuery(jurisdictionQueries)
             .andQuery(locationQueries)
@@ -111,6 +114,7 @@ public class CamundaQueryBuilder {
                 SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())));
 
         return camundaQuery()
+            .withKeyValue("processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY)
             .andQuery(taskIdQueries)
             .andQuery(stateQueries)
             .andQuery(caseIdQueries)

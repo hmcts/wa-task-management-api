@@ -28,6 +28,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 public class AuthorizationHeadersProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
+    private final Map<String, UserInfo> userInfo = new ConcurrentHashMap<>();
     private final Map<String, TestAccount> accounts = new ConcurrentHashMap<>();
     @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
     @Value("${idam.scope}") protected String userScope;
@@ -165,7 +166,11 @@ public class AuthorizationHeadersProvider {
     }
 
     public UserInfo getUserInfo(String userToken) {
-        return idamWebApi.userInfo(userToken);
+        return userInfo.computeIfAbsent(
+            userToken,
+            user -> idamWebApi.userInfo(userToken)
+        );
+
     }
 
     public Headers getServiceAuthorizationHeadersOnly() {
