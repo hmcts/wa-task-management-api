@@ -227,7 +227,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             mockServices.mockUserInfo();
 
-            final List<String> roleNames = asList("tribunal-caseworker");
+            final List<String> roleNames = singletonList("tribunal-caseworker");
 
             // Role attribute is IA
             Map<String, String> roleAttributes = new HashMap<>();
