@@ -67,7 +67,7 @@ public class TaskManagementGetTaskByIdPactTest {
 
     @State({"appropriate task is returned"})
     public void getTaskById() {
-        setInitMockTask();
+        //setInitMockTask();
     }
 
     private void setInitMockTask() {
