@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -87,10 +86,10 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
         @DisplayName("Invalid escalation code")
         @Test
         void should_return_a_500_when_esclation_code_is_invalid() throws Exception {
-            final var taskId = UUID.randomUUID().toString();
+            final String taskId = UUID.randomUUID().toString();
 
-            final var errorMessage = "There was a problem cancelling "
-                                     + "the task with id: " + taskId;
+            final String errorMessage = "There was a problem cancelling "
+                                        + "the task with id: " + taskId;
 
             mockServices.mockServiceAPIs();
 
@@ -126,7 +125,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
     class GetTask {
         @Test
         void should_return_a_500_when_id_invalid() throws Exception {
-            final var taskId = UUID.randomUUID().toString();
+            final String taskId = UUID.randomUUID().toString();
 
             mockServices.mockServiceAPIs();
 
@@ -156,9 +155,9 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_a_400_when_restricted_role_is_given() throws Exception {
-            final var taskId = UUID.randomUUID().toString();
+            final String taskId = UUID.randomUUID().toString();
 
-            final var userToken = "user_token";
+            final String userToken = "user_token";
 
             mockServices.mockUserInfo();
 
@@ -222,13 +221,13 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_a_200_when_restricted_role_is_given() throws Exception {
-            final var taskId = UUID.randomUUID().toString();
+            final String taskId = UUID.randomUUID().toString();
 
-            final var userToken = "user_token";
+            final String userToken = "user_token";
 
             mockServices.mockUserInfo();
 
-            final List<String> roleNames = asList("tribunal-caseworker");
+            final List<String> roleNames = singletonList("tribunal-caseworker");
 
             // Role attribute is IA
             Map<String, String> roleAttributes = new HashMap<>();
@@ -260,13 +259,13 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             // Task created with Jurisdiction SSCS
             when(camundaServiceApi.getAllVariables(any(), any()))
-                .thenReturn(mockedAllVariables("processInstanceId", "SSCS"));
+                .thenReturn(mockedAllVariables("processInstanceId", "SSCS", taskId));
 
             SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
                 new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
             ));
 
-            final var searchContent = objectMapper.writeValueAsString(searchTaskRequest);
+            final String searchContent = objectMapper.writeValueAsString(searchTaskRequest);
             mockMvc.perform(
                 post("/task")
                     .header(
@@ -286,7 +285,9 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
          */
         @Test
         void should_Return_Single_Task_when_two_role_assignments_with_one_restricted_is_given() throws Exception {
-            final var userToken = "user_token";
+            final String taskId = UUID.randomUUID().toString();
+
+            final String userToken = "user_token";
 
             mockServices.mockUserInfo();
 
@@ -301,18 +302,18 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
-            List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
+            List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", taskId));
             when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SCSS
             when(camundaServiceApi.getAllVariables(any(), any()))
-                .thenReturn(mockedAllVariables("processInstanceId", "SSCS"));
+                .thenReturn(mockedAllVariables("processInstanceId", "SSCS", taskId));
 
             SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
                 new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
             ));
 
-            final var searchContent = objectMapper.writeValueAsString(searchTaskRequest);
+            final String searchContent = objectMapper.writeValueAsString(searchTaskRequest);
             mockMvc.perform(
                 post("/task")
                     .header(
@@ -330,23 +331,40 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
                 ));
         }
 
-        private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId, String jurisdiction) {
-            Map<String, CamundaVariable> mockVariables = new HashMap<>();
-            mockVariables.put("jurisdiction", new CamundaVariable(jurisdiction, "String"));
-            mockVariables.put("securityClassification", new CamundaVariable("PUBLIC", "String"));
-            mockVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "String"));
-            mockVariables.put("caseId", new CamundaVariable("caseId1", "String"));
+        private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
+                                                                 String jurisdiction,
+                                                                 String taskId) {
 
-            return mockVariables.keySet().stream()
-                .map(
-                    mockVarKey ->
-                        new CamundaVariableInstance(
-                            mockVariables.get(mockVarKey).getValue(),
-                            mockVariables.get(mockVarKey).getType(),
-                            mockVarKey,
-                            processInstanceId
-                        ))
-                .collect(Collectors.toList());
+            return asList(
+                new CamundaVariableInstance(
+                    jurisdiction,
+                    "String",
+                    "jurisdiction",
+                    processInstanceId,
+                    taskId
+                ),
+                new CamundaVariableInstance(
+                    "PUBLIC",
+                    "String",
+                    "securityClassification",
+                    processInstanceId,
+                    taskId
+                ),
+                new CamundaVariableInstance(
+                    "Read,Refer,Own,Manager,Cancel",
+                    "String",
+                    "tribunal-caseworker",
+                    processInstanceId,
+                    taskId
+                ),
+                new CamundaVariableInstance(
+                    "caseId1",
+                    "String",
+                    "caseId",
+                    processInstanceId,
+                    taskId
+                )
+            );
 
         }
 
@@ -359,10 +377,10 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
         @DisplayName("Invalid DMN table")
         @Test
         void should_return_a_500_when_dmn_table_is_invalid() throws Exception {
-            final var taskId = UUID.randomUUID().toString();
+            final String taskId = UUID.randomUUID().toString();
 
-            final var errorMessage = "There was a problem cancelling "
-                                     + "the task with id: " + taskId;
+            final String errorMessage = "There was a problem cancelling "
+                                        + "the task with id: " + taskId;
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "some-caseId",
@@ -371,7 +389,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
                 "asylum"
             );
             ObjectMapper mapper = new ObjectMapper();
-            final var searchContent = mapper.writeValueAsString(searchEventAndCase);
+            final String searchContent = mapper.writeValueAsString(searchEventAndCase);
 
             mockServices.mockServiceAPIs();
 

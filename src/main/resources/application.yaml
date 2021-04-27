@@ -22,10 +22,6 @@ camunda:
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
 
-core_case_data:
-  api:
-    url: ${CCD_URL:http://ccd-data-store-api}
-
 security:
   anonymousPaths:
     - "/"

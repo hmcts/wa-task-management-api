@@ -24,6 +24,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 
 
@@ -43,11 +44,11 @@ public class TaskMapper {
         // Camunda Attributes
         String id = camundaTask.getId();
         String name = camundaTask.getName();
-        String type = camundaTask.getFormKey();
         ZonedDateTime createdDate = camundaTask.getCreated();
         ZonedDateTime dueDate = camundaTask.getDue();
         String assignee = camundaTask.getAssignee();
         // Local Variables
+        String type = getVariableValue(variables.get(TASK_TYPE.value()), String.class);
         String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
         String securityClassification = getVariableValue(variables.get(SECURITY_CLASSIFICATION.value()), String.class);
         String taskTitle = getVariableValue(variables.get(TITLE.value()), String.class);

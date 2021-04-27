@@ -24,6 +24,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -76,7 +77,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
@@ -341,6 +342,63 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         tasksCreated.forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
 
+    }
+
+
+    @Test
+    public void should_return_a_200_with_search_results_and_correct_properties() {
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+        ));
+
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.name", everyItem(notNullValue()))
+            .body("tasks.type", everyItem(notNullValue()))
+            .body("tasks.task_state", everyItem(notNullValue()))
+            .body("tasks.task_system", everyItem(notNullValue()))
+            .body("tasks.security_classification", everyItem(notNullValue()))
+            .body("tasks.task_title", everyItem(notNullValue()))
+            .body("tasks.created_date", everyItem(notNullValue()))
+            .body("tasks.due_date", everyItem(notNullValue()))
+            .body("tasks.location_name", everyItem(notNullValue()))
+            .body("tasks.location", everyItem(notNullValue()))
+            .body("tasks.execution_type", everyItem(notNullValue()))
+            .body("tasks.jurisdiction", everyItem(notNullValue()))
+            .body("tasks.region", everyItem(notNullValue()))
+            .body("tasks.case_type_id", everyItem(notNullValue()))
+            .body("tasks.case_id", everyItem(notNullValue()))
+            .body("tasks.case_type_id", everyItem(notNullValue()))
+            .body("tasks.case_category", everyItem(notNullValue()))
+            .body("tasks.case_name", everyItem(notNullValue()))
+            .body("tasks.auto_assigned", everyItem(notNullValue()))
+            .body("tasks.warnings", everyItem(notNullValue()));
+
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
     }
 
     private List<TestVariables> createMultipleTasksWithDifferentTaskStates(String[] states) {

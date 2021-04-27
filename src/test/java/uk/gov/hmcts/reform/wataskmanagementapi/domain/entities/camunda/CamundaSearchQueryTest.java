@@ -33,7 +33,7 @@ class CamundaSearchQueryTest {
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
 
-        String expected = "{\"queries\":{\"aKey\":[\"aValue\"],\"orQueries\":[]}}";
+        String expected = "{\"queries\":{\"aKey\":\"aValue\",\"orQueries\":[]}}";
 
         assertEquals(expected, resultJson);
     }
@@ -49,7 +49,7 @@ class CamundaSearchQueryTest {
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
 
-        String expected = "{\"queries\":{\"orQueries\":[{\"processVariables\":[{\"name\":\"aKey\",\"operator\":\"eq\",\"value\":\"aValue\"}]}]}}";
+        String expected = "{\"queries\":{\"orQueries\":[{\"taskVariables\":[{\"name\":\"aKey\",\"operator\":\"eq\",\"value\":\"aValue\"}]}]}}";
 
         assertEquals(expected, resultJson);
     }
