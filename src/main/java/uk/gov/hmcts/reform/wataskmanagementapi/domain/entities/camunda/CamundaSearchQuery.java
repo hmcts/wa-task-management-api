@@ -42,7 +42,7 @@ public class CamundaSearchQuery {
 
         public CamundaAndQueryBuilder andQuery(CamundaOrQuery.CamundaOrQueryBuilder searchQuery) {
             CamundaOrQuery query = searchQuery.build();
-            if (!query.getProcessVariables().isEmpty()) {
+            if (!query.getTaskVariables().isEmpty()) {
                 orQueries.add(query);
             }
             return this;
