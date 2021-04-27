@@ -9,6 +9,7 @@ public enum SearchParameterKey {
     JURISDICTION("jurisdiction"),
     STATE("state"),
     TASK_ID("taskId"),
+    TASK_TYPE("taskType"),
     CASE_ID("caseId");
 
 
