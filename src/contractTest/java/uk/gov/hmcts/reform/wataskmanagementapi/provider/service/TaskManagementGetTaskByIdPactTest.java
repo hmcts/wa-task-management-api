@@ -65,7 +65,7 @@ public class TaskManagementGetTaskByIdPactTest {
 
     @State({"appropriate task is returned"})
     public void getTaskById() {
-        setInitMock();
+       // setInitMock();
     }
 
     @State({"returns 404 from a get task call"})
