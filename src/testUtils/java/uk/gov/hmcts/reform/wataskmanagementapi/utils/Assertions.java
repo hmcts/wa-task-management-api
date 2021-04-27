@@ -9,9 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Assertions {
 
@@ -36,10 +34,11 @@ public class Assertions {
             .extract()
             .jsonPath().getList("", HistoryVariableInstance.class);
 
-        List<HistoryVariableInstance> taskState = historyVariableInstances.stream()
+        List<HistoryVariableInstance> taskStateHistory = historyVariableInstances.stream()
             .filter(historyVariableInstance -> historyVariableInstance.getName().equals(variable))
             .collect(Collectors.toList());
 
-        assertThat(taskState, is(singletonList(new HistoryVariableInstance(variable, value))));
+        //Entire history of the variable including multiple scopes we assert that it contains the expected entry
+        assertTrue(taskStateHistory.contains(new HistoryVariableInstance(variable, value)));
     }
 }

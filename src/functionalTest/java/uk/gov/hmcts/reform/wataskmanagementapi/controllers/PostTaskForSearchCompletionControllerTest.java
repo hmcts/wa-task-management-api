@@ -25,12 +25,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -71,7 +70,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
@@ -130,9 +129,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         sendMessage(caseId);
 
         final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
-        if (tasksList.size() != 2) {
-            fail("2 tasks should be created for case id: " + caseId);
-        }
 
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
@@ -179,7 +175,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
         // create a caseId
         final String caseId = given.iCreateACcdCase();
-        log.info("Created caseId : {}", caseId);
 
         // create a 3 tasks for caseId
         sendMessage(caseId);
@@ -187,9 +182,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         sendMessage(caseId);
 
         final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 3);
-        if (tasksList.size() != 3) {
-            fail("3 tasks should be created for case id: " + caseId);
-        }
+
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
 
@@ -226,7 +219,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(2))
-            .body("tasks.id", containsInAnyOrder(new String[]{taskId2, taskId3}))
+            .body("tasks.id", hasItems(taskId2, taskId3))
             .body("tasks.case_id", everyItem(is(caseId)))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_type_id", everyItem(is("Asylum")))
