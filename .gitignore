@@ -23,3 +23,6 @@ bin/main/application.yaml
 .DS_Store
 
 /pacts/
+
+### lombok
+lombok.config
