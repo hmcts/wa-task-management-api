@@ -14,8 +14,7 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 public class SearchParameter {
-
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, allowableValues = "user")
     private SearchParameterKey key;
     @ApiModelProperty(required = true)
     private SearchOperator operator;
