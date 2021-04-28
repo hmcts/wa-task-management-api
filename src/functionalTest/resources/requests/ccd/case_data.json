@@ -34,5 +34,18 @@
     "region": "1",
     "baseLocation": "765324"
   },
-  "staffLocation": "Taylor House"
+  "staffLocation": "Taylor House",
+  "uploadTheNoticeOfDecisionDocs": [
+    {
+      "id": "1",
+      "value": {
+        "document": {
+          "document_url": "{documentUrl}",
+          "document_filename": "some-notice-of-decision-letter.pdf",
+          "document_binary_url": "{documentBinaryUrl}"
+        },
+        "description": "some notice of decision description"
+      }
+    }
+  ]
 }
