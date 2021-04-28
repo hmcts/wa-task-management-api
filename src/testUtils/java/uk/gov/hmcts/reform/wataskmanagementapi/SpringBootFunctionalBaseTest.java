@@ -47,6 +47,10 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
+    @Value("${targets.documentUrl}")
+    private String documentUrl;
+    @Value("${targets.documentBinaryUrl}")
+    private String documentBinaryUrl;
 
     @Before
     public void setUpGivens() {
@@ -54,6 +58,8 @@ public abstract class SpringBootFunctionalBaseTest {
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
         given = new GivensBuilder(
+            documentUrl,
+            documentBinaryUrl,
             camundaApiActions,
             restApiActions,
             authorizationHeadersProvider,
