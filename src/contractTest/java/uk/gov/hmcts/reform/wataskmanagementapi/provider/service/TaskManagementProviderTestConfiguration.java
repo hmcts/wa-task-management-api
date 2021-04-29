@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -14,6 +16,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaErrorDecoder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskMapper;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class TaskManagementProviderTestConfiguration {
 
@@ -38,12 +43,6 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private RoleAssignmentService roleAssignmentService;
 
-    @MockBean
-    private CamundaService camundaService;
-
-    @MockBean
-    private AccessControlService accessControlService;
-
     @Bean
     @Primary
     public CamundaService camundaService() {
@@ -65,6 +64,16 @@ public class TaskManagementProviderTestConfiguration {
             idamService,
             roleAssignmentService
         );
+    }
+
+    @Bean
+    @Primary
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        objectMapper.setDateFormat(df);
+        return objectMapper;
     }
 
 
