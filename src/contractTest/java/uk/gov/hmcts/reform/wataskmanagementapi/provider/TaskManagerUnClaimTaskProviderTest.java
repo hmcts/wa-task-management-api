@@ -15,21 +15,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+<<<<<<< HEAD
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+=======
+>>>>>>> 0d17ee3001097827e4c5ab6512583603a13a2242
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import static org.mockito.ArgumentMatchers.any;
+<<<<<<< HEAD
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+=======
+import static org.mockito.Mockito.doNothing;
+>>>>>>> 0d17ee3001097827e4c5ab6512583603a13a2242
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_unclaim_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
+<<<<<<< HEAD
 //@PactFolder("pacts")
+=======
+//@PactFolder("target/pacts")
+>>>>>>> 0d17ee3001097827e4c5ab6512583603a13a2242
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
     host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
     port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
@@ -72,7 +83,10 @@ public class TaskManagerUnClaimTaskProviderTest {
 
     private void setInitMock() {
         doNothing().when(camundaService).claimTask(any(),any(),any());
+<<<<<<< HEAD
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+=======
+>>>>>>> 0d17ee3001097827e4c5ab6512583603a13a2242
     }
 }
