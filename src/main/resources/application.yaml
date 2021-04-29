@@ -43,7 +43,6 @@ auth:
         baseUrl: ${S2S_URL:http://service-auth-provider-api}
 
 idam:
-  baseUrl: ${OPEN_ID_IDAM_URL:http://sidam-api}
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
   scope: "openid profile roles"
   s2s-auth:
@@ -53,7 +52,7 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
   api:
-    baseUrl: ${IDAM_API_URL:http://sidam-api}
+    baseUrl: ${IDAM_API:http://sidam-api}
 
 spring:
   application:
