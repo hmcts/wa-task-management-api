@@ -49,17 +49,22 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 public class GivensBuilder {
 
+    private final String documentUrl;
+    private final String documentBinaryUrl;
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
     private final CoreCaseDataApi coreCaseDataApi;
 
-    public GivensBuilder(RestApiActions camundaApiActions,
+    public GivensBuilder(String documentUrl, String documentBinaryUrl,
+                         RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider,
                          CoreCaseDataApi coreCaseDataApi
     ) {
+        this.documentUrl = documentUrl;
+        this.documentBinaryUrl = documentBinaryUrl;
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
@@ -205,20 +210,25 @@ public class GivensBuilder {
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "IA")
             .withProcessVariable("caseId", caseId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "A Hearing Centre")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
+            .withProcessVariable("taskId", "reviewTheAppeal")
+            .withProcessVariable("taskType", "reviewTheAppeal")
+            .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
             .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
             .build();
 
@@ -268,7 +278,8 @@ public class GivensBuilder {
         try {
             String caseDataString =
                 FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
-
+            caseDataString = caseDataString.replace("{documentUrl}", documentUrl);
+            caseDataString = caseDataString.replace("{documentBinaryUrl}", documentBinaryUrl);
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
@@ -329,8 +340,6 @@ public class GivensBuilder {
             submitCaseDataContent
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        waitSeconds(2);
 
         return caseDetails.getId().toString();
     }
