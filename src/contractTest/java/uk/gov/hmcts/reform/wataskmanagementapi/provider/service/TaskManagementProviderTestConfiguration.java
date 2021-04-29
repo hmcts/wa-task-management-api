@@ -68,7 +68,7 @@ public class TaskManagementProviderTestConfiguration {
 
     @Bean
     @Primary
-    public ObjectMapper objectMapper (){
+    public ObjectMapper objectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
