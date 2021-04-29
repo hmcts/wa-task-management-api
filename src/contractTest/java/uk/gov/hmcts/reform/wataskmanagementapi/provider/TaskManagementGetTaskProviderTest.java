@@ -6,13 +6,17 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -31,20 +35,23 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
-//@PactFolder("pacts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
-    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
-    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactFolder("pacts")
+//@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
+//    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
+//    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
+//    @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class TaskManagementGetTaskByIdPactTest {
+public class TaskManagementGetTaskProviderTest {
 
     @Mock
     private AccessControlService accessControlService;
 
     @Mock
     private CamundaService camundaService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -66,9 +73,14 @@ public class TaskManagementGetTaskByIdPactTest {
             context.setTarget(testTarget);
         }
 
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
+
     }
 
-    @State({"appropriate task is returned"})
+    @State({"get a task using taskId"})
     public void getTaskById() {
         setInitMockTask();
     }

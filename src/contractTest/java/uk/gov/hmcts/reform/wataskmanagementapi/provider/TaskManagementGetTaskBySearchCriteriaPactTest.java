@@ -8,11 +8,13 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -47,6 +49,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     @Autowired
     private CamundaService camundaService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -65,6 +70,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         if (context != null) {
             context.setTarget(testTarget);
         }
+
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
     }
 
