@@ -258,8 +258,8 @@ def versions = [
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
-  pactVersion     : '4.1.7'
-
+  pactVersion     : '4.1.7',
+  logbook         : '2.6.2'
 ]
 
 ext.libraries = [
@@ -277,6 +277,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: versions.springBoot
+  implementation group: 'org.zalando', name:'logbook-spring-boot-starter', version: versions.logbook
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: versions.springBoot
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
 
@@ -287,8 +288,8 @@ dependencies {
 
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
 
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
