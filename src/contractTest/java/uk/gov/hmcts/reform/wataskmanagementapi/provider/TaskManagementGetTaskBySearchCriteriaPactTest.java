@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -43,10 +44,10 @@ import static org.mockito.Mockito.when;
 //@PactFolder("pacts")
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
 
     @Autowired

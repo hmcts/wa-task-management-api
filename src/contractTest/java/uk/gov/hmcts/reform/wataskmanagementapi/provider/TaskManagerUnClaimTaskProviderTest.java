@@ -22,21 +22,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
-@Provider("wa_task_management_api_claim_task_by_id")
+@Provider("wa_task_management_api_unclaim_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
-//@PactFolder("target/pacts")
+//@PactFolder("pacts")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
     host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
     port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
     @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class TaskManagerClaimTaskProviderTest {
+public class TaskManagerUnClaimTaskProviderTest {
 
     @Mock
     private AccessControlService accessControlService;
@@ -65,14 +63,14 @@ public class TaskManagerClaimTaskProviderTest {
 
     }
 
-    @State({"claim a task using taskId"})
+    @State({"unclaim a task using taskId"})
     public void claimTaskById() {
         setInitMock();
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).claimTask(any(),any(),any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        doNothing().when(camundaService).claimTask(any(),any(),any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 }
