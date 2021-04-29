@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.provider.service;
+package uk.gov.hmcts.reform.wataskmanagementapi.provider;
 
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
@@ -8,39 +8,49 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+//@PactFolder("pacts")
+@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
+    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
+    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
+    @VersionSelector(tag = "latest")})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-public class TaskManagementGetTaskByIdPactTest {
+public class TaskManagementGetTaskProviderTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -49,6 +59,7 @@ public class TaskManagementGetTaskByIdPactTest {
             context.verifyInteraction();
         }
     }
+
 
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
@@ -61,60 +72,45 @@ public class TaskManagementGetTaskByIdPactTest {
             context.setTarget(testTarget);
         }
 
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
+
     }
 
-    @State({"appropriate task is returned"})
+    @State({"get a task using taskId"})
     public void getTaskById() {
-        setInitiMock();
+        setInitMockTask();
     }
 
-    @State({"appropriate task is returned"})
-    public void responseError404Response() {
-        setInitiMockPermissions();
-    }
-
-    @State({"appropriate task is returned"})
-    public void responseError401Response() {
-        setInitiMockPermissions();
-    }
-
-    private void setInitiMock() {
+    private void setInitMockTask() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
-    private void setInitiMockPermissions() {
-        when(camundaService.getTask(any(),any(),any())).thenThrow(new InsufficientPermissionsException(
-            "User did not have sufficient permissions to access task with id: 0000-0000-0000-0000")
-        );
-    }
-
-    private void setInitiMockResources() {
-        when(camundaService.getTask(any(),any(),any())).thenThrow(new ResourceNotFoundException(
-            "There was a problem fetching the variables for task with id", null)
-        );
-    }
-
-    public Task createTask() {
-        return new Task("id",
+    private Task createTask() {
+        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
                          "Jake",
                          "ReviewTheAppeal",
                          "unconfigured",
-                         "main",
+                         "SELF",
                          "PRIVATE",
-                         "review",
-                         ZonedDateTime.now(),
-                         ZonedDateTime.now(),
+                         "task name",
+                          ZonedDateTime.now(),
+                          ZonedDateTime.now(),
                          "Mark Alistair",
                          true,
                          "Time extension",
                          "IA",
-                         "South",
-                         "12345",
+                         "1",
+                         "765324",
                          "Newcastle",
                          "Asylum",
                          "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
                          "processApplication",
-                         "caseName",
+                         "Bob Smith",
                          true);
     }
 

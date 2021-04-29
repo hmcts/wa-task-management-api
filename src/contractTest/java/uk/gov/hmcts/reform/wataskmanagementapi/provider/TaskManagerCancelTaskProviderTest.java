@@ -11,21 +11,25 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_cancel_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
-//@PactFolder("target/pacts")
+//@PactFolder("pacts")
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
     host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
     port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
@@ -34,10 +38,10 @@ import static org.mockito.Mockito.doNothing;
 @IgnoreNoPactsToVerify
 public class TaskManagerCancelTaskProviderTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
 
     @TestTemplate
@@ -68,5 +72,7 @@ public class TaskManagerCancelTaskProviderTest {
 
     private void setInitMock() {
         doNothing().when(camundaService).cancelTask(any(),any(),any());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 }
