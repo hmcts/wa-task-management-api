@@ -38,12 +38,6 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private RoleAssignmentService roleAssignmentService;
 
-    @MockBean
-    private CamundaService camundaService;
-
-    @MockBean
-    private AccessControlService accessControlService;
-
     @Bean
     @Primary
     public CamundaService camundaService() {

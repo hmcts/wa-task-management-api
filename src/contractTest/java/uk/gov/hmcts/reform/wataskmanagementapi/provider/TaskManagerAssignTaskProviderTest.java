@@ -15,12 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_complete_task_by_id")
@@ -68,5 +70,7 @@ public class TaskManagerAssignTaskProviderTest {
 
     private void setInitMock() {
         doNothing().when(camundaService).assignTask(any(),any(),any(),any(),any());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 }
