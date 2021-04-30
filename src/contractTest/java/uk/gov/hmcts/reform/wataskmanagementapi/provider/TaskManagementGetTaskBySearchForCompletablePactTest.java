@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
     host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(TaskManagementProviderTestConfiguration.class)
-//@IgnoreNoPactsToVerify
+@IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     @Mock
