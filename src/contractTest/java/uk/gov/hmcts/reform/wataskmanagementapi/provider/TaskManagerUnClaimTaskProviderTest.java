@@ -22,7 +22,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_unclaim_task_by_id")
