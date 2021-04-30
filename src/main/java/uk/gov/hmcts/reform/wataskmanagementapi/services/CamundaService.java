@@ -479,14 +479,15 @@ public class CamundaService {
         });
     }
 
-    private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance v) {
-        if (v.getName().equals("hasWarnings") && (v.getTaskId() == null)) {
+    private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
+        if (camundaVariableInstance.getName().equals("hasWarnings") && camundaVariableInstance.getTaskId() == null) {
             return true;
         }
-        return v.getTaskId() != null;
+        return camundaVariableInstance.getTaskId() != null;
     }
 
-    private List<CamundaVariableInstance> retrieveAllVariablesForProcessInstanceList(List<String> processInstanceIdList) {
+    private List<CamundaVariableInstance> retrieveAllVariablesForProcessInstanceList(
+        List<String> processInstanceIdList) {
         Map<String, Object> body = Map.of(
             "processInstanceIdIn", processInstanceIdList,
             "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
