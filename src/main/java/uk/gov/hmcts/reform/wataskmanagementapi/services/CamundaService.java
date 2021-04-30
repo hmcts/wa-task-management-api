@@ -406,66 +406,93 @@ public class CamundaService {
                                            AccessControlResponse accessControlResponse,
                                            List<PermissionTypes> permissionsRequired) {
 
-
         List<Task> response = new ArrayList<>();
         try {
 
-            //Extract all processIds to be used as a lookup when collecting all variables
-            List<String> searchResultsTaskIds = searchResults.stream()
-                .map(CamundaTask::getId)
+            List<String> processInstanceIdList = searchResults.stream()
+                .map(CamundaTask::getProcessInstanceId)
                 .collect(Collectors.toList());
 
-            //Retrieve all variables for taskIds
-            Map<String, Object> body = Map.of(
-                "taskIdIn", searchResultsTaskIds,
-                "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY);
-
-            List<CamundaVariableInstance> allVariables =
-                camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
+            List<CamundaVariableInstance> allVariablesForProcessInstanceIdList =
+                retrieveAllVariablesForProcessInstanceList(processInstanceIdList);
 
             //Safe guard in case no variables where returned
-            if (allVariables.isEmpty()) {
+            if (allVariablesForProcessInstanceIdList.isEmpty()) {
                 return response;
             }
 
-            Map<String, List<CamundaVariableInstance>> variablesByTaskId = allVariables.stream()
-                .collect(groupingBy(CamundaVariableInstance::getTaskId));
+            Map<String, List<CamundaVariableInstance>> mapWarningVarAndLocalTaskVarsGroupByProcessInstanceId =
+                allVariablesForProcessInstanceIdList.stream()
+                    .filter(this::filterOnlyHasWarningVarAndLocalTaskVars)
+                    .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
 
-            //Loop through all search results
-            searchResults.forEach(camundaTask -> {
-
-                //2. Get Variables for the task
-                List<CamundaVariableInstance> variablesForTaskId =
-                    variablesByTaskId.get(camundaTask.getId());
-                if (variablesForTaskId != null) {
-                    //Format variables
-                    Map<String, CamundaVariable> variables = variablesForTaskId.stream()
-                        .collect(toMap(
-                            CamundaVariableInstance::getName,
-                            var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)
-                        );
-
-                    //3. Evaluate access to task
-                    boolean hasAccess = permissionEvaluatorService
-                        .hasAccess(
-                            variables,
-                            accessControlResponse.getRoleAssignments(),
-                            permissionsRequired
-                        );
-
-                    if (hasAccess) {
-                        //4. If user had sufficient access to this task map to a task object and add to response
-                        Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                        response.add(task);
-                    }
-
-                }
-            });
+            loopThroughAllSearchResultsAndBuildResponse(
+                searchResults,
+                accessControlResponse,
+                permissionsRequired,
+                response,
+                mapWarningVarAndLocalTaskVarsGroupByProcessInstanceId
+            );
 
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
             throw new ServerErrorException("There was a problem performing the search", ex);
         }
+    }
+
+    private void loopThroughAllSearchResultsAndBuildResponse(
+        List<CamundaTask> searchResults,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired,
+        List<Task> response,
+        Map<String, List<CamundaVariableInstance>> warningVarAndLocalTaskVarsGroupByProcessInstanceId) {
+
+        searchResults.forEach(camundaTask -> {
+
+            //2. Get Variables for the task
+            List<CamundaVariableInstance> variablesForProcessInstanceId =
+                warningVarAndLocalTaskVarsGroupByProcessInstanceId.get(camundaTask.getProcessInstanceId());
+            if (variablesForProcessInstanceId != null) {
+                //Format variables
+                Map<String, CamundaVariable> variables = variablesForProcessInstanceId.stream()
+                    .collect(toMap(
+                        CamundaVariableInstance::getName,
+                        var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b
+                             )
+                    );
+
+                //3. Evaluate access to task
+                boolean hasAccess = permissionEvaluatorService
+                    .hasAccess(
+                        variables,
+                        accessControlResponse.getRoleAssignments(),
+                        permissionsRequired
+                    );
+
+                if (hasAccess) {
+                    //4. If user had sufficient access to this task map to a task object and add to response
+                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                    response.add(task);
+                }
+
+            }
+        });
+    }
+
+    private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance v) {
+        if (v.getName().equals("hasWarnings") && (v.getTaskId() == null)) {
+            return true;
+        }
+        return v.getTaskId() != null;
+    }
+
+    private List<CamundaVariableInstance> retrieveAllVariablesForProcessInstanceList(List<String> processInstanceIdList) {
+        Map<String, Object> body = Map.of(
+            "processInstanceIdIn", processInstanceIdList,
+            "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+        );
+
+        return camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
     }
 
     private void performCompleteTaskAction(String taskId, boolean taskHasCompleted) {
