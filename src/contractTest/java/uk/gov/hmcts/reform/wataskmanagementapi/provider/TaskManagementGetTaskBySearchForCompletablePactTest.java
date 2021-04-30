@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
     host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
 @Import(TaskManagementProviderTestConfiguration.class)
-@IgnoreNoPactsToVerify
+//@IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     @Mock
@@ -112,32 +112,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                                 "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
                                 "processApplication",
                                 "Bob Smith",
-                                true);
-
-        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
-                                "Megan",
-                                "ReviewTheAppeal",
-                                "unconfigured",
-                                "SELF",
-                                "PRIVATE",
-                                "task name",
-                                ZonedDateTime.now(),
-                                ZonedDateTime.now(),
-                                "Jean Pierre",
-                                true,
-                                "Time extension",
-                                "IA",
-                                "1",
-                                "766524",
-                                "Newcastle",
-                                "Asylum",
-                                "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
-                                "processApplication",
-                                "Bob Smith",
-                                true);
-
+                                false);
         tasks.add(taskOne);
-        tasks.add(taskTwo);
 
         return tasks;
     }

@@ -113,31 +113,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                                               "processApplication",
                                               "Bob Smith",
                                               true);
-
-        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
-                                              "Megan",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Jean Pierre",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "766524",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
-
         tasks.add(taskOne);
-        tasks.add(taskTwo);
 
         return tasks;
     }
