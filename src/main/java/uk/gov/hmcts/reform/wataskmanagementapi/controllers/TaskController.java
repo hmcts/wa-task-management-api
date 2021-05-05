@@ -38,11 +38,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
-@RequestMapping(
-    path = "/task",
-    consumes = APPLICATION_JSON_VALUE,
-    produces = APPLICATION_JSON_VALUE
-)
+@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
 public class TaskController {
 
@@ -72,7 +68,7 @@ public class TaskController {
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @PostMapping(produces = APPLICATION_JSON_VALUE)
+    @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
                                                                      @RequestBody SearchTaskRequest searchTaskRequest) {
         //Safe-guard
@@ -103,7 +99,7 @@ public class TaskController {
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/{task-id}")
     public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
                                                          @PathVariable(TASK_ID) String id) {
 
@@ -127,9 +123,8 @@ public class TaskController {
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
-    @PostMapping(path = "/{task-id}/claim",
-        produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping(path = "/{task-id}/claim")
     public ResponseEntity<Void> claimTask(@RequestHeader("Authorization") String authToken,
                                           @PathVariable(TASK_ID) String taskId) {
 
@@ -153,9 +148,8 @@ public class TaskController {
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
-    @PostMapping(path = "/{task-id}/unclaim",
-        produces = APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping(path = "/{task-id}/unclaim")
     public ResponseEntity<Void> unclaimTask(@RequestHeader("Authorization") String authToken,
                                             @PathVariable(TASK_ID) String taskId) {
 
@@ -212,7 +206,7 @@ public class TaskController {
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
     public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
                                              @PathVariable(TASK_ID) String taskId) {
@@ -238,8 +232,7 @@ public class TaskController {
         @ApiResponse(code = 415, message = "Unsupported Media Type"),
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
-    @PostMapping(path = "/search-for-completable", consumes = APPLICATION_JSON_VALUE,
-        produces = APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
