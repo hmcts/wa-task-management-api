@@ -65,31 +65,12 @@ public class TaskController {
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
     @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "OK",
-            response = GetTasksResponse.class
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 200, message = "OK", response = GetTasksResponse.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @PostMapping(produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
@@ -115,31 +96,12 @@ public class TaskController {
 
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
     @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "OK",
-            response = GetTaskResponse.class
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 200, message = "OK", response = GetTaskResponse.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @GetMapping(path = "/{task-id}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
@@ -158,30 +120,12 @@ public class TaskController {
 
     @ApiOperation("Claim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "No Content"
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 204, message = "No Content", response = Object.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/claim",
@@ -202,36 +146,18 @@ public class TaskController {
 
     @ApiOperation("Unclaim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "Task unclaimed"
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 204, message = "Task unclaimed", response = Object.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/unclaim",
         produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> unclaimTask(@RequestHeader("Authorization") String authToken,
-                                              @PathVariable(TASK_ID) String taskId) {
+                                            @PathVariable(TASK_ID) String taskId) {
 
         List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
 
@@ -245,32 +171,14 @@ public class TaskController {
 
     @ApiOperation("Assign the identified Task to a specified user.")
     @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "Task assigned"
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 204, message = "Task assigned", response = Object.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
@@ -297,30 +205,12 @@ public class TaskController {
 
     @ApiOperation("Completes a Task identified by an id.")
     @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "Task has been completed"
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 204, message = "Task has been completed", response = Object.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
     @PostMapping(path = "/{task-id}/complete")
@@ -339,33 +229,14 @@ public class TaskController {
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search"
-                  + " criteria that are eligible for automatic completion")
+        + " criteria that are eligible for automatic completion")
     @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "OK",
-            response = GetTasksResponse.class
-        ),
-        @ApiResponse(
-            code = 400,
-            message = "Bad Request"
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 403,
-            message = "Forbidden"
-        ),
-        @ApiResponse(
-            code = 415,
-            message = "Unsupported Media Type"
-        ),
-        @ApiResponse(
-            code = 500,
-            message = "Internal Server Error"
-        )
+        @ApiResponse(code = 200, message = "OK", response = GetTasksResponse.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 403, message = "Forbidden"),
+        @ApiResponse(code = 415, message = "Unsupported Media Type"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
     })
     @PostMapping(path = "/search-for-completable", consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE)
@@ -390,36 +261,18 @@ public class TaskController {
 
     @ApiOperation("Cancel a Task identified by an id.")
     @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "Task has been cancelled"
-        ),
-        @ApiResponse(
-            code = 400,
-            message = BAD_REQUEST
-        ),
-        @ApiResponse(
-            code = 403,
-            message = FORBIDDEN
-        ),
-        @ApiResponse(
-            code = 401,
-            message = UNAUTHORIZED
-        ),
-        @ApiResponse(
-            code = 415,
-            message = UNSUPPORTED_MEDIA_TYPE
-        ),
-        @ApiResponse(
-            code = 500,
-            message = INTERNAL_SERVER_ERROR
-        )
+        @ApiResponse(code = 204, message = "Task has been cancelled", response = Object.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT) //Fixes incorrect Swagger 200 response code
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
     public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
-        List<PermissionTypes> endpointPermissionsRequired = asList(CANCEL);
+        List<PermissionTypes> endpointPermissionsRequired = singletonList(CANCEL);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
         camundaService.cancelTask(taskId, accessControlResponse, endpointPermissionsRequired);

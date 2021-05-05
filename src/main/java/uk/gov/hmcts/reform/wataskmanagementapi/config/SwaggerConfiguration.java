@@ -28,6 +28,7 @@ public class SwaggerConfiguration {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
             .useDefaultResponseMessages(false)
+            .directModelSubstitute(Object.class, java.lang.Void.class)
             .enable(enableSwagger)
             .select()
             .apis(RequestHandlerSelectors.basePackage(Application.class.getPackage().getName() + ".controllers"))
