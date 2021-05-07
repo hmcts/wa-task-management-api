@@ -254,7 +254,7 @@ def versions = [
   reformLogging   : '5.1.5',
   springBoot      : '2.4.2',
   springfoxSwagger: '3.0.0',
-  serenity        : '2.2.12',
+  serenity        : '2.4.25',
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
