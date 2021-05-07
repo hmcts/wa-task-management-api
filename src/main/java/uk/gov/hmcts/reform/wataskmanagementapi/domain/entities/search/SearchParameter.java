@@ -15,16 +15,15 @@ import java.util.List;
 @ToString
 public class SearchParameter {
 
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, allowableValues = "location, user, jurisdiction, state", example = "user")
     private SearchParameterKey key;
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(allowableValues = "IN", example = "IN")
     private SearchOperator operator;
-    @ApiModelProperty(required = true)
+    @ApiModelProperty(required = true, example = "998db99b-08aa-43d4-bc6b-0aabbb0e3c6f", allowEmptyValue = true)
     private List<String> values;
 
     private SearchParameter() {
         //Default constructor for deserialization
-        super();
     }
 
     public SearchParameter(SearchParameterKey key, SearchOperator operator, List<String> values) {
