@@ -328,7 +328,7 @@ dependencies {
   testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testCompile "org.junit.vintage:junit-vintage-engine:${versions.junit}"
   constraints {
-    iplementation("org.codehaus.groovy:groovy:3.0.3") {
+    implementation("org.codehaus.groovy:groovy:3.0.3") {
       because("Needed by rest-assured>=4.3")
     }
   }
