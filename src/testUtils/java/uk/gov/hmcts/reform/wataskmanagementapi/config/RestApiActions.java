@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -12,6 +11,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -39,13 +39,12 @@ public class RestApiActions {
             .spec(specification)
             .config(RestAssured.config()
                 .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                    (type, s) -> {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
-                        objectMapper.registerModule(new Jdk8Module());
-                        objectMapper.registerModule(new JavaTimeModule());
-                        return objectMapper;
-                    }
+                    new Jackson2ObjectMapperBuilder()
+                        .propertyNamingStrategy(propertyNamingStrategy)
+                        .modules(
+                            new JavaTimeModule(),
+                            new Jdk8Module()
+                        ).build()
                 ))
             ).relaxedHTTPSValidation();
     }
