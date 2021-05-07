@@ -1,11 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.common.base.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 
 import java.util.List;
 
+
+@EqualsAndHashCode
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GetRoleAssignmentResponse {
 
@@ -23,27 +27,4 @@ public class GetRoleAssignmentResponse {
         return roleAssignmentResponse;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        GetRoleAssignmentResponse that = (GetRoleAssignmentResponse) object;
-        return Objects.equal(roleAssignmentResponse, that.roleAssignmentResponse);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(roleAssignmentResponse);
-    }
-
-    @Override
-    public String toString() {
-        return "GetRoleAssignmentResponse{"
-               + "roleAssignmentResponse=" + roleAssignmentResponse
-               + '}';
-    }
 }

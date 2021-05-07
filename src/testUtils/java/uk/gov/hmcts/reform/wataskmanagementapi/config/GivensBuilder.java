@@ -49,22 +49,20 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 public class GivensBuilder {
 
-    private final String documentUrl;
-    private final String documentBinaryUrl;
+    private final String documentStoreUrl;
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
     private final CoreCaseDataApi coreCaseDataApi;
 
-    public GivensBuilder(String documentUrl, String documentBinaryUrl,
+    public GivensBuilder(String documentStoreUrl,
                          RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider,
                          CoreCaseDataApi coreCaseDataApi
     ) {
-        this.documentUrl = documentUrl;
-        this.documentBinaryUrl = documentBinaryUrl;
+        this.documentStoreUrl = documentStoreUrl;
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
@@ -278,8 +276,7 @@ public class GivensBuilder {
         try {
             String caseDataString =
                 FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
-            caseDataString = caseDataString.replace("{documentUrl}", documentUrl);
-            caseDataString = caseDataString.replace("{documentBinaryUrl}", documentBinaryUrl);
+            caseDataString = caseDataString.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
