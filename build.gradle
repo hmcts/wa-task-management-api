@@ -328,13 +328,9 @@ dependencies {
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
 
-
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: '4.1.14'
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: '4.1.14'
-  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: '4.1.14'
-
-  testImplementation "au.com.dius.pact.provider:junit5:4.1.7"
-  testImplementation "au.com.dius.pact.provider:junit5spring:4.1.7"
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'spring', version: versions.pactVersion
+  contractTestCompile group: 'au.com.dius.pact.provider', name: 'junit5spring', version: versions.pactVersion
 
   contractTestCompile("org.junit.jupiter:junit-jupiter-api:5.6.2")
   contractTestRuntime("org.junit.jupiter:junit-jupiter-engine:5.6.2")
