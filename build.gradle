@@ -241,9 +241,9 @@ dependencyManagement {
     dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.4.6'
 
     //Fix dependency conflict
-    dependency group: 'io.rest-assured', name: 'rest-assured', version: '4.3.3'
-    dependency group: 'io.rest-assured', name: 'json-path', version: '4.3.3'
-    dependency group: 'io.rest-assured', name: 'xml-path', version: '4.3.3'
+    dependency group: 'io.rest-assured', name: 'rest-assured', version: '4.2.1'
+    dependency group: 'io.rest-assured', name: 'json-path', version: '4.2.1'
+    dependency group: 'io.rest-assured', name: 'xml-path', version: '4.2.1'
   }
 }
 
@@ -327,12 +327,6 @@ dependencies {
   testCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testCompile "org.junit.vintage:junit-vintage-engine:${versions.junit}"
-  constraints {
-    implementation("org.codehaus.groovy:groovy:3.0.3") {
-      because("Needed by rest-assured>=4.3")
-    }
-  }
-
 
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
 
