@@ -30,6 +30,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -77,6 +78,83 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_and_empty_list_when_task_does_not_have_required_permissions() {
+
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.LOCATION, "765324",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_STATE, "unassigned",
+            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
+        );
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        String taskId = taskVariables.getTaskId();
+
+        String executePermission = "Manage";
+        common.overrideTaskPermissions(taskId, executePermission);
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions() {
+        final String caseId = given.iCreateACcdCase();
+
+        // create a 2 tasks for caseId
+        sendMessage(caseId);
+        sendMessage(caseId);
+
+        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
+        if (tasksList.size() != 2) {
+            fail("2 tasks should be created for case id: " + caseId);
+        }
+
+        // No user assigned to this task
+        final String taskId1 = tasksList.get(0).getId();
+        String executePermission = "Manage";
+        common.overrideTaskPermissions(taskId1, executePermission);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        final String taskId2 = tasksList.get(1).getId();
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // search for completable
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            caseId, "requestRespondentEvidence", "IA", "Asylum");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].id", equalTo(taskId2));
+
+        common.cleanUpTask(taskId1, REASON_COMPLETED);
+        common.cleanUpTask(taskId2, REASON_COMPLETED);
     }
 
     @Test
@@ -311,6 +389,37 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "someEventId", "IA", "Asylum");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_and_empty_list_when_caseId_match_not_found() {
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.LOCATION, "765324",
+            CamundaVariableDefinition.TASK_ID, "reviewReasonsForAppeal",
+            CamundaVariableDefinition.TASK_STATE, "unassigned",
+            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
+        );
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        String taskId = taskVariables.getTaskId();
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "invalidCaseId", "requestCmaRequirements", "IA", "Asylum");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
