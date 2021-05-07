@@ -87,7 +87,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private void setInitMockForsearchTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        //when(camundaService.searchWithCriteria(any(),any(),any())).thenReturn(createTasks());
+        when(camundaService.searchWithCriteria(any(),any(),any())).thenReturn(createTasks());
     }
 
     public List<Task> createTasks() {
