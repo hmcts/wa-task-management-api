@@ -38,14 +38,15 @@ public class RestApiActions {
         return RestAssured.given()
             .spec(specification)
             .config(RestAssured.config()
-                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                    new Jackson2ObjectMapperBuilder()
-                        .propertyNamingStrategy(propertyNamingStrategy)
-                        .modules(
-                            new JavaTimeModule(),
-                            new Jdk8Module()
-                        ).build()
-                ))
+                .objectMapperConfig(new ObjectMapperConfig()
+                    .jackson2ObjectMapperFactory(
+                        new Jackson2ObjectMapperBuilder()
+                            .propertyNamingStrategy(propertyNamingStrategy)
+                            .modules(
+                                new JavaTimeModule(),
+                                new Jdk8Module()
+                            ).build()
+                    ))
             ).relaxedHTTPSValidation();
     }
 
