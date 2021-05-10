@@ -86,11 +86,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     private void setInitMockForSearchByCompletableTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-<<<<<<< Updated upstream
-        when(camundaService.searchWithCriteria(any(),any(),any())).thenReturn(createTasks());
-=======
         when(camundaService.searchForCompletableTasks(any(),any(),any())).thenReturn(createTasks());
->>>>>>> Stashed changes
     }
 
     public List<Task> createTasks() {
