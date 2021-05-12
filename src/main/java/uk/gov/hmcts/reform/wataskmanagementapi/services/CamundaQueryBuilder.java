@@ -71,12 +71,18 @@ public class CamundaQueryBuilder {
             searchParametersMap.get(STATE)
         );
 
+        CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createTaskVariableQueriesFor(
+            CamundaVariableDefinition.CASE_ID,
+            searchParametersMap.get(CASE_ID)
+        );
+
         CamundaSearchQuery.CamundaAndQueryBuilder queries = camundaQuery()
             .withKeyValue("processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY)
             .andQuery(userQueries)
             .andQuery(jurisdictionQueries)
             .andQuery(locationQueries)
             .andQuery(stateQueries)
+            .andQuery(caseIdQueries)
             .andSortingQuery(sortingQueries);
 
         //Safe-guard to avoid sending empty orQueries to camunda

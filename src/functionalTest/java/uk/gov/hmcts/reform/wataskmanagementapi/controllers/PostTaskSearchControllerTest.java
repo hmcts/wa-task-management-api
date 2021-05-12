@@ -31,6 +31,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
@@ -227,6 +228,40 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", equalTo(0));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+
+    @Test
+    public void should_return_a_200_with_search_results_based_on_caseId_location_filters() {
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.LOCATION, "765324",
+            CamundaVariableDefinition.TASK_STATE, "unassigned"
+        );
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        String taskId = taskVariables.getTaskId();
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId())),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+        ));
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItem(taskId))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
