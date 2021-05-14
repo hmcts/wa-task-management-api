@@ -22,6 +22,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
@@ -407,6 +408,96 @@ class CamundaQueryBuilderTest {
     }
 
     @Test
+    void createQuery_should_build_query_from_search_task_request_with_only_one_caseId_parameter_and_due_date_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"aCaseId\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_only_caseId_list_parameter_and_due_date_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"aCaseId\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherCaseId\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
     void createQuery_should_build_query_from_search_task_request_with_search_parameter_and_case_category_sorting()
         throws JsonProcessingException, JSONException {
 
@@ -502,6 +593,84 @@ class CamundaQueryBuilderTest {
                           + "            \"name\": \"location\",\n"
                           + "            \"operator\": \"eq\",\n"
                           + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortOrder\": \"desc\",\n"
+                          + "        \"parameters\": {\n"
+                          + "          \"variable\": \"caseId\",\n"
+                          + "          \"type\": \"String\"\n"
+                          + "        }\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_multiple_parameters_and_multiple_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId")),
+                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+            ),
+            asList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT),
+                new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"aCaseId\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherCaseId\"\n"
                           + "          }\n"
                           + "        ]\n"
                           + "      }\n"
