@@ -48,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -292,7 +293,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             mockCamundaGetAllVariables();
 
@@ -303,7 +305,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -322,7 +324,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -359,7 +361,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             mockCamundaGetAllVariables();
 
@@ -370,7 +373,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -389,7 +392,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -424,7 +427,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(null);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -458,7 +461,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             mockCamundaGetAllVariables();
 
@@ -470,7 +474,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(false);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -480,7 +484,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -518,12 +522,13 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             mockCamundaGetAllVariables();
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -533,7 +538,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -581,7 +586,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(asList(camundaTask, camundaTask2));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
@@ -597,7 +603,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -625,7 +631,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -673,7 +679,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(asList(camundaTask, camundaTask2));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
@@ -689,7 +696,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest,0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -708,7 +715,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -756,7 +763,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(asList(camundaTask, camundaTask2));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
@@ -772,7 +780,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(false);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -782,7 +790,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -818,7 +826,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
@@ -834,7 +843,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -853,7 +862,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -890,7 +899,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
@@ -906,7 +916,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(false);
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -916,7 +926,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -941,11 +951,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(mock(CamundaTask.class)));
 
             when(camundaServiceApi.searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             )).thenReturn(singletonList(mock(
                 CamundaTask.class)));
@@ -959,7 +970,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             );
 
             assertThatThrownBy(() ->
-                camundaService.searchWithCriteria(searchTaskRequest, accessControlResponse, permissionsRequired)
+                camundaService.searchWithCriteria(
+                    searchTaskRequest, 0, 1, accessControlResponse, permissionsRequired)
             )
                 .isInstanceOf(ServerErrorException.class)
                 .hasCauseInstanceOf(TestFeignClientException.class)
@@ -979,11 +991,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(emptyList());
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -993,7 +1006,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verifyNoMoreInteractions(camundaServiceApi);
@@ -1022,7 +1035,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest))
                 .thenReturn(camundaSearchQueryMock);
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, 0, 1, camundaSearchQueryMock.getQueries()))
                 .thenReturn(singletonList(camundaTask));
             when(camundaServiceApi.getAllVariables(
                 BEARER_SERVICE_TOKEN,
@@ -1032,7 +1046,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(emptyList());
 
             List<Task> results = camundaService.searchWithCriteria(
-                searchTaskRequest,
+                searchTaskRequest, 0, 1,
                 accessControlResponse,
                 permissionsRequired
             );
@@ -1042,7 +1056,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             verify(camundaQueryBuilder, times(1)).createQuery(searchTaskRequest);
             verifyNoMoreInteractions(camundaQueryBuilder);
             verify(camundaServiceApi, times(1)).searchWithCriteria(
-                BEARER_SERVICE_TOKEN,
+                BEARER_SERVICE_TOKEN, 0, 1,
                 camundaSearchQueryMock.getQueries()
             );
             verify(camundaServiceApi, times(1))
@@ -1068,10 +1082,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             when(camundaQueryBuilder.createQuery(searchTaskRequest)).thenReturn(camundaSearchQueryMock);
 
-            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(FeignException.class);
+            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), anyInt(), anyInt(), any()))
+                .thenThrow(FeignException.class);
 
             assertThatThrownBy(() ->
-                camundaService.searchWithCriteria(searchTaskRequest, accessControlResponse, permissionsRequired)
+                camundaService.searchWithCriteria(
+                    searchTaskRequest, 0, 1, accessControlResponse, permissionsRequired)
             )
                 .isInstanceOf(ServerErrorException.class)
                 .hasMessage("There was a problem performing the search")
@@ -1609,7 +1625,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, null, null, camundaSearchQuery.getQueries()))
                 .thenReturn(singletonList(camundaTask));
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
@@ -1696,7 +1713,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, null, null, camundaSearchQuery.getQueries()))
                 .thenReturn(List.of(camundaTask, camundaTask1));
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
@@ -1794,7 +1812,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, null, null, camundaSearchQuery.getQueries()))
                 .thenReturn(emptyList());
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
@@ -1850,7 +1869,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "someProcessInstanceId"
             );
 
-            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+            when(camundaServiceApi.searchWithCriteria(
+                BEARER_SERVICE_TOKEN, null, null, camundaSearchQuery.getQueries()))
                 .thenReturn(singletonList(camundaTask));
 
             SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
@@ -2053,7 +2073,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             when(camundaQueryBuilder.createCompletableTasksQuery(eq(searchEventAndCase.getCaseId()), any()))
                 .thenReturn(camundaSearchQuery);
 
-            when(camundaServiceApi.searchWithCriteria(eq(BEARER_SERVICE_TOKEN), any())).thenThrow(FeignException.class);
+            when(camundaServiceApi.searchWithCriteria(
+                eq(BEARER_SERVICE_TOKEN), any(), any(), any())).thenThrow(FeignException.class);
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
 
             assertThatThrownBy(

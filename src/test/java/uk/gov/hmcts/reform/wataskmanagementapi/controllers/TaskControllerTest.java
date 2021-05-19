@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
@@ -101,7 +102,7 @@ class TaskControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
-            IDAM_AUTH_TOKEN,
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
             ));
@@ -116,7 +117,7 @@ class TaskControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
-            IDAM_AUTH_TOKEN,
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
                 singletonList(new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)))
@@ -130,7 +131,9 @@ class TaskControllerTest {
     void should_return_a_400_when_performing_search_with_null_parameters() {
 
         ResponseEntity<GetTasksResponse<Task>> response =
-            taskController.searchWithCriteria(IDAM_AUTH_TOKEN, new SearchTaskRequest(null));
+            taskController.searchWithCriteria(
+                IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),new SearchTaskRequest(null)
+            );
 
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
@@ -139,8 +142,9 @@ class TaskControllerTest {
     @Test
     void should_return_a_400_when_performing_search_with_no_parameters() {
 
-        ResponseEntity<GetTasksResponse<Task>> response =
-            taskController.searchWithCriteria(IDAM_AUTH_TOKEN, new SearchTaskRequest(emptyList()));
+        ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),new SearchTaskRequest(emptyList())
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());

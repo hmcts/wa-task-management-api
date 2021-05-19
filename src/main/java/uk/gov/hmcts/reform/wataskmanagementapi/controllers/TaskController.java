@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
@@ -27,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -70,6 +72,8 @@ public class TaskController {
     })
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
+                                                                     @RequestParam Optional<Integer> firstResult,
+                                                                     @RequestParam Optional<Integer> maxResults,
                                                                      @RequestBody SearchTaskRequest searchTaskRequest) {
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
@@ -80,7 +84,7 @@ public class TaskController {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
         List<Task> tasks = camundaService.searchWithCriteria(
-            searchTaskRequest,
+            searchTaskRequest, firstResult.orElse(0), maxResults.orElse(Integer.MAX_VALUE),
             accessControlResponse,
             endpointPermissionsRequired
         );

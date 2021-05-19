@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -42,6 +44,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -219,8 +222,11 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
     @DisplayName("taskSearch()")
     class SearchTask {
 
-        @Test
-        void should_return_a_200_when_restricted_role_is_given() throws Exception {
+        @ParameterizedTest
+        @ValueSource(strings = {
+            "/task", "/task?firstResult=0", "/task?maxResults=1", "/task?firstResult=0&maxResults=1"
+        })
+        void should_return_a_200_when_restricted_role_is_given(String uri) throws Exception {
             final String taskId = UUID.randomUUID().toString();
 
             final String userToken = "user_token";
@@ -255,7 +261,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
-            when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
+            when(camundaServiceApi.searchWithCriteria(
+                any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SSCS
             when(camundaServiceApi.getAllVariables(any(), any()))
@@ -267,7 +274,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
             final String searchContent = objectMapper.writeValueAsString(searchTaskRequest);
             mockMvc.perform(
-                post("/task")
+                post(uri)
                     .header(
                         "Authorization",
                         authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
@@ -284,7 +291,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             When a task is searched with SSCS , test returns only single result with SSCS Jurisdiction
          */
         @Test
-        void should_Return_Single_Task_when_two_role_assignments_with_one_restricted_is_given() throws Exception {
+        void should_return_single_task_when_two_role_assignments_with_one_restricted_is_given() throws Exception {
             final String taskId = UUID.randomUUID().toString();
 
             final String userToken = "user_token";
@@ -303,7 +310,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", taskId));
-            when(camundaServiceApi.searchWithCriteria(any(), any())).thenReturn(camundaTasks);
+            when(camundaServiceApi.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SCSS
             when(camundaServiceApi.getAllVariables(any(), any()))
@@ -367,7 +374,6 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             );
 
         }
-
     }
 
     @Nested

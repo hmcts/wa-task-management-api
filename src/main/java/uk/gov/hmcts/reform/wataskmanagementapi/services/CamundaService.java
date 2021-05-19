@@ -221,6 +221,7 @@ public class CamundaService {
     }
 
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
+                                         int firstResult, int maxResults,
                                          AccessControlResponse accessControlResponse,
                                          List<PermissionTypes> permissionsRequired) {
 
@@ -234,6 +235,8 @@ public class CamundaService {
             //1. Perform the search
             List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
                 authTokenGenerator.generate(),
+                firstResult,
+                maxResults,
                 query.getQueries()
             );
 
@@ -269,7 +272,7 @@ public class CamundaService {
         try {
             //3. Perform the search
             List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(),
+                authTokenGenerator.generate(), null, null,
                 camundaSearchQuery.getQueries()
             );
 
