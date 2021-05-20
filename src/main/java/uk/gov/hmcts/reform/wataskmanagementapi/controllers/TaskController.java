@@ -71,10 +71,12 @@ public class TaskController {
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @PostMapping
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(@RequestHeader("Authorization") String authToken,
-                                                                     @RequestParam Optional<Integer> firstResult,
-                                                                     @RequestParam Optional<Integer> maxResults,
-                                                                     @RequestBody SearchTaskRequest searchTaskRequest) {
+    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
+        @RequestHeader("Authorization") String authToken,
+        @RequestParam(required = false) Optional<Integer> firstResult,
+        @RequestParam(required = false) Optional<Integer> maxResults,
+        @RequestBody SearchTaskRequest searchTaskRequest
+    ) {
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
