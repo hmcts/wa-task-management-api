@@ -164,7 +164,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?firstResult=0&maxResults=2",
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=2",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -197,7 +197,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?firstResult=-1&maxResults=2",
+            ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=2",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -230,7 +230,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?firstResult=0&maxResults=-1",
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=-1",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -263,7 +263,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?firstResult=-1&maxResults=-1",
+            ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=-1",
             searchTaskRequest,
             authenticationHeaders
         );

@@ -224,7 +224,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
 
         @ParameterizedTest
         @ValueSource(strings = {
-            "/task", "/task?firstResult=0", "/task?maxResults=1", "/task?firstResult=0&maxResults=1"
+            "/task", "/task?first_result=0", "/task?max_results=1", "/task?first_result=0&max_results=1"
         })
         void should_return_a_200_when_restricted_role_is_given(String uri) throws Exception {
             final String taskId = UUID.randomUUID().toString();

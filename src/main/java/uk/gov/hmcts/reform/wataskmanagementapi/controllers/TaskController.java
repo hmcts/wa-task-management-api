@@ -73,8 +73,8 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
         @RequestHeader("Authorization") String authToken,
-        @RequestParam(required = false) Optional<Integer> firstResult,
-        @RequestParam(required = false) Optional<Integer> maxResults,
+        @RequestParam(required = false, name = "first_result") Optional<Integer> firstResult,
+        @RequestParam(required = false, name = "max_results") Optional<Integer> maxResults,
         @RequestBody SearchTaskRequest searchTaskRequest
     ) {
         //Safe-guard
