@@ -106,7 +106,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId));
+            .body("tasks.id", hasItem(taskId))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -138,7 +139,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", greaterThanOrEqualTo(3));
+            .body("tasks.size()", greaterThanOrEqualTo(3))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
@@ -171,7 +173,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(2));
+            .body("tasks.size()", equalTo(2))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
@@ -204,7 +207,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
@@ -237,7 +241,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
@@ -270,7 +275,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
@@ -296,7 +302,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.task_state", everyItem(is("unassigned")));
+            .body("tasks.task_state", everyItem(is("unassigned")))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -330,7 +337,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.task_state", everyItem(is("assigned")));
+            .body("tasks.task_state", everyItem(is("assigned")))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -363,7 +371,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()));
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -393,7 +402,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -426,7 +436,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()));
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -462,7 +473,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()));
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -501,7 +513,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItems(tasksCreated.get(0).getCaseId(), tasksCreated.get(1).getCaseId()))
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.location", everyItem(equalTo("765324")))
-            .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+            .body("tasks.jurisdiction", everyItem(equalTo("IA")))
+            .body("total_records", greaterThanOrEqualTo(1));
 
 
         tasksCreated
@@ -538,7 +551,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
 
         tasksCreated.forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
 
@@ -593,8 +607,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_category", everyItem(notNullValue()))
             .body("tasks.case_name", everyItem(notNullValue()))
             .body("tasks.auto_assigned", everyItem(notNullValue()))
-            .body("tasks.warnings", everyItem(notNullValue()));
-
+            .body("tasks.warnings", everyItem(notNullValue()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));

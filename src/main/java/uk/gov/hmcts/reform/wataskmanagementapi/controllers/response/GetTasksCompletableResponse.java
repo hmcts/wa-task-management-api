@@ -8,22 +8,15 @@ import java.util.List;
 
 @EqualsAndHashCode
 @ToString
-public class GetTasksResponse<T extends Task> {
+public class GetTasksCompletableResponse<T extends Task> {
 
     private final List<T> tasks;
 
-    private final long totalRecords;
-
-    public GetTasksResponse(List<T> tasks, long totalRecords) {
+    public GetTasksCompletableResponse(List<T> tasks) {
         this.tasks = tasks;
-        this.totalRecords = totalRecords;
     }
 
     public List<T> getTasks() {
         return tasks;
-    }
-
-    public long getTotalRecords() {
-        return totalRecords;
     }
 }

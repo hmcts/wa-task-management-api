@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,6 +36,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
@@ -101,14 +105,19 @@ class TaskControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        when(camundaService.searchWithCriteria(any(), anyInt(), anyInt(), any(), any())).thenReturn(taskList);
+        when(camundaService.getTaskCount(any())).thenReturn(1L);
+
         ResponseEntity<GetTasksResponse<Task>> response = taskController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
             ));
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
     }
 
     @Test

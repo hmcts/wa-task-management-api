@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
@@ -192,7 +193,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertEquals("someStaffLocationName", response.getLocationName());
             assertEquals("someCamundaTaskAssignee", response.getAssignee());
         }
-
 
         @Test
         void getTask_should_throw_insufficient_permissions_exception_when_has_access_returns_false() {
@@ -978,7 +978,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .hasMessage("There was a problem performing the search");
         }
 
-
         @Test
         void searchWithCriteria_should_succeed_and_return_empty_list_if_camunda_searchWithCriteria_returns_emptyList() {
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
@@ -1094,6 +1093,45 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .hasCauseInstanceOf(FeignException.class);
         }
 
+    }
+
+    @Nested
+    @DisplayName("getTaskCount()")
+    class TaskCount {
+
+        @Test
+        void should_return_task_count() {
+            final SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
+            final CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
+            when(camundaQueryBuilder.createQuery(searchTaskRequest))
+                .thenReturn(camundaSearchQueryMock);
+
+            when(camundaServiceApi.getTaskCount(
+                BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+                .thenReturn(new CamundaTaskCount(1));
+
+            assertEquals(1, camundaService.getTaskCount(searchTaskRequest));
+        }
+
+        @Test
+        void getTaskCount_throw_a_server_error_exception_when_camunda_task_count_fails() {
+            final SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
+            final CamundaSearchQuery camundaSearchQueryMock = mock(CamundaSearchQuery.class);
+            when(camundaQueryBuilder.createQuery(searchTaskRequest))
+                .thenReturn(camundaSearchQueryMock);
+
+            when(camundaServiceApi.getTaskCount(
+                BEARER_SERVICE_TOKEN, camundaSearchQueryMock.getQueries()))
+                .thenThrow(FeignException.class);
+
+            assertThatThrownBy(() ->
+                                   camundaService.getTaskCount(
+                                       searchTaskRequest)
+            )
+                .isInstanceOf(ServerErrorException.class)
+                .hasMessage("There was a problem retrieving task count")
+                .hasCauseInstanceOf(FeignException.class);
+        }
     }
 
     @Nested

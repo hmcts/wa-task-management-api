@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -90,10 +91,19 @@ public class TaskController {
             accessControlResponse,
             endpointPermissionsRequired
         );
-        return ResponseEntity
-            .ok()
-            .cacheControl(CacheControl.noCache())
-            .body(new GetTasksResponse<>(tasks));
+
+        if (tasks.isEmpty()) {
+            return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.noCache())
+                .body(new GetTasksResponse<>(tasks, 0));
+        } else {
+            final long taskCount = camundaService.getTaskCount(searchTaskRequest);
+            return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.noCache())
+                .body(new GetTasksResponse<>(tasks, taskCount));
+        }
     }
 
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
@@ -231,7 +241,7 @@ public class TaskController {
     @ApiOperation("Retrieve a list of Task resources identified by set of search"
         + " criteria that are eligible for automatic completion")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "OK", response = GetTasksResponse.class),
+        @ApiResponse(code = 200, message = "OK", response = GetTasksCompletableResponse.class),
         @ApiResponse(code = 400, message = "Bad Request"),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
         @ApiResponse(code = 403, message = "Forbidden"),
@@ -239,7 +249,7 @@ public class TaskController {
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
     @PostMapping(path = "/search-for-completable")
-    public ResponseEntity<GetTasksResponse<Task>> searchWithCriteriaForAutomaticCompletion(
+    public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
 
@@ -255,7 +265,7 @@ public class TaskController {
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(new GetTasksResponse<>(tasks));
+            .body(new GetTasksCompletableResponse<>(tasks));
     }
 
     @ApiOperation("Cancel a Task identified by an id.")

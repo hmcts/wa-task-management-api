@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
@@ -49,6 +50,14 @@ public interface CamundaServiceApi {
                                          @RequestParam("firstResult") Integer firstResult,
                                          @RequestParam("maxResults") Integer maxResults,
                                          @RequestBody Map<String, Object> body);
+
+    @PostMapping(value = "/task/count",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    CamundaTaskCount getTaskCount(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                  @RequestBody Map<String, Object> body);
 
     @GetMapping(
         value = "/task/{task-id}",

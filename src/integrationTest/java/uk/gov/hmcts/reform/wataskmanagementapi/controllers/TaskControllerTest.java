@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
@@ -281,8 +282,12 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
                     )
                     .content(searchContent)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-            ).andExpect(ResultMatcher.matchAll(status().isOk(), jsonPath("$.tasks").isEmpty()));
-
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk(),
+                    jsonPath("total_records").value(0),
+                    jsonPath("$.tasks").isEmpty())
+            );
         }
 
         /*
@@ -312,6 +317,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", taskId));
             when(camundaServiceApi.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
+            when(camundaServiceApi.getTaskCount(any(), any())).thenReturn(new CamundaTaskCount(1));
+
             // Task created with Jurisdiction SCSS
             when(camundaServiceApi.getAllVariables(any(), any()))
                 .thenReturn(mockedAllVariables("processInstanceId", "SSCS", taskId));
@@ -332,6 +339,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             ).andExpect(
                 ResultMatcher.matchAll(
                     status().isOk(),
+                    jsonPath("total_records").value(1),
                     jsonPath("$.tasks").isNotEmpty(),
                     jsonPath("$.tasks.length()").value(1),
                     jsonPath("$.tasks[0].jurisdiction").value("SSCS")
