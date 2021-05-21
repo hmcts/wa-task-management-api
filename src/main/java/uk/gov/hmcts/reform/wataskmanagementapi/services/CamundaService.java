@@ -58,6 +58,7 @@ public class CamundaService {
         "User did not have sufficient permissions to claim task with id: %s";
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
+    public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -101,6 +102,7 @@ public class CamundaService {
                 Map.of("userId", accessControlResponse.getUserInfo().getUid())
             );
         } else {
+            log.error(String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId));
             throw new InsufficientPermissionsException(
                 String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId)
             );
@@ -241,7 +243,8 @@ public class CamundaService {
             }
             return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
         } catch (FeignException exp) {
-            throw new ServerErrorException("There was a problem performing the search", exp);
+            log.error(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
         }
     }
 
@@ -286,7 +289,7 @@ public class CamundaService {
 
             return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
         } catch (FeignException exp) {
-            throw new ServerErrorException("There was a problem performing the search", exp);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
         }
     }
 
@@ -397,6 +400,7 @@ public class CamundaService {
         try {
             updateTaskStateTo(taskId, TaskState.ASSIGNED);
             camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
+            log.debug("Task id '{}' successfully claimed", taskId);
         } catch (FeignException ex) {
             camundaErrorDecoder.decodeException(ex);
         }
@@ -436,7 +440,7 @@ public class CamundaService {
 
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
-            throw new ServerErrorException("There was a problem performing the search", ex);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, ex);
         }
     }
 
@@ -503,7 +507,9 @@ public class CamundaService {
                 updateTaskStateTo(taskId, TaskState.COMPLETED);
             }
             camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
+            log.debug("Task id '{}' completed", taskId);
         } catch (FeignException ex) {
+            log.error("There was a problem completing the task id '{}'", taskId);
             throw new ServerErrorException(String.format(
                 "There was a problem completing the task with id: %s",
                 taskId
@@ -515,12 +521,13 @@ public class CamundaService {
         try {
 
             if (!taskHasUnassigned) {
-                // If task was not already completed complete it
                 updateTaskStateTo(taskId, TaskState.UNASSIGNED);
             }
 
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
+            log.debug("Task id '{}' unclaimed", taskId);
         } catch (FeignException ex) {
+            log.error("There was a problem while claiming task id '{}'", taskId);
             throw new ServerErrorException(String.format(
                 "There was a problem unclaiming task: %s",
                 taskId
@@ -534,6 +541,7 @@ public class CamundaService {
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
         camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+        log.debug("Updated task id '{}' with state '{}'", taskId, newState.value());
     }
 
     private void performCancelTaskAction(String taskId) {
@@ -541,7 +549,9 @@ public class CamundaService {
         body.put("escalationCode", ESCALATION_CODE);
         try {
             camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
+            log.debug("Task id '{}' cancelled", taskId);
         } catch (FeignException ex) {
+            log.error("Task id '{}' could not be cancelled", taskId);
             camundaErrorDecoder.decodeException(ex);
         }
     }

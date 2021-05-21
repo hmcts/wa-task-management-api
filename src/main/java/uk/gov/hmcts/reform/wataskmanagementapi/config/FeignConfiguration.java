@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import feign.Logger;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
 import org.springframework.beans.factory.ObjectFactory;
@@ -12,11 +11,6 @@ import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class FeignConfiguration {
-
-    @Bean
-    Logger.Level feignLoggerLevel() {
-        return Logger.Level.BASIC;
-    }
 
     @Bean
     @Primary

@@ -80,6 +80,7 @@ feign:
       default:
         connectTimeout: 30000
         readTimeout: 30000
+        loggerLevel: basic
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
@@ -91,3 +92,7 @@ logging:
   level:
     root: INFO
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
+    org.zalando.logbook: TRACE
+
+logbook:
+  include: /task/**

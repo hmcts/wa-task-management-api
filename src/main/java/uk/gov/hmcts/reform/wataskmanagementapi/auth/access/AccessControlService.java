@@ -27,6 +27,7 @@ public class AccessControlService {
 
     public AccessControlResponse getRoles(String authToken) {
         UserInfo userInfo = idamService.getUserInfo(authToken);
+        log.debug("UserInfo successfully retrieved from IDAM");
         List<Assignment> assignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
 
         assignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
