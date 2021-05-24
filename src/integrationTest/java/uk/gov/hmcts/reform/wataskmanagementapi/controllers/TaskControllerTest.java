@@ -262,7 +262,7 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", "some-id"));
-            when(camundaServiceApi.searchWithCriteria(
+            when(camundaServiceApi.searchWithCriteriaAndPagination(
                 any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
             // Task created with Jurisdiction SSCS
@@ -315,7 +315,8 @@ class TaskControllerTest extends SpringBootIntegrationBaseTest {
             when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
 
             List<CamundaTask> camundaTasks = List.of(mockServices.getCamundaTask("processInstanceId", taskId));
-            when(camundaServiceApi.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
+            when(camundaServiceApi.searchWithCriteriaAndPagination(
+                any(), anyInt(), anyInt(), any())).thenReturn(camundaTasks);
 
             when(camundaServiceApi.getTaskCount(any(), any())).thenReturn(new CamundaTaskCount(1));
 

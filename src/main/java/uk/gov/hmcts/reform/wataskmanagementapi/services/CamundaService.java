@@ -234,7 +234,7 @@ public class CamundaService {
         }
         try {
             //1. Perform the search
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteriaAndPagination(
                 authTokenGenerator.generate(),
                 firstResult,
                 maxResults,
@@ -286,8 +286,7 @@ public class CamundaService {
         try {
             //3. Perform the search
             List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(), null, null,
-                camundaSearchQuery.getQueries()
+                authTokenGenerator.generate(), camundaSearchQuery.getQueries()
             );
 
             //Safe guard in case no search results were returned
