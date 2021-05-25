@@ -3,7 +3,8 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath("net.serenity-bdd:serenity-gradle-plugin:2.3.5")
+    classpath("net.serenity-bdd:serenity-gradle-plugin:2.4.24")
+    classpath("net.serenity-bdd:serenity-single-page-report:2.4.24")
   }
 }
 
@@ -189,7 +190,11 @@ project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
 // Ensures that functional tests index page is generated
 // Functional tests should run two tasks "functional" and "aggregate"
 gradle.startParameter.continueOnFailure = true
-functional.finalizedBy aggregate
+//functional.finalizedBy aggregate
+functional.finalizedBy reports
+serenity {
+  reports = ["single-page-html"]
+}
 
 sonarqube {
   properties {
@@ -254,7 +259,7 @@ def versions = [
   reformLogging   : '5.1.5',
   springBoot      : '2.4.2',
   springfoxSwagger: '3.0.0',
-  serenity        : '2.2.12',
+  serenity        : '2.4.25',
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
@@ -319,8 +324,8 @@ dependencies {
 
   testCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
-  testCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
-  testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  testCompile group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: '2.4.24'
+  testCompile group: 'net.serenity-bdd', name: 'serenity-spring', version: '2.4.24'
   testCompile "org.junit.vintage:junit-vintage-engine:${versions.junit}"
 
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
