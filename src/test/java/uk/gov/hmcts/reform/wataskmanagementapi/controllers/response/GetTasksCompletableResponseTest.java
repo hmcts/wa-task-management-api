@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 @ExtendWith(MockitoExtension.class)
-class GetTasksResponseTest {
+public class GetTasksCompletableResponseTest {
 
     @Mock
     private Task camundaTask;
@@ -24,7 +24,8 @@ class GetTasksResponseTest {
 
         List<Task> camundaTasks = Lists.newArrayList(camundaTask);
 
-        final GetTasksResponse<Task> camundaTasksGetTaskResponse = new GetTasksResponse<>(camundaTasks, 1);
+        final GetTasksCompletableResponse<Task> camundaTasksGetTaskResponse =
+            new GetTasksCompletableResponse<>(camundaTasks);
 
         assertThat(camundaTasksGetTaskResponse.getTasks().size()).isEqualTo(1);
         assertThat(camundaTasksGetTaskResponse.getTasks().get(0)).isEqualTo(camundaTask);
@@ -33,7 +34,7 @@ class GetTasksResponseTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = GetTasksResponse.class;
+        final Class<?> classUnderTest = GetTasksCompletableResponse.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -43,6 +44,4 @@ class GetTasksResponseTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-
-
 }

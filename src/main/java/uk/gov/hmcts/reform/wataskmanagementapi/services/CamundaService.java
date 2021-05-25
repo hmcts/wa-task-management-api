@@ -59,6 +59,7 @@ public class CamundaService {
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
     public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
+    public static final String THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT = "There was a problem retrieving task count";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -221,6 +222,7 @@ public class CamundaService {
     }
 
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
+                                         int firstResult, int maxResults,
                                          AccessControlResponse accessControlResponse,
                                          List<PermissionTypes> permissionsRequired) {
 
@@ -232,8 +234,10 @@ public class CamundaService {
         }
         try {
             //1. Perform the search
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteriaAndPagination(
                 authTokenGenerator.generate(),
+                firstResult,
+                maxResults,
                 query.getQueries()
             );
 
@@ -245,6 +249,19 @@ public class CamundaService {
         } catch (FeignException exp) {
             log.error(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH);
             throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
+        }
+    }
+
+    public long getTaskCount(SearchTaskRequest searchTaskRequest) {
+        try {
+            CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
+            return camundaServiceApi.getTaskCount(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            ).getCount();
+        } catch (FeignException exp) {
+            log.error(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT, exp);
         }
     }
 
@@ -269,8 +286,7 @@ public class CamundaService {
         try {
             //3. Perform the search
             List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(),
-                camundaSearchQuery.getQueries()
+                authTokenGenerator.generate(), camundaSearchQuery.getQueries()
             );
 
             //Safe guard in case no search results were returned

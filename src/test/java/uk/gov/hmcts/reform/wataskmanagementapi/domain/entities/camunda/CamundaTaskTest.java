@@ -1,13 +1,11 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class CamundaTaskTest {
-
 
     @Test
     void isWellImplemented() {
@@ -21,6 +19,5 @@ class CamundaTaskTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-
 
 }
