@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -275,9 +274,7 @@ public class CamundaService {
         //Safe-guard against unsupported Jurisdictions and case types.
         if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
             || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
-            throw new BadRequestException("Please check your request. "
-                                          + "This endpoint currently only supports"
-                                          + " the Immigration & Asylum service");
+            return new GetTasksCompletableResponse<>(false,emptyList());
         }
         final List<Map<String, CamundaVariable>> evaluateDmnResult = evaluateTaskCompletionDmn(searchEventAndCase);
 
