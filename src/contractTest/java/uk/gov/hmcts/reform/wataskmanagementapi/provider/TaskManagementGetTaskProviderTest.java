@@ -6,15 +6,9 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
-import au.com.dius.pact.provider.junitsupport.target.TestTarget;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import au.com.dius.pact.provider.spring.target.MockMvcTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -94,34 +87,33 @@ public class TaskManagementGetTaskProviderTest {
 
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
+        when(camundaService.getTask(any(), any(), any())).thenReturn(createTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
     private Task createTask() {
         return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                         "Jake",
-                         "ReviewTheAppeal",
-                         "unconfigured",
-                         "SELF",
-                         "PRIVATE",
-                         "task name",
-                          ZonedDateTime.now(),
-                          ZonedDateTime.now(),
-                         "Mark Alistair",
-                         true,
-                         "Time extension",
-                         "IA",
-                         "1",
-                         "765324",
-                         "Newcastle",
-                         "Asylum",
-                         "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                         "processApplication",
-                         "Bob Smith",
-                         true);
+            "Jake",
+            "ReviewTheAppeal",
+            "unconfigured",
+            "SELF",
+            "PRIVATE",
+            "task name",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "Mark Alistair",
+            true,
+            "Time extension",
+            "IA",
+            "1",
+            "765324",
+            "Newcastle",
+            "Asylum",
+            "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+            "processApplication",
+            "Bob Smith",
+            true);
     }
-
 
 
 }
