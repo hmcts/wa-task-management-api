@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
@@ -16,6 +17,8 @@ import java.util.List;
 @ToString
 public class SearchTaskRequest {
 
+    @ApiModelProperty(required = true,
+        notes = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     private List<SearchParameter> searchParameters;
     private List<SortingParameter> sortingParameters;
 

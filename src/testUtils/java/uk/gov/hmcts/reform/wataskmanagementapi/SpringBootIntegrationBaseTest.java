@@ -12,11 +12,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @ActiveProfiles("integration")
 @RunWith(SpringRunner.class)
+@AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
+    "IDAM_URL=https://idam-api.aat.platform.hmcts.net",
     "OPEN_ID_IDAM_URL=https://idam-web-public.aat.platform.hmcts.net",
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
-@AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class SpringBootIntegrationBaseTest {
 

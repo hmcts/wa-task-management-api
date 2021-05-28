@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request;
 
-import com.google.common.base.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+
+@EqualsAndHashCode
+@ToString
 public class RoleRequest {
 
     boolean replaceExisting;
@@ -36,33 +40,4 @@ public class RoleRequest {
         return replaceExisting;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        RoleRequest that = (RoleRequest) object;
-        return replaceExisting == that.replaceExisting
-               && Objects.equal(assignerId, that.assignerId)
-               && Objects.equal(process, that.process)
-               && Objects.equal(reference, that.reference);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(assignerId, process, reference, replaceExisting);
-    }
-
-    @Override
-    public String toString() {
-        return "RoleRequest{"
-               + "assignerId='" + assignerId
-               + ", process='" + process
-               + ", reference='" + reference
-               + ", replaceExisting=" + replaceExisting
-               + '}';
-    }
 }

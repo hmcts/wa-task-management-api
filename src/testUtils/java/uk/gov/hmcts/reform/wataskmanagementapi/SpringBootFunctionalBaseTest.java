@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -26,7 +26,6 @@ public abstract class SpringBootFunctionalBaseTest {
 
     public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
         "There was a problem fetching the variables for task with id: %s";
-    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
@@ -39,7 +38,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected CoreCaseDataApi coreCaseDataApi;
 
     @Autowired
-    protected IdamServiceApi idamServiceApi;
+    protected IdamService idamService;
 
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -48,6 +47,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
+    @Value("${targets.documentStoreUrl}")
+    private String documentStoreUrl;
 
     @Before
     public void setUpGivens() {
@@ -55,6 +56,7 @@ public abstract class SpringBootFunctionalBaseTest {
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
         given = new GivensBuilder(
+            documentStoreUrl,
             camundaApiActions,
             restApiActions,
             authorizationHeadersProvider,
@@ -64,7 +66,7 @@ public abstract class SpringBootFunctionalBaseTest {
             given,
             camundaApiActions,
             authorizationHeadersProvider,
-            idamServiceApi,
+            idamService,
             roleAssignmentServiceApi
         );
 

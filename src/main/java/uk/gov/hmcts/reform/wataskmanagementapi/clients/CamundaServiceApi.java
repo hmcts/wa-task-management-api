@@ -7,11 +7,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
 
 import java.util.List;
@@ -30,6 +33,14 @@ public interface CamundaServiceApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
 
+    @PostMapping(value = "/variable-instance",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    List<CamundaVariableInstance> getAllVariables(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                  @RequestBody Map<String, Object> body);
+
     @PostMapping(value = "/task",
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
@@ -37,6 +48,24 @@ public interface CamundaServiceApi {
     @ResponseBody
     List<CamundaTask> searchWithCriteria(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                          @RequestBody Map<String, Object> body);
+
+    @PostMapping(value = "/task",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    List<CamundaTask> searchWithCriteriaAndPagination(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                      @RequestParam("firstResult") Integer firstResult,
+                                                      @RequestParam("maxResults") Integer maxResults,
+                                                      @RequestBody Map<String, Object> body);
+
+    @PostMapping(value = "/task/count",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    CamundaTaskCount getTaskCount(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                  @RequestBody Map<String, Object> body);
 
     @GetMapping(
         value = "/task/{task-id}",
@@ -72,7 +101,7 @@ public interface CamundaServiceApi {
                       CompleteTaskVariables variables);
 
     @PostMapping(
-        value = "/task/{id}/variables",
+        value = "/task/{id}/localVariables",
         consumes = APPLICATION_JSON_VALUE
     )
     void addLocalVariablesToTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,

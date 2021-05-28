@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
 import org.junit.jupiter.api.Test;
+import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -12,9 +13,22 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.Assert.assertEquals;
+import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class AssignmentTest {
 
+    @Test
+    void isWellImplemented() {
+        final Class<?> classUnderTest = Assignment.class;
+
+        assertPojoMethodsFor(classUnderTest)
+            .testing(Method.GETTER)
+            .testing(Method.CONSTRUCTOR)
+            .testing(Method.TO_STRING)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
+            .areWellImplemented();
+    }
 
     @Test
     void should_set_properties() {
@@ -27,7 +41,7 @@ class AssignmentTest {
             "some-role-name",
             Classification.PUBLIC,
             GrantType.SPECIFIC,
-            RoleCategory.STAFF,
+            RoleCategory.LEGAL_OPERATIONS,
             false,
             null,
             null,
@@ -43,7 +57,7 @@ class AssignmentTest {
         assertEquals("some-role-name", assignment.getRoleName());
         assertEquals(Classification.PUBLIC, assignment.getClassification());
         assertEquals(GrantType.SPECIFIC, assignment.getGrantType());
-        assertEquals(RoleCategory.STAFF, assignment.getRoleCategory());
+        assertEquals(RoleCategory.LEGAL_OPERATIONS, assignment.getRoleCategory());
         assertEquals(false, assignment.isReadOnly());
         assertEquals(null, assignment.getBeginTime());
         assertEquals(null, assignment.getEndTime());

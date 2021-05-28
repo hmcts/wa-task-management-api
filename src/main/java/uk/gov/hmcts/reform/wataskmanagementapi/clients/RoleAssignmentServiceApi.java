@@ -16,7 +16,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 
 @FeignClient(
     name = "role-assignment-api",
-    url = "${role-assignment.url}",
+    url = "${role-assignment-service.url}",
     configuration = FeignConfiguration.class
 )
 @SuppressWarnings("checkstyle:LineLength")

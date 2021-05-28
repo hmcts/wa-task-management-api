@@ -49,17 +49,20 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 public class GivensBuilder {
 
+    private final String documentStoreUrl;
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
     private final CoreCaseDataApi coreCaseDataApi;
 
-    public GivensBuilder(RestApiActions camundaApiActions,
+    public GivensBuilder(String documentStoreUrl,
+                         RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider,
                          CoreCaseDataApi coreCaseDataApi
     ) {
+        this.documentStoreUrl = documentStoreUrl;
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
@@ -107,6 +110,27 @@ public class GivensBuilder {
         return this;
     }
 
+    public GivensBuilder iCreateATaskWithCaseIdForSCSS(String caseId) {
+
+        Map<String, CamundaValue<?>> processVariables = createTaskVariablesForSCSS(caseId);
+
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables
+        );
+
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
+    }
+
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
         String filter = "?processVariables=" + key + "_eq_" + value;
@@ -114,7 +138,7 @@ public class GivensBuilder {
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(20, SECONDS)
+            .atMost(60, SECONDS)
             .until(
                 () -> {
                     Response result = camundaApiActions.get(
@@ -184,7 +208,34 @@ public class GivensBuilder {
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("region", "1")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("group", "TCW")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", "reviewTheAppeal")
+            .withProcessVariable("taskType", "reviewTheAppeal")
+            .withProcessVariable("taskCategory", "Case Progression")
+            .withProcessVariable("taskState", "unconfigured")
+            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
+            .withProcessVariableBoolean("hasWarnings", false)
+            .build();
+
+        return processVariables.getProcessVariablesMap();
+    }
+
+    public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("jurisdiction", "SCSS")
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
@@ -225,7 +276,7 @@ public class GivensBuilder {
         try {
             String caseDataString =
                 FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
-
+            caseDataString = caseDataString.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
@@ -287,8 +338,6 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        waitSeconds(2);
-
         return caseDetails.getId().toString();
     }
 
@@ -306,7 +355,7 @@ public class GivensBuilder {
             roleName,
             Classification.RESTRICTED,
             GrantType.SPECIFIC,
-            RoleCategory.STAFF,
+            RoleCategory.LEGAL_OPERATIONS,
             false,
             attributes
         );

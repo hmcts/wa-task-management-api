@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 
 @SuppressWarnings("PMD.UnnecessaryFullyQualifiedName")
 public class CamundaSearchQuery {
@@ -32,14 +31,18 @@ public class CamundaSearchQuery {
             return new CamundaAndQueryBuilder();
         }
 
+        public List<Object> getOrQueries() {
+            return orQueries;
+        }
+
         public CamundaAndQueryBuilder withKeyValue(String key, String value) {
-            map.put(key, singletonList(value));
+            map.put(key, value);
             return this;
         }
 
         public CamundaAndQueryBuilder andQuery(CamundaOrQuery.CamundaOrQueryBuilder searchQuery) {
             CamundaOrQuery query = searchQuery.build();
-            if (!query.getProcessVariables().isEmpty()) {
+            if (!query.getTaskVariables().isEmpty()) {
                 orQueries.add(query);
             }
             return this;

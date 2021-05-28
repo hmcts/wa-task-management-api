@@ -29,10 +29,10 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -50,10 +50,181 @@ class PermissionEvaluatorServiceTest {
 
     private Map<String, CamundaVariable> defaultVariables;
 
+    private static Stream<EndTimeScenario> endTimeScenarioProvider() {
+
+        EndTimeScenario endTimeIsNull = EndTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenEndTime(null))
+            .expectedHasAccess(true)
+            .build();
+
+        EndTimeScenario endTimeIsAfterCurrentTime = EndTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenEndTime(LocalDateTime.now().minusDays(3)))
+            .expectedHasAccess(false)
+            .build();
+
+        EndTimeScenario endTimeIsBeforeCurrentTime = EndTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenEndTime(LocalDateTime.now().plusDays(3)))
+            .expectedHasAccess(true)
+            .build();
+
+        return Stream.of(
+            endTimeIsNull,
+            endTimeIsAfterCurrentTime,
+            endTimeIsBeforeCurrentTime
+        );
+    }
+
+    private static Assignment buildRoleAssignmentGivenEndTime(LocalDateTime endTime) {
+        return Assignment.builder()
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("some actor id")
+            .roleType(RoleType.ORGANISATION)
+            .roleName("tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.SPECIFIC)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .endTime(endTime)
+            .build();
+    }
+
+    private static Stream<BeginTimeScenario> beginTimeScenarioProvider() {
+
+        BeginTimeScenario beginTimeIsNull = BeginTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenBeginTime(null))
+            .expectedHasAccess(true)
+            .build();
+
+        BeginTimeScenario beginTimeIsAfterCurrentTime = BeginTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().minusDays(3)))
+            .expectedHasAccess(true)
+            .build();
+
+        BeginTimeScenario beginTimeIsBeforeCurrentTime = BeginTimeScenario.builder()
+            .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().plusDays(3)))
+            .expectedHasAccess(false)
+            .build();
+
+        return Stream.of(
+            beginTimeIsNull,
+            beginTimeIsAfterCurrentTime,
+            beginTimeIsBeforeCurrentTime
+        );
+    }
+
+    private static Assignment buildRoleAssignmentGivenBeginTime(LocalDateTime beginTime) {
+        return Assignment.builder()
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("some actor id")
+            .roleType(RoleType.ORGANISATION)
+            .roleName("tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.SPECIFIC)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .beginTime(beginTime)
+            .build();
+    }
+
     @BeforeEach
     public void setUp() {
-        permissionEvaluatorService = new PermissionEvaluatorService(new CamundaObjectMapper());
+        CamundaObjectMapper camundaObjectMapper = new CamundaObjectMapper();
+        permissionEvaluatorService = new PermissionEvaluatorService(
+            camundaObjectMapper,
+            new AttributesValueVerifier(camundaObjectMapper)
+        );
         defaultVariables = getDefaultVariables();
+    }
+
+    @Test
+    void hasAccessWithUserIdAssigneeCheck_should_succeed_senior_tribunal_case_worker() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                null,
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
+    void hasAccessWithUserIdAssigneeCheck_should_succeed_senior_tribunal_case_worker_another_user_assigned() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
+    void hasAccessWithUserIdAssigneeCheck_should_succeed_tribunal_case_worker_assigned_to_task() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                "someUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+
+    @Test
+    void hasAccessWithUserIdAssigneeCheck_should_fail_different_tribunal_case_worker_assigned_to_task() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            singletonList("tribunal-caseworker"),
+            Classification.PUBLIC,
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
     }
 
     @Test
@@ -357,49 +528,6 @@ class PermissionEvaluatorServiceTest {
         assertEquals(scenario.expectedHasAccess, actualHasAccess);
     }
 
-    private static Stream<EndTimeScenario> endTimeScenarioProvider() {
-
-        EndTimeScenario endTimeIsNull = EndTimeScenario.builder()
-            .roleAssignment(buildRoleAssignmentGivenEndTime(null))
-            .expectedHasAccess(true)
-            .build();
-
-        EndTimeScenario endTimeIsAfterCurrentTime = EndTimeScenario.builder()
-            .roleAssignment(buildRoleAssignmentGivenEndTime(LocalDateTime.now().minusDays(3)))
-            .expectedHasAccess(false)
-            .build();
-
-        EndTimeScenario endTimeIsBeforeCurrentTime = EndTimeScenario.builder()
-            .roleAssignment(buildRoleAssignmentGivenEndTime(LocalDateTime.now().plusDays(3)))
-            .expectedHasAccess(true)
-            .build();
-
-        return Stream.of(
-            endTimeIsNull,
-            endTimeIsAfterCurrentTime,
-            endTimeIsBeforeCurrentTime
-        );
-    }
-
-    private static Assignment buildRoleAssignmentGivenEndTime(LocalDateTime endTime) {
-        return Assignment.builder()
-            .actorIdType(ActorIdType.IDAM)
-            .actorId("some actor id")
-            .roleType(RoleType.ORGANISATION)
-            .roleName("tribunal-caseworker")
-            .classification(Classification.PUBLIC)
-            .grantType(GrantType.SPECIFIC)
-            .roleCategory(RoleCategory.STAFF)
-            .endTime(endTime)
-            .build();
-    }
-
-    @Builder
-    private static class EndTimeScenario {
-        Assignment roleAssignment;
-        boolean expectedHasAccess;
-    }
-
     @ParameterizedTest
     @MethodSource("beginTimeScenarioProvider")
     void hasAccess_should_succeed_when_looking_for_begin_time_permission_and_return_true(
@@ -414,49 +542,6 @@ class PermissionEvaluatorServiceTest {
         );
 
         assertEquals(scenario.expectedHasAccess, actualHasAccess);
-    }
-
-    private static Stream<BeginTimeScenario> beginTimeScenarioProvider() {
-
-        BeginTimeScenario beginTimeIsNull = BeginTimeScenario.builder()
-            .roleAssignment(buildRoleAssignmentGivenBeginTime(null))
-            .expectedHasAccess(true)
-            .build();
-
-        BeginTimeScenario beginTimeIsAfterCurrentTime = BeginTimeScenario.builder()
-            .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().minusDays(3)))
-            .expectedHasAccess(true)
-            .build();
-
-        BeginTimeScenario beginTimeIsBeforeCurrentTime = BeginTimeScenario.builder()
-            .roleAssignment(buildRoleAssignmentGivenBeginTime(LocalDateTime.now().plusDays(3)))
-            .expectedHasAccess(false)
-            .build();
-
-        return Stream.of(
-            beginTimeIsNull,
-            beginTimeIsAfterCurrentTime,
-            beginTimeIsBeforeCurrentTime
-        );
-    }
-
-    private static Assignment buildRoleAssignmentGivenBeginTime(LocalDateTime beginTime) {
-        return Assignment.builder()
-            .actorIdType(ActorIdType.IDAM)
-            .actorId("some actor id")
-            .roleType(RoleType.ORGANISATION)
-            .roleName("tribunal-caseworker")
-            .classification(Classification.PUBLIC)
-            .grantType(GrantType.SPECIFIC)
-            .roleCategory(RoleCategory.STAFF)
-            .beginTime(beginTime)
-            .build();
-    }
-
-    @Builder
-    private static class BeginTimeScenario {
-        Assignment roleAssignment;
-        boolean expectedHasAccess;
     }
 
     @Test
@@ -543,7 +628,6 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
-
     @Test
     void hasAccess_should_succeed_when_looking_for_region_permission_and_return_true() {
 
@@ -586,7 +670,6 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
-
     @Test
     void hasAccess_should_succeed_when_looking_for_location_permission_and_return_true() {
 
@@ -616,7 +699,49 @@ class PermissionEvaluatorServiceTest {
         List<Assignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
-            Map.of(RoleAttributeDefinition.PRIMARY_LOCATION.value(), "anotherLocationId")
+            Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "anotherLocationId")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccess(
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void hasAccess_should_succeed_when_looking_for_caseTypeId_permission_and_return_true() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccess(
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
+    @Test
+    void hasAccess_should_fail_when_looking_for_caseTypeId_permission_and_return_false() {
+
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
+
+        List<Assignment> testCases = createTestAssignments(
+            asList("tribunal-caseworker", "senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "invalidAsylum")
         );
 
         testCases.forEach(roleAssignment -> {
@@ -638,7 +763,7 @@ class PermissionEvaluatorServiceTest {
             .forEach(roleType -> {
                     Assignment roleAssignment = createBaseAssignment(
                         UUID.randomUUID().toString(),
-                        "tribunal-caseworker",
+                        roleName,
                         roleType,
                         roleClassification,
                         roleAttributes
@@ -661,7 +786,7 @@ class PermissionEvaluatorServiceTest {
             roleName,
             classification,
             GrantType.SPECIFIC,
-            RoleCategory.STAFF,
+            RoleCategory.LEGAL_OPERATIONS,
             false,
             attributes
         );
@@ -672,7 +797,7 @@ class PermissionEvaluatorServiceTest {
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put(CASE_ID.value(), new CamundaVariable("123456789", "String"));
         variables.put(CASE_NAME.value(), new CamundaVariable("someCaseName", "String"));
-        variables.put(CASE_TYPE_ID.value(), new CamundaVariable("someCaseType", "String"));
+        variables.put(CASE_TYPE_ID.value(), new CamundaVariable("Asylum", "String"));
         variables.put(TASK_STATE.value(), new CamundaVariable("configured", "String"));
         variables.put(LOCATION.value(), new CamundaVariable("012345", "String"));
         variables.put(LOCATION_NAME.value(), new CamundaVariable("A Hearing Centre", "String"));
@@ -689,6 +814,18 @@ class PermissionEvaluatorServiceTest {
         );
 
         return variables;
+    }
+
+    @Builder
+    private static class EndTimeScenario {
+        Assignment roleAssignment;
+        boolean expectedHasAccess;
+    }
+
+    @Builder
+    private static class BeginTimeScenario {
+        Assignment roleAssignment;
+        boolean expectedHasAccess;
     }
 
 }

@@ -24,15 +24,19 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
@@ -75,7 +79,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now()
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
@@ -102,9 +106,180 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId));
+            .body("tasks.id", hasItem(taskId))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_with_all_tasks_without_pagination() {
+        //creating 3 tasks
+        String[] taskStates = {TaskState.ASSIGNED.value(), TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", greaterThanOrEqualTo(3))
+            .body("total_records", greaterThanOrEqualTo(1));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+    }
+
+    @Test
+    public void should_return_a_200_with_limited_tasks_with_pagination() {
+        //creating 3 tasks
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=2",
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(2))
+            .body("total_records", greaterThanOrEqualTo(1));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+    }
+
+    @Test
+    public void should_return_a_200_with_empty_search_results_with_negative_firstResult_pagination() {
+        //creating 1 task
+        String[] taskStates = {TaskState.ASSIGNED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=2",
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+    }
+
+    @Test
+    public void should_return_a_200_with_empty_search_results_with_negative_maxResults_pagination() {
+        //creating 1 task
+        String[] taskStates = {TaskState.UNASSIGNED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=-1",
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+    }
+
+    @Test
+    public void should_return_a_200_with_empty_search_results_with_negative_pagination() {
+        //creating 1 task
+        String[] taskStates = {TaskState.UNCONFIGURED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=-1",
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
     }
 
     @Test
@@ -127,7 +302,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.task_state", everyItem(is("unassigned")));
+            .body("tasks.task_state", everyItem(is("unassigned")))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -161,38 +337,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.task_state", everyItem(is("assigned")));
-
-        common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
-
-    @Test
-    public void should_return_a_200_with_search_results_with_restricted_role_assignment() {
-        TestVariables taskVariablesSscs =
-            common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "SSCS");
-        String taskId = taskVariablesSscs.getTaskId();
-        String caseId = taskVariablesSscs.getCaseId();
-
-        common.setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition.JURISDICTION, "IA");
-
-
-        common.setupRestrictedRoleAssignment(caseId, authenticationHeaders);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.jurisdiction", everyItem(is("SSCS")))
-            .body("tasks.case_id", hasItem(caseId))
-            .body("tasks.id", hasItem(taskId));
+            .body("tasks.task_state", everyItem(is("assigned")))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -225,7 +371,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()));
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -255,7 +402,42 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_with_search_results_based_on_caseId_location_filters() {
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.LOCATION, "765324",
+            CamundaVariableDefinition.TASK_STATE, "unassigned"
+        );
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        String taskId = taskVariables.getTaskId();
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId())),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+        ));
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", hasItem(taskId))
+            .body("tasks.location", everyItem(equalTo("765324")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -291,7 +473,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()));
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -300,7 +483,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_multiple_state_filters() {
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
-        List<TestVariables> tasksCreated = createMultipleTasksWithDifferentTaskStates(taskStates);
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -330,7 +513,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItems(tasksCreated.get(0).getCaseId(), tasksCreated.get(1).getCaseId()))
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.location", everyItem(equalTo("765324")))
-            .body("tasks.jurisdiction", everyItem(equalTo("IA")));
+            .body("tasks.jurisdiction", everyItem(equalTo("IA")))
+            .body("total_records", greaterThanOrEqualTo(1));
 
 
         tasksCreated
@@ -342,7 +526,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
-        List<TestVariables> tasksCreated = createMultipleTasksWithDifferentTaskStates(
+        List<TestVariables> tasksCreated = createMultipleTasks(
             taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -367,13 +551,70 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("total_records", equalTo(0));
 
         tasksCreated.forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
 
     }
 
-    private List<TestVariables> createMultipleTasksWithDifferentTaskStates(String[] states) {
+    @Test
+    public void should_return_a_200_with_search_results_and_correct_properties() {
+        String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
+
+        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+        ));
+
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.name", everyItem(notNullValue()))
+            .body("tasks.type", everyItem(notNullValue()))
+            .body("tasks.task_state", everyItem(notNullValue()))
+            .body("tasks.task_system", everyItem(notNullValue()))
+            .body("tasks.security_classification", everyItem(notNullValue()))
+            .body("tasks.task_title", everyItem(notNullValue()))
+            .body("tasks.created_date", everyItem(notNullValue()))
+            .body("tasks.due_date", everyItem(notNullValue()))
+            .body("tasks.location_name", everyItem(notNullValue()))
+            .body("tasks.location", everyItem(notNullValue()))
+            .body("tasks.execution_type", everyItem(notNullValue()))
+            .body("tasks.jurisdiction", everyItem(notNullValue()))
+            .body("tasks.region", everyItem(notNullValue()))
+            .body("tasks.case_type_id", everyItem(notNullValue()))
+            .body("tasks.case_id", everyItem(notNullValue()))
+            .body("tasks.case_type_id", everyItem(notNullValue()))
+            .body("tasks.case_category", everyItem(notNullValue()))
+            .body("tasks.case_name", everyItem(notNullValue()))
+            .body("tasks.auto_assigned", everyItem(notNullValue()))
+            .body("tasks.warnings", everyItem(notNullValue()))
+            .body("total_records", greaterThanOrEqualTo(1));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+    }
+
+    private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
         for (String state : states) {
             Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
