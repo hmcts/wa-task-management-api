@@ -10,18 +10,18 @@ def component = "task-management-api"
 
 
 def secrets = [
-    'wa-${env}' : [
-        secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
-        secret('idam-secret', 'IA_IDAM_SECRET'),
-        secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
-        secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
-        secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
-        secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+        'wa-${env}' : [
+                secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+                secret('idam-secret', 'IA_IDAM_SECRET'),
+                secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+                secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
+                secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
+                secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
 
-    ],
-    's2s-${env}': [
-        secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
-    ]
+        ],
+        's2s-${env}': [
+                secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
+        ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
@@ -64,12 +64,12 @@ withPipeline(type, product, component) {
     }
 
     onMaster() {
-//        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
-//        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
+        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
     }
 
     onPR() {
-//        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
-//        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
+        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
+        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
     }
 }
