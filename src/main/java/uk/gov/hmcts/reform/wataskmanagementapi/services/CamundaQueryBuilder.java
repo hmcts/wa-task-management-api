@@ -144,10 +144,10 @@ public class CamundaQueryBuilder {
 
         List<CamundaSortingExpression> sortingQueries = sortingParameters.stream().map(param -> {
             if (SortField.DUE_DATE == param.getSortBy()) {
-                return createTaskVariableSortExpression(param.getSortBy(), param.getSortOrder());
+                return createSortExpression(param.getSortBy(), param.getSortOrder());
             } else {
                 //It's a process variable
-                return createProcessVariableSortExpression(param.getSortBy(), param.getSortOrder());
+                return createTaskVariableSortExpression(param.getSortBy(), param.getSortOrder());
             }
         }).collect(Collectors.toList());
 
@@ -184,18 +184,18 @@ public class CamundaQueryBuilder {
         return Map.of("assigneeIn", userSearchParameter.getValues());
     }
 
-    private CamundaSortingExpression createTaskVariableSortExpression(SortField sortBy, SortOrder sortOrder) {
+    private CamundaSortingExpression createSortExpression(SortField sortBy, SortOrder sortOrder) {
         return new CamundaSortingExpression(
-            sortBy.toString(),
+            sortBy.getVarName(),
             sortOrder.toString()
         );
     }
 
-    private CamundaSortingExpression createProcessVariableSortExpression(SortField sortBy, SortOrder sortOrder) {
+    private CamundaSortingExpression createTaskVariableSortExpression(SortField sortBy, SortOrder sortOrder) {
         return new CamundaProcessVariableSortingExpression(
-            "processVariable",
+            "taskVariable",
             sortOrder.toString(),
-            new CamundaSortingParameters(sortBy.toString(), "String")
+            new CamundaSortingParameters(sortBy.getVarName(), "String")
         );
     }
 
