@@ -21,11 +21,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -86,51 +89,53 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     public List<Task> createTasks() {
-        Task taskOne = new Task(
-            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-            "Review the appeal",
-            "reviewTheAppeal",
-            "assigned",
-            "SELF",
-            "PUBLIC",
-            "Review the appeal",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            "10bac6bf-80a7-4c81-b2db-516aba826be6",
-            false,
-            "Case Management Task",
-            "IA",
-            "1",
-            "765324",
-            "Taylor House",
-            "Asylum",
-            "1617708245335311",
-            "refusalOfHumanRights",
-            "Bob Smith",
-            false);
+        var tasks = new ArrayList<Task>();
+        var taskOne =  new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+                                              "Jake",
+                                              "ReviewTheAppeal",
+                                              "unconfigured",
+                                              "SELF",
+                                              "PRIVATE",
+                                              "task name",
+                                              ZonedDateTime.now(),
+                                              ZonedDateTime.now(),
+                                              "Mark Alistair",
+                                              true,
+                                              "Time extension",
+                                              "IA",
+                                              "1",
+                                              "765324",
+                                              "Newcastle",
+                                              "Asylum",
+                                              "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+                                              "processApplication",
+                                              "Bob Smith",
+                                              true,
+                                                new WarningValues(Collections.emptyList())
+        );
 
-        Task taskTwo = new Task(
-            "fda422de-b381-43ff-94ea-eea5790188a3",
-            "Review the appeal",
-            "reviewTheAppeal",
-            "unassigned",
-            "SELF",
-            "PUBLIC",
-            "Review the appeal",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            null,
-            true,
-            "Case Management Task",
-            "IA",
-            "1",
-            "765324",
-            "Taylor House",
-            "Asylum",
-            "1617708245308495",
-            "refusalOfHumanRights",
-            "John Doe",
-            true);
+        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
+                                              "Megan",
+                                              "ReviewTheAppeal",
+                                              "unconfigured",
+                                              "SELF",
+                                              "PRIVATE",
+                                              "task name",
+                                              ZonedDateTime.now(),
+                                              ZonedDateTime.now(),
+                                              "Jean Pierre",
+                                              true,
+                                              "Time extension",
+                                              "IA",
+                                              "1",
+                                              "766524",
+                                              "Newcastle",
+                                              "Asylum",
+                                              "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
+                                              "processApplication",
+                                              "Bob Smith",
+                                              true,
+                                              new WarningValues(Collections.emptyList()));
 
         return Arrays.asList(taskOne, taskTwo);
     }

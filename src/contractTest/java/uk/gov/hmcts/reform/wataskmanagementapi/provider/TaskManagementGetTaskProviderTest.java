@@ -21,11 +21,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -95,28 +97,28 @@ public class TaskManagementGetTaskProviderTest {
     }
 
     private Task createTask() {
-        return new Task(
-            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-            "Review the appeal",
-            "reviewTheAppeal",
-            "assigned",
-            "SELF",
-            "PUBLIC",
-            "Review the appeal",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            "10bac6bf-80a7-4c81-b2db-516aba826be6",
-            false,
-            "Case Management Task",
-            "IA",
-            "1",
-            "765324",
-            "Taylor House",
-            "Asylum",
-            "1617708245335311",
-            "refusalOfHumanRights",
-            "Bob Smith",
-            false);
+        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+                         "Jake",
+                         "ReviewTheAppeal",
+                         "unconfigured",
+                         "SELF",
+                         "PRIVATE",
+                         "task name",
+                          ZonedDateTime.now(),
+                          ZonedDateTime.now(),
+                         "Mark Alistair",
+                         true,
+                         "Time extension",
+                         "IA",
+                         "1",
+                         "765324",
+                         "Newcastle",
+                         "Asylum",
+                         "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+                         "processApplication",
+                         "Bob Smith",
+                         true,
+                        new WarningValues(Collections.emptyList()));
     }
 
 

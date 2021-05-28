@@ -22,10 +22,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -85,30 +87,34 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     public List<Task> createTasks() {
-        Task taskOne = new Task(
+        var tasks = new ArrayList<Task>();
+        var taskOne = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-            "Review the appeal",
-            "reviewTheAppeal",
-            "assigned",
+            "Jake",
+            "ReviewTheAppeal",
+            "unconfigured",
             "SELF",
-            "PUBLIC",
-            "Review the appeal",
+            "PRIVATE",
+            "task name",
             ZonedDateTime.now(),
             ZonedDateTime.now(),
-            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            "Mark Alistair",
             true,
-            "Case Management Task",
+            "Time extension",
             "IA",
             "1",
             "765324",
-            "Taylor House",
+            "Newcastle",
             "Asylum",
-            "1617708245335311",
-            "refusalOfHumanRights",
+            "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+            "processApplication",
             "Bob Smith",
-            true);
+            true,
+            new WarningValues(Collections.emptyList())
+        );
 
-        return Collections.singletonList(taskOne);
+        tasks.add(taskOne);
+        return tasks;
     }
 
     private void setInitMockForSearchByCompletableTask() {

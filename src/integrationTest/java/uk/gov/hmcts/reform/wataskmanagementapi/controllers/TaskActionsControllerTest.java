@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -32,9 +34,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +49,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -79,8 +86,8 @@ class TaskActionsControllerTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     public void setUp() {
         mockServices = new ServiceMocks(idamWebApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi);
+                                        camundaServiceApi,
+                                        roleAssignmentServiceApi);
     }
 
     @Nested
@@ -206,12 +213,98 @@ class TaskActionsControllerTest extends SpringBootIntegrationBaseTest {
 
         }
 
+        @Test
+        void should_return_a_task_with_warning_when_has_warnings_is_given() throws Exception {
+
+
+            final String userToken = "user_token";
+
+            mockServices.mockUserInfo();
+
+            final List<String> roleNames = asList("tribunal-caseworker");
+
+            Map<String, String> roleAttributes = new HashMap<>();
+            roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+
+            // Role attribute is IA
+            List<Assignment> allTestRoles = new ArrayList<>();
+            roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+                .forEach(roleType -> {
+                    Assignment roleAssignment = mockServices.createBaseAssignment(
+                        UUID.randomUUID().toString(), "tribunal-caseworker",
+                        roleType,
+                        Classification.PUBLIC,
+                        roleAttributes
+                    );
+                    allTestRoles.add(roleAssignment);
+                }));
+
+            GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
+                allTestRoles
+            );
+            when(roleAssignmentServiceApi.getRolesForUser(
+                any(), any(), any()
+            )).thenReturn(accessControlResponse);
+
+            final String taskId = UUID.randomUUID().toString();
+
+            final var warningList = new WarningValues(asList(new Warning("TA01", "Description")));
+            CamundaTask task = new CamundaTask(taskId,
+                                               "name",
+                                               "assignee",
+                                               ZonedDateTime.now(),
+                                               ZonedDateTime.now(),
+                                               "description",
+                                               "owner",
+                                               "formkey",
+                                               "processInstanceId");
+
+            when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
+            when(camundaServiceApi.getTask(any(), any()))
+                .thenReturn(task);
+
+            mockCamundaVariablesWithWarning();
+
+            mockMvc.perform(
+                get("/task/" + taskId)
+                    .header(
+                        "Authorization",
+                        authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
+                    )
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            ).andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(jsonPath("$.task.id").value(taskId))
+                .andExpect(jsonPath("$.task.warnings").value(true))
+                .andExpect(jsonPath("$.task.warning_list.values").isArray())
+                .andExpect(jsonPath("$.task.warning_list.values",hasSize(1)))
+                .andExpect(jsonPath("$.task.warning_list.values[0].warningCode").value("TA01"))
+                .andExpect(jsonPath("$.task.warning_list.values[0].warningText").value("Description"));
+        }
+
         private void mockCamundaVariables() {
             Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
 
             processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
             processVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
             processVariables.put("jurisdiction", new CamundaVariable("SCSS", "string"));
+
+            when(camundaServiceApi.getVariables(any(), any()))
+                .thenReturn(processVariables);
+        }
+
+        private void mockCamundaVariablesWithWarning() {
+            Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
+
+            processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
+            processVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
+            processVariables.put("jurisdiction", new CamundaVariable("IA", "string"));
+            processVariables.put("hasWarnings", new CamundaVariable(true, "Boolean"));
+
+            WarningValues warningValues = new WarningValues(Arrays.asList(new Warning("TA01","Description")));
+            Gson gson = new Gson();
+            var values = gson.toJson(warningValues.getValues());
+            processVariables.put("warningList", new CamundaVariable(values, "WarningValues"));
 
             when(camundaServiceApi.getVariables(any(), any()))
                 .thenReturn(processVariables);
