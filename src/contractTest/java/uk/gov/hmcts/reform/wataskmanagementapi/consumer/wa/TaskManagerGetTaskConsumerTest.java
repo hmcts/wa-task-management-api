@@ -85,6 +85,8 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                     .stringType("case_category", "processApplication")
                     .stringType("case_name", "caseName")
                     .booleanValue("warnings", true)
+                    .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                    .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
     }
 
