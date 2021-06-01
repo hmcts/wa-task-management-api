@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -44,10 +45,10 @@ import static org.mockito.Mockito.when;
 //@PactFolder("pacts")
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
 
     @Autowired
@@ -84,59 +85,51 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         setInitMockForsearchTask();
     }
 
-    private void setInitMockForsearchTask() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasks()
-        );
-    }
-
     public List<Task> createTasks() {
         var tasks = new ArrayList<Task>();
-        var taskOne =  new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                                              "Jake",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Mark Alistair",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "765324",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
+        var taskOne = new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Jake",
+            "ReviewTheAppeal",
+            "unconfigured",
+            "SELF",
+            "PRIVATE",
+            "task name",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "Mark Alistair",
+            true,
+            "Time extension",
+            "IA",
+            "1",
+            "765324",
+            "Newcastle",
+            "Asylum",
+            "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+            "processApplication",
+            "Bob Smith",
+            true);
 
-        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
-                                              "Megan",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Jean Pierre",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "766524",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
+        var taskTwo = new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
+            "Megan",
+            "ReviewTheAppeal",
+            "unconfigured",
+            "SELF",
+            "PRIVATE",
+            "task name",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "Jean Pierre",
+            true,
+            "Time extension",
+            "IA",
+            "1",
+            "766524",
+            "Newcastle",
+            "Asylum",
+            "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
+            "processApplication",
+            "Bob Smith",
+            true);
 
         tasks.add(taskOne);
         tasks.add(taskTwo);
@@ -144,6 +137,13 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         return tasks;
     }
 
+    private void setInitMockForsearchTask() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(camundaService.searchWithCriteria(
+            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasks()
+        );
+    }
 
 
 }

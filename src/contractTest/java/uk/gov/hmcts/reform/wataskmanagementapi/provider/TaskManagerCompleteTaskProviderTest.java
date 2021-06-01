@@ -11,6 +11,7 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -38,10 +39,10 @@ import static org.mockito.Mockito.when;
 @IgnoreNoPactsToVerify
 public class TaskManagerCompleteTaskProviderTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
 
     @TestTemplate
