@@ -25,9 +25,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -85,7 +85,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     public List<Task> createTasks() {
-        var tasks = new ArrayList<Task>();
+
         var taskOne = new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Jake",
             "ReviewTheAppeal",
@@ -130,18 +130,13 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "Bob Smith",
             true);
 
-        tasks.add(taskOne);
-        tasks.add(taskTwo);
-
-        return tasks;
+        return asList(taskOne, taskTwo);
     }
 
     private void setInitMockForSearchByCompletableTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), any(), any(), any(), any())).thenReturn(createTasks()
-        );
+        when(camundaService.searchForCompletableTasks(any(), any(), any())).thenReturn(createTasks());
     }
 
 
