@@ -12,7 +12,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
@@ -72,7 +71,7 @@ public class TaskManagerCompleteTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).completeTask(any(),any(),any());
+        doNothing().when(camundaService).completeTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
