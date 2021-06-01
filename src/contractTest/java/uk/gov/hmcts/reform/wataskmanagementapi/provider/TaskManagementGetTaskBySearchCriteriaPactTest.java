@@ -81,7 +81,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     @State({"appropriate tasks are returned by criteria"})
-    public void getTaskByCriteria() {
+    public void getTasksBySearchCriteria() {
         setInitMockForsearchTask();
     }
 

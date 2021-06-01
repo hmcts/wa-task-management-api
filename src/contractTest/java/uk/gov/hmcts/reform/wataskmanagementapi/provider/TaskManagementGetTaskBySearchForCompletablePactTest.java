@@ -78,9 +78,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     }
 
-
     @State({"appropriate tasks are returned by search for completable"})
-    public void getTaskByCriteria() {
+    public void getTasksBySearchForCompletableCriteria() {
         setInitMockForSearchByCompletableTask();
     }
 
@@ -138,7 +137,5 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(camundaService.searchForCompletableTasks(any(), any(), any())).thenReturn(createTasks());
     }
-
-
 }
 
