@@ -40,7 +40,7 @@
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/assign_POST": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/_GET": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/search-for-completable_POST": "ignore",
-  "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task?first_result=10\\u0026max_results=10_POST": "ignore",
+  "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task?first_result=10\u0026max_results=10_POST": "ignore",
   "10023_Information Disclosure - Debug Error Messages_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
   "10021_X-Content-Type-Options Header Missing_http://wa-task-management-api-aat.service.core-compute-aat.internal/_GET": "ignore",
   "10021_X-Content-Type-Options Header Missing_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
