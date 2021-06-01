@@ -92,27 +92,28 @@ public class TaskManagementGetTaskProviderTest {
     }
 
     private Task createTask() {
-        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-            "Jake",
-            "ReviewTheAppeal",
-            "unconfigured",
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
             "SELF",
-            "PRIVATE",
-            "task name",
+            "PUBLIC",
+            "Review the appeal",
             ZonedDateTime.now(),
             ZonedDateTime.now(),
-            "Mark Alistair",
-            true,
-            "Time extension",
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
             "IA",
             "1",
             "765324",
-            "Newcastle",
+            "Taylor House",
             "Asylum",
-            "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-            "processApplication",
+            "1617708245335311",
+            "refusalOfHumanRights",
             "Bob Smith",
-            true);
+            false);
     }
 
 
