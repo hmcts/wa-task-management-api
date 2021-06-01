@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +79,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
