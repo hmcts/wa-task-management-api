@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.google.common.collect.Lists;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
@@ -27,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,8 +37,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -82,11 +83,11 @@ class TaskControllerTest {
 
         ResponseEntity<GetTaskResponse<Task>> response = taskController.getTask(IDAM_AUTH_TOKEN, taskId);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat(response.getBody(), instanceOf(GetTaskResponse.class));
-        assertNotNull(response.getBody());
-        assertEquals(mockedTask, response.getBody().getTask());
+        Assertions.assertNotNull(response.getBody());
+        Assertions.assertEquals(mockedTask, response.getBody().getTask());
     }
 
     @Test
@@ -96,8 +97,8 @@ class TaskControllerTest {
 
         ResponseEntity<Void> response = taskController.claimTask(IDAM_AUTH_TOKEN, taskId);
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
@@ -115,9 +116,9 @@ class TaskControllerTest {
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
             ));
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(1, response.getBody().getTotalRecords());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertEquals(1, Objects.requireNonNull(response.getBody()).getTotalRecords());
     }
 
     @Test
@@ -129,11 +130,11 @@ class TaskControllerTest {
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-                singletonList(new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)))
+                singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)))
         );
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
@@ -144,8 +145,8 @@ class TaskControllerTest {
                 IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),new SearchTaskRequest(null)
             );
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
@@ -155,8 +156,8 @@ class TaskControllerTest {
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),new SearchTaskRequest(emptyList())
         );
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
@@ -167,7 +168,7 @@ class TaskControllerTest {
 
         ResponseEntity<Void> response = taskController.unclaimTask(authToken, taskId);
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
@@ -182,33 +183,33 @@ class TaskControllerTest {
             new AssigneeRequest("userId")
         );
 
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
     void should_complete_a_task() {
         String taskId = UUID.randomUUID().toString();
-        ResponseEntity response = taskController.completeTask(IDAM_AUTH_TOKEN, taskId);
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        ResponseEntity<Void> response = taskController.completeTask(IDAM_AUTH_TOKEN, taskId);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
     @Test
     void should_auto_complete_a_task() {
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "caseJurisdiction", "caseType");
-        ResponseEntity response =
+        ResponseEntity<GetTasksCompletableResponse<Task>> response =
             taskController.searchWithCriteriaForAutomaticCompletion(IDAM_AUTH_TOKEN, searchEventAndCase);
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     void should_cancel_a_task() {
         String taskId = UUID.randomUUID().toString();
-        ResponseEntity response = taskController.cancelTask(IDAM_AUTH_TOKEN, taskId);
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        ResponseEntity<Void> response = taskController.cancelTask(IDAM_AUTH_TOKEN, taskId);
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

@@ -3,23 +3,34 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+@Getter
 public enum SortField {
 
-    DUE_DATE("dueDate", "dueDate"),
-    TASK_TITLE("taskTitle", "title"),
-    LOCATION_NAME("locationName", "locationName"),
-    CASE_CATEGORY("caseCategory", "appealType"),
-    CASE_ID("caseId", "caseId"),
-    CASE_NAME("caseName", "caseName");
+    DUE_DATE_CAMEL_CASE("dueDate", "dueDate"),
+    DUE_DATE_SNAKE_CASE("due_date", "dueDate"),
+
+    TASK_TITLE_CAMEL_CASE("taskTitle", "title"),
+    TASK_TITLE_SNAKE_CASE("task_title", "title"),
+
+    LOCATION_NAME_CAMEL_CASE("locationName", "locationName"),
+    LOCATION_NAME_SNAKE_CASE("location_name", "locationName"),
+
+    CASE_CATEGORY_CAMEL_CASE("caseCategory", "appealType"),
+    CASE_CATEGORY_SNAKE_CASE("case_category", "appealType"),
+
+    CASE_ID_CAMEL_CASE("caseId", "caseId"),
+    CASE_ID_SNAKE_CASE("case_id", "caseId"),
+
+    CASE_NAME_CAMEL_CASE("caseName", "caseName"),
+    CASE_NAME_SNAKE_CASE("case_name", "caseName");
 
     @JsonValue
     private final String id;
-    @Getter
-    private final String varName;
+    private final String camundaVariableName;
 
-    SortField(String id, String varName) {
+    SortField(String id, String camundaVariableName) {
         this.id = id;
-        this.varName = varName;
+        this.camundaVariableName = camundaVariableName;
     }
 
 }
