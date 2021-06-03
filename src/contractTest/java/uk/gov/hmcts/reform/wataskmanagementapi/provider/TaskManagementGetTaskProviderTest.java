@@ -19,10 +19,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
 
@@ -50,6 +51,9 @@ public class TaskManagementGetTaskProviderTest {
     private CamundaService camundaService;
 
     @Autowired
+    private SystemDateProvider systemDateProvider;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @TestTemplate
@@ -64,9 +68,11 @@ public class TaskManagementGetTaskProviderTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
+        testTarget.setControllers(new TaskActionsController(
             camundaService,
-            accessControlService
+            accessControlService,
+            systemDateProvider
+
         ));
         if (context != null) {
             context.setTarget(testTarget);
