@@ -9,6 +9,7 @@ public class NoRoleAssignmentsFoundException extends RuntimeException {
     ) {
         super(message);
     }
+
     public NoRoleAssignmentsFoundException(
         String message,
         Throwable cause

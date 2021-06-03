@@ -77,8 +77,8 @@ class TaskActionsControllerTest {
         ResponseEntity<GetTaskResponse<Task>> response = taskActionsController.getTask(IDAM_AUTH_TOKEN, taskId);
 
         assertNotNull(response);
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertThat(response.getBody(), instanceOf(ErrorMessage.class));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertThat(response.getBody(), instanceOf(GetTaskResponse.class));
         assertNotNull(response.getBody());
         assertEquals(mockedTask, response.getBody().getTask());
     }
