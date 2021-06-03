@@ -225,11 +225,11 @@ public class TaskActionsController {
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)
     public ResponseEntity<ErrorMessage> handleNoRoleAssignmentsException(Exception ex) {
         LOG.warn("No role assignments found");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .cacheControl(CacheControl.noCache())
             .body(new ErrorMessage(
                 ex,
-                HttpStatus.FORBIDDEN,
+                HttpStatus.UNAUTHORIZED,
                 systemDateProvider.nowWithTime()
             ));
     }

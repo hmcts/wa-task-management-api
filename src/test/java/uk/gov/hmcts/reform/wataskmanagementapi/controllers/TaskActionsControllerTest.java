@@ -149,11 +149,11 @@ class TaskActionsControllerTest {
 
         ResponseEntity<ErrorMessage> response = taskActionsController.handleNoRoleAssignmentsException(exception);
 
-        assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatusCode().value());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(HttpStatus.FORBIDDEN.getReasonPhrase(), response.getBody().getError());
-        assertEquals(HttpStatus.FORBIDDEN.value(), response.getBody().getStatus());
+        assertEquals(HttpStatus.UNAUTHORIZED.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
 
     }

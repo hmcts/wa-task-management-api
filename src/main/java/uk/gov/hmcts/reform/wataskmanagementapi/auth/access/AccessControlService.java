@@ -33,7 +33,7 @@ public class AccessControlService {
 
         //Safe-guard
         if (assignments.isEmpty()) {
-            throw new NoRoleAssignmentsFoundException("No role assignments found");
+            throw new NoRoleAssignmentsFoundException("User did not have sufficient permissions to perform this action");
         }
 
         assignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
