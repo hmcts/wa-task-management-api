@@ -22,15 +22,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.SearchTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -137,10 +138,10 @@ public class TaskSearchController {
     }
 
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)
-    public ResponseEntity<List<Task>> handleNoRoleAssignmentsException(Exception ex) {
+    public ResponseEntity<SearchTasksResponse> handleNoRoleAssignmentsException(Exception ex) {
         LOG.warn("No role assignments found");
         return ResponseEntity.ok()
             .cacheControl(CacheControl.noCache())
-            .body(emptyList());
+            .body(new SearchTasksResponse(Collections.emptyList()));
     }
 }

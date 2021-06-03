@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.google.common.collect.Lists;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.SearchTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
@@ -24,15 +24,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.util.List;
 import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
@@ -51,8 +50,6 @@ class TaskSearchControllerTest {
     private Assignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
-    @Mock
-    private SystemDateProvider systemDateProvider;
 
     private TaskSearchController taskSearchController;
 
@@ -142,11 +139,11 @@ class TaskSearchControllerTest {
         final NoRoleAssignmentsFoundException exception =
             new NoRoleAssignmentsFoundException(exceptionMessage);
 
-        ResponseEntity<List<Task>> response = taskSearchController.handleNoRoleAssignmentsException(exception);
+        ResponseEntity<SearchTasksResponse> response = taskSearchController.handleNoRoleAssignmentsException(exception);
 
-        Assertions.assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
-        Assertions.assertNotNull(response.getBody());
-        Assertions.assertEquals(emptyList(), response.getBody());
+        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(emptyList(), response.getBody().getTasks());
 
     }
 }
