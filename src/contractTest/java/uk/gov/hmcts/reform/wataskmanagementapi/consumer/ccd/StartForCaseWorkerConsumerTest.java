@@ -26,7 +26,7 @@ public class StartForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     public static final String EVENT_ID = "eventId";
 
     @Override
-    protected Map<String, Object> setUpStateMapForProviderWithoutCaseData() throws JSONException {
+    public Map<String, Object> setUpStateMapForProviderWithoutCaseData() {
         Map<String, Object> caseDataContentMap = super.setUpStateMapForProviderWithoutCaseData();
         caseDataContentMap.put(EVENT_ID, START_APPEAL);
         return caseDataContentMap;

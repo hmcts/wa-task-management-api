@@ -27,7 +27,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd.util.PactDslB
 public class SubmitForCaseWorkerConsumerTest extends CcdConsumerTestBase {
 
     @Override
-    protected Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent) throws JSONException {
+    public Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent)
+        throws JSONException {
 
         Map<String, Object> caseDataContentMap = super.setUpStateMapForProviderWithCaseData(caseDataContent);
         caseDataContentMap.put(EVENT_ID, SUBMIT_APPEAL);
@@ -92,6 +93,7 @@ public class SubmitForCaseWorkerConsumerTest extends CcdConsumerTestBase {
         assertThat(caseDataMap.get("applicationOutOfTimeExplanation"), is("test case"));
 
         //caseManagementLocation
+        @SuppressWarnings("unchecked")
         Map<String, String> caseManagementLocation = (Map<String, String>) caseDataMap.get("caseManagementLocation");
         assertThat(caseManagementLocation.get("region"), is("1"));
         assertThat(caseManagementLocation.get("baseLocation"), is("765324"));

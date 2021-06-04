@@ -23,6 +23,7 @@ import java.util.Map;
 @Slf4j
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
 @PactFolder("pacts")
+@SuppressWarnings("unchecked")
 public abstract class CcdConsumerTestBase extends SpringBootContractBaseTest {
 
     public static final String JURISDICTION = "jurisdictionId";
@@ -44,21 +45,22 @@ public abstract class CcdConsumerTestBase extends SpringBootContractBaseTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    protected Map<String, Object> getCaseDetailsAsMap(String fileName) throws JSONException, IOException {
+    public Map<String, Object> getCaseDetailsAsMap(String fileName) throws JSONException, IOException {
         File file = getFile(fileName);
         CaseDetails caseDetails = objectMapper.readValue(file, CaseDetails.class);
         Map<String, Object> map = objectMapper.convertValue(caseDetails, Map.class);
         return map;
     }
 
-    protected Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent) throws JSONException {
+    public Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent)
+        throws JSONException {
         Map<String, Object> map = this.setUpStateMapForProviderWithoutCaseData();
         Map<String, Object> caseDataContentMap = objectMapper.convertValue(caseDataContent, Map.class);
         map.put(CASE_DATA_CONTENT, caseDataContentMap);
         return map;
     }
 
-    protected Map<String, Object> setUpStateMapForProviderWithoutCaseData() {
+    public Map<String, Object> setUpStateMapForProviderWithoutCaseData() {
         Map<String, Object> map = new HashMap<>();
         map.put(JURISDICTION, "IA");
         map.put(CASE_TYPE, "Asylum");

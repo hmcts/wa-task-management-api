@@ -23,16 +23,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd.util.PactDslB
 
 public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
 
-    protected Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent) throws JSONException {
+    public Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent)
+        throws JSONException {
         Map<String, Object> caseDataContentMap = super.setUpStateMapForProviderWithCaseData(caseDataContent);
         caseDataContentMap.put(EVENT_ID, START_APPEAL);
         return caseDataContentMap;
     }
 
     @Pact(provider = "ccdDataStoreAPI_Cases", consumer = "wa_task_management_api")
-    public RequestResponsePact startEventForCaseWorker(PactDslWithProvider builder) {
+    public RequestResponsePact startEventForCaseWorker(PactDslWithProvider builder) throws JSONException {
         return builder
-            .given("A Start Event for a Caseworker is  requested", setUpStateMapForProviderWithCaseData(caseDataContent))
+            .given("A Start Event for a Caseworker is  requested",
+                setUpStateMapForProviderWithCaseData(caseDataContent)
+            )
             .uponReceiving("A Start Event for a Caseworker")
             .path(buildPath())
             .method("GET")
@@ -95,6 +98,7 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
         assertThat(caseDataMap.get("applicationOutOfTimeExplanation"), is("test case"));
 
         //caseManagementLocation
+        @SuppressWarnings("unchecked")
         Map<String, String> caseManagementLocation = (Map<String, String>) caseDataMap.get("caseManagementLocation");
         assertThat(caseManagementLocation.get("region"), is("1"));
         assertThat(caseManagementLocation.get("baseLocation"), is("765324"));
