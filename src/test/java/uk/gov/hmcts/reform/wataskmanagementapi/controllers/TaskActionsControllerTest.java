@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFound
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
@@ -144,7 +144,7 @@ class TaskActionsControllerTest {
         final NoRoleAssignmentsFoundException exception =
             new NoRoleAssignmentsFoundException(exceptionMessage);
 
-        String mockedTimestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
+        String mockedTimestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
         when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
 
         ResponseEntity<ErrorMessage> response = taskActionsController.handleNoRoleAssignmentsException(exception);
