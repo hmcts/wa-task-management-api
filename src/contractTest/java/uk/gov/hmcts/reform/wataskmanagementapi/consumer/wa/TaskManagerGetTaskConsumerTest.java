@@ -74,7 +74,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("security_classification", "PRIVATE")
                         .stringType("task_title", "review")
                         .stringType("assignee", "Mark Alistair")
-                        .booleanValue("auto_assigned", true)
+                        .booleanType("auto_assigned", true)
                         .stringType("execution_type", "Time extension")
                         .stringType("jurisdiction", "IA")
                         .stringType("region", "South")
@@ -84,7 +84,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a")
                         .stringType("case_category", "processApplication")
                         .stringType("case_name", "caseName")
-                        .booleanValue("warnings", true)
+                        .booleanType("warnings", true)
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
