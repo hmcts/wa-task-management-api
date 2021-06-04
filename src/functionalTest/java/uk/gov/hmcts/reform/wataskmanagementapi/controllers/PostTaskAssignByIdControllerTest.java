@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -50,7 +50,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
@@ -58,6 +58,10 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
                 LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                 nonExistentTaskId
             )));
+    }
+
+    private String getAssigneeId(Headers headers) {
+        return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
     @Test
@@ -118,7 +122,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
@@ -145,7 +149,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
@@ -175,7 +179,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
@@ -183,10 +187,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
                 equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
-    }
-
-    private String getAssigneeId(Headers headers) {
-        return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
 }

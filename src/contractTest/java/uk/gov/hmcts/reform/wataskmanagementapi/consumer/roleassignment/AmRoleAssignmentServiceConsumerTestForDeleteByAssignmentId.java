@@ -23,18 +23,6 @@ public class AmRoleAssignmentServiceConsumerTestForDeleteByAssignmentId extends 
     private static final String AM_RAS_URL = "/am/role-assignments";
     private static final String RAS_DELETE_ACTOR_BY_ID = AM_RAS_URL + "/" + ASSIGMENT_ID;
 
-    @Test
-    @PactTestFor(pactMethod = "executeDeleteActorByIdAndGet204")
-    void deleteActorByIdAndGet204Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .delete(mockServer.getUrl() + RAS_DELETE_ACTOR_BY_ID)
-            .then()
-            .statusCode(204);
-    }
-
     @Pact(provider = "am_role_assignment_service_delete_actor", consumer = "wa_task_management_api")
     public RequestResponsePact executeDeleteActorByIdAndGet204(PactDslWithProvider builder) {
 
@@ -48,6 +36,18 @@ public class AmRoleAssignmentServiceConsumerTestForDeleteByAssignmentId extends 
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeDeleteActorByIdAndGet204")
+    void deleteActorByIdAndGet204Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .delete(mockServer.getUrl() + RAS_DELETE_ACTOR_BY_ID)
+            .then()
+            .statusCode(204);
     }
 
 }

@@ -72,7 +72,6 @@ public class TaskManagementGetTaskProviderTest {
             context.setTarget(testTarget);
         }
 
-
         testTarget.setMessageConverters((
             new MappingJackson2HttpMessageConverter(
                 objectMapper
@@ -87,34 +86,34 @@ public class TaskManagementGetTaskProviderTest {
 
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(camundaService.getTask(any(), any(), any())).thenReturn(createTask());
+        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
     private Task createTask() {
-        return new Task(
-            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-            "Review the appeal",
-            "reviewTheAppeal",
-            "assigned",
-            "SELF",
-            "PUBLIC",
-            "Review the appeal",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            "10bac6bf-80a7-4c81-b2db-516aba826be6",
-            false,
-            "Case Management Task",
-            "IA",
-            "1",
-            "765324",
-            "Taylor House",
-            "Asylum",
-            "1617708245335311",
-            "refusalOfHumanRights",
-            "Bob Smith",
-            false);
+        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+                         "Jake",
+                         "ReviewTheAppeal",
+                         "unconfigured",
+                         "SELF",
+                         "PRIVATE",
+                         "task name",
+                          ZonedDateTime.now(),
+                          ZonedDateTime.now(),
+                         "Mark Alistair",
+                         true,
+                         "Time extension",
+                         "IA",
+                         "1",
+                         "765324",
+                         "Newcastle",
+                         "Asylum",
+                         "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
+                         "processApplication",
+                         "Bob Smith",
+                         true);
     }
+
 
 
 }
