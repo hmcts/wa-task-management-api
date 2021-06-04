@@ -49,6 +49,13 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
         roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator);
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
+    void verifyGetActorById() {
+        List<Assignment> roleAssignmentsResponse = roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
+
+        assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
+    }
 
     @Pact(provider = "am_role_assignment_service_get_actor_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetActorByIdOrgRoleAssignmentAndGet200(PactDslWithProvider builder) {
@@ -67,14 +74,6 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
             .headers(getResponseHeaders())
             .body(createResponseForOrgRoleAssignment())
             .toPact();
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
-    void verifyGetActorById() {
-        List<Assignment> roleAssignmentsResponse = roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
-
-        assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
     }
 
     private DslPart createResponseForOrgRoleAssignment() {

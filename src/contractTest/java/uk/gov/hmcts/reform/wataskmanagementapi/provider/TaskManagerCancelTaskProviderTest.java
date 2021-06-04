@@ -71,7 +71,7 @@ public class TaskManagerCancelTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).cancelTask(any(),any(),any());
+        doNothing().when(camundaService).cancelTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
