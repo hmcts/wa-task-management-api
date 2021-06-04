@@ -26,19 +26,6 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
     private static final String WA_URL = "/task";
     private static final String WA_COMPLETE_TASK_BY_ID = WA_URL + "/" + TASK_ID + "/" + "complete";
 
-    @Test
-    @PactTestFor(pactMethod = "executeCompleteTaskById204")
-    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body("")
-            .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
-            .then()
-            .statusCode(204);
-    }
-
     @Pact(provider = "wa_task_management_api_complete_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeCompleteTaskById204(PactDslWithProvider builder) {
 
@@ -53,5 +40,18 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeCompleteTaskById204")
+    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body("")
+            .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
+            .then()
+            .statusCode(204);
     }
 }

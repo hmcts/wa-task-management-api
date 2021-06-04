@@ -9,11 +9,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
-    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
+    "PMD.ExcessiveParameterList", "PMD.ShortClassName","PMD.LinguisticNaming"})
 @ApiModel("Task")
 public class Task {
     @ApiModelProperty(
@@ -57,15 +57,15 @@ public class Task {
         notes = "Task title to display in task list UI"
     )
     private String taskTitle;
+    @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = DATE_TIME_FORMAT)
     @ApiModelProperty(
         example = "2020-09-05T14:47:01.250542+01:00",
         notes = "Optional due date for the task that will be created"
     )
     private ZonedDateTime createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
     @ApiModelProperty(
         example = "2020-09-05T14:47:01.250542+01:00",
         notes = "Optional due date for the task that will be created"

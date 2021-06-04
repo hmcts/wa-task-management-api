@@ -30,29 +30,6 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
 
     private static final String RAS_CREATE_ROLE_ASSIGNMENT_URL = "/am/role-assignments";
 
-    @Test
-    @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201")
-    void createRoleAssignmentOneRoleAndGet201Test(MockServer mockServer)
-        throws JSONException {
-        String actualResponseBody =
-            SerenityRest
-                .given()
-                .headers(getHttpHeaders())
-                .contentType(ContentType.JSON)
-                .body(createRoleAssignmentRequest())
-                .post(mockServer.getUrl() + RAS_CREATE_ROLE_ASSIGNMENT_URL)
-                .then()
-                .extract().asString();
-
-        JSONObject response = new JSONObject(actualResponseBody);
-        Assertions.assertThat(response).isNotNull();
-        JSONObject roleRequest = response.getJSONObject("roleAssignmentResponse").getJSONObject("roleRequest");
-        assertThat(roleRequest.get("status"), equalTo("APPROVED"));
-        assertThat(roleRequest.get("requestType"), equalTo("CREATE"));
-        assertThat(roleRequest.get("replaceExisting"), equalTo(true));
-
-    }
-
     @Pact(provider = "am_role_assignment_service_create", consumer = "wa_task_management_api")
     public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
 
@@ -68,6 +45,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
             .body(createRoleAssignmentResponse())
             .toPact();
     }
+
 
     private String createRoleAssignmentRequest() {
         String request = "";
@@ -97,6 +75,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                   + "}\n";
         return request;
     }
+
 
     private DslPart createRoleAssignmentResponse() {
         return newJsonBody(o -> o
@@ -141,6 +120,29 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                     )
                 )
             )).build();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201")
+    void createRoleAssignmentOneRoleAndGet201Test(MockServer mockServer)
+        throws JSONException {
+        String actualResponseBody =
+            SerenityRest
+                .given()
+                .headers(getHttpHeaders())
+                .contentType(ContentType.JSON)
+                .body(createRoleAssignmentRequest())
+                .post(mockServer.getUrl() + RAS_CREATE_ROLE_ASSIGNMENT_URL)
+                .then()
+                .extract().asString();
+
+        JSONObject response = new JSONObject(actualResponseBody);
+        Assertions.assertThat(response).isNotNull();
+        JSONObject roleRequest = response.getJSONObject("roleAssignmentResponse").getJSONObject("roleRequest");
+        assertThat(roleRequest.get("status"), equalTo("APPROVED"));
+        assertThat(roleRequest.get("requestType"), equalTo("CREATE"));
+        assertThat(roleRequest.get("replaceExisting"), equalTo(true));
+
     }
 
     private Map<String, String> getRoleAssignmentResponseHeaders() {

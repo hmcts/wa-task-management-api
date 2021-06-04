@@ -11,7 +11,7 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
@@ -38,10 +38,10 @@ import static org.mockito.Mockito.when;
 @IgnoreNoPactsToVerify
 public class TaskManagerClaimTaskProviderTest {
 
-    @Mock
+    @Autowired
     private AccessControlService accessControlService;
 
-    @Mock
+    @Autowired
     private CamundaService camundaService;
 
     @TestTemplate
@@ -71,7 +71,7 @@ public class TaskManagerClaimTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).claimTask(any(), any(), any());
+        doNothing().when(camundaService).claimTask(any(),any(),any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }

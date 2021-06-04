@@ -26,19 +26,6 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
     private static final String WA_URL = "/task";
     private static final String WA_ASSIGN_TASK_BY_ID = WA_URL + "/" + TASK_ID + "/" + "assign";
 
-    @Test
-    @PactTestFor(pactMethod = "executeAssignTaskById204")
-    void testAssignTaskByTaskId204Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body("")
-            .post(mockServer.getUrl() + WA_ASSIGN_TASK_BY_ID)
-            .then()
-            .statusCode(204);
-    }
-
     @Pact(provider = "wa_task_management_api_assign_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeAssignTaskById204(PactDslWithProvider builder) {
 
@@ -53,5 +40,18 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeAssignTaskById204")
+    void testAssignTaskByTaskId204Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body("")
+            .post(mockServer.getUrl() + WA_ASSIGN_TASK_BY_ID)
+            .then()
+            .statusCode(204);
     }
 }
