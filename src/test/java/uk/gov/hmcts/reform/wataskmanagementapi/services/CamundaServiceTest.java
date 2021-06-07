@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -43,9 +44,11 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -122,6 +125,18 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 "completionMode", new CamundaVariable("Auto", "String"),
                 "taskType", new CamundaVariable("reviewTheAppeal", "String")
             ));
+    }
+
+    private List<Map<String, CamundaVariable>> mockDMNWithEmptyRow() {
+        List<Map<String, CamundaVariable>> dmnResult = new ArrayList<>();
+        final Map<String, CamundaVariable> completionMode = Map.of(
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "taskType", new CamundaVariable("reviewTheAppeal", "String")
+        );
+        dmnResult.add(completionMode);
+        dmnResult.add(emptyMap());
+
+        return dmnResult;
     }
 
     private void verifyTaskStateUpdateWasCalled(String taskId, TaskState newTaskState) {
@@ -496,7 +511,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 );
             verifyNoMoreInteractions(camundaServiceApi);
         }
-
 
         @Test
         @MockitoSettings(strictness = Strictness.LENIENT)
@@ -1704,12 +1718,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 eq(permissionsRequired)
             )).thenReturn(true);
 
-            List<Task> tasks = camundaService.searchForCompletableTasks(
+            final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
                 accessControlResponse
             );
-
+            List<Task> tasks = response.getTasks();
             assertNotNull(tasks);
             assertEquals(1, tasks.size());
             assertEquals("IDAM_USER_ID", tasks.get(0).getAssignee());
@@ -1721,6 +1735,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertEquals("someCaseName", tasks.get(0).getCaseName());
             assertEquals("some_jurisdiction", tasks.get(0).getJurisdiction());
             assertEquals("someCaseType", tasks.get(0).getCaseTypeId());
+            assertTrue(response.isTaskRequiredForEvent());
         }
 
         @Test
@@ -1791,12 +1806,12 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 eq(permissionsRequired)
             )).thenReturn(true);
 
-            List<Task> tasks = camundaService.searchForCompletableTasks(
+            final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
                 accessControlResponse
             );
-
+            List<Task> tasks = response.getTasks();
 
             assertNotNull(tasks);
             assertEquals(1, tasks.size());
@@ -1809,6 +1824,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertEquals("someCaseName", tasks.get(0).getCaseName());
             assertEquals("some_jurisdiction", tasks.get(0).getJurisdiction());
             assertEquals("someCaseType", tasks.get(0).getCaseTypeId());
+            assertTrue(response.isTaskRequiredForEvent());
         }
 
         private void mockCamundaGetAllVariables(String someProcessInstanceId) {
@@ -1879,13 +1895,14 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
 
-            List<Task> tasks = camundaService.searchForCompletableTasks(
+            final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
                 accessControlResponse
             );
-
+            List<Task> tasks = response.getTasks();
             assertTrue(tasks.isEmpty());
+            assertFalse(response.isTaskRequiredForEvent());
         }
 
         @Test
@@ -1944,12 +1961,13 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 eq(permissionsRequired)
             )).thenReturn(true);
 
-            List<Task> tasks = camundaService.searchForCompletableTasks(
+            final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
                 accessControlResponse
             );
 
+            List<Task> tasks = response.getTasks();
             assertNotNull(tasks);
             assertEquals(1, tasks.size());
             assertEquals("someAssignee", tasks.get(0).getAssignee());
@@ -1959,7 +1977,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertEquals("someStaffLocationName", tasks.get(0).getLocationName());
             assertEquals("00000", tasks.get(0).getCaseId());
             assertEquals("someCaseName", tasks.get(0).getCaseName());
-
+            assertTrue(response.isTaskRequiredForEvent());
         }
 
         @Test
@@ -2028,15 +2046,17 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             );
 
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
-            List<Task> tasks = camundaService.searchForCompletableTasks(
+            final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
                 searchEventAndCase,
                 permissionsRequired,
                 accessControlResponse
             );
 
+            List<Task> tasks = response.getTasks();
 
             assertNotNull(tasks);
             assertEquals(0, tasks.size());
+            assertFalse(response.isTaskRequiredForEvent());
         }
 
         @Test
@@ -2121,6 +2141,81 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .isInstanceOf(ServerErrorException.class)
                 .hasMessage("There was a problem performing the search")
                 .hasCauseInstanceOf(FeignException.class);
+        }
+
+        @Test
+        void should_complete_tasks_without_associated_task() {
+            ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
+            CamundaTask camundaTask = new CamundaTask(
+                "someTaskId",
+                "someTaskName",
+                "someAssignee",
+                ZonedDateTime.now(),
+                dueDate,
+                null,
+                null,
+                "someFormKey",
+                "someProcessInstanceId"
+            );
+
+            when(camundaServiceApi.searchWithCriteria(BEARER_SERVICE_TOKEN, camundaSearchQuery.getQueries()))
+                .thenReturn(singletonList(camundaTask));
+
+            SearchEventAndCase searchEventAndCase = mock(SearchEventAndCase.class);
+            when(searchEventAndCase.getCaseId()).thenReturn("caseId");
+            when(searchEventAndCase.getEventId()).thenReturn("eventId");
+            when(searchEventAndCase.getCaseJurisdiction()).thenReturn(caseJurisdiction);
+            when(searchEventAndCase.getCaseType()).thenReturn(caseType);
+
+
+            String taskCompletionDmnKey = WA_TASK_COMPLETION.getTableKey(
+                caseJurisdiction,
+                caseType
+            );
+
+            when(camundaServiceApi.evaluateDMN(
+                eq(BEARER_SERVICE_TOKEN),
+                eq(taskCompletionDmnKey),
+                any()
+            )).thenReturn(mockDMNWithEmptyRow());
+
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo, singletonList(mockedRoleAssignment)
+            );
+
+            when(camundaQueryBuilder.createCompletableTasksQuery(eq(searchEventAndCase.getCaseId()), any()))
+                .thenReturn(camundaSearchQuery);
+
+            mockCamundaGetAllVariables("someProcessInstanceId");
+
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, EXECUTE);
+            when(permissionEvaluatorService.hasAccess(
+                any(),
+                eq(accessControlResponse.getRoleAssignments()),
+                eq(permissionsRequired)
+            )).thenReturn(true);
+
+            final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
+                searchEventAndCase,
+                permissionsRequired,
+                accessControlResponse
+            );
+
+            List<Task> tasks = response.getTasks();
+            assertNotNull(tasks);
+            assertEquals(1, tasks.size());
+            assertEquals("someAssignee", tasks.get(0).getAssignee());
+            assertEquals("someTaskName", tasks.get(0).getName());
+            assertEquals("someStaffLocationId", tasks.get(0).getLocation());
+            assertEquals(false, tasks.get(0).getAutoAssigned());
+            assertEquals("someStaffLocationName", tasks.get(0).getLocationName());
+            assertEquals("00000", tasks.get(0).getCaseId());
+            assertEquals("someCaseName", tasks.get(0).getCaseName());
+            assertFalse(response.isTaskRequiredForEvent());
         }
 
     }

@@ -256,16 +256,15 @@ public class TaskController {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        List<Task> tasks = camundaService.searchForCompletableTasks(
+        final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
             searchEventAndCase,
             endpointPermissionsRequired,
             accessControlResponse
-
         );
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(new GetTasksCompletableResponse<>(tasks));
+            .body(response);
     }
 
     @ApiOperation("Cancel a Task identified by an id.")

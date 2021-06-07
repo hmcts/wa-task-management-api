@@ -110,6 +110,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -150,6 +151,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(true))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].id", equalTo(taskId2));
 
@@ -184,6 +186,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(true))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].task_state", equalTo("unassigned"))
             .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
@@ -235,6 +238,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(true))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].task_state", equalTo("assigned"))
             .body("tasks[0].case_id", equalTo(caseId))
@@ -296,6 +300,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(true))
             .body("tasks.size()", equalTo(2))
             .body("tasks.id", hasItems(taskId2, taskId3))
             .body("tasks.case_id", everyItem(is(caseId)))
@@ -327,6 +332,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -377,6 +383,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -401,6 +408,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -432,6 +440,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
