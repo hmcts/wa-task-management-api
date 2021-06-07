@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -51,9 +50,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @Mock
     private CamundaService camundaService;
-
-    @Autowired
-    private SystemDateProvider systemDateProvider;
 
     @Autowired
     private ObjectMapper objectMapper;
