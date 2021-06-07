@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -24,7 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -44,10 +45,10 @@ import static org.mockito.Mockito.when;
 //@PactFolder("pacts")
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
 
     @Autowired
@@ -80,8 +81,58 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     @State({"appropriate tasks are returned by criteria"})
-    public void getTaskByCriteria() {
+    public void getTasksBySearchCriteria() {
         setInitMockForsearchTask();
+    }
+
+    public List<Task> createTasks() {
+        Task taskOne = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false);
+
+        Task taskTwo = new Task(
+            "fda422de-b381-43ff-94ea-eea5790188a3",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            null,
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245308495",
+            "refusalOfHumanRights",
+            "John Doe",
+            true);
+
+        return Arrays.asList(taskOne, taskTwo);
     }
 
     private void setInitMockForsearchTask() {
@@ -91,59 +142,6 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasks()
         );
     }
-
-    public List<Task> createTasks() {
-        var tasks = new ArrayList<Task>();
-        var taskOne =  new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                                              "Jake",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Mark Alistair",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "765324",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
-
-        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
-                                              "Megan",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Jean Pierre",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "766524",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
-
-        tasks.add(taskOne);
-        tasks.add(taskTwo);
-
-        return tasks;
-    }
-
 
 
 }

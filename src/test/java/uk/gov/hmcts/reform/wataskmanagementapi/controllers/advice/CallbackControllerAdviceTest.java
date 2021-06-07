@@ -21,7 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
@@ -41,37 +41,6 @@ class CallbackControllerAdviceTest {
 
     private CallbackControllerAdvice callbackControllerAdvice;
     private String mockedTimestamp;
-
-    private static Stream<Scenario> scenarioProvider() {
-
-        String genericExceptionMessage = "Some generic exception message";
-        Scenario exceptionScenario = Scenario.builder()
-            .exception(new Exception(genericExceptionMessage))
-            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-            .expectedMessage(genericExceptionMessage)
-            .build();
-
-        String errorExceptionMessage = "Some server error exception message";
-        Scenario serverErrorExceptionScenario = Scenario.builder()
-            .exception(new ServerErrorException(errorExceptionMessage, new Exception()))
-            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-            .expectedMessage(errorExceptionMessage)
-            .build();
-
-        return Stream.of(
-            exceptionScenario,
-            serverErrorExceptionScenario
-        );
-    }
-
-    @BeforeEach
-    public void setUp() {
-        callbackControllerAdvice = new CallbackControllerAdvice(systemDateProvider);
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-
-        mockedTimestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
-    }
 
     @Test
     void should_handle_unauthorized_exception() {
@@ -207,6 +176,37 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.BAD_REQUEST.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
+    }
+
+    @BeforeEach
+    public void setUp() {
+        callbackControllerAdvice = new CallbackControllerAdvice(systemDateProvider);
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        mockedTimestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+    }
+
+    private static Stream<Scenario> scenarioProvider() {
+
+        String genericExceptionMessage = "Some generic exception message";
+        Scenario exceptionScenario = Scenario.builder()
+            .exception(new Exception(genericExceptionMessage))
+            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+            .expectedMessage(genericExceptionMessage)
+            .build();
+
+        String errorExceptionMessage = "Some server error exception message";
+        Scenario serverErrorExceptionScenario = Scenario.builder()
+            .exception(new ServerErrorException(errorExceptionMessage, new Exception()))
+            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+            .expectedMessage(errorExceptionMessage)
+            .build();
+
+        return Stream.of(
+            exceptionScenario,
+            serverErrorExceptionScenario
+        );
     }
 
     @Builder
