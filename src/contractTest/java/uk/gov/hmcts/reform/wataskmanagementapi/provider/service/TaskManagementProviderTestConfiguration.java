@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOb
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaErrorDecoder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskMapper;
 
 import java.text.SimpleDateFormat;
@@ -50,6 +51,12 @@ public class TaskManagementProviderTestConfiguration {
 
     @MockBean
     private RoleAssignmentService roleAssignmentService;
+
+    @Bean
+    @Primary
+    public SystemDateProvider systemDateProvider() {
+        return new SystemDateProvider();
+    }
 
     @Bean
     @Primary
