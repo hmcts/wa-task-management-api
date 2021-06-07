@@ -19,10 +19,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
 
@@ -50,6 +51,9 @@ public class TaskManagementGetTaskProviderTest {
     private CamundaService camundaService;
 
     @Autowired
+    private SystemDateProvider systemDateProvider;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @TestTemplate
@@ -64,13 +68,16 @@ public class TaskManagementGetTaskProviderTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
+        testTarget.setControllers(new TaskActionsController(
             camundaService,
-            accessControlService
+            accessControlService,
+            systemDateProvider
+
         ));
         if (context != null) {
             context.setTarget(testTarget);
         }
+
 
         testTarget.setMessageConverters((
             new MappingJackson2HttpMessageConverter(
@@ -86,34 +93,34 @@ public class TaskManagementGetTaskProviderTest {
 
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
+        when(camundaService.getTask(any(), any(), any())).thenReturn(createTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
     private Task createTask() {
-        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                         "Jake",
-                         "ReviewTheAppeal",
-                         "unconfigured",
-                         "SELF",
-                         "PRIVATE",
-                         "task name",
-                          ZonedDateTime.now(),
-                          ZonedDateTime.now(),
-                         "Mark Alistair",
-                         true,
-                         "Time extension",
-                         "IA",
-                         "1",
-                         "765324",
-                         "Newcastle",
-                         "Asylum",
-                         "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                         "processApplication",
-                         "Bob Smith",
-                         true);
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false);
     }
-
 
 
 }

@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
-class TaskControllerTest extends SpringBootIntegrationBaseTest {
+class TaskActionsControllerTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
