@@ -110,27 +110,6 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseIdForSCSS(String caseId) {
-
-        Map<String, CamundaValue<?>> processVariables = createTaskVariablesForSCSS(caseId);
-
-        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
-            CREATE_TASK_MESSAGE.toString(),
-            processVariables
-        );
-
-        Response result = camundaApiActions.post(
-            "message",
-            request,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        return this;
-    }
-
     public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
         String filter = "?processVariables=" + key + "_eq_" + value;
