@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
@@ -50,13 +52,15 @@ class CamundaQueryBuilderTest {
         assertNull(camundaSearchQuery);
     }
 
-    @Test
-    void createQuery_should_return_null_when_orQueries_is_empty_but_has_order_by() {
+    @SuppressWarnings("JUnit5MalformedParameterized")
+    @ParameterizedTest
+    @EnumSource(names = {"DUE_DATE_CAMEL_CASE", "DUE_DATE_SNAKE_CASE"})
+    void createQuery_should_return_null_when_orQueries_is_empty_but_has_order_by(SortField sortField) {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             emptyList(),
             singletonList(
-                new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
+                new SortingParameter(sortField, SortOrder.DESCENDANT)
             ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
