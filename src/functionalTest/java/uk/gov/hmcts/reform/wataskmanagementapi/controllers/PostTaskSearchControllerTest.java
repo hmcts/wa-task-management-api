@@ -12,6 +12,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -76,6 +80,52 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
+    }
+
+    @Test
+    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
+        // create some tasks
+        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // Given query
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        // When
+        Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        // Then expect task1,task2 order
+        List<String> actualCaseIdList = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body().path("tasks.case_id");
+        assertThat(actualCaseIdList).asList()
+            .containsSequence(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId());
+
+        // Given query
+        searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        // When
+        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        // Then expect task2,task1 order
+        actualCaseIdList = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body().path("tasks.case_id");
+        assertThat(actualCaseIdList).asList()
+            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+
+        common.cleanUpTask(taskVariablesForTask1.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(taskVariablesForTask2.getTaskId(), REASON_COMPLETED);
     }
 
     @Test
