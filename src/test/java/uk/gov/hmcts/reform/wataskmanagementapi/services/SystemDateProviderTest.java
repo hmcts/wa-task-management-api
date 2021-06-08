@@ -3,29 +3,25 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 class SystemDateProviderTest {
-
 
     private final SystemDateProvider systemDateProvider = new SystemDateProvider();
 
     @Test
-    void returns_now_date() {
-        LocalDate actualDate = systemDateProvider.now();
-        assertNotNull(actualDate);
-        assertFalse(actualDate.isAfter(LocalDate.now()));
-    }
-
-    @Test
     void returns_now_datetime() {
-        LocalDateTime actualDateTime = systemDateProvider.nowWithTime();
+        String actualDateTime = systemDateProvider.nowWithTime();
         assertNotNull(actualDateTime);
-        assertFalse(actualDateTime.isAfter(LocalDateTime.now()));
+        assertFalse(
+            ZonedDateTime.parse(actualDateTime, DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))
+                .isAfter(ZonedDateTime.now())
+        );
     }
 
 }

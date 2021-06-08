@@ -30,7 +30,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +39,10 @@ import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 @Slf4j
 @Service
@@ -54,9 +56,10 @@ public class CamundaService {
         "User did not have sufficient permissions to assign task with id: %s";
     public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK =
         "User did not have sufficient permissions to claim task with id: %s";
-    public static final String WA_TASK_COMPLETION_TABLE_NAME = "wa-task-completion";
 
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
+    public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
+    public static final String THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT = "There was a problem retrieving task count";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
@@ -100,6 +103,7 @@ public class CamundaService {
                 Map.of("userId", accessControlResponse.getUserInfo().getUid())
             );
         } else {
+            log.error(String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId));
             throw new InsufficientPermissionsException(
                 String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId)
             );
@@ -218,6 +222,7 @@ public class CamundaService {
     }
 
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
+                                         int firstResult, int maxResults,
                                          AccessControlResponse accessControlResponse,
                                          List<PermissionTypes> permissionsRequired) {
 
@@ -227,56 +232,106 @@ public class CamundaService {
         if (query == null) {
             return emptyList();
         }
+        try {
+            //1. Perform the search
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteriaAndPagination(
+                authTokenGenerator.generate(),
+                firstResult,
+                maxResults,
+                query.getQueries()
+            );
 
-        return performSearchAction(query, accessControlResponse, permissionsRequired);
+            //Safe guard in case no search results were returned
+            if (searchResults.isEmpty()) {
+                return emptyList();
+            }
+            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
+        } catch (FeignException exp) {
+            log.error(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
+        }
+    }
 
+    public long getTaskCount(SearchTaskRequest searchTaskRequest) {
+        try {
+            CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
+            return camundaServiceApi.getTaskCount(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            ).getCount();
+        } catch (FeignException exp) {
+            log.error(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT, exp);
+        }
     }
 
     public List<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                 List<PermissionTypes> permissionsRequired,
                                                 AccessControlResponse accessControlResponse) {
 
+        //Safe-guard against unsupported Jurisdictions and case types.
+        if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
+            || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
+            throw new BadRequestException("Please check your request. "
+                                          + "This endpoint currently only supports"
+                                          + " the Immigration & Asylum service");
+        }
+        List<String> taskTypes = evaluateTaskCompletionDmn(searchEventAndCase);
+        if (taskTypes.isEmpty()) {
+            return emptyList();
+        }
+        //2. Build query and perform search
+        CamundaSearchQuery camundaSearchQuery =
+            camundaQueryBuilder.createCompletableTasksQuery(searchEventAndCase.getCaseId(), taskTypes);
         try {
-            //Safe-guard against unsupported Jurisdictions and case types.
-            if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
-                || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
-                throw new BadRequestException("Please check your request. "
-                                              + "This endpoint currently only supports"
-                                              + " the Immigration & Asylum service");
+            //3. Perform the search
+            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
+                authTokenGenerator.generate(), camundaSearchQuery.getQueries()
+            );
+
+            //Safe guard in case no search results were returned
+            if (searchResults.isEmpty()) {
+                return emptyList();
             }
-            //1. Perform the DMN evaluation
+            //4. Extract if a task is assigned and assignee is idam userId
+            String idamUserId = accessControlResponse.getUserInfo().getUid();
+            final List<CamundaTask> assigneeTaskList = searchResults.stream().filter(
+                task -> idamUserId.equals(task.getAssignee()))
+                .collect(Collectors.toList());
+
+            if (!assigneeTaskList.isEmpty()) {
+                searchResults = assigneeTaskList;
+            }
+
+            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
+        } catch (FeignException exp) {
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
+        }
+    }
+
+    private List<String> evaluateTaskCompletionDmn(SearchEventAndCase searchEventAndCase) {
+        try {
+
+            String taskCompletionDecisionTableKey = WA_TASK_COMPLETION.getTableKey(
+                searchEventAndCase.getCaseJurisdiction(),
+                searchEventAndCase.getCaseType()
+            );
+
             List<Map<String, CamundaVariable>> evaluateDmnResult =
                 camundaServiceApi.evaluateDMN(
                     authTokenGenerator.generate(),
-                    getTableKey(searchEventAndCase.getCaseJurisdiction(), searchEventAndCase.getCaseType()),
+                    taskCompletionDecisionTableKey,
                     createEventIdDmnRequest(searchEventAndCase.getEventId())
                 );
-
             // Collect task types
-            List<String> taskTypes = evaluateDmnResult.stream()
-                .map(result -> getVariableValue(result.get("task_type"), String.class))
+            return evaluateDmnResult.stream()
+                .map(result -> {
+                    return getVariableValue(result.get(TASK_TYPE.value()), String.class);
+                })
                 .collect(Collectors.toList());
-
-            if (taskTypes.isEmpty()) {
-                return emptyList();
-            } else {
-                //2. Build query and perform search
-                CamundaSearchQuery camundaSearchQuery =
-                    camundaQueryBuilder.createCompletableTasksQuery(
-                        searchEventAndCase.getCaseId(),
-                        taskTypes
-                    );
-
-                return performSearchAction(
-                    camundaSearchQuery,
-                    accessControlResponse,
-                    permissionsRequired
-                );
-            }
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
-
     }
 
     private Map<String, Map<String, CamundaVariable>> createEventIdDmnRequest(String eventId) {
@@ -286,11 +341,6 @@ public class CamundaService {
             Map.of("eventId", new CamundaVariable(eventId, "String"));
 
         return Map.of("variables", eventIdCamundaVariable);
-    }
-
-    private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return WA_TASK_COMPLETION_TABLE_NAME + "-" + jurisdictionId.toLowerCase(Locale.getDefault())
-               + "-" + caseTypeId.toLowerCase(Locale.getDefault());
     }
 
     public Task getTask(String id,
@@ -366,81 +416,104 @@ public class CamundaService {
         try {
             updateTaskStateTo(taskId, TaskState.ASSIGNED);
             camundaServiceApi.claimTask(authTokenGenerator.generate(), taskId, body);
+            log.debug("Task id '{}' successfully claimed", taskId);
         } catch (FeignException ex) {
             camundaErrorDecoder.decodeException(ex);
         }
     }
 
-    private List<Task> performSearchAction(CamundaSearchQuery query,
+    private List<Task> performSearchAction(List<CamundaTask> searchResults,
                                            AccessControlResponse accessControlResponse,
                                            List<PermissionTypes> permissionsRequired) {
 
-
         List<Task> response = new ArrayList<>();
         try {
-            //1. Perform the search
-            List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteria(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            );
 
-            //Safe guard in case no search results were returned
-            if (searchResults.isEmpty()) {
-                return response;
-            }
-
-            //Extract all processIds to be used as a lookup when collecting all variables
-            List<String> searchResultsProcessIds = searchResults.stream()
+            List<String> processInstanceIdList = searchResults.stream()
                 .map(CamundaTask::getProcessInstanceId)
                 .collect(Collectors.toList());
 
-            //Retrieve all variables for processIds
-            Map<String, List<String>> body = Map.of("variableScopeIdIn", searchResultsProcessIds);
-            List<CamundaVariableInstance> allVariables =
-                camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
+            List<CamundaVariableInstance> allVariablesForProcessInstanceIdList =
+                retrieveAllVariablesForProcessInstanceList(processInstanceIdList);
 
             //Safe guard in case no variables where returned
-            if (allVariables.isEmpty()) {
+            if (allVariablesForProcessInstanceIdList.isEmpty()) {
                 return response;
             }
 
-            Map<String, List<CamundaVariableInstance>> variablesByProcessId = allVariables.stream()
-                .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
+            Map<String, List<CamundaVariableInstance>> mapWarningVarAndLocalTaskVarsGroupByProcessInstanceId =
+                allVariablesForProcessInstanceIdList.stream()
+                    .filter(this::filterOnlyHasWarningVarAndLocalTaskVars)
+                    .collect(groupingBy(CamundaVariableInstance::getProcessInstanceId));
 
-            //Loop through all search results
-            searchResults.forEach(camundaTask -> {
-
-                //2. Get Variables for the task
-                List<CamundaVariableInstance> variablesForProcessId =
-                    variablesByProcessId.get(camundaTask.getProcessInstanceId());
-                if (variablesForProcessId != null) {
-                    //Format variables
-                    Map<String, CamundaVariable> variables = variablesForProcessId.stream()
-                        .collect(toMap(
-                            CamundaVariableInstance::getName,
-                            var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b)
-                        );
-
-                    //3. Evaluate access to task
-                    boolean hasAccess = permissionEvaluatorService
-                        .hasAccess(
-                            variables,
-                            accessControlResponse.getRoleAssignments(),
-                            permissionsRequired
-                        );
-
-                    if (hasAccess) {
-                        //4. If user had sufficient access to this task map to a task object and add to response
-                        Task task = taskMapper.mapToTaskObject(variables, camundaTask);
-                        response.add(task);
-                    }
-                }
-            });
+            loopThroughAllSearchResultsAndBuildResponse(
+                searchResults,
+                accessControlResponse,
+                permissionsRequired,
+                response,
+                mapWarningVarAndLocalTaskVarsGroupByProcessInstanceId
+            );
 
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
-            throw new ServerErrorException("There was a problem performing the search", ex);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, ex);
         }
+    }
+
+    private void loopThroughAllSearchResultsAndBuildResponse(
+        List<CamundaTask> searchResults,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired,
+        List<Task> response,
+        Map<String, List<CamundaVariableInstance>> warningVarAndLocalTaskVarsGroupByProcessInstanceId) {
+
+        searchResults.forEach(camundaTask -> {
+
+            //2. Get Variables for the task
+            List<CamundaVariableInstance> variablesForProcessInstanceId =
+                warningVarAndLocalTaskVarsGroupByProcessInstanceId.get(camundaTask.getProcessInstanceId());
+            if (variablesForProcessInstanceId != null) {
+                //Format variables
+                Map<String, CamundaVariable> variables = variablesForProcessInstanceId.stream()
+                    .collect(toMap(
+                        CamundaVariableInstance::getName,
+                        var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b
+                             )
+                    );
+
+                //3. Evaluate access to task
+                boolean hasAccess = permissionEvaluatorService
+                    .hasAccess(
+                        variables,
+                        accessControlResponse.getRoleAssignments(),
+                        permissionsRequired
+                    );
+
+                if (hasAccess) {
+                    //4. If user had sufficient access to this task map to a task object and add to response
+                    Task task = taskMapper.mapToTaskObject(variables, camundaTask);
+                    response.add(task);
+                }
+
+            }
+        });
+    }
+
+    private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
+        if (camundaVariableInstance.getName().equals("hasWarnings") && camundaVariableInstance.getTaskId() == null) {
+            return true;
+        }
+        return camundaVariableInstance.getTaskId() != null;
+    }
+
+    private List<CamundaVariableInstance> retrieveAllVariablesForProcessInstanceList(
+        List<String> processInstanceIdList) {
+        Map<String, Object> body = Map.of(
+            "processInstanceIdIn", processInstanceIdList,
+            "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY
+        );
+
+        return camundaServiceApi.getAllVariables(authTokenGenerator.generate(), body);
     }
 
     private void performCompleteTaskAction(String taskId, boolean taskHasCompleted) {
@@ -450,7 +523,9 @@ public class CamundaService {
                 updateTaskStateTo(taskId, TaskState.COMPLETED);
             }
             camundaServiceApi.completeTask(authTokenGenerator.generate(), taskId, new CompleteTaskVariables());
+            log.debug("Task id '{}' completed", taskId);
         } catch (FeignException ex) {
+            log.error("There was a problem completing the task id '{}'", taskId);
             throw new ServerErrorException(String.format(
                 "There was a problem completing the task with id: %s",
                 taskId
@@ -462,12 +537,13 @@ public class CamundaService {
         try {
 
             if (!taskHasUnassigned) {
-                // If task was not already completed complete it
                 updateTaskStateTo(taskId, TaskState.UNASSIGNED);
             }
 
             camundaServiceApi.unclaimTask(authTokenGenerator.generate(), taskId);
+            log.debug("Task id '{}' unclaimed", taskId);
         } catch (FeignException ex) {
+            log.error("There was a problem while claiming task id '{}'", taskId);
             throw new ServerErrorException(String.format(
                 "There was a problem unclaiming task: %s",
                 taskId
@@ -481,6 +557,7 @@ public class CamundaService {
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
         camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+        log.debug("Updated task id '{}' with state '{}'", taskId, newState.value());
     }
 
     private void performCancelTaskAction(String taskId) {
@@ -488,7 +565,9 @@ public class CamundaService {
         body.put("escalationCode", ESCALATION_CODE);
         try {
             camundaServiceApi.bpmnEscalation(authTokenGenerator.generate(), taskId, body);
+            log.debug("Task id '{}' cancelled", taskId);
         } catch (FeignException ex) {
+            log.error("Task id '{}' could not be cancelled", taskId);
             camundaErrorDecoder.decodeException(ex);
         }
     }

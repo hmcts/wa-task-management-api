@@ -26,7 +26,6 @@ public abstract class SpringBootFunctionalBaseTest {
 
     public static final String LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK =
         "There was a problem fetching the variables for task with id: %s";
-    protected static String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
     protected GivensBuilder given;
     protected Assertions assertions;
     protected Common common;
@@ -48,6 +47,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
+    @Value("${targets.documentStoreUrl}")
+    private String documentStoreUrl;
 
     @Before
     public void setUpGivens() {
@@ -55,6 +56,7 @@ public abstract class SpringBootFunctionalBaseTest {
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
         given = new GivensBuilder(
+            documentStoreUrl,
             camundaApiActions,
             restApiActions,
             authorizationHeadersProvider,

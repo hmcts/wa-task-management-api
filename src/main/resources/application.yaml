@@ -19,12 +19,8 @@ camunda:
   dmnKeys:
     complete-task: "completeTask_IA_Asylum"
 
-role-assignment:
+role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
-
-core_case_data:
-  api:
-    url: ${CCD_URL:http://ccd-data-store-api}
 
 security:
   anonymousPaths:
@@ -33,8 +29,9 @@ security:
     - "/health/liveness"
     - "/health/readiness"
     - "/loggers/**"
-    - "/swagger-ui.html"
     - "/swagger-resources/**"
+    - "/swagger-ui/**"
+    - "/swagger-ui/index.html"
     - "/v2/api-docs"
     - "/webjars/springfox-swagger-ui/**"
     - "/favicon.ico"
@@ -56,7 +53,7 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
   api:
-    baseUrl: ${IDAM_API_URL:http://sidam-api}
+    baseUrl: ${IDAM_URL:http://sidam-api}
 
 spring:
   application:
@@ -89,3 +86,13 @@ launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
   connectionTimeout: 5000
   socketTimeout: 5000
+
+
+logging:
+  level:
+    root: INFO
+    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
+    org.zalando.logbook: TRACE
+
+logbook:
+  include: /task/**

@@ -22,6 +22,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
@@ -79,7 +80,7 @@ class CamundaQueryBuilderTest {
                           + "  \"queries\": {\n"
                           + "    \"orQueries\": [\n"
                           + "      {\n"
-                          + "        \"processVariables\": [\n"
+                          + "        \"taskVariables\": [\n"
                           + "          {\n"
                           + "            \"name\": \"taskState\",\n"
                           + "            \"operator\": \"eq\",\n"
@@ -87,7 +88,8 @@ class CamundaQueryBuilderTest {
                           + "          }\n"
                           + "        ]\n"
                           + "      }\n"
-                          + "    ]\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
                           + "  }\n"
                           + "}\n";
 
@@ -109,7 +111,7 @@ class CamundaQueryBuilderTest {
                           + "  \"queries\": {\n"
                           + "    \"orQueries\": [\n"
                           + "      {\n"
-                          + "        \"processVariables\": [\n"
+                          + "        \"taskVariables\": [\n"
                           + "          {\n"
                           + "            \"name\": \"taskState\",\n"
                           + "            \"operator\": \"eq\",\n"
@@ -117,7 +119,8 @@ class CamundaQueryBuilderTest {
                           + "          }\n"
                           + "        ]\n"
                           + "      }\n"
-                          + "    ]\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
                           + "  }\n"
                           + "}\n";
 
@@ -140,7 +143,7 @@ class CamundaQueryBuilderTest {
                           + "  \"queries\": {\n"
                           + "    \"orQueries\": [\n"
                           + "      {\n"
-                          + "        \"processVariables\": [\n"
+                          + "        \"taskVariables\": [\n"
                           + "          {\n"
                           + "            \"name\": \"taskState\",\n"
                           + "            \"operator\": \"eq\",\n"
@@ -153,7 +156,8 @@ class CamundaQueryBuilderTest {
                           + "          }\n"
                           + "        ]\n"
                           + "      }\n"
-                          + "    ]\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
                           + "  }\n"
                           + "}\n";
 
@@ -175,58 +179,59 @@ class CamundaQueryBuilderTest {
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
         String expected = "{\n"
-                          + "\t\"queries\": {\n"
-                          + "\t\t\"orQueries\": [\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"assigneeIn\": [\n"
-                          + "\t\t\t\t\t\"someUser\",\n"
-                          + "\t\t\t\t\t\"anotherUser\"\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"jurisdiction\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherJurisdiction\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"jurisdiction\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someJurisdiction\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"location\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someLocation\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"location\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherLocation\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someState\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherState\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t}\n"
-                          + "\t\t]\n"
-                          + "\t}\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"jurisdiction\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someJurisdiction\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"jurisdiction\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherJurisdiction\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherState\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someState\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
                           + "}";
 
         JSONAssert.assertEquals(expected, resultJson, false);
@@ -247,58 +252,59 @@ class CamundaQueryBuilderTest {
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
         String expected = "{\n"
-                          + "\t\"queries\": {\n"
-                          + "\t\t\"orQueries\": [\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"assigneeIn\": [\n"
-                          + "\t\t\t\t\t\"someUser\",\n"
-                          + "\t\t\t\t\t\"anotherUser\"\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"jurisdiction\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherJurisdiction\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"jurisdiction\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someJurisdiction\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"location\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someLocation\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"location\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherLocation\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someState\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherState\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t}\n"
-                          + "\t\t]\n"
-                          + "\t}\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"jurisdiction\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someJurisdiction\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"jurisdiction\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherJurisdiction\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherState\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someState\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
                           + "}";
 
         JSONAssert.assertEquals(expected, resultJson, false);
@@ -317,30 +323,31 @@ class CamundaQueryBuilderTest {
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
         String expected = "{\n"
-                          + "\t\"queries\": {\n"
-                          + "\t\t\"orQueries\": [\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"assigneeIn\": [\n"
-                          + "\t\t\t\t\t\"someUser\",\n"
-                          + "\t\t\t\t\t\"anotherUser\"\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"location\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"someLocation\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"location\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"anotherLocation\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t}\n"
-                          + "\t\t]\n"
-                          + "\t}\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
                           + "}";
 
         JSONAssert.assertEquals(expected, resultJson, false);
@@ -373,7 +380,7 @@ class CamundaQueryBuilderTest {
                           + "        ]\n"
                           + "      },\n"
                           + "      {\n"
-                          + "        \"processVariables\": [\n"
+                          + "        \"taskVariables\": [\n"
                           + "          {\n"
                           + "            \"name\": \"location\",\n"
                           + "            \"operator\": \"eq\",\n"
@@ -392,9 +399,100 @@ class CamundaQueryBuilderTest {
                           + "        \"sortBy\": \"dueDate\",\n"
                           + "        \"sortOrder\": \"desc\"\n"
                           + "      }\n"
-                          + "    ]\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
                           + "  }\n"
-                          + "}\n";
+                          + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_only_one_caseId_parameter_and_due_date_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"aCaseId\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_only_caseId_list_parameter_and_due_date_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"aCaseId\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherCaseId\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
 
         JSONAssert.assertEquals(expected, resultJson, false);
     }
@@ -426,7 +524,7 @@ class CamundaQueryBuilderTest {
                           + "        ]\n"
                           + "      },\n"
                           + "      {\n"
-                          + "        \"processVariables\": [\n"
+                          + "        \"taskVariables\": [\n"
                           + "          {\n"
                           + "            \"name\": \"location\",\n"
                           + "            \"operator\": \"eq\",\n"
@@ -449,9 +547,10 @@ class CamundaQueryBuilderTest {
                           + "          \"type\": \"String\"\n"
                           + "        }\n"
                           + "      }\n"
-                          + "    ]\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
                           + "  }\n"
-                          + "}\n";
+                          + "}";
 
         JSONAssert.assertEquals(expected, resultJson, false);
     }
@@ -484,7 +583,7 @@ class CamundaQueryBuilderTest {
                           + "        ]\n"
                           + "      },\n"
                           + "      {\n"
-                          + "        \"processVariables\": [\n"
+                          + "        \"taskVariables\": [\n"
                           + "          {\n"
                           + "            \"name\": \"location\",\n"
                           + "            \"operator\": \"eq\",\n"
@@ -511,9 +610,88 @@ class CamundaQueryBuilderTest {
                           + "          \"type\": \"String\"\n"
                           + "        }\n"
                           + "      }\n"
-                          + "    ]\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
                           + "  }\n"
-                          + "}\n";
+                          + "}";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_from_search_task_request_with_multiple_parameters_and_multiple_sorting()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId")),
+                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+            ),
+            asList(
+                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT),
+                new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"assigneeIn\": [\n"
+                          + "          \"someUser\",\n"
+                          + "          \"anotherUser\"\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someLocation\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"location\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherLocation\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"aCaseId\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherCaseId\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"dueDate\",\n"
+                          + "        \"sortOrder\": \"desc\"\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortOrder\": \"desc\",\n"
+                          + "        \"parameters\": {\n"
+                          + "          \"variable\": \"caseId\",\n"
+                          + "          \"type\": \"String\"\n"
+                          + "        }\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
 
         JSONAssert.assertEquals(expected, resultJson, false);
     }
@@ -555,59 +733,55 @@ class CamundaQueryBuilderTest {
 
 
     @Test
-    void createCompleteQuery_should_build_query_from_search_task_request_with_only_AND_queries()
+    void createCompletableTasksQuery_should_build_query_from_search_task_request_with_only_AND_queries()
         throws JsonProcessingException, JSONException {
 
         List<String> taskTypes = new ArrayList<>();
         taskTypes.add("Test Task Type");
 
-
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createCompletableTasksQuery("caseId", taskTypes);
 
         String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
         String expected = "{\n"
-                          + "\t\"queries\": {\n"
-                          + "\t\t\"orQueries\": [\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"caseId\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"caseId\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"type\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"Test Task Type\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t},\n"
-                          + "\t\t\t{\n"
-                          + "\t\t\t\t\"processVariables\": [\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"assigned\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"referred\"\n"
-                          + "\t\t\t\t\t},\n"
-                          + "\t\t\t\t\t{\n"
-                          + "\t\t\t\t\t\t\"name\": \"taskState\",\n"
-                          + "\t\t\t\t\t\t\"operator\": \"eq\",\n"
-                          + "\t\t\t\t\t\t\"value\": \"unassigned\"\n"
-                          + "\t\t\t\t\t}\n"
-                          + "\t\t\t\t]\n"
-                          + "\t\t\t}\n"
-                          + "\t\t]\n"
-                          + "\t}\n"
-                          + "}";
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskType\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"Test Task Type\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"assigned\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"taskState\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"unassigned\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      },\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"caseId\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"caseId\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}\n";
+
         JSONAssert.assertEquals(expected, resultJson, false);
     }
 

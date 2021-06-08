@@ -2,18 +2,17 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class SystemDateProvider {
 
-    public LocalDate now() {
-        return LocalDate.now();
-    }
+    public static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZ";
 
-    public LocalDateTime nowWithTime() {
-        return LocalDateTime.now();
+    public String nowWithTime() {
+        return ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
+
     }
 
 }
