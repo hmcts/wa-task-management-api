@@ -11,14 +11,16 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -38,11 +40,14 @@ import static org.mockito.Mockito.when;
 @IgnoreNoPactsToVerify
 public class TaskManagerCompleteTaskProviderTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
+    @Mock
     private CamundaService camundaService;
+
+    @Autowired
+    private SystemDateProvider systemDateProvider;
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -55,9 +60,10 @@ public class TaskManagerCompleteTaskProviderTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
+        testTarget.setControllers(new TaskActionsController(
             camundaService,
-            accessControlService
+            accessControlService,
+            systemDateProvider
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -71,7 +77,7 @@ public class TaskManagerCompleteTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).completeTask(any(),any(),any());
+        doNothing().when(camundaService).completeTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }

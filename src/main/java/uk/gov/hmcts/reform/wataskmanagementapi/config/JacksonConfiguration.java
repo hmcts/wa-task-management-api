@@ -15,6 +15,8 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
+
 @Configuration
 public class JacksonConfiguration {
 
@@ -37,7 +39,7 @@ public class JacksonConfiguration {
         ObjectMapper objectMapper = builder.createXmlMapper(false).build();
         objectMapper.configure(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE, true);
         // Set default date to RFC3339 standards
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH);
+        SimpleDateFormat df = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         objectMapper.setDateFormat(df);
         objectMapper.registerModule(new Jdk8Module());
