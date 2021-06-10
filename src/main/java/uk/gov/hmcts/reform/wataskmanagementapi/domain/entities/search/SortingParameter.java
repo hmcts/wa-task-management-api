@@ -14,8 +14,10 @@ import lombok.ToString;
 public class SortingParameter {
 
     @ApiModelProperty(required = true,
-        allowableValues = "dueDate, taskTitle, locationName, caseCategory, caseId, CaseName",
-        example = "dueDate")
+        allowableValues = "dueDate, due_date, taskTitle, task_title, locationName, location_name, caseCategory, "
+            + "case_category, caseId, case_id, caseName, case_name",
+        notes = "Support snake_case and camelCase values",
+        example = "due_date")
     private SortField sortBy;
     @ApiModelProperty(required = true, allowableValues = "asc, desc", example = "asc")
     private SortOrder sortOrder;

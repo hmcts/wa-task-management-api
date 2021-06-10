@@ -125,7 +125,6 @@ public class CamundaQueryBuilder {
             .andQuery(stateQueries)
             .andQuery(caseIdQueries)
             .build();
-
     }
 
     /**
@@ -142,16 +141,21 @@ public class CamundaQueryBuilder {
             return null;
         }
 
-        List<CamundaSortingExpression> sortingQueries = sortingParameters.stream().map(param -> {
-            if (SortField.DUE_DATE == param.getSortBy()) {
-                return createTaskVariableSortExpression(param.getSortBy(), param.getSortOrder());
-            } else {
-                //It's a process variable
-                return createProcessVariableSortExpression(param.getSortBy(), param.getSortOrder());
-            }
-        }).collect(Collectors.toList());
+        return sortingParameters.stream()
+            .map(
+                param -> {
+                    if (isSortByDueDate(param)) {
+                        return createSortExpression(param.getSortBy(), param.getSortOrder());
+                    } else {
+                        return createTaskVariableSortExpression(param.getSortBy(), param.getSortOrder());
+                    }
+                })
+            .collect(Collectors.toList());
+    }
 
-        return sortingQueries;
+    private boolean isSortByDueDate(SortingParameter param) {
+        return SortField.DUE_DATE_CAMEL_CASE == param.getSortBy()
+            || SortField.DUE_DATE_SNAKE_CASE == param.getSortBy();
     }
 
     /**
@@ -184,19 +188,18 @@ public class CamundaQueryBuilder {
         return Map.of("assigneeIn", userSearchParameter.getValues());
     }
 
-    private CamundaSortingExpression createTaskVariableSortExpression(SortField sortBy, SortOrder sortOrder) {
+    private CamundaSortingExpression createSortExpression(SortField sortBy, SortOrder sortOrder) {
         return new CamundaSortingExpression(
-            sortBy.toString(),
+            sortBy.getCamundaVariableName(),
             sortOrder.toString()
         );
     }
 
-    private CamundaSortingExpression createProcessVariableSortExpression(SortField sortBy, SortOrder sortOrder) {
+    private CamundaSortingExpression createTaskVariableSortExpression(SortField sortBy, SortOrder sortOrder) {
         return new CamundaProcessVariableSortingExpression(
-            "processVariable",
+            "taskVariable",
             sortOrder.toString(),
-            new CamundaSortingParameters(sortBy.toString(), "String")
-        );
+            new CamundaSortingParameters(sortBy.getCamundaVariableName(), "String"));
     }
 
     private EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {
@@ -242,5 +245,4 @@ public class CamundaQueryBuilder {
                 throw new IllegalStateException("Unexpected search operator value: " + operator.toString());
         }
     }
-
 }
