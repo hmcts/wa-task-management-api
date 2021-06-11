@@ -7,12 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd.CoreCaseDataConsumerApplication;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -21,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
+@ContextConfiguration(classes = {CoreCaseDataConsumerApplication.class})
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
 @PactFolder("pacts")
 @SuppressWarnings("unchecked")
