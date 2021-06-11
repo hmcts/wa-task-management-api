@@ -503,7 +503,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_204_and_retrieve_a_task_role_assignment_attributes_match_and_assign_and_complete_true() {
+    public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
