@@ -363,7 +363,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
-                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
+                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_WITH_ID,
                 nonExistentTaskId
             )));
     }
@@ -465,7 +465,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_true() {
+    public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
             JURISDICTION, "IA"
         );
@@ -503,7 +503,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
+    public void should_return_a_204_and_retrieve_a_task_role_assignment_attributes_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 

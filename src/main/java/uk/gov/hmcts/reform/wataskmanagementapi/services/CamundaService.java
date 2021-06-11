@@ -64,6 +64,7 @@ public class CamundaService {
     public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
     public static final String THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT = "There was a problem retrieving task count";
     private static final String ESCALATION_CODE = "wa-esc-cancellation";
+
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaErrorDecoder camundaErrorDecoder;
     private final CamundaQueryBuilder camundaQueryBuilder;

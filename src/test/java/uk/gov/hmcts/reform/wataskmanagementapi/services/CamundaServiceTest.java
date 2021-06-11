@@ -2096,7 +2096,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                         taskId));
             }
         }
-
     }
 
     @Nested
