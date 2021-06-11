@@ -44,11 +44,23 @@ public class PermissionEvaluatorService {
         this.attributeEvaluatorService = attributeEvaluatorService;
     }
 
-    public boolean hasAccessWithUserIdAssigneeCheck(String taskAssignee,
-                                                    String userId,
-                                                    Map<String, CamundaVariable> variables,
-                                                    List<Assignment> roleAssignments,
-                                                    List<PermissionTypes> permissionsRequired) {
+
+    /**
+     * This method evaluates access to the task but also checks that a task was assigned to a user.
+     * Note: Uses a hierarchy is the user is a tribunal case worker he might be able to perform actions.
+     *
+     * @param taskAssignee        the task assignee if any
+     * @param userId              the user id performing the action
+     * @param variables           the task variables
+     * @param roleAssignments     the role assignments of the user performing the action
+     * @param permissionsRequired permissions required to perform this action
+     * @return whether the user should be able to perform this action
+     */
+    public boolean hasAccessWithAssigneeCheckAndHierarchy(String taskAssignee,
+                                                          String userId,
+                                                          Map<String, CamundaVariable> variables,
+                                                          List<Assignment> roleAssignments,
+                                                          List<PermissionTypes> permissionsRequired) {
 
         boolean hasAccess = false;
         // Loop through the roleAssignments and attempt to find a role with sufficient permissions
@@ -62,10 +74,13 @@ public class PermissionEvaluatorService {
             if ("senior-tribunal-caseworker".equals(roleAssignment.getRoleName())) {
                 hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
             } else {
-                if (taskAssignee != null && taskAssignee.equals(userId)) {
-                    hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
-                }
-
+                hasAccess = checkAccessWithAssignee(
+                    taskAssignee,
+                    userId,
+                    variables,
+                    roleAssignment,
+                    permissionsRequired
+                );
             }
         }
         return hasAccess;
@@ -82,6 +97,18 @@ public class PermissionEvaluatorService {
             if (hasAccess) {
                 break;
             }
+            hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
+        }
+        return hasAccess;
+    }
+
+    private boolean checkAccessWithAssignee(String taskAssignee,
+                                            String userId,
+                                            Map<String, CamundaVariable> variables,
+                                            Assignment roleAssignment,
+                                            List<PermissionTypes> permissionsRequired) {
+        boolean hasAccess = false;
+        if (taskAssignee != null && taskAssignee.equals(userId)) {
             hasAccess = evaluateAccess(variables, roleAssignment, permissionsRequired);
         }
         return hasAccess;

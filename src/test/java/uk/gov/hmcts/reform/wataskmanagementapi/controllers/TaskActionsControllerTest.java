@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
@@ -24,19 +25,25 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
 class TaskActionsControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
+    private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
     @Mock
     private CamundaService camundaService;
     @Mock
@@ -47,8 +54,11 @@ class TaskActionsControllerTest {
     private UserInfo mockedUserInfo;
     @Mock
     private SystemDateProvider systemDateProvider;
+    @Mock
+    private PrivilegedAccessControlService privilegedAccessControlService;
 
     private TaskActionsController taskActionsController;
+
 
     @BeforeEach
     void setUp() {
@@ -56,7 +66,8 @@ class TaskActionsControllerTest {
         taskActionsController = new TaskActionsController(
             camundaService,
             accessControlService,
-            systemDateProvider
+            systemDateProvider,
+            privilegedAccessControlService
         );
 
     }
@@ -122,11 +133,26 @@ class TaskActionsControllerTest {
     }
 
     @Test
-    void should_complete_a_task() {
+    void should_complete_a_task_with_no_extra_body_parameters_and_no_privileged_access() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
+            .thenReturn(false);
         String taskId = UUID.randomUUID().toString();
-        ResponseEntity response = taskActionsController.completeTask(IDAM_AUTH_TOKEN, taskId);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            null);
+
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(camundaService, times(1))
+            .completeTask(taskId, mockAccessControlResponse, asList(OWN, EXECUTE));
+
     }
 
     @Test

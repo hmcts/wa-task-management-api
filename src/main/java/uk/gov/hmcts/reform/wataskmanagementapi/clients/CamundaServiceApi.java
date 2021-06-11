@@ -116,7 +116,6 @@ public interface CamundaServiceApi {
                     @PathVariable("task-id") String id,
                     @RequestBody Map<String, String> body);
 
-
     @PostMapping(
         value = "/decision-definition/key/{key}/tenant-id/ia/evaluate",
         consumes = APPLICATION_JSON_VALUE
