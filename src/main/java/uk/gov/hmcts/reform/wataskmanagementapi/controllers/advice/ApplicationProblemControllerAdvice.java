@@ -36,7 +36,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
         TaskClaimException.class,
         TaskCompleteException.class,
         TaskUnclaimException.class,
-        TaskCancelException.class
+        TaskCancelException.class,
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex
@@ -45,11 +45,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
             .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
+                      .withType(ex.getType())
+                      .withTitle(ex.getTitle())
+                      .withDetail(ex.getMessage())
+                      .withStatus(ex.getStatus())
+                      .build());
     }
 
 }

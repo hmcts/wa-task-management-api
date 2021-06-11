@@ -142,7 +142,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     protected ResponseEntity<ErrorMessage> handleGenericException(
         Exception ex
     ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        LOG.error("generic" + EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
                       ex,

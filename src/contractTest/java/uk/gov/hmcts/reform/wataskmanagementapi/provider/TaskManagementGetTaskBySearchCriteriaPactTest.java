@@ -21,10 +21,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -52,7 +51,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private AccessControlService accessControlService;
 
     @Mock
-    private CamundaService camundaService;
+    private TaskManagementService taskManagementService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -69,7 +68,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskSearchController(
-            camundaService,
+            taskManagementService,
             accessControlService
         ));
         if (context != null) {
@@ -77,20 +76,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         }
 
         testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+                                            new MappingJackson2HttpMessageConverter(
+                                                objectMapper
+                                            )));
 
     }
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
         setInitMockForsearchTask();
-    }
-
-    @State({"appropriate tasks are returned by criteria with warnings"})
-    public void getTasksBySearchCriteriaWithWarnings() {
-        setInitMockForsearchTaskWithWarnings();
     }
 
     public List<Task> createTasks() {
@@ -116,16 +110,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList()));
-
-        return Arrays.asList(taskOne);
-    }
-
-    public List<Task> createTasksWithWarnings() {
-        final List<Warning> warnings = List.of(
-            new Warning("Code1", "Text1")
+            new WarningValues(Collections.emptyList())
         );
-        WarningValues warningValues = new WarningValues(warnings);
+
         Task taskTwo = new Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
             "Review the appeal",
@@ -148,25 +135,17 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "John Doe",
             true,
-            warningValues);
+            new WarningValues(Collections.emptyList())
+        );
 
-        return Arrays.asList(taskTwo);
+        return Arrays.asList(taskOne, taskTwo);
     }
 
     private void setInitMockForsearchTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasks()
-        );
-    }
-
-    private void setInitMockForsearchTaskWithWarnings() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasksWithWarnings()
-        );
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(createTasks());
     }
 
 

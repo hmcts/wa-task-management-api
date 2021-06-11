@@ -19,26 +19,20 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.SearchTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -46,7 +40,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 public class TaskSearchController extends BaseController {
 
     private static final Logger LOG = getLogger(TaskSearchController.class);
-    private final CamundaService camundaService;
+    private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
 
 
@@ -55,10 +49,11 @@ public class TaskSearchController extends BaseController {
 
 
     @Autowired
-    public TaskSearchController(CamundaService camundaService,
+    public TaskSearchController(TaskManagementService taskManagementService,
                                 AccessControlService accessControlService
     ) {
-        this.camundaService = camundaService;
+        super();
+        this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
     }
 
@@ -83,13 +78,11 @@ public class TaskSearchController extends BaseController {
             return ResponseEntity.badRequest().build();
         }
 
-        List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        List<Task> tasks = camundaService.searchWithCriteria(
+        List<Task> tasks = taskManagementService.searchWithCriteria(
             searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
-            accessControlResponse,
-            endpointPermissionsRequired
+            accessControlResponse
         );
 
         if (tasks.isEmpty()) {
@@ -98,7 +91,7 @@ public class TaskSearchController extends BaseController {
                 .cacheControl(CacheControl.noCache())
                 .body(new GetTasksResponse<>(tasks, 0));
         } else {
-            final long taskCount = camundaService.getTaskCount(searchTaskRequest);
+            final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
             return ResponseEntity
                 .ok()
                 .cacheControl(CacheControl.noCache())
@@ -121,12 +114,10 @@ public class TaskSearchController extends BaseController {
         @RequestHeader("Authorization") String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
 
-        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
+        final GetTasksCompletableResponse<Task> response = taskManagementService.searchForCompletableTasks(
             searchEventAndCase,
-            endpointPermissionsRequired,
             accessControlResponse
         );
         return ResponseEntity
