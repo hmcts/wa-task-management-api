@@ -57,7 +57,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
-                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID,
+                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                 nonExistentTaskId
             )));
     }
