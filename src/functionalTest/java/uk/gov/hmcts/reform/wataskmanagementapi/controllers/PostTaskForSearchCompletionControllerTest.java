@@ -76,7 +76,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(1));
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].type", equalTo("processApplication"));
 
         common.cleanUpTask(processApplicationTaskVariables.getTaskId(), REASON_COMPLETED);
     }
