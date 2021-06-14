@@ -42,6 +42,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Autowired
     private ObjectMapper objectMapper;
+    private TestVariables testVariables;
 
     @Before
     public void setUp() {
@@ -51,44 +52,80 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void given_processApplication_task_when_decideAnApplication_event_then_return_processApplication_tasks() {
-        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            Map.of(
-                CamundaVariableDefinition.TASK_TYPE, "processApplication",
-                CamundaVariableDefinition.TASK_ID, "processApplication"
-            ));
+    public void given_reviewAdditionalHomeOfficeEvidence_task_when_sendDirection_event_then_return_reviewAdditionalHomeOfficeEvidence_tasks() {
+        givenTask("reviewAdditionalHomeOfficeEvidence");
 
+        Response result = whenSearchForCompletableForEvent(
+            testVariables,
+            "sendDirection",
+            "IA",
+            "Asylum"
+        );
+
+        thenExpectTask(result, "tasks[0].type", "reviewAdditionalHomeOfficeEvidence");
+
+        common.cleanUpTask(testVariables.getTaskId(), REASON_COMPLETED);
+    }
+
+    private void thenExpectTask(Response result, String s, String taskType) {
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(1))
+            .body(s, equalTo(taskType));
+    }
+
+    private Response whenSearchForCompletableForEvent(TestVariables testVariables,
+                                                      String event,
+                                                      String jurisdiction,
+                                                      String caseType) {
         SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
-            processApplicationTaskVariables.getCaseId(),
+            testVariables.getCaseId(),
+            event,
+            jurisdiction,
+            caseType
+        );
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        return restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            authenticationHeaders
+        );
+    }
+
+    private void givenTask(String reviewAdditionalHomeOfficeEvidence) {
+        testVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+            Map.of(
+                CamundaVariableDefinition.TASK_TYPE, reviewAdditionalHomeOfficeEvidence,
+                CamundaVariableDefinition.TASK_ID, reviewAdditionalHomeOfficeEvidence
+            ));
+    }
+
+    @Test
+    public void given_processApplication_task_when_decideAnApplication_event_then_return_processApplication_tasks() {
+        givenTask("processApplication");
+
+        Response result = whenSearchForCompletableForEvent(
+            testVariables,
             "decideAnApplication",
             "IA",
             "Asylum"
         );
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        thenExpectTask(result, "tasks[0].type", "processApplication");
 
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            decideAnApplicationSearchRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(1))
-            .body("tasks[0].type", equalTo("processApplication"));
-
-        common.cleanUpTask(processApplicationTaskVariables.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(testVariables.getTaskId(), REASON_COMPLETED);
     }
 
     @Test
     public void should_return_a_200_empty_list_when_the_user_is_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
+        testVariables = common.setupTaskAndRetrieveIds();
+        String taskId = testVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
+            testVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -171,11 +208,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             authenticationHeaders
         );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(1))
-            .body("tasks[0].id", equalTo(taskId2));
+        thenExpectTask(result, "tasks[0].id", taskId2);
 
         common.cleanUpTask(taskId1, REASON_COMPLETED);
         common.cleanUpTask(taskId2, REASON_COMPLETED);
@@ -337,16 +370,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "solicitorCreateApplication", "IA", "Asylum");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        Response result = whenSearchForCompletableForEvent(taskVariables, "solicitorCreateApplication", "IA", "Asylum");
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -361,16 +385,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "solicitorCreateApplication", "PROBATE", "GrantOfRepresentation");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        Response result = whenSearchForCompletableForEvent(taskVariables, "solicitorCreateApplication", "PROBATE", "GrantOfRepresentation");
 
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -387,16 +402,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "reviewHearingRequirements", "IA", "Asylum");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        Response result = whenSearchForCompletableForEvent(taskVariables, "reviewHearingRequirements", "IA", "Asylum");
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -411,16 +417,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "someEventId", "IA", "Asylum");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        Response result = whenSearchForCompletableForEvent(taskVariables, "someEventId", "IA", "Asylum");
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -466,16 +463,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "jurisdiction", "Asylum");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        Response result = whenSearchForCompletableForEvent(taskVariables, "requestRespondentEvidence", "jurisdiction", "Asylum");
 
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value());
@@ -488,16 +476,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "caseType");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
+        Response result = whenSearchForCompletableForEvent(taskVariables, "requestRespondentEvidence", "IA", "caseType");
 
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value());
