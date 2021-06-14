@@ -67,6 +67,22 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         common.cleanUpTask(testVariables.getTaskId(), REASON_COMPLETED);
     }
 
+    @Test
+    public void given_reviewAdditionalAppellantEvidence_task_when_sendDirection_event_then_return_reviewAdditionalAppellantEvidence_tasks() {
+        givenTask("reviewAdditionalAppellantEvidence");
+
+        Response result = whenSearchForCompletableForEvent(
+            testVariables,
+            "sendDirection",
+            "IA",
+            "Asylum"
+        );
+
+        thenExpectTask(result, "tasks[0].type", "reviewAdditionalAppellantEvidence");
+
+        common.cleanUpTask(testVariables.getTaskId(), REASON_COMPLETED);
+    }
+
     private void thenExpectTask(Response result, String s, String taskType) {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
