@@ -5,3 +5,14 @@ targets:
 core_case_data:
   api:
     url: ${CCD_URL:http://ccd-data-store-api}
+
+logging.level.uk.gov.hmcts.reform: debug
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 30000
+        readTimeout: 30000
+        loggerLevel: full
+
