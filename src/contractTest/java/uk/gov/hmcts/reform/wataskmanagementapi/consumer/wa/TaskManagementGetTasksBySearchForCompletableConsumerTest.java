@@ -67,7 +67,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
-            .booleanValue("task_required_for_event", false)
+            .booleanType("task_required_for_event", false)
             .minArrayLike("tasks", 1, 1,
                     task -> task
                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
