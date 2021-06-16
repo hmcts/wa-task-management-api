@@ -70,8 +70,10 @@ public class Common {
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
 
         variablesToUseAsOverride.keySet()
-            .forEach(key -> processVariables
-                .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
+            .forEach(key -> processVariables.put(
+                key.value(),
+                new CamundaValue<>(variablesToUseAsOverride.get(key), "String")
+            ));
 
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)

@@ -51,6 +51,38 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
+    public void given_processApplication_task_when_decideAnApplication_event_then_return_processApplication_tasks() {
+        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+            Map.of(
+                CamundaVariableDefinition.TASK_TYPE, "processApplication",
+                CamundaVariableDefinition.TASK_ID, "processApplication"
+            ));
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            processApplicationTaskVariables.getCaseId(),
+            "decideAnApplication",
+            "IA",
+            "Asylum"
+        );
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].type", equalTo("processApplication"));
+
+        common.cleanUpTask(processApplicationTaskVariables.getTaskId(), REASON_COMPLETED);
+    }
+
+    @Test
     public void should_return_a_200_empty_list_when_the_user_is_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
