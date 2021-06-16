@@ -25,7 +25,7 @@ public class GetTasksCompletableResponseTest {
         List<Task> camundaTasks = Lists.newArrayList(camundaTask);
 
         final GetTasksCompletableResponse<Task> camundaTasksGetTaskResponse =
-            new GetTasksCompletableResponse<>(camundaTasks);
+            new GetTasksCompletableResponse<>(false, camundaTasks);
 
         assertThat(camundaTasksGetTaskResponse.getTasks().size()).isEqualTo(1);
         assertThat(camundaTasksGetTaskResponse.getTasks().get(0)).isEqualTo(camundaTask);

@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -265,9 +267,10 @@ public class CamundaService {
         }
     }
 
-    public List<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
-                                                List<PermissionTypes> permissionsRequired,
-                                                AccessControlResponse accessControlResponse) {
+    @SuppressWarnings("PMD.CyclomaticComplexity")
+    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
+                                                                       List<PermissionTypes> permissionsRequired,
+                                                                       AccessControlResponse accessControlResponse) {
 
         //Safe-guard against unsupported Jurisdictions and case types.
         if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
@@ -276,10 +279,15 @@ public class CamundaService {
                                           + "This endpoint currently only supports"
                                           + " the Immigration & Asylum service");
         }
-        List<String> taskTypes = evaluateTaskCompletionDmn(searchEventAndCase);
+        final List<Map<String, CamundaVariable>> evaluateDmnResult = evaluateTaskCompletionDmn(searchEventAndCase);
+
+        // Collect task types
+        List<String> taskTypes = getTaskTypes(evaluateDmnResult);
+
         if (taskTypes.isEmpty()) {
-            return emptyList();
+            return new GetTasksCompletableResponse<>(false, emptyList());
         }
+
         //2. Build query and perform search
         CamundaSearchQuery camundaSearchQuery =
             camundaQueryBuilder.createCompletableTasksQuery(searchEventAndCase.getCaseId(), taskTypes);
@@ -291,7 +299,7 @@ public class CamundaService {
 
             //Safe guard in case no search results were returned
             if (searchResults.isEmpty()) {
-                return emptyList();
+                return new GetTasksCompletableResponse<>(false, emptyList());
             }
             //4. Extract if a task is assigned and assignee is idam userId
             String idamUserId = accessControlResponse.getUserInfo().getUid();
@@ -302,14 +310,38 @@ public class CamundaService {
             if (!assigneeTaskList.isEmpty()) {
                 searchResults = assigneeTaskList;
             }
+            final List<Task> taskList = performSearchAction(searchResults, accessControlResponse, permissionsRequired);
 
-            return performSearchAction(searchResults, accessControlResponse, permissionsRequired);
+            if (taskList.isEmpty()) {
+                return new GetTasksCompletableResponse<>(false, emptyList());
+            }
+
+            boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
+
+            return new GetTasksCompletableResponse<>(taskRequiredForEvent, taskList);
         } catch (FeignException exp) {
             throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
         }
     }
 
-    private List<String> evaluateTaskCompletionDmn(SearchEventAndCase searchEventAndCase) {
+    private List<String> getTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {
+        return evaluateDmnResult.stream()
+            .map(result -> getVariableValue(result.get(TASK_TYPE.value()), String.class))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+    }
+
+    private boolean isTaskRequired(List<Map<String, CamundaVariable>> evaluateDmnResult, List<String> taskTypes) {
+        /*
+         * EvaluateDmnResult contains with and without empty rows for an event.
+         * TaskTypes are extracted from evaluateDmnResult.
+         * If both the sizes are equal, it means there is no empty row and task is required for the event
+         * If they are of different sizes, it means there is an empty row and task is not required
+         */
+        return evaluateDmnResult.size() == taskTypes.size();
+    }
+
+    private List<Map<String, CamundaVariable>> evaluateTaskCompletionDmn(SearchEventAndCase searchEventAndCase) {
         try {
 
             String taskCompletionDecisionTableKey = WA_TASK_COMPLETION.getTableKey(
@@ -317,18 +349,11 @@ public class CamundaService {
                 searchEventAndCase.getCaseType()
             );
 
-            List<Map<String, CamundaVariable>> evaluateDmnResult =
-                camundaServiceApi.evaluateDMN(
+            return camundaServiceApi.evaluateDMN(
                     authTokenGenerator.generate(),
                     taskCompletionDecisionTableKey,
                     createEventIdDmnRequest(searchEventAndCase.getEventId())
                 );
-            // Collect task types
-            return evaluateDmnResult.stream()
-                .map(result -> {
-                    return getVariableValue(result.get(TASK_TYPE.value()), String.class);
-                })
-                .collect(Collectors.toList());
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem evaluating DMN", ex);
         }
