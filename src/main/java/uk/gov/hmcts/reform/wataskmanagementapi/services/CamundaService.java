@@ -295,6 +295,7 @@ public class CamundaService {
         }
     }
 
+    @SuppressWarnings("PMD.CyclomaticComplexity")
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                                        List<PermissionTypes> permissionsRequired,
                                                                        AccessControlResponse accessControlResponse) {
