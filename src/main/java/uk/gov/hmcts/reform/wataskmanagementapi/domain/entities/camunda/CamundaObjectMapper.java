@@ -31,6 +31,14 @@ public class CamundaObjectMapper {
         return jsonString(obj, camundaMapper);
     }
 
+    public <T> T readValue(String value, Class<T> type) {
+        try {
+            return camundaMapper.readValue(value, type);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
     private <T> Optional<T> map(CamundaVariable variable, Class<T> type) {
 
         if (variable == null) {
@@ -48,6 +56,5 @@ public class CamundaObjectMapper {
             throw new IllegalArgumentException(e);
         }
     }
-
 }
 

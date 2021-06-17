@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
@@ -125,7 +125,7 @@ class TaskActionsControllerTest {
         ResponseEntity<Void> response = taskActionsController.assignTask(
             authToken,
             taskId,
-            new AssigneeRequest("userId")
+            new AssignTaskRequest("userId")
         );
 
         assertNotNull(response);
