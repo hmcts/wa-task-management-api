@@ -7,6 +7,7 @@ import java.net.URI;
 
 import static org.zalando.problem.Status.INTERNAL_SERVER_ERROR;
 
+@SuppressWarnings("java:S110")
 public class TaskCancelException extends AbstractThrowableProblem {
 
     private static final long serialVersionUID = -3202537017930376522L;

@@ -1825,7 +1825,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     );
 
                 doThrow(exception)
-                    .when(camundaServiceApi).getVariables(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+                    .when(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
 
                 assertThatThrownBy(() ->
                     camundaService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -2000,7 +2000,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     );
 
                 doThrow(exception)
-                    .when(camundaServiceApi).getVariables(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+                    .when(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
 
                 assertThatThrownBy(() ->
                     camundaService.completeTaskWithPrivilegeAndCompletionOptions(
