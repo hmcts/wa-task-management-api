@@ -363,7 +363,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_400_and_when_event_id_does_not_match_not_ia() {
+    public void should_return_a_200_and_when_event_id_does_not_match_not_ia() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -379,12 +379,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("message", equalTo("Please check your request. "
-                                     + "This endpoint currently only supports "
-                                     + "the Immigration & Asylum service"));
-
+            .body("tasks.size()", equalTo(0));
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
@@ -471,7 +468,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_400_and_when_performing_search_when_jurisdiction_is_incorrect() {
+    public void should_return_a_200_and_when_performing_search_when_jurisdiction_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
         String taskId = taskVariables.getTaskId();
 
@@ -487,13 +484,16 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value());
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
-    public void should_return_a_400_and_when_performing_search_when_caseType_is_incorrect() {
+    public void should_return_a_200_and_when_performing_search_when_caseType_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -509,7 +509,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value());
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

@@ -27,7 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteT
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
@@ -1108,6 +1107,30 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 .hasCauseInstanceOf(FeignException.class);
         }
 
+        @Test
+        void should_succeed_and_return_empty_array_when_wrong_jurisdiction_is_passed() {
+            List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
+            Assignment mockedRoleAssignment = mock(Assignment.class);
+            UserInfo mockedUserInfo = mock(UserInfo.class);
+
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "caseId", "eventId", "IA", "WrongCaseType");
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                mockedUserInfo,
+                singletonList(mockedRoleAssignment)
+            );
+
+
+            lenient().when(authTokenGenerator.generate()).thenReturn(String.valueOf(true));
+            GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
+                searchEventAndCase,
+                permissionsRequired,
+                accessControlResponse
+            );
+
+            assertTrue(response.getTasks().isEmpty());
+        }
     }
 
     @Nested
@@ -2127,7 +2150,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_takes_wrong_caseType() {
+        void searchWithCriteria_should_return_an_empty_task_list_when_camunda_takes_wrong_caseType() {
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
             Assignment mockedRoleAssignment = mock(Assignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -2141,17 +2164,13 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
 
             lenient().when(authTokenGenerator.generate()).thenReturn(String.valueOf(true));
+            GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
+                searchEventAndCase,
+                permissionsRequired,
+                accessControlResponse
+            );
 
-            assertThatThrownBy(() ->
-                camundaService.searchForCompletableTasks(
-                    searchEventAndCase,
-                    permissionsRequired,
-                    accessControlResponse)
-            )
-                .isInstanceOf(BadRequestException.class)
-                .hasMessage("Please check your request. This endpoint "
-                            + "currently only supports the Immigration & "
-                            + "Asylum service");
+            assertTrue(response.getTasks().isEmpty());
         }
 
         @Test
