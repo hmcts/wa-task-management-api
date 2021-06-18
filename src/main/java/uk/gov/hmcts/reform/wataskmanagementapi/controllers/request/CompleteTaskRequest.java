@@ -16,7 +16,6 @@ import javax.validation.constraints.NotNull;
 @ToString
 public class CompleteTaskRequest {
 
-    @NotNull
     private final CompletionOptions completionOptions;
 
     @JsonCreator

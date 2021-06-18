@@ -28,10 +28,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteT
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -255,7 +255,8 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
 
             assertThatThrownBy(() -> camundaService.getTask(taskId, roleAssignment, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
-                .hasMessage("User did not have sufficient permissions to access task with id: " + taskId);
+                .hasNoCause()
+                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
 
         }
 
@@ -1295,8 +1296,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.claimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage(
-                    String.format("User did not have sufficient permissions to claim task with id: %s", taskId));
+                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
         }
 
         @Test
@@ -1441,10 +1441,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage(String.format(
-                    "User did not have sufficient permissions to unclaim task with id: %s",
-                    taskId)
-                );
+                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
         }
 
         @Test
@@ -1620,8 +1617,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.completeTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage(
-                    String.format("User did not have sufficient permissions to complete task with id: %s", taskId));
+                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
         }
 
         @Test
@@ -1863,8 +1859,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     ))
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
-                    .hasMessage(
-                        String.format("User did not have sufficient permissions to complete task with id: %s", taskId));
+                    .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
             }
 
             @Test
@@ -2036,8 +2031,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     ))
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
-                    .hasMessage(
-                        String.format("User did not have sufficient permissions to complete task with id: %s", taskId));
+                    .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
             }
 
             @Test
@@ -2814,8 +2808,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage(
-                    String.format("User did not have sufficient permissions to cancel task with id: %s", taskId));
+                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
         }
 
         @Test
@@ -2976,8 +2969,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     assignerPermissionsRequired, assigneeAccessControlResponse, assigneePermissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage(
-                    String.format("User did not have sufficient permissions to assign task with id: %s", taskId));
+                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
         }
 
         @Test

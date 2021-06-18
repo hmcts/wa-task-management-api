@@ -198,7 +198,7 @@ public class TaskActionsController {
     public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
-                                             @Valid @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
+                                             @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);

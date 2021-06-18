@@ -151,10 +151,8 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             List.of(OWN, EXECUTE)
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
-            .hasMessage(String.format(
-                "User did not have sufficient permissions to assign task with id: %s",
-                taskId
-            ));
+            .hasNoCause()
+            .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
 
         verify(camundaServiceApi, times(0))
             .addLocalVariablesToTask(

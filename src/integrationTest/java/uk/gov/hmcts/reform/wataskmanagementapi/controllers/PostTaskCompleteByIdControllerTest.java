@@ -37,8 +37,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -292,11 +290,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content("{\n"
-                             + "  \"completionOptions\": {\n"
-                             + "    \"assignAndComplete\": null\n"
-                             + "  }\n"
-                             + "}")
+                    .content(asJsonString(new CompleteTaskRequest(null)))
             )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
@@ -313,7 +307,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        void should_return_204_succeed_when_completion_options_value_is_null_but_not_re_assign_task()
+        void should_return_400_bad_request_application_problem_when_completion_options_value_is_null()
             throws Exception {
 
             mockServices.mockServiceAPIs();
@@ -341,7 +335,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
-                        status().isNoContent()
+                        status().isBadRequest()
                     ));
 
         }
@@ -375,17 +369,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
-                        status().isBadRequest(),
-                        content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                        jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
-                        jsonPath("$.title").value("Role Assignment Verification"),
-                        jsonPath("$.status").value(403),
-                        jsonPath("$.detail").value(
-                            "Role Assignment Verification: "
-                            + "Role assignment verifications failed.")
+                        status().isBadRequest()
                     ));
-
-
         }
 
         @Test
@@ -417,14 +402,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
-                        status().isBadRequest(),
-                        content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                        jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
-                        jsonPath("$.title").value("Role Assignment Verification"),
-                        jsonPath("$.status").value(403),
-                        jsonPath("$.detail").value(
-                            "Role Assignment Verification: "
-                            + "Role assignment verifications failed.")
+                        status().isBadRequest()
                     ));
 
 

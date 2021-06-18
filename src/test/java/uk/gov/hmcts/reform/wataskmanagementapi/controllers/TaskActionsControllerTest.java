@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
@@ -29,6 +30,7 @@ import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -208,6 +210,29 @@ class TaskActionsControllerTest {
 
     }
 
+    @Test
+    void should_return_403_throw_insufficient_permission_when_extra_body_parameters_and_no_privileged_access() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
+            .thenReturn(false);
+
+
+        CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+
+        assertThatThrownBy(() -> taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            request))
+            .isInstanceOf(GenericForbiddenException.class)
+            .hasNoCause()
+            .hasMessage("Forbidden: "
+                        + "The action could not be completed because the client/user had insufficient rights to a resource.");
+
+    }
 
     @Test
     void should_cancel_a_task() {
@@ -218,7 +243,7 @@ class TaskActionsControllerTest {
     }
 
     @Test
-    void exception_handler_should_return_403_for_no_role_assignments_found_exception() {
+    void should_return_403_when_no_role_assignments_are_found() {
 
         final String exceptionMessage = "Some exception message";
         final NoRoleAssignmentsFoundException exception =
