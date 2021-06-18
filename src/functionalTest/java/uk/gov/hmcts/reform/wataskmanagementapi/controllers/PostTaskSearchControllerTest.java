@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -83,7 +86,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
+    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() throws JsonProcessingException {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
@@ -96,6 +99,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
 
+        System.out.println(new ObjectMapper().setPropertyNamingStrategy(SNAKE_CASE).writeValueAsString(searchTaskRequest));
+
         // When
         Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
 
@@ -104,6 +109,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .extract()
             .body().path("tasks.case_id");
+
         assertThat(actualCaseIdList).asList()
             .containsSequence(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId());
 
