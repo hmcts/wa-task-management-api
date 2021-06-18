@@ -5,6 +5,8 @@ import io.swagger.annotations.ApiModel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import javax.validation.constraints.NotNull;
+
 @ApiModel(
     value = "CompletionOptions",
     description = "Completion mode options"
@@ -13,6 +15,7 @@ import lombok.ToString;
 @ToString
 public class CompletionOptions {
 
+    @NotNull
     private final boolean assignAndComplete;
 
     @JsonCreator

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -103,20 +103,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             .body(new ErrorMessage(
                     ex,
                     HttpStatus.BAD_REQUEST,
-                    systemDateProvider.nowWithTime()
-                )
-            );
-    }
-
-    @ExceptionHandler(InsufficientPermissionsException.class)
-    protected ResponseEntity<ErrorMessage> handleInsufficientPermissionsException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.FORBIDDEN,
                     systemDateProvider.nowWithTime()
                 )
             );

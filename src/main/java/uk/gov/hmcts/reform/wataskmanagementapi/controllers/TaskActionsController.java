@@ -27,10 +27,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.util.List;
+
+import javax.validation.Valid;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -43,6 +46,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -194,25 +198,29 @@ public class TaskActionsController {
     public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
-                                             @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
+                                             @Valid @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        boolean isPrivilegedRequest =
-            privilegedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
 
-        if (isPrivilegedRequest && completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
-            camundaService.completeTaskWithPrivilegeAndCompletionOptions(
-                taskId,
-                accessControlResponse,
-                endpointPermissionsRequired,
-                completeTaskRequest.getCompletionOptions()
-            );
+        if (completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
+            boolean isPrivilegedRequest =
+                privilegedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
+
+            if (isPrivilegedRequest) {
+                camundaService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    endpointPermissionsRequired,
+                    completeTaskRequest.getCompletionOptions()
+                );
+            } else {
+                throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+            }
         } else {
             camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
         }
-
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())

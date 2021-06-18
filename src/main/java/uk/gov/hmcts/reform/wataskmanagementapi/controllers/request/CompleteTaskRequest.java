@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 
+import javax.validation.constraints.NotNull;
+
 @ApiModel(
     value = "CompleteTaskRequest",
     description = "Allows specifying certain completion options"
@@ -14,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 @ToString
 public class CompleteTaskRequest {
 
+    @NotNull
     private final CompletionOptions completionOptions;
 
     @JsonCreator

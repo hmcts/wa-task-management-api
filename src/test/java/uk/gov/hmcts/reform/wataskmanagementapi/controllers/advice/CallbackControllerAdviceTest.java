@@ -12,11 +12,11 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
@@ -131,24 +132,6 @@ class CallbackControllerAdviceTest {
         assertEquals(mockedTimestamp, response.getBody().getTimestamp());
         assertEquals(HttpStatus.BAD_REQUEST.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.getBody().getStatus());
-        assertEquals(exceptionMessage, response.getBody().getMessage());
-    }
-
-    @Test
-    void should_handle_insufficient_permission_exception() {
-
-        final String exceptionMessage = "Some exception message";
-        final InsufficientPermissionsException exception =
-            new InsufficientPermissionsException(exceptionMessage, new Exception());
-
-        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
-            .handleInsufficientPermissionsException(exception);
-
-        assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(HttpStatus.FORBIDDEN.getReasonPhrase(), response.getBody().getError());
-        assertEquals(HttpStatus.FORBIDDEN.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 
