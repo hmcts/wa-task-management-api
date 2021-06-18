@@ -33,8 +33,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -195,6 +193,7 @@ public class TaskActionsController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
@@ -203,8 +202,9 @@ public class TaskActionsController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-
-        if (completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
+        if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
+            camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        } else {
             boolean isPrivilegedRequest =
                 privilegedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
 
@@ -218,8 +218,6 @@ public class TaskActionsController {
             } else {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
             }
-        } else {
-            camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
         }
         return ResponseEntity
             .noContent()

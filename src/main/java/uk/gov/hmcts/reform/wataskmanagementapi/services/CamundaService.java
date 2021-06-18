@@ -154,8 +154,8 @@ public class CamundaService {
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        hasAccess(taskId, assignerAccessControlResponse, assignerPermissionsRequired, variables);
-        hasAccess(taskId, assigneeAccessControlResponse, assigneePermissionsRequired, variables);
+        hasAccess(assignerAccessControlResponse, assignerPermissionsRequired, variables);
+        hasAccess(assigneeAccessControlResponse, assigneePermissionsRequired, variables);
 
         String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
         boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
@@ -501,8 +501,7 @@ public class CamundaService {
         return Map.of("variables", eventIdCamundaVariable);
     }
 
-    private void hasAccess(String taskId,
-                           AccessControlResponse accessControlResponse,
+    private void hasAccess(AccessControlResponse accessControlResponse,
                            List<PermissionTypes> permissionsRequired,
                            Map<String, CamundaVariable> variables) {
         boolean hasAccess = permissionEvaluatorService.hasAccess(

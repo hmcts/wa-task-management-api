@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
-import static java.lang.String.format;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;

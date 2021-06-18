@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -98,8 +96,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
-
-        System.out.println(new ObjectMapper().setPropertyNamingStrategy(SNAKE_CASE).writeValueAsString(searchTaskRequest));
 
         // When
         Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);

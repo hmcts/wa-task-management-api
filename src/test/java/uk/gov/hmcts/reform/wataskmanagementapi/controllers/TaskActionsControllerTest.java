@@ -230,7 +230,8 @@ class TaskActionsControllerTest {
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()
             .hasMessage("Forbidden: "
-                        + "The action could not be completed because the client/user had insufficient rights to a resource.");
+                        + "The action could not be completed because the "
+                        + "client/user had insufficient rights to a resource.");
 
     }
 
