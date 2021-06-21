@@ -19,3 +19,13 @@ variable "common_tags" {
 variable "appinsights_instrumentation_key" {
   default = ""
 }
+
+
+variable "postgresql_database_name" {
+  default = "wa_task_management_api"
+}
+
+variable "postgresql_user" {
+  default = "wa_wa"
+}
+
