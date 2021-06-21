@@ -22,6 +22,7 @@ plugins {
   id 'io.freefair.lombok' version '5.3.0'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.1.8'
+  id 'org.flywaydb.flyway' version '7.10.0'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -168,8 +169,8 @@ pitest {
   junit5PluginVersion = '0.12'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
-    'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
-    'uk.gov.hmcts.reform.wataskmanagementapi.Application'
+      'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
+      'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
   threads = 10
   outputFormats = ['XML', 'HTML']
@@ -200,9 +201,9 @@ sonarqube {
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
-                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
-                                 "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
-                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
+        "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
+        "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
+        "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
   }
 }
 
@@ -268,27 +269,27 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.7.0',
-  junitPlatform   : '1.7.0',
-  reformLogging   : '5.1.5',
-  springBoot      : '2.4.2',
-  springfoxSwagger: '3.0.0',
-  serenity        : '2.2.12',
-  gradlePitest    : '1.5.1',
-  pitest          : '1.5.2',
-  sonarPitest     : '0.5',
-  pactVersion     : '4.1.7',
-  logbook         : '2.6.2'
+    junit           : '5.7.0',
+    junitPlatform   : '1.7.0',
+    reformLogging   : '5.1.5',
+    springBoot      : '2.4.2',
+    springfoxSwagger: '3.0.0',
+    serenity        : '2.2.12',
+    gradlePitest    : '1.5.1',
+    pitest          : '1.5.2',
+    sonarPitest     : '0.5',
+    pactVersion     : '4.1.7',
+    logbook         : '2.6.2'
 ]
 
 ext.libraries = [
-  junit5: [
-    "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
-    "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
-    "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
-    "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
-    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
-  ]
+    junit5: [
+        "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
+        "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
+        "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
+        "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
+        "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+    ]
 ]
 
 dependencies {
@@ -296,7 +297,10 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: versions.springBoot
-  implementation group: 'org.zalando', name:'logbook-spring-boot-starter', version: versions.logbook
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jdbc', version: versions.springBoot
+
+  implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
+
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: versions.springBoot
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
 
@@ -325,6 +329,10 @@ dependencies {
   compile group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
 
   compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.12.0'
+
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '7.10.0'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.22'
+  testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
