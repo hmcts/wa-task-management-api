@@ -22,7 +22,7 @@ plugins {
   id 'io.freefair.lombok' version '5.3.0'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.1.8'
-  id 'org.flywaydb.flyway' version '7.10.0'
+  id 'org.flywaydb.flyway' version '6.5.7'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -330,7 +330,7 @@ dependencies {
 
   compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.12.0'
 
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '7.10.0'
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '6.5.7'
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.22'
   testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
 
