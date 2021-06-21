@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -49,6 +50,9 @@ public class TaskManagerAssignTaskProviderTest {
     @Autowired
     private SystemDateProvider systemDateProvider;
 
+    @Mock
+    private PrivilegedAccessControlService privilegedAccessControlService;
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -63,7 +67,8 @@ public class TaskManagerAssignTaskProviderTest {
         testTarget.setControllers(new TaskActionsController(
             camundaService,
             accessControlService,
-            systemDateProvider
+            systemDateProvider,
+            privilegedAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
