@@ -1,9 +1,9 @@
 DROP TABLE IF EXISTS execution_types;
 CREATE TABLE execution_types
 (
-    execution_code        execution_type_enum,
-    execution_name        TEXT,
-    description TEXT,
+    execution_code execution_type_enum,
+    execution_name TEXT,
+    description    TEXT,
     PRIMARY KEY (code)
 );
 
@@ -32,7 +32,7 @@ CREATE TABLE tasks
     case_id                 TEXT,
     case_type_id            TEXT,
     case_category           TEXT,
-    case_name           TEXT,
+    case_name               TEXT,
     jurisdiction            TEXT,
     region                  TEXT,
     region_name             TEXT,
