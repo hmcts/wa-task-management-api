@@ -111,7 +111,6 @@ public class TaskSearchController {
                   + " criteria that are eligible for automatic completion")
     @ApiResponses({
         @ApiResponse(code = 200, message = "OK", response = GetTasksCompletableResponse.class),
-        @ApiResponse(code = 400, message = "Bad Request"),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
         @ApiResponse(code = 403, message = "Forbidden"),
         @ApiResponse(code = 415, message = "Unsupported Media Type"),
@@ -125,16 +124,15 @@ public class TaskSearchController {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        List<Task> tasks = camundaService.searchForCompletableTasks(
+        final GetTasksCompletableResponse<Task> response = camundaService.searchForCompletableTasks(
             searchEventAndCase,
             endpointPermissionsRequired,
             accessControlResponse
-
         );
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(new GetTasksCompletableResponse<>(tasks));
+            .body(response);
     }
 
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)

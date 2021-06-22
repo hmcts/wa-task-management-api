@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -49,6 +50,9 @@ public class TaskManagerCompleteTaskProviderTest {
     @Autowired
     private SystemDateProvider systemDateProvider;
 
+    @Mock
+    private PrivilegedAccessControlService privilegedAccessControlService;
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -63,7 +67,8 @@ public class TaskManagerCompleteTaskProviderTest {
         testTarget.setControllers(new TaskActionsController(
             camundaService,
             accessControlService,
-            systemDateProvider
+            systemDateProvider,
+            privilegedAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -73,12 +78,25 @@ public class TaskManagerCompleteTaskProviderTest {
 
     @State({"complete a task using taskId"})
     public void completeTaskById() {
-        setInitMock();
+        setInitMockWithoutPrivilegedAccess();
     }
 
-    private void setInitMock() {
-        doNothing().when(camundaService).completeTask(any(), any(), any());
+    @State({"complete a task using taskId and assign and complete completion options"})
+    public void claimTaskByIdWithCompletionOptions() {
+        setInitMockWithPrivilegedAccess();
+    }
+
+    private void setInitMockWithoutPrivilegedAccess() {
+        doNothing().when(camundaService).claimTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(privilegedAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
+    }
+
+    private void setInitMockWithPrivilegedAccess() {
+        doNothing().when(camundaService).claimTask(any(), any(), any());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(privilegedAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
     }
 }
