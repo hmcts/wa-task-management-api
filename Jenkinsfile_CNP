@@ -17,8 +17,8 @@ def secrets = [
                 secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
                 secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
                 secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
-                secret('task-management-api-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
-                secret('task-management-api-POSTGRES-USER', 'POSTGRES_USERNAME'),
+                secret('cft-task-api-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+                secret('cft-task-api-POSTGRES-USER', 'POSTGRES_USERNAME'),
 
         ],
         's2s-${env}': [
@@ -39,7 +39,7 @@ withPipeline(type, product, component) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
 
-    env.POSTGRES_HOST = "wa-task-management-api-postgres-db-aat.postgres.database.azure.com"
+    env.POSTGRES_HOST = "cft-task-postgres-db-aat.postgres.database.azure.com"
 
     env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"

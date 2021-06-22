@@ -28,7 +28,7 @@ resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
 //Create Database
 module "wa_task_management_api_database" {
   source             = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product            = "${var.product}-${var.component}-postgres-db"
+  product            = "${var.postgres_db_component_name}-postgres-db"
   location           = "${var.location}"
   env                = "${var.env}"
   database_name      = "${var.postgresql_database_name}"
@@ -41,31 +41,31 @@ module "wa_task_management_api_database" {
 
 //Save secrets in vault
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
-  name         = "${var.component}-POSTGRES-USER"
+  name         = "${var.postgres_db_component_name}-POSTGRES-USER"
   value        = module.wa_task_management_api_database.user_name
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES-PASS" {
-  name         = "${var.component}-POSTGRES-PASS"
+  name         = "${var.postgres_db_component_name}-POSTGRES-PASS"
   value        = module.wa_task_management_api_database.postgresql_password
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_HOST" {
-  name         = "${var.component}-POSTGRES-HOST"
+  name         = "${var.postgres_db_component_name}-POSTGRES-HOST"
   value        = module.wa_task_management_api_database.host_name
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
-  name         = "${var.component}-POSTGRES-PORT"
+  name         = "${var.postgres_db_component_name}-POSTGRES-PORT"
   value        = module.wa_task_management_api_database.postgresql_listen_port
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
-  name         = "${var.component}-POSTGRES-DATABASE"
+  name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE"
   value        = module.wa_task_management_api_database.postgresql_database
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
