@@ -17,8 +17,8 @@ def secrets = [
                 secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
                 secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
                 secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
-                secret('cft-task-api-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
-                secret('cft-task-api-POSTGRES-USER', 'POSTGRES_USERNAME'),
+                secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+                secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
 
         ],
         's2s-${env}': [
