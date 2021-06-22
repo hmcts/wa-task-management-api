@@ -20,5 +20,5 @@ java:
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_PORT: 5432
     POSTGRES_HOST: wa-task-management-api-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
-    POSTGRES_NAME: task-management_api
+    POSTGRES_NAME: cft_task_db
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"

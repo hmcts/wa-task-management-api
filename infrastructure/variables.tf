@@ -22,7 +22,7 @@ variable "appinsights_instrumentation_key" {
 
 
 variable "postgresql_database_name" {
-  default = "wa_task_management_api"
+  default = "cft_task_db"
 }
 
 variable "postgresql_user" {

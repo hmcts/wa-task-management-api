@@ -169,8 +169,8 @@ pitest {
   junit5PluginVersion = '0.12'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
-      'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
-      'uk.gov.hmcts.reform.wataskmanagementapi.Application'
+    'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
+    'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
   threads = 10
   outputFormats = ['XML', 'HTML']
@@ -201,9 +201,9 @@ sonarqube {
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
-        "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
-        "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
-        "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
+      "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
   }
 }
 
@@ -269,27 +269,27 @@ repositories {
 }
 
 def versions = [
-    junit           : '5.7.0',
-    junitPlatform   : '1.7.0',
-    reformLogging   : '5.1.5',
-    springBoot      : '2.4.2',
-    springfoxSwagger: '3.0.0',
-    serenity        : '2.2.12',
-    gradlePitest    : '1.5.1',
-    pitest          : '1.5.2',
-    sonarPitest     : '0.5',
-    pactVersion     : '4.1.7',
-    logbook         : '2.6.2'
+  junit           : '5.7.0',
+  junitPlatform   : '1.7.0',
+  reformLogging   : '5.1.5',
+  springBoot      : '2.4.2',
+  springfoxSwagger: '3.0.0',
+  serenity        : '2.2.12',
+  gradlePitest    : '1.5.1',
+  pitest          : '1.5.2',
+  sonarPitest     : '0.5',
+  pactVersion     : '4.1.7',
+  logbook         : '2.6.2'
 ]
 
 ext.libraries = [
-    junit5: [
-        "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
-        "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
-        "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
-        "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
-        "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
-    ]
+  junit5: [
+    "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
+    "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
+    "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
+    "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
+    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+  ]
 ]
 
 dependencies {

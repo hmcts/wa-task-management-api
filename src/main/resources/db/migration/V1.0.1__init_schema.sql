@@ -1,3 +1,3 @@
 --
-CREATE SCHEMA IF NOT EXISTS wa_task_management_api;
+CREATE SCHEMA IF NOT EXISTS cft_task_db;
 --

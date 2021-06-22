@@ -23,4 +23,4 @@ java:
     POSTGRES_CONNECTION_OPTIONS: ""
   postgresql:
     enabled: true
-    postgresqlDatabase: wa_task_management_api
+    postgresqlDatabase: cft_task_db
