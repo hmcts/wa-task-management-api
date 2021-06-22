@@ -146,7 +146,7 @@ class PermissionEvaluatorServiceTest {
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 null,
                 "someUserId",
                 defaultVariables,
@@ -169,7 +169,7 @@ class PermissionEvaluatorServiceTest {
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 "anotherUserId",
                 "someUserId",
                 defaultVariables,
@@ -192,7 +192,7 @@ class PermissionEvaluatorServiceTest {
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 "someUserId",
                 "someUserId",
                 defaultVariables,
@@ -216,7 +216,7 @@ class PermissionEvaluatorServiceTest {
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 "anotherUserId",
                 "someUserId",
                 defaultVariables,

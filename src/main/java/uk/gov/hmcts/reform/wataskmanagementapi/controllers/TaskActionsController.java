@@ -20,8 +20,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
@@ -54,16 +56,19 @@ public class TaskActionsController {
     private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
+    private final PrivilegedAccessControlService privilegedAccessControlService;
     private final SystemDateProvider systemDateProvider;
 
     @Autowired
     public TaskActionsController(CamundaService camundaService,
                                  AccessControlService accessControlService,
-                                 SystemDateProvider systemDateProvider
+                                 SystemDateProvider systemDateProvider,
+                                 PrivilegedAccessControlService privilegedAccessControlService
     ) {
         this.camundaService = camundaService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
+        this.privilegedAccessControlService = privilegedAccessControlService;
     }
 
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
@@ -185,12 +190,26 @@ public class TaskActionsController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
     public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
-                                             @PathVariable(TASK_ID) String taskId) {
+                                             @RequestHeader("ServiceAuthorization") String serviceAuthToken,
+                                             @PathVariable(TASK_ID) String taskId,
+                                             @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        boolean isPrivilegedRequest =
+            privilegedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
+
+        if (isPrivilegedRequest && completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
+            camundaService.completeTaskWithPrivilegeAndCompletionOptions(
+                taskId,
+                accessControlResponse,
+                endpointPermissionsRequired,
+                completeTaskRequest.getCompletionOptions()
+            );
+        } else {
+            camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        }
 
         return ResponseEntity
             .noContent()

@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
@@ -143,14 +144,26 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.BAD_REQUEST,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    HttpStatus.BAD_REQUEST,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 
-
+    @ExceptionHandler(TaskStateIncorrectException.class)
+    protected ResponseEntity<ErrorMessage> handleTaskStateIncorrectExceptionException(
+        Exception ex
+    ) {
+        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(new ErrorMessage(
+                    ex,
+                    HttpStatus.FORBIDDEN,
+                    systemDateProvider.nowWithTime()
+                )
+            );
+    }
 
 
 }
