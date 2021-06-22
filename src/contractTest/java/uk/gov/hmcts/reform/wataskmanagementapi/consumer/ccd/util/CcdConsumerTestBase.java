@@ -82,7 +82,7 @@ public abstract class CcdConsumerTestBase extends SpringBootContractBaseTest {
     @BeforeAll
     public void setUp() throws Exception {
         caseDetailsMap = getCaseDetailsAsMap("case_data_map.json");
-        caseDataContent = createCaseDataContent(START_APPEAL, caseDetailsMap);
+        caseDataContent = createCaseDataContent(SUBMIT_APPEAL, caseDetailsMap);
     }
 
     public CaseDataContent createCaseDataContent(String eventId, Map<String, Object> caseDetailsMap) {
@@ -94,7 +94,7 @@ public abstract class CcdConsumerTestBase extends SpringBootContractBaseTest {
                     .summary("summary")
                     .description("description")
                     .build()
-            ).data(this.caseDetailsMap.get("case_data"))
+            ).data(caseDetailsMap.get("case_data"))
             .build();
     }
 

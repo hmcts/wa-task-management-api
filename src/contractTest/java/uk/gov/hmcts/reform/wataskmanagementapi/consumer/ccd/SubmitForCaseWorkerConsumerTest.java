@@ -84,7 +84,7 @@ public class SubmitForCaseWorkerConsumerTest extends CcdConsumerTestBase {
 
         assertThat(caseDataMap.get("appellantTitle"), is("Mr"));
         assertThat(caseDataMap.get("appellantGivenNames"), is("Bob"));
-        assertThat(caseDataMap.get("appellantGivenNames"), is("Smith"));
+        assertThat(caseDataMap.get("appellantFamilyName"), is("Smith"));
         assertThat(caseDataMap.get("appellantDateOfBirth"), is("1990-12-07"));
         assertThat(caseDataMap.get("homeOfficeReferenceNumber"), is("000123456"));
         assertThat(caseDataMap.get("homeOfficeDecisionDate"), is("2019-08-01"));
