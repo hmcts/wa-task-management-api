@@ -20,7 +20,9 @@ variable "appinsights_instrumentation_key" {
   default = ""
 }
 
-
+variable "postgres_db_component_name" {
+  default = "cft-task"
+}
 variable "postgresql_database_name" {
   default = "cft_task_db"
 }
