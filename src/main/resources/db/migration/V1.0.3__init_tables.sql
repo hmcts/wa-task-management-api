@@ -1,10 +1,10 @@
 DROP TABLE IF EXISTS execution_types;
 CREATE TABLE execution_types
 (
-    code        execution_type_enum,
-    name        TEXT,
+    execution_code        execution_type_enum,
+    execution_name        TEXT,
     description TEXT,
-    PRIMARY KEY(code)
+    PRIMARY KEY (code)
 );
 
 DROP TABLE IF EXISTS tasks;
@@ -19,6 +19,7 @@ CREATE TABLE tasks
     security_classification security_classification_enum,
     title                   TEXT,
     description             TEXT,
+    notes                   JSONB,
     major_priority          INTEGER,
     minor_priority          INTEGER,
     assignee                TEXT,
@@ -29,7 +30,9 @@ CREATE TABLE tasks
     has_warnings            BOOLEAN   default false,
     assignment_expiry       TIMESTAMP,
     case_id                 TEXT,
+    case_type_id            TEXT,
     case_category           TEXT,
+    case_name           TEXT,
     jurisdiction            TEXT,
     region                  TEXT,
     region_name             TEXT,
