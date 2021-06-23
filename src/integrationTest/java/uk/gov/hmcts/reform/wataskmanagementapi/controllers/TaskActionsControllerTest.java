@@ -184,8 +184,8 @@ class TaskActionsControllerTest extends SpringBootIntegrationBaseTest {
                 }));
 
             GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
-                allTestRoles
-            );
+                allTestRoles,
+                    links);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
@@ -253,8 +253,8 @@ class TaskActionsControllerTest extends SpringBootIntegrationBaseTest {
                 }));
 
             GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
-                allTestRoles
-            );
+                allTestRoles,
+                    links);
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()
             )).thenReturn(accessControlResponse);
@@ -305,8 +305,8 @@ class TaskActionsControllerTest extends SpringBootIntegrationBaseTest {
 
             // create role assignments with IA, Organisation and SCSS , Case
             GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
-                mockServices.createRoleAssignmentsWithSCSSandIA()
-            );
+                mockServices.createRoleAssignmentsWithSCSSandIA(),
+                    links);
 
             when(roleAssignmentServiceApi.getRolesForUser(
                 any(), any(), any()

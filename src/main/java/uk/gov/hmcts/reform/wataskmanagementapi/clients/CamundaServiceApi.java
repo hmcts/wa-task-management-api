@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +17,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DecisionTableResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.DmnRequest;
 
 import java.util.List;
 import java.util.Map;
@@ -140,6 +144,18 @@ public interface CamundaServiceApi {
     void bpmnEscalation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                         @PathVariable("task-id") String id,
                         @RequestBody Map<String, String> body);
+
+
+    @PostMapping(
+        value = "/decision-definition/key/{decisionTableKey}/tenant-id/ia/evaluate",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
+    List<DecisionTableResult> evaluateDmnTable(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @PathVariable("decisionTableKey") String decisionTableKey,
+        DmnRequest<DecisionTableRequest> requestParameters
+    );
 
 
 }

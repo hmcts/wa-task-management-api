@@ -57,6 +57,8 @@ idam:
     baseUrl: ${IDAM_URL:http://sidam-api}
 
 spring:
+  profiles:
+    active: "task-configuration"
   application:
     name: WA Task Management
   main:

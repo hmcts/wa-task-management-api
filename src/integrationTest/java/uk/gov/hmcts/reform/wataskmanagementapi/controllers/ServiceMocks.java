@@ -75,8 +75,8 @@ public class ServiceMocks {
             emptyMap()
         );
         GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
-            assignments
-        );
+            assignments,
+                links);
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);

@@ -46,7 +46,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator, systemUserIdamToken);
     }
 
     @Test

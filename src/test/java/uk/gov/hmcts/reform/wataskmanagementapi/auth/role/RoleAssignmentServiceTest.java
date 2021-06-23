@@ -38,7 +38,7 @@ class RoleAssignmentServiceTest {
 
     @BeforeEach
     public void setUp() {
-        roleAssignmentService = new RoleAssignmentService(roleAssignmentServiceApi, authTokenGenerator);
+        roleAssignmentService = new RoleAssignmentService(roleAssignmentServiceApi, authTokenGenerator, systemUserIdamToken);
     }
 
     @Test
@@ -50,7 +50,7 @@ class RoleAssignmentServiceTest {
         List<Assignment> mockedRoleAssignments = createMockRoleAssignments(idamUserId);
         when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
         when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
-            .thenReturn(new GetRoleAssignmentResponse(mockedRoleAssignments));
+            .thenReturn(new GetRoleAssignmentResponse(mockedRoleAssignments, links));
 
         List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken);
 
