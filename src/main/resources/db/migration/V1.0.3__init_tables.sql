@@ -39,6 +39,7 @@ CREATE TABLE tasks
     location                TEXT,
     location_name           TEXT,
     business_context        business_context_enum,
+    termination_reason      TEXT,
     created                 TIMESTAMP default CURRENT_TIMESTAMP,
     PRIMARY KEY (task_id),
     CONSTRAINT fk_execution_type_code
