@@ -47,7 +47,6 @@ public class WarningValues {
     }
 
     public List<Warning> getValues() {
-        requireNonNull(values);
         return values;
     }
 }

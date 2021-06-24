@@ -3,9 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
@@ -26,13 +24,15 @@ class WarningValuesTest {
 
     @Test
     void deserializeTest() {
-        Warning warning = new Warning("Code1","Text");
-        Warning warning2 = new Warning("Code2","Text1");
-        List<Warning> list = new ArrayList<>();
-        list.add(warning);
-        list.add(warning2);
 
-        WarningValues warningValues = new WarningValues(new WarningValues(list).toString());
+        String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+        WarningValues warningValues = new WarningValues(values);
         assertNotNull(warningValues);
+        assertEquals(2,warningValues.getValues().size());
+        assertEquals("Code1",warningValues.getValues().get(0).getWarningCode());
+        assertEquals("Text1",warningValues.getValues().get(0).getWarningText());
+        assertEquals("Code2",warningValues.getValues().get(1).getWarningCode());
+        assertEquals("Text2",warningValues.getValues().get(1).getWarningText());
     }
 }
