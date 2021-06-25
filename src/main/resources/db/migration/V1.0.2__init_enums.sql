@@ -7,7 +7,7 @@ CREATE TYPE task_state_enum as ENUM (
     'COMPLETED',
     'CANCELLED',
     'TERMINATED',
-    'PENDING_RECOMMENDATION');
+    'PENDING_RECONFIGURATION');
 
 DROP TYPE IF EXISTS execution_type_enum;
 CREATE TYPE execution_type_enum as ENUM (
