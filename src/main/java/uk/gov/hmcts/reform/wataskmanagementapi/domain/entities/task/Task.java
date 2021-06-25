@@ -117,6 +117,10 @@ public class Task {
         notes = "boolean to show if a warning is applied to task by a service task in a subprocess")
     private Boolean hasWarnings;
 
+    @ApiModelProperty(required = false,
+        notes = "A list of values containing a warning code and warning text")
+    private WarningValues warningList;
+
     private Task() {
         //Hidden constructor
         super();
@@ -142,8 +146,8 @@ public class Task {
                 String caseId,
                 String caseCategory,
                 String caseName,
-                Boolean hasWarnings
-
+                Boolean hasWarnings,
+                WarningValues warningList
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -168,8 +172,7 @@ public class Task {
         this.region = region;
         this.location = location;
         this.hasWarnings = hasWarnings;
-
-
+        this.warningList = warningList;
     }
 
     public String getLocation() {
@@ -254,6 +257,10 @@ public class Task {
 
     public Boolean getWarnings() {
         return hasWarnings;
+    }
+
+    public WarningValues getWarningList() {
+        return warningList;
     }
 
 }

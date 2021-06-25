@@ -21,11 +21,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -107,7 +109,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "1617708245335311",
             "refusalOfHumanRights",
             "Bob Smith",
-            false);
+            false,
+            new WarningValues(Collections.emptyList()));
 
         Task taskTwo = new Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
@@ -130,7 +133,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "1617708245308495",
             "refusalOfHumanRights",
             "John Doe",
-            true);
+            true,
+            new WarningValues(Collections.emptyList()));
 
         return Arrays.asList(taskOne, taskTwo);
     }
