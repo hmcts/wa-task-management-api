@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
@@ -121,7 +121,7 @@ class TaskActionsControllerTest {
         ResponseEntity<Void> response = taskActionsController.assignTask(
             authToken,
             taskId,
-            new AssigneeRequest("userId")
+            new AssignTaskRequest("userId")
         );
 
         assertNotNull(response);
@@ -141,7 +141,8 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
-            null);
+            null
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -165,7 +166,8 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
-            request);
+            request
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -173,7 +175,8 @@ class TaskActionsControllerTest {
             taskId,
             mockAccessControlResponse,
             asList(OWN, EXECUTE),
-            request.getCompletionOptions());
+            request.getCompletionOptions()
+        );
 
     }
 
@@ -192,14 +195,16 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
-            request);
+            request
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(camundaService, times(1)).completeTask(
             taskId,
             mockAccessControlResponse,
-            asList(OWN, EXECUTE));
+            asList(OWN, EXECUTE)
+        );
 
     }
 

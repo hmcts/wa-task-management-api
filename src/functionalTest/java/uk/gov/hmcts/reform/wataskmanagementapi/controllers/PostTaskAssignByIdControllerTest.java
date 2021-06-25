@@ -6,7 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -42,7 +42,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -69,7 +69,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -91,7 +91,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -111,7 +111,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -138,7 +138,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -168,7 +168,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
