@@ -4,7 +4,7 @@ CREATE TABLE execution_types
     execution_code execution_type_enum,
     execution_name TEXT,
     description    TEXT,
-    PRIMARY KEY (code)
+    PRIMARY KEY (execution_code)
 );
 
 DROP TABLE IF EXISTS tasks;
