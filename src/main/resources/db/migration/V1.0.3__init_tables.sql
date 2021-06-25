@@ -51,6 +51,7 @@ DROP TABLE IF EXISTS task_roles;
 CREATE TABLE task_roles
 (
     task_role_id        UUID,
+    role_name           TEXT,
     read                BOOLEAN   default false,
     own                 BOOLEAN   default false,
     execute             BOOLEAN   default false,
