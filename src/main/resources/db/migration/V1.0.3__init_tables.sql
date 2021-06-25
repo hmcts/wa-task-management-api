@@ -44,7 +44,7 @@ CREATE TABLE tasks
     PRIMARY KEY (task_id),
     CONSTRAINT fk_execution_type_code
         FOREIGN KEY (execution_type_code)
-            REFERENCES execution_types (code)
+            REFERENCES execution_types (execution_code)
 );
 
 DROP TABLE IF EXISTS task_roles;
