@@ -122,6 +122,5 @@ public class TaskManagementGetTaskProviderTest {
             new WarningValues(Collections.emptyList()));
     }
 
-
 }
 
