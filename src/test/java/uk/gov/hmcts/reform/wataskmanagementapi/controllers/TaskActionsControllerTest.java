@@ -136,9 +136,6 @@ class TaskActionsControllerTest {
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
 
-        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
-            .thenReturn(false);
-
         ResponseEntity response = taskActionsController.completeTask(
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
