@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Lazy;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
+import uk.gov.hmcts.reform.authorisation.validators.ServiceAuthTokenValidator;
 
 @Configuration
 @Lazy
@@ -23,5 +24,12 @@ public class ServiceTokenGeneratorConfiguration {
             microService,
             serviceAuthorisationApi
         );
+    }
+
+    @Bean
+    public ServiceAuthTokenValidator serviceAuthTokenValidator(
+        ServiceAuthorisationApi serviceAuthorisationApi
+    ) {
+        return new ServiceAuthTokenValidator(serviceAuthorisationApi);
     }
 }

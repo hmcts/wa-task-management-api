@@ -15,17 +15,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -56,6 +58,10 @@ public class TaskManagementGetTaskProviderTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+
+    @Mock
+    private PrivilegedAccessControlService privilegedAccessControlService;
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -64,25 +70,18 @@ public class TaskManagementGetTaskProviderTest {
         }
     }
 
-
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskActionsController(
             camundaService,
             accessControlService,
-            systemDateProvider
-
+            systemDateProvider,
+            privilegedAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
         }
-
-
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
 
     }
 
@@ -119,9 +118,9 @@ public class TaskManagementGetTaskProviderTest {
             "1617708245335311",
             "refusalOfHumanRights",
             "Bob Smith",
-            false);
+            false,
+            new WarningValues(Collections.emptyList()));
     }
-
 
 }
 

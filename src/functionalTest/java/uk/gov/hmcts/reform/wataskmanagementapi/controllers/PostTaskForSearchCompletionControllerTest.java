@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -245,7 +245,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -298,7 +298,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -307,7 +307,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         restApiActions.post(
             "task/{task-id}/assign",
             taskId3,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 

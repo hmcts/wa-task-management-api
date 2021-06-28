@@ -11,9 +11,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
@@ -24,19 +27,25 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
 class TaskActionsControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
+    private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
     @Mock
     private CamundaService camundaService;
     @Mock
@@ -47,24 +56,26 @@ class TaskActionsControllerTest {
     private UserInfo mockedUserInfo;
     @Mock
     private SystemDateProvider systemDateProvider;
+    @Mock
+    private PrivilegedAccessControlService privilegedAccessControlService;
 
     private TaskActionsController taskActionsController;
+    private String taskId;
 
     @BeforeEach
     void setUp() {
-
+        taskId = UUID.randomUUID().toString();
         taskActionsController = new TaskActionsController(
             camundaService,
             accessControlService,
-            systemDateProvider
+            systemDateProvider,
+            privilegedAccessControlService
         );
 
     }
 
     @Test
     void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
-
-        String taskId = UUID.randomUUID().toString();
 
         Task mockedTask = mock(Task.class);
 
@@ -86,8 +97,6 @@ class TaskActionsControllerTest {
     @Test
     void should_succeed_when_claiming_a_task_and_return_a_204_no_content() {
 
-        String taskId = UUID.randomUUID().toString();
-
         ResponseEntity<Void> response = taskActionsController.claimTask(IDAM_AUTH_TOKEN, taskId);
 
         assertNotNull(response);
@@ -97,7 +106,6 @@ class TaskActionsControllerTest {
     @Test
     void should_unclaim_a_task_204_no_content() {
 
-        String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
         ResponseEntity<Void> response = taskActionsController.unclaimTask(authToken, taskId);
@@ -108,13 +116,12 @@ class TaskActionsControllerTest {
     @Test
     void should_succeed_and_return_a_204_no_content_when_assigning_task() {
 
-        String taskId = UUID.randomUUID().toString();
         String authToken = "someAuthToken";
 
         ResponseEntity<Void> response = taskActionsController.assignTask(
             authToken,
             taskId,
-            new AssigneeRequest("userId")
+            new AssignTaskRequest("userId")
         );
 
         assertNotNull(response);
@@ -122,16 +129,89 @@ class TaskActionsControllerTest {
     }
 
     @Test
-    void should_complete_a_task() {
-        String taskId = UUID.randomUUID().toString();
-        ResponseEntity response = taskActionsController.completeTask(IDAM_AUTH_TOKEN, taskId);
+    void should_complete_a_task_with_no_extra_body_parameters_and_no_privileged_access() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
+            .thenReturn(false);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            null
+        );
+
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(camundaService, times(1))
+            .completeTask(taskId, mockAccessControlResponse, asList(OWN, EXECUTE));
+
     }
 
     @Test
+    void should_complete_a_task_with_extra_body_parameters_and_privileged_access() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
+            .thenReturn(true);
+
+        CompleteTaskRequest request = new CompleteTaskRequest(new CompletionOptions(true));
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(camundaService, times(1)).completeTaskWithPrivilegeAndCompletionOptions(
+            taskId,
+            mockAccessControlResponse,
+            asList(OWN, EXECUTE),
+            request.getCompletionOptions()
+        );
+
+    }
+
+    @Test
+    void should_complete_a_task_with_extra_body_parameters_and_completion_options_and_privileged_access() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
+            .thenReturn(true);
+
+        CompleteTaskRequest request = new CompleteTaskRequest(null);
+
+        ResponseEntity response = taskActionsController.completeTask(
+            IDAM_AUTH_TOKEN,
+            SERVICE_AUTHORIZATION_TOKEN,
+            taskId,
+            request
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(camundaService, times(1)).completeTask(
+            taskId,
+            mockAccessControlResponse,
+            asList(OWN, EXECUTE)
+        );
+
+    }
+
+
+    @Test
     void should_cancel_a_task() {
-        String taskId = UUID.randomUUID().toString();
+
         ResponseEntity response = taskActionsController.cancelTask(IDAM_AUTH_TOKEN, taskId);
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());

@@ -6,8 +6,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOb
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,7 +111,9 @@ class TaskMapperTest {
             "some-key",
             "someProcessInstanceId"
         );
-
+        WarningValues warningValues = new WarningValues(
+            Arrays.asList(new Warning("123", "some warning"),
+                          new Warning("456", "some more warning")));
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
@@ -116,6 +121,7 @@ class TaskMapperTest {
         variables.put("taskState", new CamundaVariable("configured", "String"));
         variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
         variables.put("hasWarnings", new CamundaVariable(false, "Boolean"));
+        variables.put("warningList", new CamundaVariable(warningValues, "WarningValues"));
 
 
 
@@ -130,6 +136,8 @@ class TaskMapperTest {
         assertEquals("someCaseName", result.getCaseName());
         assertEquals("someClassification", result.getSecurityClassification());
         assertEquals(false, result.getWarnings());
+        assertNotNull(result.getWarningList());
+
 
 
     }

@@ -1,12 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import lombok.Builder;
 import org.apache.commons.lang.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
@@ -18,12 +15,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Stream;
 import javax.servlet.http.HttpServletRequest;
 
 import static org.junit.Assert.assertEquals;
@@ -42,6 +39,15 @@ class CallbackControllerAdviceTest {
     private CallbackControllerAdvice callbackControllerAdvice;
     private String mockedTimestamp;
 
+    @BeforeEach
+    void setUp() {
+        callbackControllerAdvice = new CallbackControllerAdvice(systemDateProvider);
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+
+        mockedTimestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+    }
+
     @Test
     void should_handle_unauthorized_exception() {
 
@@ -57,20 +63,6 @@ class CallbackControllerAdviceTest {
         assertEquals(HttpStatus.UNAUTHORIZED.getReasonPhrase(), response.getBody().getError());
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
-    }
-
-    @ParameterizedTest
-    @MethodSource("scenarioProvider")
-    void should_handle_generic_exception(Scenario scenario) {
-
-        ResponseEntity<ErrorMessage> response = callbackControllerAdvice.handleGenericException(scenario.exception);
-
-        assertEquals(scenario.expectedHttpStatus.value(), response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(scenario.expectedHttpStatus.getReasonPhrase(), response.getBody().getError());
-        assertEquals(scenario.expectedHttpStatus.value(), response.getBody().getStatus());
-        assertEquals(scenario.expectedMessage, response.getBody().getMessage());
     }
 
     @Test
@@ -178,41 +170,55 @@ class CallbackControllerAdviceTest {
         assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 
-    @BeforeEach
-    public void setUp() {
-        callbackControllerAdvice = new CallbackControllerAdvice(systemDateProvider);
-        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    @Test
+    void should_handle_task_state_incorrect_exception() {
 
-        mockedTimestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+        final String exceptionMessage = "Some exception message";
+        final TaskStateIncorrectException exception =
+            new TaskStateIncorrectException(exceptionMessage, new Exception());
+
+        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
+            .handleTaskStateIncorrectExceptionException(exception);
+
+        assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.FORBIDDEN.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.FORBIDDEN.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
     }
 
-    private static Stream<Scenario> scenarioProvider() {
+    @Test
+    void should_handle_generic_exception() {
 
-        String genericExceptionMessage = "Some generic exception message";
-        Scenario exceptionScenario = Scenario.builder()
-            .exception(new Exception(genericExceptionMessage))
-            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-            .expectedMessage(genericExceptionMessage)
-            .build();
+        String genericExceptionMessage = "Some generic error exception message";
+
+        final Exception genericException = new Exception(genericExceptionMessage);
+
+        ResponseEntity<ErrorMessage> genericExceptionResponse = callbackControllerAdvice
+            .handleGenericException(genericException);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), genericExceptionResponse.getStatusCode().value());
+        assertNotNull(genericExceptionResponse.getBody());
+        assertEquals(mockedTimestamp, genericExceptionResponse.getBody().getTimestamp());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), genericExceptionResponse.getBody().getError());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), genericExceptionResponse.getBody().getStatus());
+        assertEquals(genericExceptionMessage, genericExceptionResponse.getBody().getMessage());
 
         String errorExceptionMessage = "Some server error exception message";
-        Scenario serverErrorExceptionScenario = Scenario.builder()
-            .exception(new ServerErrorException(errorExceptionMessage, new Exception()))
-            .expectedHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-            .expectedMessage(errorExceptionMessage)
-            .build();
 
-        return Stream.of(
-            exceptionScenario,
-            serverErrorExceptionScenario
-        );
-    }
+        final ServerErrorException serverErrorException =
+            new ServerErrorException(errorExceptionMessage, new Exception());
 
-    @Builder
-    static class Scenario {
-        Exception exception;
-        HttpStatus expectedHttpStatus;
-        String expectedMessage;
+        ResponseEntity<ErrorMessage> responseServerError = callbackControllerAdvice
+            .handleGenericException(serverErrorException);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseServerError.getStatusCode().value());
+        assertNotNull(responseServerError.getBody());
+        assertEquals(mockedTimestamp, responseServerError.getBody().getTimestamp());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), responseServerError.getBody().getError());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseServerError.getBody().getStatus());
+        assertEquals(errorExceptionMessage, responseServerError.getBody().getMessage());
+
     }
 }
