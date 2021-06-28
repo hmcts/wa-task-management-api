@@ -1,7 +1,8 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
@@ -34,28 +35,33 @@ import static org.mockito.Mockito.when;
 
 public class ServiceMocks {
 
-    private static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
+    public static final String SERVICE_AUTHORIZATION_TOKEN = "Bearer SERVICE_AUTHORIZATION_TOKEN";
     private ObjectMapper objectMapper = new ObjectMapper();
 
     private IdamWebApi idamWebApi;
     private CamundaServiceApi camundaServiceApi;
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
+    private ServiceAuthorisationApi serviceAuthorisationApi;
 
     public ServiceMocks(IdamWebApi idamWebApi,
+                        ServiceAuthorisationApi serviceAuthorisationApi,
                         CamundaServiceApi camundaServiceApi,
                         RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.idamWebApi = idamWebApi;
+        this.serviceAuthorisationApi = serviceAuthorisationApi;
         this.camundaServiceApi = camundaServiceApi;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
 
     public void mockServiceAPIs() {
-        var userToken = "user_token";
 
         mockUserInfo();
         mockRoleAssignments(roleAssignmentServiceApi);
 
-        when(idamWebApi.token(any())).thenReturn(new Token(userToken, "scope"));
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(serviceAuthorisationApi.serviceToken(any())).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
 
         mockVariables();
     }
@@ -66,6 +72,83 @@ public class ServiceMocks {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    public Assignment createBaseAssignment(String actorId,
+                                           String roleName,
+                                           RoleType roleType,
+                                           Classification classification,
+                                           Map<String, String> attributes) {
+        return new Assignment(
+            ActorIdType.IDAM,
+            actorId,
+            roleType,
+            roleName,
+            classification,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            attributes
+        );
+    }
+
+    public void mockUserInfo() {
+        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+        when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
+    }
+
+    public void mockVariables() {
+        Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
+
+        processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
+        processVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
+
+        when(camundaServiceApi.getVariables(any(), any()))
+            .thenReturn(processVariables);
+    }
+
+    public CamundaTask getCamundaTask(String processInstanceId, String id) {
+        return new CamundaTask(
+            id,
+            "some-name",
+            "some-assignee",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "some-description",
+            "some-owner",
+            "formKey",
+            processInstanceId
+        );
+    }
+
+    public List<Assignment> createRoleAssignmentsWithSCSSandIA() {
+        List<Assignment> allTestRoles = new ArrayList<>();
+        // Role Assignment with IA and RoleType Organisation
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        final Assignment orgAssignment = createBaseAssignment(
+            UUID.randomUUID().toString(),
+            "tribunal-caseworker",
+            RoleType.ORGANISATION,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+        allTestRoles.add(orgAssignment);
+
+        // Role Assignment with SCSS and RoleType CASE
+        roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
+        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
+        final Assignment caseAssignment = createBaseAssignment(
+            UUID.randomUUID().toString(),
+            "tribunal-caseworker",
+            RoleType.CASE,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+        allTestRoles.add(caseAssignment);
+
+        return allTestRoles;
     }
 
     private void mockRoleAssignments(RoleAssignmentServiceApi roleAssignmentServiceApi) {
@@ -97,83 +180,6 @@ public class ServiceMocks {
                 );
                 allTestRoles.add(roleAssignment);
             }));
-        return allTestRoles;
-    }
-
-    protected Assignment createBaseAssignment(String actorId,
-                                            String roleName,
-                                            RoleType roleType,
-                                            Classification classification,
-                                            Map<String, String> attributes) {
-        return new Assignment(
-            ActorIdType.IDAM,
-            actorId,
-            roleType,
-            roleName,
-            classification,
-            GrantType.SPECIFIC,
-            RoleCategory.LEGAL_OPERATIONS,
-            false,
-            attributes
-        );
-    }
-
-    protected void mockUserInfo() {
-        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
-        when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
-    }
-
-    protected void mockVariables() {
-        Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
-
-        processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own,Manager,Cancel", "string"));
-        processVariables.put("securityClassification", new CamundaVariable("PUBLIC", "string"));
-
-        when(camundaServiceApi.getVariables(any(), any()))
-            .thenReturn(processVariables);
-    }
-
-    protected CamundaTask getCamundaTask(String processInstanceId, String id) {
-        return new CamundaTask(
-            id,
-            "some-name",
-            "some-assignee",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            "some-description",
-            "some-owner",
-            "formKey",
-            processInstanceId
-        );
-    }
-
-    protected List<Assignment> createRoleAssignmentsWithSCSSandIA() {
-        List<Assignment> allTestRoles = new ArrayList<>();
-        // Role Assignment with IA and RoleType Organisation
-        Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        final Assignment orgAssignment = createBaseAssignment(
-            UUID.randomUUID().toString(),
-            "tribunal-caseworker",
-            RoleType.ORGANISATION,
-            Classification.PUBLIC,
-            roleAttributes
-        );
-        allTestRoles.add(orgAssignment);
-
-        // Role Assignment with SCSS and RoleType CASE
-        roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
-        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
-        final Assignment caseAssignment = createBaseAssignment(
-            UUID.randomUUID().toString(),
-            "tribunal-caseworker",
-            RoleType.CASE,
-            Classification.PUBLIC,
-            roleAttributes
-        );
-        allTestRoles.add(caseAssignment);
-
         return allTestRoles;
     }
 

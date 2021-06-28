@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.zalando.problem.ProblemModule;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -43,6 +44,7 @@ public class JacksonConfiguration {
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         objectMapper.setDateFormat(df);
         objectMapper.registerModule(new Jdk8Module());
+        objectMapper.registerModule(new ProblemModule());
         return objectMapper;
     }
 

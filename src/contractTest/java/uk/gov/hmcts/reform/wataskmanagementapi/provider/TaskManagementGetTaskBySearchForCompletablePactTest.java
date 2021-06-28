@@ -22,10 +22,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -85,6 +87,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     public List<Task> createTasks() {
+        var tasks = new ArrayList<Task>();
         Task taskOne = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -106,9 +109,12 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "1617708245335311",
             "refusalOfHumanRights",
             "Bob Smith",
-            true);
+            true,
+            new WarningValues(Collections.emptyList())
+        );
 
-        return Collections.singletonList(taskOne);
+        tasks.add(taskOne);
+        return tasks;
     }
 
     private void setInitMockForSearchByCompletableTask() {

@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaErrorDecoder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -33,8 +32,6 @@ public class TaskManagementProviderTestConfiguration {
 
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
-    private CamundaErrorDecoder camundaErrorDecoder;
     @MockBean
     private CamundaQueryBuilder camundaQueryBuilder;
     @MockBean
@@ -64,7 +61,6 @@ public class TaskManagementProviderTestConfiguration {
         return new CamundaService(
             camundaServiceApi,
             camundaQueryBuilder,
-            camundaErrorDecoder,
             taskMapper,
             authTokenGenerator,
             permissionEvaluatorService,

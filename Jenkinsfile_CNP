@@ -63,6 +63,10 @@ withPipeline(type, product, component) {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
     }
 
+    after('pact-provider-verification') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'build/reports/tests/**/*'
+    }
+
     onMaster() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
         enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])

@@ -122,7 +122,6 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             );
     }
 
-
     @ExceptionHandler(UnAuthorizedException.class)
     protected ResponseEntity<ErrorMessage> handleUnAuthorizedException(
         Exception ex
@@ -164,6 +163,5 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
                 )
             );
     }
-
 
 }

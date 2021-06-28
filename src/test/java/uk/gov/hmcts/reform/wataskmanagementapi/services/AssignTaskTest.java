@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import feign.FeignException;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,22 +47,6 @@ class AssignTaskTest extends CamundaServiceBaseTest {
     private AccessControlResponse assignerAccessControlResponse;
     private AccessControlResponse assigneeAccessControlResponse;
     private String taskId;
-
-    private static Stream<Scenario> provideScenario() {
-        Scenario assignerDoesNotHavePermissions = Scenario.builder()
-            .assignerHasAccess(false)
-            .assigneeHasAccess(true)
-            .build();
-        Scenario assigneeDoesNotHavePermissions = Scenario.builder()
-            .assignerHasAccess(true)
-            .assigneeHasAccess(false)
-            .build();
-
-        return Stream.of(
-            assignerDoesNotHavePermissions,
-            assigneeDoesNotHavePermissions
-        );
-    }
 
     @BeforeEach
     void setUp() {
@@ -151,17 +134,6 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             );
     }
 
-    @NotNull
-    private AccessControlResponse mockAccessControl(String userId) {
-        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-        UserInfo userInfo = UserInfo.builder().uid(userId).build();
-
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlResponse.getRoleAssignments())
-            .thenReturn(Collections.singletonList(Assignment.builder().build()));
-        return accessControlResponse;
-    }
-
     @ParameterizedTest
     @MethodSource("provideScenario")
     void assignTask_should_throw_exception_when_no_enough_permissions(Scenario scenario) {
@@ -218,15 +190,11 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             assigneeAccessControlResponse,
             List.of(OWN, EXECUTE)
         ))
-            .isInstanceOf(ServerErrorException.class)
-            .hasCauseInstanceOf(FeignException.class)
-            .hasMessage(
-                String.format(
-                    "There was a problem assigning the task with id: %s",
-                    taskId
-                )
-            );
-
+            .isInstanceOf(TaskAssignException.class)
+            .hasNoCause()
+            .hasMessage("Task Assign Error: "
+                        + "Task assign partially succeeded. "
+                        + "The Task state was updated to assigned, but the Task could not be assigned.");
     }
 
     @Test
@@ -252,14 +220,37 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             assigneeAccessControlResponse,
             List.of(OWN, EXECUTE)
         ))
-            .isInstanceOf(ServerErrorException.class)
-            .hasCauseInstanceOf(FeignException.class)
-            .hasMessage(
-                String.format(
-                    "There was a problem assigning the task with id: %s",
-                    taskId
-                )
-            );
+            .isInstanceOf(TaskAssignException.class)
+            .hasNoCause()
+            .hasMessage("Task Assign Error: "
+                        + "Task assign failed. Unable to update task state to assigned.");
+    }
+
+    @NotNull
+    private AccessControlResponse mockAccessControl(String userId) {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+        UserInfo userInfo = UserInfo.builder().uid(userId).build();
+
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+        when(accessControlResponse.getRoleAssignments())
+            .thenReturn(Collections.singletonList(Assignment.builder().build()));
+        return accessControlResponse;
+    }
+
+    private static Stream<Scenario> provideScenario() {
+        Scenario assignerDoesNotHavePermissions = Scenario.builder()
+            .assignerHasAccess(false)
+            .assigneeHasAccess(true)
+            .build();
+        Scenario assigneeDoesNotHavePermissions = Scenario.builder()
+            .assignerHasAccess(true)
+            .assigneeHasAccess(false)
+            .build();
+
+        return Stream.of(
+            assignerDoesNotHavePermissions,
+            assigneeDoesNotHavePermissions
+        );
     }
 
     @Builder
