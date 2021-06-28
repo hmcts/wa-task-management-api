@@ -180,13 +180,10 @@ class TaskActionsControllerTest {
     }
 
     @Test
-    void should_complete_a_task_with_extra_body_parameters_and_completion_options_and_privileged_access() {
+    void should_complete_a_task_with_extra_body_parameters_and_null_completion_options() {
         AccessControlResponse mockAccessControlResponse =
             new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
-
-        when(privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTHORIZATION_TOKEN, mockAccessControlResponse))
-            .thenReturn(true);
 
         CompleteTaskRequest request = new CompleteTaskRequest(null);
 
@@ -223,7 +220,8 @@ class TaskActionsControllerTest {
             IDAM_AUTH_TOKEN,
             SERVICE_AUTHORIZATION_TOKEN,
             taskId,
-            request))
+            request
+        ))
             .isInstanceOf(GenericForbiddenException.class)
             .hasNoCause()
             .hasMessage("Forbidden: "
