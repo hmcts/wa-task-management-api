@@ -7,6 +7,7 @@ import java.net.URI;
 
 import static org.zalando.problem.Status.FORBIDDEN;
 
+@SuppressWarnings("java:S110")
 public class RoleAssignmentVerificationException extends AbstractThrowableProblem {
 
     private static final long serialVersionUID = -4059403052733143616L;
