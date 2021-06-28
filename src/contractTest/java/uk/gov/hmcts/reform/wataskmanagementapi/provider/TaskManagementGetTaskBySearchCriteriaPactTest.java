@@ -39,9 +39,13 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 //@PactFolder("pacts")
@@ -76,9 +80,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         }
 
         testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+                                            new MappingJackson2HttpMessageConverter(
+                                                objectMapper
+                                            )));
 
     }
 
@@ -110,7 +114,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList()));
+            new WarningValues(Collections.emptyList())
+        );
 
         Task taskTwo = new Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
@@ -134,7 +139,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "John Doe",
             true,
-            new WarningValues(Collections.emptyList()));
+            new WarningValues(Collections.emptyList())
+        );
 
         return Arrays.asList(taskOne, taskTwo);
     }
