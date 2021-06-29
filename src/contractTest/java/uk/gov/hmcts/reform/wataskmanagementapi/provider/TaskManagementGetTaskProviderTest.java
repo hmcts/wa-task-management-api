@@ -21,11 +21,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -116,9 +118,9 @@ public class TaskManagementGetTaskProviderTest {
             "1617708245335311",
             "refusalOfHumanRights",
             "Bob Smith",
-            false);
+            false,
+            new WarningValues(Collections.emptyList()));
     }
-
 
 }
 

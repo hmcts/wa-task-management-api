@@ -32,6 +32,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermission
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskClaimException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -254,7 +260,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void getTask_should_throw_a_server_error_exception_exception_when_feign_exception_is_thrown_by_get_variables() {
+        void getTask_throw_a_resource_not_found_exception_exception_when_feign_exception_is_thrown_by_get_variables() {
 
             String taskId = UUID.randomUUID().toString();
             List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
@@ -1294,7 +1300,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void claimTask_should_throw_exception_when_updateTaskState_failed() {
+        void claimTask_should_throw__when_updateTaskState_failed() {
 
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -1316,23 +1322,17 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             )).thenReturn(true);
 
 
-            TestFeignClientException exception =
-                new TestFeignClientException(
-                    HttpStatus.SERVICE_UNAVAILABLE.value(),
-                    HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
-                    createCamundaTestException("aCamundaErrorType", "some exception message")
-                );
-
-            doThrow(exception).when(camundaServiceApi).addLocalVariablesToTask(
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).addLocalVariablesToTask(
                 eq(BEARER_SERVICE_TOKEN),
                 eq(taskId),
                 any(AddLocalVariableRequest.class)
             );
 
             assertThatThrownBy(() -> camundaService.claimTask(taskId, accessControlResponse, permissionsRequired))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage("some exception message");
+                .isInstanceOf(TaskClaimException.class)
+                .hasNoCause()
+                .hasMessage("Task Claim Error: "
+                            + "Task claim failed. Unable to update task state to assigned.");
         }
     }
 
@@ -1448,7 +1448,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void unclaimTask_should_throw_a_server_error_exception_when_unclaim_task_fails() {
+        void unclaimTask_should_throw_a_task_unclaim_exception_when_unclaim_task_fails() {
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
@@ -1476,16 +1476,14 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 mockedUserInfo, singletonList(mockedRoleAssignment)
             );
 
-            doThrow(FeignException.class)
+            doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).unclaimTask(any(), any());
 
             assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
-                    "There was a problem unclaiming task: %s",
-                    taskId)
-                );
+                .isInstanceOf(TaskUnclaimException.class)
+                .hasNoCause()
+                .hasMessage("Task Unclaim Error: Task unclaim partially succeeded. "
+                            + "The Task state was updated to unassigned, but the Task could not be unclaimed.");
         }
     }
 
@@ -1619,7 +1617,6 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 permissionsRequired
             )).thenReturn(false);
 
-
             assertThatThrownBy(() -> camundaService.completeTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(InsufficientPermissionsException.class)
                 .hasNoCause()
@@ -1628,7 +1625,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void completeTask_should_throw_a_server_error_exception_when_addLocalVariablesToTask_fails() {
+        void completeTask_should_throw_a_task_complete_exception_when_addLocalVariablesToTask_fails() {
 
             TestFeignClientException exception =
                 new TestFeignClientException(
@@ -1644,26 +1641,25 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             );
 
             assertThatThrownBy(() -> camundaService.completeTask(taskId, accessControlResponse, permissionsRequired))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
-                    "There was a problem completing the task with id: %s",
-                    taskId));
+                .isInstanceOf(TaskCompleteException.class)
+                .hasNoCause()
+                .hasMessage("Task Complete Error: "
+                            + "Task complete failed. Unable to update task state to completed.");
 
         }
 
         @Test
-        void completeTask_should_throw_a_server_error_exception_when_completing_task_fails() {
+        void completeTask_should_throw_a_task_complete_exception_when_completing_task_fails() {
 
             doThrow(mock(FeignException.class))
                 .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
             assertThatThrownBy(() -> camundaService.completeTask(taskId, accessControlResponse, permissionsRequired))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
-                    "There was a problem completing the task with id: %s",
-                    taskId));
+                .isInstanceOf(TaskCompleteException.class)
+                .hasNoCause()
+                .hasMessage("Task Complete Error: "
+                            + "Task complete partially succeeded. "
+                            + "The Task state was updated to completed, but the Task could not be completed.");
 
         }
 
@@ -1829,7 +1825,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     );
 
                 doThrow(exception)
-                    .when(camundaServiceApi).getVariables(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+                    .when(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
 
                 assertThatThrownBy(() ->
                     camundaService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -1872,7 +1868,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             }
 
             @Test
-            void should_throw_a_server_error_exception_when_addLocalVariablesToTask_fails() {
+            void should_throw_a_task_complete_exception_when_addLocalVariablesToTask_fails() {
 
                 TestFeignClientException exception =
                     new TestFeignClientException(
@@ -1894,16 +1890,14 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                         permissionsRequired,
                         mockedCompletionOptions
                     ))
-                    .isInstanceOf(ServerErrorException.class)
-                    .hasCauseInstanceOf(FeignException.class)
-                    .hasMessage(String.format(
-                        "There was a problem completing the task with id: %s",
-                        taskId));
+                    .isInstanceOf(TaskCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
 
             }
 
             @Test
-            void should_throw_a_server_error_exception_when_completing_task_fails() {
+            void should_throw_a_task_completion_exception_when_completing_task_fails() {
                 doThrow(mock(FeignException.class))
                     .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
@@ -1914,11 +1908,11 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                         permissionsRequired,
                         mockedCompletionOptions
                     ))
-                    .isInstanceOf(ServerErrorException.class)
-                    .hasCauseInstanceOf(FeignException.class)
-                    .hasMessage(String.format(
-                        "There was a problem completing the task with id: %s",
-                        taskId));
+                    .isInstanceOf(TaskCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage("Task Complete Error: "
+                                + "Task complete partially succeeded. "
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             }
 
@@ -2006,7 +2000,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     );
 
                 doThrow(exception)
-                    .when(camundaServiceApi).getVariables(eq(BEARER_SERVICE_TOKEN), eq(taskId));
+                    .when(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
 
                 assertThatThrownBy(() ->
                     camundaService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -2047,7 +2041,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             }
 
             @Test
-            void should_throw_a_server_error_exception_when_addLocalVariablesToTask_fails() {
+            void should_throw_a_task_assign_and_complete_exception_when_addLocalVariablesToTask_fails() {
 
                 TestFeignClientException exception =
                     new TestFeignClientException(
@@ -2069,16 +2063,17 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                         permissionsRequired,
                         mockedCompletionOptions
                     ))
-                    .isInstanceOf(ServerErrorException.class)
-                    .hasCauseInstanceOf(FeignException.class)
-                    .hasMessage(String.format(
-                        "There was a problem assigning the task with id: %s",
-                        taskId));
+                    .isInstanceOf(TaskAssignAndCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage("Task Assign and Complete Error: "
+                                + "Task assign and complete partially succeeded. "
+                                + "The Task was assigned to the user making the request but the "
+                                + "Task could not be completed.");
 
             }
 
             @Test
-            void should_throw_a_server_error_exception_when_completing_task_fails() {
+            void should_throw_a_task_assign_and_complete_exception_when_completing_task_fails() {
                 doThrow(mock(FeignException.class))
                     .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
@@ -2089,14 +2084,14 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                         permissionsRequired,
                         mockedCompletionOptions
                     ))
-                    .isInstanceOf(ServerErrorException.class)
-                    .hasCauseInstanceOf(FeignException.class)
-                    .hasMessage(String.format(
-                        "There was a problem completing the task with id: %s",
-                        taskId));
+                    .isInstanceOf(TaskAssignAndCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage("Task Assign and Complete Error: "
+                                + "Task assign and complete partially succeeded. "
+                                + "The Task was assigned to the user making the request, "
+                                + "the task state was also updated to completed, but he Task could not be completed.");
             }
         }
-
     }
 
     @Nested
@@ -2824,7 +2819,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void cancelTask_should_throw_a_server_error_exception_when_cancelling_task_fails() {
+        void cancelTask_should_throw_a_task_cancel_exception_when_cancelling_task_fails() {
 
             String taskId = UUID.randomUUID().toString();
             Assignment mockedRoleAssignment = mock(Assignment.class);
@@ -2847,25 +2842,13 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 permissionsRequired
             )).thenReturn(true);
 
-            TestFeignClientException exception =
-                new TestFeignClientException(
-                    HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                    createCamundaTestException("aCamundaErrorType", String.format(
-                        "There was a problem cancelling the task with id: %s",
-                        taskId))
-                );
-
-            doThrow(exception)
+            doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).bpmnEscalation(any(), any(), anyMap());
 
             assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
-                    "There was a problem cancelling the task with id: %s",
-                    taskId));
-
+                .isInstanceOf(TaskCancelException.class)
+                .hasNoCause()
+                .hasMessage("Task Cancel Error: Unable to cancel the task.");
         }
 
     }
@@ -2998,7 +2981,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
         }
 
         @Test
-        void assignTask_should_throw_exception_when_camunda_assign_task_endpoint_failed() {
+        void assign_task_should_throw_task_assign_exception_exception_when_camunda_assign_task_endpoint_failed() {
             final List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
             final List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
@@ -3043,13 +3026,10 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                 () -> camundaService.assignTask(
                     taskId, assignerAccessControlResponse,
                     assignerPermissionsRequired, assigneeAccessControlResponse, assigneePermissionsRequired))
-                .isInstanceOf(ServerErrorException.class)
-                .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
-                    EXPECTED_MSG_THERE_WAS_A_PROBLEM_ASSIGNING_THE_TASK_WITH_ID,
-                    taskId
-                ));
-
+                .isInstanceOf(TaskAssignException.class)
+                .hasNoCause()
+                .hasMessage("Task Assign Error: Task assign partially succeeded. "
+                            + "The Task state was updated to assigned, but the Task could not be assigned.");
         }
 
     }

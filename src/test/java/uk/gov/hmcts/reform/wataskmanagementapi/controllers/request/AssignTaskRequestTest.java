@@ -5,7 +5,7 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class AssignTaskRequestTest {
+class AssignTaskRequestTest {
 
     @Test
     void isWellImplemented() {

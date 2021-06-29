@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 
 public class TaskTest {
 
@@ -34,7 +35,8 @@ public class TaskTest {
             "some-caseId",
             "some-cat",
             "some-case",
-            false
+            false,
+            new WarningValues(Arrays.asList(new Warning("123","some warning"),new Warning("456","some more warning")))
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -58,6 +60,9 @@ public class TaskTest {
         Assertions.assertThat(task.getCaseName()).isEqualTo("some-case");
         Assertions.assertThat(task.getAutoAssigned()).isTrue();
         Assertions.assertThat(task.getWarnings()).isFalse();
+        Assertions.assertThat(task.getWarningList().getValues().size()).isEqualTo(2);
+        Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
+        Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
 
 
     }

@@ -169,8 +169,8 @@ pitest {
   junit5PluginVersion = '0.12'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
-    'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
-    'uk.gov.hmcts.reform.wataskmanagementapi.Application'
+      'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
+      'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
   threads = 10
   outputFormats = ['XML', 'HTML']
@@ -269,27 +269,27 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.7.0',
-  junitPlatform   : '1.7.0',
-  reformLogging   : '5.1.5',
-  springBoot      : '2.4.2',
-  springfoxSwagger: '3.0.0',
-  serenity        : '2.2.12',
-  gradlePitest    : '1.5.1',
-  pitest          : '1.5.2',
-  sonarPitest     : '0.5',
-  pactVersion     : '4.1.7',
-  logbook         : '2.6.2'
+    junit           : '5.7.0',
+    junitPlatform   : '1.7.0',
+    reformLogging   : '5.1.5',
+    springBoot      : '2.4.2',
+    springfoxSwagger: '3.0.0',
+    serenity        : '2.2.12',
+    gradlePitest    : '1.5.1',
+    pitest          : '1.5.2',
+    sonarPitest     : '0.5',
+    pactVersion     : '4.1.7',
+    logbook         : '2.6.2'
 ]
 
 ext.libraries = [
-  junit5: [
-    "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
-    "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
-    "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
-    "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
-    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
-  ]
+    junit5: [
+        "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
+        "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
+        "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
+        "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
+        "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+    ]
 ]
 
 dependencies {
@@ -313,6 +313,8 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
+
+  implementation 'org.zalando:problem-spring-web-starter:0.26.2'
 
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'

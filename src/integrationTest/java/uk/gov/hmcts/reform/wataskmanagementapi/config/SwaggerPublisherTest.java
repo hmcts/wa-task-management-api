@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 
 import java.io.OutputStream;
@@ -16,13 +14,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class SwaggerPublisherTest extends SpringBootIntegrationBaseTest {
 
-    @Autowired
-    private MockMvc mvc;
-
     @DisplayName("Generate swagger documentation")
     @Test
     void generateDocs() throws Exception {
-        byte[] specs = mvc.perform(get("/v2/api-docs"))
+        byte[] specs = mockMvc.perform(get("/v2/api-docs"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

@@ -1,15 +1,16 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class AssigneeRequestTest {
+class WarningTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = AssigneeRequest.class;
+        final Class<?> classUnderTest = Warning.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -19,6 +20,5 @@ class AssigneeRequestTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
-
 
 }

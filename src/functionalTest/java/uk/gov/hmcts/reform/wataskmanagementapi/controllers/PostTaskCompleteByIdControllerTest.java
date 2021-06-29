@@ -465,7 +465,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_true() {
+    public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
             JURISDICTION, "IA"
         );
