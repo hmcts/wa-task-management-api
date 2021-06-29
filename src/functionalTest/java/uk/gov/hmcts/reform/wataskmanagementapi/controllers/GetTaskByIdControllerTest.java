@@ -220,7 +220,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue());
+            .body("task.warnings", notNullValue())
+            .body("task.warning_list", notNullValue());
 
 
         common.cleanUpTask(taskId, REASON_COMPLETED);

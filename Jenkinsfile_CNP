@@ -17,6 +17,8 @@ def secrets = [
                 secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
                 secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
                 secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+                secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+                secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
 
         ],
         's2s-${env}': [
@@ -36,6 +38,8 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, component) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
+
+    env.POSTGRES_HOST = "cft-task-postgres-db-aat.postgres.database.azure.com"
 
     env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
@@ -61,6 +65,10 @@ withPipeline(type, product, component) {
     after('functionalTest:aat') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+    }
+
+    after('pact-provider-verification') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'build/reports/tests/**/*'
     }
 
     onMaster() {

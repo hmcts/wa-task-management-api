@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -41,6 +41,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
 @SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
@@ -157,14 +159,14 @@ public class TaskActionsController {
     @PostMapping(path = "/{task-id}/assign")
     public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
-                                           @RequestBody AssigneeRequest assigneeRequest) {
+                                           @RequestBody AssignTaskRequest assignTaskRequest) {
 
         List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
         List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
         AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
         AccessControlResponse assigneeAccessControlResponse = accessControlService.getRolesGivenUserId(
-            assigneeRequest.getUserId(),
+            assignTaskRequest.getUserId(),
             assignerAuthToken
         );
 
@@ -189,8 +191,8 @@ public class TaskActionsController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
-    public ResponseEntity<Void> completeTask(@RequestHeader("Authorization") String authToken,
-                                             @RequestHeader("ServiceAuthorization") String serviceAuthToken,
+    public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
+                                             @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
         List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
