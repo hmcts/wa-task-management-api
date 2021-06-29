@@ -670,7 +670,9 @@ public class CamundaService {
     }
 
     private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
-        if (camundaVariableInstance.getName().equals("hasWarnings") && camundaVariableInstance.getTaskId() == null) {
+        if (("hasWarnings".equals(camundaVariableInstance.getName())
+            || "warningList".equals(camundaVariableInstance.getName()))
+            && camundaVariableInstance.getTaskId() == null) {
             return true;
         }
         return camundaVariableInstance.getTaskId() != null;

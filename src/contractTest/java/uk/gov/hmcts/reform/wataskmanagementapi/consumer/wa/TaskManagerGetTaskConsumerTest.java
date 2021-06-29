@@ -45,6 +45,17 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
             .returnResponse();
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeGetTaskByIdWithWarnings200")
+    void testGetTaskByTaskId200WithWarningsTest(MockServer mockServer) throws IOException {
+        Request.Get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .addHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+            .addHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .addHeader(AUTHORIZATION, AUTH_TOKEN)
+            .execute()
+            .returnResponse();
+    }
+
     @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetTaskById200(PactDslWithProvider builder) {
         return builder
@@ -58,6 +69,22 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTask())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetTaskByIdWithWarnings200(PactDslWithProvider builder) {
+        return builder
+            .given("get a task using taskId with warnings")
+            .uponReceiving("taskId to get a task")
+            .path(WA_GET_TASK_BY_ID)
+            .method(HttpMethod.GET.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithWarnings())
             .toPact();
     }
 
@@ -84,9 +111,44 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a")
                         .stringType("case_category", "processApplication")
                         .stringType("case_name", "caseName")
+                        .booleanType("warnings", false)
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                )).build();
+    }
+
+    private DslPart createResponseForGetTaskWithWarnings() {
+        return newJsonBody(
+            o -> o
+                .object("task",
+                    task -> task
+                        .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
+                        .stringType("name", "JakeO")
+                        .stringType("type", "ReviewTheAppeal")
+                        .stringType("task_state", "unconfigured")
+                        .stringType("task_system", "main")
+                        .stringType("security_classification", "PRIVATE")
+                        .stringType("task_title", "review")
+                        .stringType("assignee", "Mark Alistair")
+                        .booleanType("auto_assigned", true)
+                        .stringType("execution_type", "Time extension")
+                        .stringType("jurisdiction", "IA")
+                        .stringType("region", "South")
+                        .stringType("location", "12345")
+                        .stringType("location_name", "Newcastle")
+                        .stringType("case_type_id", "Asylum")
+                        .stringType("case_id", "4d4b3a4e-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("case_category", "processApplication")
+                        .stringType("case_name", "caseName")
                         .booleanType("warnings", true)
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .object("warning_list", values -> values
+                            .minArrayLike("values", 1, value -> value
+                                .stringType("warningCode", "Code1")
+                                .stringType("warningText", "Text1")
+                            )
+                        )
                 )).build();
     }
 

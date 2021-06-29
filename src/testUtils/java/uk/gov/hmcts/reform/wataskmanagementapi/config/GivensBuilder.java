@@ -90,9 +90,13 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
-
-        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId);
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings) {
+        Map<String, CamundaValue<?>> processVariables;
+        if (warnings) {
+            processVariables = createDefaultTaskVariablesWithWarnings(caseId);
+        } else {
+            processVariables = createDefaultTaskVariables(caseId);
+        }
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -209,6 +213,37 @@ public class GivensBuilder {
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
+            .build();
+
+        return processVariables.getProcessVariablesMap();
+    }
+
+    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(String caseId) {
+        String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("caseId", caseId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("region", "1")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("group", "TCW")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", "reviewTheAppeal")
+            .withProcessVariable("taskType", "reviewTheAppeal")
+            .withProcessVariable("taskCategory", "Case Progression")
+            .withProcessVariable("taskState", "unconfigured")
+            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
+            .withProcessVariableBoolean("hasWarnings", true)
+            .withProcessVariable("warningList", values)
             .build();
 
         return processVariables.getProcessVariablesMap();

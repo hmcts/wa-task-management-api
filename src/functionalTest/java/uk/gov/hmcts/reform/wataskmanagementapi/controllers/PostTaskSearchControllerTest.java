@@ -155,6 +155,34 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_return_a_200_with_warnings() {
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("total_records", greaterThanOrEqualTo(1))
+            .body("tasks.warnings", everyItem(notNullValue()))
+            .body("tasks.warning_list.values", everyItem(notNullValue()));
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
     public void should_return_a_200_with_all_tasks_without_pagination() {
         //creating 3 tasks
         String[] taskStates = {TaskState.ASSIGNED.value(), TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value()};

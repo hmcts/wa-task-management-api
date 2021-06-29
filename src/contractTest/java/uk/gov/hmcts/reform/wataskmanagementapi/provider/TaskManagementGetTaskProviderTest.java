@@ -15,12 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -58,7 +61,6 @@ public class TaskManagementGetTaskProviderTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-
     @Mock
     private PrivilegedAccessControlService privilegedAccessControlService;
 
@@ -83,6 +85,12 @@ public class TaskManagementGetTaskProviderTest {
             context.setTarget(testTarget);
         }
 
+        testTarget.setMessageConverters(
+            (
+                new MappingJackson2HttpMessageConverter(objectMapper)
+            )
+        );
+
     }
 
     @State({"get a task using taskId"})
@@ -90,10 +98,21 @@ public class TaskManagementGetTaskProviderTest {
         setInitMockTask();
     }
 
+    @State({"get a task using taskId with warnings"})
+    public void getTaskByIdWithWarnings() {
+        setInitMockTaskWithWarnings();
+    }
+
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(camundaService.getTask(any(), any(), any())).thenReturn(createTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(camundaService.getTask(any(), any(), any())).thenReturn(createTask());
+    }
+
+    private void setInitMockTaskWithWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(camundaService.getTask(any(), any(), any())).thenReturn(createTaskWithWarnings());
     }
 
     private Task createTask() {
@@ -120,6 +139,36 @@ public class TaskManagementGetTaskProviderTest {
             "Bob Smith",
             false,
             new WarningValues(Collections.emptyList()));
+    }
+
+    private Task createTaskWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+        WarningValues warningValues = new WarningValues(warnings);
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            warningValues);
     }
 
 }
