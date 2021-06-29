@@ -30,7 +30,8 @@ public class TaskAutoAssignmentService {
     }
 
     public AutoAssignmentResult getAutoAssignmentVariables(TaskToConfigure task) {
-        List<RoleAssignment> roleAssignments = taskConfigurationRoleAssignmentService.searchRolesByCaseId(task.getCaseId());
+        List<RoleAssignment> roleAssignments =
+            taskConfigurationRoleAssignmentService.searchRolesByCaseId(task.getCaseId());
 
         if (roleAssignments.isEmpty()) {
             // the user did not have specific role assignment for this case
@@ -46,7 +47,8 @@ public class TaskAutoAssignmentService {
     private void updateTaskStateAndSetAssignee(TaskToConfigure taskToConfigure,
                                                String currentTaskState) {
 
-        List<RoleAssignment> roleAssignments = taskConfigurationRoleAssignmentService.searchRolesByCaseId(taskToConfigure.getCaseId());
+        List<RoleAssignment> roleAssignments =
+            taskConfigurationRoleAssignmentService.searchRolesByCaseId(taskToConfigure.getCaseId());
         log.info("Role assignments retrieved for caseId '{}'", taskToConfigure.getCaseId());
         if (roleAssignments.isEmpty()) {
             log.info("The case did not have specific users assigned, Setting task state to '{}'", UNASSIGNED);
