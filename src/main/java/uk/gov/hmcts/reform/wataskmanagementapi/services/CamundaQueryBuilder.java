@@ -106,18 +106,23 @@ public class CamundaQueryBuilder {
         CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.CASE_ID,
             new SearchParameter(CASE_ID,
-                SearchOperator.IN, singletonList(caseId))
+                                SearchOperator.IN, singletonList(caseId)
+            )
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder taskIdQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.TASK_TYPE,
             new SearchParameter(TASK_ID,
-                SearchOperator.IN, taskTypes));
+                                SearchOperator.IN, taskTypes
+            )
+        );
 
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.TASK_STATE,
             new SearchParameter(STATE,
-                SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())));
+                                SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())
+            )
+        );
 
         return camundaQuery()
             .withKeyValue("processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY)
@@ -138,7 +143,8 @@ public class CamundaQueryBuilder {
 
         //Safe-guard
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            return null;
+            //Default sorting
+            return singletonList(new CamundaSortingExpression("created", "desc"));
         }
 
         return sortingParameters.stream()
@@ -155,7 +161,7 @@ public class CamundaQueryBuilder {
 
     private boolean isSortByDueDate(SortingParameter param) {
         return SortField.DUE_DATE_CAMEL_CASE == param.getSortBy()
-            || SortField.DUE_DATE_SNAKE_CASE == param.getSortBy();
+               || SortField.DUE_DATE_SNAKE_CASE == param.getSortBy();
     }
 
     /**
@@ -199,7 +205,8 @@ public class CamundaQueryBuilder {
         return new CamundaProcessVariableSortingExpression(
             "taskVariable",
             sortOrder.toString(),
-            new CamundaSortingParameters(sortBy.getCamundaVariableName(), "String"));
+            new CamundaSortingParameters(sortBy.getCamundaVariableName(), "String")
+        );
     }
 
     private EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {
