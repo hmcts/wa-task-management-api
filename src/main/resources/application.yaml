@@ -61,6 +61,17 @@ spring:
     name: WA Task Management
   main:
     allow-bean-definition-overriding: true
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:}
+    properties:
+      charSet: UTF-8
+  flyway:
+    enabled: true
+    baselineOnMigrate: true
+    schemas: ${POSTGRES_NAME:cft_task_db}
   security:
     oauth2:
       resourceserver:
