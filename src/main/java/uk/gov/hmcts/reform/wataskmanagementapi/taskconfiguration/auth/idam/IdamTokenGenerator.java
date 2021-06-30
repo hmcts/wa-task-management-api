@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam;
 
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.IdamServiceApi;

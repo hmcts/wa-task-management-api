@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserInfo;
 
 import java.util.Map;
