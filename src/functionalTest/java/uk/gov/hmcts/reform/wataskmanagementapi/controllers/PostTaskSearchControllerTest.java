@@ -94,20 +94,20 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
         // When
         Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
 
-        // Then expect task1,task2 order
+        // Then expect task2,tak1 order
         List<String> actualCaseIdList = result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .extract()
             .body().path("tasks.case_id");
 
         assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId());
+            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
         // Given query
         searchTaskRequest = new SearchTaskRequest(
