@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -12,7 +13,6 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static org.junit.Assert.assertEquals;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class AssignmentTest {
@@ -50,20 +50,20 @@ class AssignmentTest {
             emptyList()
         );
 
-        assertEquals(id, assignment.getId());
-        assertEquals(ActorIdType.IDAM, assignment.getActorIdType());
-        assertEquals("someactorId", assignment.getActorId());
-        assertEquals(RoleType.ORGANISATION, assignment.getRoleType());
-        assertEquals("some-role-name", assignment.getRoleName());
-        assertEquals(Classification.PUBLIC, assignment.getClassification());
-        assertEquals(GrantType.SPECIFIC, assignment.getGrantType());
-        assertEquals(RoleCategory.LEGAL_OPERATIONS, assignment.getRoleCategory());
-        assertEquals(false, assignment.isReadOnly());
-        assertEquals(null, assignment.getBeginTime());
-        assertEquals(null, assignment.getEndTime());
-        assertEquals(null, assignment.getCreated());
-        assertEquals(emptyMap(), assignment.getAttributes());
-        assertEquals(emptyList(), assignment.getAuthorisations());
+        Assertions.assertEquals(id, assignment.getId());
+        Assertions.assertEquals(ActorIdType.IDAM, assignment.getActorIdType());
+        Assertions.assertEquals("someactorId", assignment.getActorId());
+        Assertions.assertEquals(RoleType.ORGANISATION, assignment.getRoleType());
+        Assertions.assertEquals("some-role-name", assignment.getRoleName());
+        Assertions.assertEquals(Classification.PUBLIC, assignment.getClassification());
+        Assertions.assertEquals(GrantType.SPECIFIC, assignment.getGrantType());
+        Assertions.assertEquals(RoleCategory.LEGAL_OPERATIONS, assignment.getRoleCategory());
+        Assertions.assertFalse(assignment.isReadOnly());
+        Assertions.assertNull(assignment.getBeginTime());
+        Assertions.assertNull(assignment.getEndTime());
+        Assertions.assertNull(assignment.getCreated());
+        Assertions.assertEquals(emptyMap(), assignment.getAttributes());
+        Assertions.assertEquals(emptyList(), assignment.getAuthorisations());
 
     }
 }
