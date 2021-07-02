@@ -144,7 +144,10 @@ public class CamundaQueryBuilder {
         //Safe-guard
         if (sortingParameters == null || sortingParameters.isEmpty()) {
             //Default sorting
-            return singletonList(new CamundaSortingExpression("created", "desc"));
+            return singletonList(new CamundaSortingExpression(
+                SortField.DUE_DATE_CAMEL_CASE.getCamundaVariableName(),
+                "desc"
+            ));
         }
 
         return sortingParameters.stream()
