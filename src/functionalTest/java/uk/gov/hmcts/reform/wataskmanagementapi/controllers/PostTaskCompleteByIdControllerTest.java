@@ -303,7 +303,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_fail_and_return_401_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
+    public void should_fail_and_return_403_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
