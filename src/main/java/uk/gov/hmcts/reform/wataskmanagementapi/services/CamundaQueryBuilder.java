@@ -35,6 +35,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField.DUE_DATE_CAMEL_CASE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.DESCENDANT;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter", "PMD.TooManyMethods"})
 @Service
@@ -145,8 +147,8 @@ public class CamundaQueryBuilder {
         if (sortingParameters == null || sortingParameters.isEmpty()) {
             //Default sorting
             return singletonList(new CamundaSortingExpression(
-                SortField.DUE_DATE_CAMEL_CASE.getCamundaVariableName(),
-                "desc"
+                DUE_DATE_CAMEL_CASE.getCamundaVariableName(),
+                DESCENDANT.toString()
             ));
         }
 
@@ -163,7 +165,7 @@ public class CamundaQueryBuilder {
     }
 
     private boolean isSortByDueDate(SortingParameter param) {
-        return SortField.DUE_DATE_CAMEL_CASE == param.getSortBy()
+        return DUE_DATE_CAMEL_CASE == param.getSortBy()
                || SortField.DUE_DATE_SNAKE_CASE == param.getSortBy();
     }
 
