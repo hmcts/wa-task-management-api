@@ -150,8 +150,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             authenticationHeaders
         );
 
-        result.prettyPrint();
-
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results

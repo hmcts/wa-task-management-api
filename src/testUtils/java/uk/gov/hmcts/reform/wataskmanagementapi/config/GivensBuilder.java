@@ -203,7 +203,7 @@ public class GivensBuilder {
             .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
             //for testing-purposes
-            .withProcessVariable("dueDate", now().plusMinutes(1).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
@@ -246,10 +246,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -279,10 +279,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
