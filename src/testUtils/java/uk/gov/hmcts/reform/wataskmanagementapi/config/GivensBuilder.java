@@ -202,7 +202,7 @@ public class GivensBuilder {
             .withProcessVariable("taskType", "reviewTheAppeal")
             .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusSeconds(10).format(CAMUNDA_DATA_TIME_FORMATTER)) //for testing-purposes
+            .withProcessVariable("dueDate", now().plusMinutes(1).format(CAMUNDA_DATA_TIME_FORMATTER)) //for testing-purposes
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
