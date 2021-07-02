@@ -98,7 +98,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         // When
-        Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=2147483647",
+            searchTaskRequest,
+            authenticationHeaders
+        );
 
         // Then expect task2,tak1 order
         List<String> actualCaseIdList = result.then().assertThat()

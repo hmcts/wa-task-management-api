@@ -128,7 +128,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId, REASON_DELETED);
+        //common.cleanUpTask(taskId, REASON_DELETED);
     }
 
     @Test
