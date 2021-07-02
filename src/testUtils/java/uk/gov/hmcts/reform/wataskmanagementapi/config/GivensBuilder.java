@@ -214,29 +214,6 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "SCSS")
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "A Hearing Centre")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("group", "TCW")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("warningList", (new WarningValues()).toString())
-            .build();
-
-        return processVariables.getProcessVariablesMap();
-    }
-
     public String iCreateACcdCase() {
         Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
         String userToken = headers.getValue(AUTHORIZATION);
