@@ -2,11 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.enti
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.ActorIdType;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.GrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
 import java.util.Map;
 

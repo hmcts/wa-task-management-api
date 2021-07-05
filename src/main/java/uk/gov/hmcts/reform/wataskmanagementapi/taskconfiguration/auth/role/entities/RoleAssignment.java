@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.ActorIdType;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.GrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
 import java.time.LocalDateTime;
 import java.util.List;
