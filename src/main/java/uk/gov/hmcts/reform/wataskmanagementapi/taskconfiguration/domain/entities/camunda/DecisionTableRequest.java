@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entitie
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 
 @EqualsAndHashCode
 @ToString
