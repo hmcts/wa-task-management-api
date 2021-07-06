@@ -186,6 +186,23 @@ public class CamundaService {
         } catch (CamundaTaskCompleteException ex) {
             throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_COMPLETE);
         }
+    }
+
+
+    public void completeTaskById(String taskId) {
+
+        Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
+        // Check that task state was not already completed
+        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+        boolean taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
+
+        try {
+            performCompleteTaskAction(taskId, taskHasCompleted);
+        } catch (CamundaTaskStateUpdateException ex) {
+            throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_UPDATE_STATE);
+        } catch (CamundaTaskCompleteException ex) {
+            throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_COMPLETE);
+        }
 
     }
 

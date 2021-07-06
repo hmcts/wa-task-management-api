@@ -12,18 +12,26 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -34,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +51,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class TaskManagementServiceTest extends CamundaHelpers {
@@ -53,7 +65,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
     CamundaQueryBuilder camundaQueryBuilder;
     @Mock
     PermissionEvaluatorService permissionEvaluatorService;
-
+    @Mock
+    CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    CFTTaskMapper cftTaskMapper;
     TaskManagementService taskManagementService;
     String taskId;
 
@@ -62,7 +77,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftTaskMapper
         );
 
         taskId = UUID.randomUUID().toString();
@@ -1009,4 +1026,122 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
     }
 
+
+    @Nested
+    @DisplayName("initiateTask()")
+    class InitiateTask {
+        @Test
+        void should_succeed() {
+
+            InitiateTaskRequest req = new InitiateTaskRequest(
+                INITIATION,
+                asList(
+                    new TaskAttribute(TASK_TYPE, "aTaskType"),
+                    new TaskAttribute(TASK_NAME, "aTaskName")
+                )
+            );
+
+            TaskResource taskResource = mock(TaskResource.class);
+            when(cftTaskMapper.mapToTaskObject(taskId, req.getTaskAttributes())).thenReturn(taskResource);
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            taskManagementService.initiateTask(taskId, req);
+
+            verify(cftTaskMapper, times(1)).mapToTaskObject(taskId, req.getTaskAttributes());
+            verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        }
+
+    }
+
+
+    @Nested
+    @DisplayName("terminateTask()")
+    class TerminateTask {
+
+        @Nested
+        @DisplayName("When Terminate Reason is Completed")
+        class Completed {
+
+            TerminateInfo terminateInfo = new TerminateInfo(TerminateReason.COMPLETED);
+
+            @Test
+            void should_succeed() {
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(camundaService, times(1)).completeTaskById(taskId);
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+            }
+
+
+            @Test
+            void should_throw_exception_when_task_resource_not_found() {
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> taskManagementService.terminateTask(taskId, terminateInfo))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasNoCause()
+                    .hasMessage("Resource not found");
+                verify(camundaService, times(0)).completeTaskById(taskId);
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+            }
+
+        }
+
+
+        @Nested
+        @DisplayName("When Terminate Reason is Cancelled")
+        class Cancelled {
+            TerminateInfo terminateInfo = new TerminateInfo(TerminateReason.CANCELLED);
+
+
+            @Test
+            void should_succeed() {
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
+                verify(camundaService, times(1)).cancelTask(taskId);
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+            }
+
+
+            @Test
+            void should_throw_exception_when_task_resource_not_found() {
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> taskManagementService.terminateTask(taskId, terminateInfo))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasNoCause()
+                    .hasMessage("Resource not found");
+                verify(camundaService, times(0)).cancelTask(taskId);
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+            }
+
+        }
+
+    }
 }

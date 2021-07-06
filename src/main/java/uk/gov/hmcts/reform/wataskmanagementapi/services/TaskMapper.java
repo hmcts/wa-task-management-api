@@ -34,7 +34,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @SuppressWarnings("PMD.LinguisticNaming")
 public class TaskMapper {
 
-
     private final CamundaObjectMapper camundaObjectMapper;
 
     @Autowired

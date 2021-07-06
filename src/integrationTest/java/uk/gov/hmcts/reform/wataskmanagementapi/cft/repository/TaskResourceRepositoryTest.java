@@ -8,14 +8,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import java.time.LocalDate;
 import java.util.Set;
-import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
+class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
@@ -31,9 +30,9 @@ public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
     @Test
     @Sql("/scripts/data.sql")
     void shouldReadTaskData() {
-        final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
+        assertEquals(1, taskResourceRepository.count());
 
-        assertTrue(StreamSupport.stream(tasksIt.spliterator(), false).count() == 1);
+        final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
         final TaskResource taskResource = tasksIt.iterator().next();
         final NoteResource notes = taskResource.getNotes();
@@ -42,7 +41,7 @@ public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
             () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeResource().getExecutionCode()),
             () -> assertEquals(SecurityClassification.RESTRICTED, taskResource.getSecurityClassification()),
-            () -> assertEquals(TaskState.ASSIGNED, taskResource.getState()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
             () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),
@@ -51,7 +50,7 @@ public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
         );
 
         final Set<TaskRoleResource> taskRoles = taskResource.getTaskRoleResources();
-        assertTrue(taskRoles.size() == 1);
+        assertEquals(1, taskRoles.size());
 
         final TaskRoleResource taskRole = taskRoles.iterator().next();
         String[] expectedAuthorizations = {"SPECIFIC", "BASIC"};

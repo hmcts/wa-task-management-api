@@ -17,7 +17,6 @@ public class LaunchDarklyClient {
 
     public boolean getKey(String key) {
 
-
         LDUser ldUser =  new LDUser.Builder("wa-task-management-api")
             .build();
 
