@@ -134,7 +134,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
             );
     }
 
-    @ExceptionHandler({ServerErrorException.class})
+    @ExceptionHandler({NullPointerException.class, ServerErrorException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(
         Exception ex
     ) {
