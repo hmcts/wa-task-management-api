@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -35,7 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
@@ -77,12 +82,45 @@ class TaskSearchControllerTest {
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
-            ));
+            )
+        );
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalRecords());
     }
+
+    @Test
+    void should_succeed_when_performing_search_with_no_pagination_max_results_and_default_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        when(camundaService.searchWithCriteria(any(), anyInt(), anyInt(), any(), any())).thenReturn(taskList);
+        when(camundaService.getTaskCount(any())).thenReturn(1L);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+        );
+
+        ReflectionTestUtils.setField(taskSearchController, "defaultMaxResults", 50);
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.empty(), searchTaskRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
+        verify(camundaService, times(1))
+            .searchWithCriteria(
+                eq(searchTaskRequest),
+                eq(0),
+                eq(50),
+                any(AccessControlResponse.class),
+                anyList()
+            );
+    }
+
 
     @Test
     void should_succeed_when_performing_search_with_sorting_and_return_a_200_ok() {
@@ -93,7 +131,8 @@ class TaskSearchControllerTest {
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-                singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)))
+                singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
+            )
         );
 
         assertNotNull(response);

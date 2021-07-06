@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
@@ -43,12 +44,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 
-@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUzE, produces = APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
+    private static final String UNAUTHORIZED = "Unauthorized";
+    private static final String BAD_REQUEST = "Bad Request";
+    private static final String FORBIDDEN = "Forbidden";
+    private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
+    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
+    private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
     private final RestrictedAccessControlService restrictedAccessControlService;
@@ -183,6 +191,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
@@ -191,18 +200,22 @@ public class TaskActionsController extends BaseController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        boolean isPrivilegedRequest =
-            restrictedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
-
-        if (isPrivilegedRequest && completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
-            camundaService.completeTaskWithPrivilegeAndCompletionOptions(
-                taskId,
-                accessControlResponse,
-                endpointPermissionsRequired,
-                completeTaskRequest.getCompletionOptions()
-            );
-        } else {
+        if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
             camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        } else {
+            boolean isPrivilegedRequest =
+                restrictedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
+
+            if (isPrivilegedRequest) {
+                camundaService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    endpointPermissionsRequired,
+                    completeTaskRequest.getCompletionOptions()
+                );
+            } else {
+                throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+            }
         }
 
         return ResponseEntity

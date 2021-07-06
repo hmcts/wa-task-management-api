@@ -202,34 +202,12 @@ public class GivensBuilder {
             .withProcessVariable("taskType", "reviewTheAppeal")
             .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            //for testing-purposes
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("warningList", (new WarningValues()).toString())
-            .build();
-
-        return processVariables.getProcessVariablesMap();
-    }
-
-    public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "SCSS")
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "A Hearing Centre")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("group", "TCW")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
             .build();
@@ -268,10 +246,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -301,10 +279,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
