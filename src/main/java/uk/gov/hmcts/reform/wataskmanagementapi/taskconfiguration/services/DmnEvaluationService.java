@@ -11,9 +11,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.util.List;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
 
 @Slf4j
 @Component
