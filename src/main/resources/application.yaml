@@ -13,7 +13,8 @@ management:
 
 config:
   enableSwagger: ${ENABLE_SWAGGER:true}
-  privilegedClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
+  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor}
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
