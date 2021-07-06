@@ -17,7 +17,6 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING;
-import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_ENUMS_USING_TO_STRING;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
@@ -31,7 +30,6 @@ public class JacksonConfiguration {
             .propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
             .serializationInclusion(JsonInclude.Include.NON_ABSENT)
             .featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .featuresToEnable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
             .featuresToEnable(READ_ENUMS_USING_TO_STRING)
             .featuresToEnable(WRITE_ENUMS_USING_TO_STRING)
             .modules(
