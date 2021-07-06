@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,21 +14,33 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-public class PrivilegedAccessControlService {
+public class RestrictedAccessControlService {
 
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ServiceAuthTokenValidator serviceAuthTokenValidator;
-    private final List<String> privilegedServices;
+    private final List<String> privilegedAccessClients;
+    private final List<String> exclusiveAccessClients;
 
     @Autowired
-    public PrivilegedAccessControlService(ServiceAuthTokenValidator serviceAuthTokenValidator,
+    public RestrictedAccessControlService(ServiceAuthTokenValidator serviceAuthTokenValidator,
                                           LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                          @Value("${config.privilegedClients}") List<String> privilegedServices) {
+                                          @Value("${config.privilegedAccessClients}") List<String> privilegedAccessClients,
+                                          @Value("${config.exclusiveAccessClients}") List<String> exclusiveAccessClients) {
         this.serviceAuthTokenValidator = serviceAuthTokenValidator;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-        this.privilegedServices = privilegedServices;
+        this.privilegedAccessClients = privilegedAccessClients;
+        this.exclusiveAccessClients = exclusiveAccessClients;
     }
 
+
+    /**
+     * Extracts client id from service authorization token and returns if client is whitelisted as privilegedServices.
+     * Note: This feature is sitting behind feature flag.
+     *
+     * @param serviceAuthToken      the service authorization token.
+     * @param accessControlResponse the access control response containing userId.
+     * @return whether a client has been whitelisted in config.privilegedAccessClients property.
+     */
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public boolean hasPrivilegedAccess(String serviceAuthToken, AccessControlResponse accessControlResponse) {
         Objects.requireNonNull(serviceAuthToken, "ServiceAuthorization must not be null");
@@ -44,8 +56,23 @@ public class PrivilegedAccessControlService {
         if (isFeatureEnabled) {
             String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
 
-            isPrivilegedClient = privilegedServices.contains(serviceName);
+            isPrivilegedClient = privilegedAccessClients.contains(serviceName);
         }
         return isPrivilegedClient;
+    }
+
+
+    /**
+     * Extracts client id from service authorization token and returns if client is whitelisted as exclusiveClient.
+     *
+     * @param serviceAuthToken the service authorization token.
+     * @return whether a client has been whitelisted in config.exclusiveAccessClients property.
+     */
+    public boolean hasExclusiveAccess(String serviceAuthToken) {
+        Objects.requireNonNull(serviceAuthToken, "ServiceAuthorization must not be null");
+
+        String serviceName = serviceAuthTokenValidator.getServiceName(serviceAuthToken);
+
+        return exclusiveAccessClients.contains(serviceName);
     }
 }

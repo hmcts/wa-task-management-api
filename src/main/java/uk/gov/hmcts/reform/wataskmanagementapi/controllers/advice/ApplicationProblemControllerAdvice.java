@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -29,7 +30,8 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
         TaskClaimException.class,
         TaskCompleteException.class,
         TaskUnclaimException.class,
-        TaskCancelException.class
+        TaskCancelException.class,
+        GenericForbiddenException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex

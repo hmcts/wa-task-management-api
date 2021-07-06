@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.RestrictedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -44,38 +44,30 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
-@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUzE, produces = APPLICATION_JSON_VALUE)
 @RestController
-public class TaskActionsController {
+public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
-    private static final String UNAUTHORIZED = "Unauthorized";
-    private static final String BAD_REQUEST = "Bad Request";
-    private static final String FORBIDDEN = "Forbidden";
-    private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
-    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
-    private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
-    private final PrivilegedAccessControlService privilegedAccessControlService;
+    private final RestrictedAccessControlService restrictedAccessControlService;
     private final SystemDateProvider systemDateProvider;
 
     @Autowired
     public TaskActionsController(CamundaService camundaService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
-                                 PrivilegedAccessControlService privilegedAccessControlService
-    ) {
+                                 RestrictedAccessControlService restrictedAccessControlService) {
         this.camundaService = camundaService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
-        this.privilegedAccessControlService = privilegedAccessControlService;
+        this.restrictedAccessControlService = restrictedAccessControlService;
     }
 
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "OK", response = GetTaskResponse.class),
+        @ApiResponse(code = 200, message = OK, response = GetTaskResponse.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
@@ -99,7 +91,7 @@ public class TaskActionsController {
 
     @ApiOperation("Claim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "No Content", response = Object.class),
+        @ApiResponse(code = 204, message = NO_CONTENT, response = Object.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
@@ -200,7 +192,7 @@ public class TaskActionsController {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
         boolean isPrivilegedRequest =
-            privilegedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
+            restrictedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
 
         if (isPrivilegedRequest && completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
             camundaService.completeTaskWithPrivilegeAndCompletionOptions(
