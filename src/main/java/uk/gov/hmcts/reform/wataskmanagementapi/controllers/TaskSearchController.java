@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -54,6 +55,11 @@ public class TaskSearchController {
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
 
+
+    @Value("${config.search.defaultMaxResults}")
+    private int defaultMaxResults;
+
+
     @Autowired
     public TaskSearchController(CamundaService camundaService,
                                 AccessControlService accessControlService
@@ -87,7 +93,7 @@ public class TaskSearchController {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
         List<Task> tasks = camundaService.searchWithCriteria(
-            searchTaskRequest, firstResult.orElse(0), maxResults.orElse(Integer.MAX_VALUE),
+            searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
             accessControlResponse,
             endpointPermissionsRequired
         );
