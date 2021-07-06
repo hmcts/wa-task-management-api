@@ -634,7 +634,7 @@ public class CamundaService {
                     .collect(toMap(
                         CamundaVariableInstance::getName,
                         var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b
-                        )
+                             )
                     );
 
                 //3. Evaluate access to task
@@ -730,7 +730,8 @@ public class CamundaService {
         } catch (FeignException ex) {
             log.error(
                 "There was a problem updating task '{}', task state could not be updated to '{}'",
-                taskId, newState);
+                taskId, newState
+            );
             throw new CamundaTaskStateUpdateException(ex);
         }
 
