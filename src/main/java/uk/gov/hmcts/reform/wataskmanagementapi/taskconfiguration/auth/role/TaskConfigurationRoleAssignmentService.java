@@ -49,7 +49,6 @@ public class TaskConfigurationRoleAssignmentService {
         return roleAssignmentResponse.getRoleAssignmentResponse();
     }
 
-
     public RoleAssignmentResource performSearch(QueryRequest queryRequest) {
         try {
             return roleAssignmentServiceApi.queryRoleAssignments(

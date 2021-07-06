@@ -34,10 +34,10 @@ class CamundaValueTest {
     }
 
     @Test
-    void should_return_true_when_objects_reference_is_same() {
+    void should_return_true_when_objects_are_the_same() {
         CamundaValue<String> targetObj = CamundaValue.jsonValue("someJson");
 
-        Assertions.assertEquals(targetObj, targetObj);
+        Assertions.assertEquals(CamundaValue.jsonValue("someJson"), targetObj);
     }
 
     @Test
