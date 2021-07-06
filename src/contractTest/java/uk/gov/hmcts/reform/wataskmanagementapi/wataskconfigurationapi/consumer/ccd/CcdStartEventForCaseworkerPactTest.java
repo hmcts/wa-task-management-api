@@ -25,7 +25,7 @@ public class CcdStartEventForCaseworkerPactTest extends SpringBootContractBaseTe
     private static final String CCD_START_FOR_CASEWORKER = "/caseworkers/0000/jurisdictions/ia/case-types/"
                                                            + "asylum/event-triggers/tester/token";
 
-    @Pact(provider = "ccd_data_store_start_event", consumer = "wa_task_configuration_api")
+    @Pact(provider = "ccd_data_store_start_event", consumer = "wa_task_management_api")
     public RequestResponsePact executeStartEventForCaseworker(PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = Maps.newHashMap();

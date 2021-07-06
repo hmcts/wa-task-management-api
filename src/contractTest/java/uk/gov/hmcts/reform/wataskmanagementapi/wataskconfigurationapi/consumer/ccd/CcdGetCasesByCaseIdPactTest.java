@@ -27,7 +27,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-@PactTestFor(providerName = "ccd_data_store_get_case_by_id", port = "8890")
+@PactTestFor(providerName = "ccd_data_store_get_case_by_id", port = "8891")
 @ContextConfiguration(classes = {CcdConsumerApplication.class})
 public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
 
@@ -53,7 +53,7 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
     }
 
 
-    @Pact(provider = "ccd_data_store_get_case_by_id", consumer = "wa_task_configuration_api")
+    @Pact(provider = "ccd_data_store_get_case_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = Map.of("Content-Type", "application/json");
@@ -76,7 +76,7 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
 
         String caseData = ccdDataService.getCaseData(TEST_CASE_ID);
 
-        CaseDetails caseDetails = read(caseData, TEST_CASE_ID);
+        CaseDetails caseDetails = read(caseData);
 
         assertThat(caseDetails.getSecurityClassification(), is("PRIVATE"));
         assertThat(caseDetails.getJurisdiction(), is("IA"));
@@ -91,12 +91,12 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
             .stringValue("security_classification", "PRIVATE");
     }
 
-    private CaseDetails read(String caseData, String caseId) {
+    private CaseDetails read(String caseData) {
         try {
             return new ObjectMapper().readValue(caseData, CaseDetails.class);
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException(
-                String.format("Cannot parse result from CCD for %s", caseId),
+                String.format("Cannot parse result from CCD for %s", CcdGetCasesByCaseIdPactTest.TEST_CASE_ID),
                 ex
             );
         }

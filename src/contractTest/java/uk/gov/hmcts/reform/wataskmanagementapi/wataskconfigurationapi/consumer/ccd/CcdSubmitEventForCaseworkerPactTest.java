@@ -26,7 +26,7 @@ public class CcdSubmitEventForCaseworkerPactTest extends SpringBootContractBaseT
     private static final String CCD_SUBMIT_EVENT_FOR_CASEWORKER = "/caseworkers/00/jurisdictions/ia/"
                                                                   + "case-types/asylum/cases/0000/events";
 
-    @Pact(provider = "ccd_data_store_submit_event", consumer = "wa_task_configuration_api")
+    @Pact(provider = "ccd_data_store_submit_event", consumer = "wa_task_management_api")
     public RequestResponsePact executeSubmitEventForCaseworker(PactDslWithProvider builder) {
 
         Map<String, String> responseHeaders = Maps.newHashMap();
