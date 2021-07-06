@@ -172,20 +172,6 @@ class CallbackControllerAdviceTest {
     @Test
     void should_handle_generic_exception() {
 
-        String genericExceptionMessage = "Some generic error exception message";
-
-        final Exception genericException = new Exception(genericExceptionMessage);
-
-        ResponseEntity<ErrorMessage> genericExceptionResponse = callbackControllerAdvice
-            .handleGenericException(genericException);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), genericExceptionResponse.getStatusCode().value());
-        assertNotNull(genericExceptionResponse.getBody());
-        assertEquals(mockedTimestamp, genericExceptionResponse.getBody().getTimestamp());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), genericExceptionResponse.getBody().getError());
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), genericExceptionResponse.getBody().getStatus());
-        assertEquals(genericExceptionMessage, genericExceptionResponse.getBody().getMessage());
-
         String errorExceptionMessage = "Some server error exception message";
 
         final ServerErrorException serverErrorException =
