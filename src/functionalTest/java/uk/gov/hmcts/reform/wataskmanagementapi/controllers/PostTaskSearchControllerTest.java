@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
@@ -94,20 +95,24 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
         // When
-        Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
 
-        // Then expect task1,task2 order
+        // Then expect task2,tak1 order
         List<String> actualCaseIdList = result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .extract()
             .body().path("tasks.case_id");
 
         assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId());
+            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
         // Given query
         searchTaskRequest = new SearchTaskRequest(
@@ -148,6 +153,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId))
@@ -184,6 +190,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", greaterThanOrEqualTo(3))
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
@@ -345,6 +352,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
@@ -380,6 +388,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("assigned")))
             .body("total_records", greaterThanOrEqualTo(1));
@@ -412,6 +421,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
@@ -514,6 +524,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
@@ -553,6 +564,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.id", hasItems(tasksCreated.get(0).getTaskId(), tasksCreated.get(1).getTaskId()))
             .body("tasks.case_id", hasItems(tasksCreated.get(0).getCaseId(), tasksCreated.get(1).getCaseId()))
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
@@ -631,6 +643,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.name", everyItem(notNullValue()))
             .body("tasks.type", everyItem(notNullValue()))
