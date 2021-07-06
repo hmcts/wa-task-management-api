@@ -4,7 +4,7 @@ config:
 spring:
   flyway:
     enabled: false
-    baselineOnMigrate: true
+    baselineOnMigrate: false
   jpa:
     hibernate:
       ddl-auto: create-drop

@@ -2,44 +2,37 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.support.TestPropertySourceUtils;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ContextConfiguration(initializers = CftRepositoryBaseTest.DockerPostgreDataSourceInitializer.class)
 @Testcontainers
 public abstract class CftRepositoryBaseTest {
 
-    public static PostgreSQLContainer<?> postgreDBContainer =
-        new PostgreSQLContainer<>("postgres:12")
-        .withDatabaseName("cft-tests-db")
-        .withUsername("sa")
-        .withPassword("sa");
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:11"))
+        .withDatabaseName("cft_db_test")
+        .withUsername("postgres")
+        .withPassword("pass");
 
-    static {
-        postgreDBContainer.start();
-    }
-
-    public static class DockerPostgreDataSourceInitializer implements
-        ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-        @Override
-        public void initialize(ConfigurableApplicationContext applicationContext) {
-
-            TestPropertySourceUtils.addInlinedPropertiesToEnvironment(
-                applicationContext,
-                "spring.datasource.url=" + postgreDBContainer.getJdbcUrl(),
-                "spring.datasource.username=" + postgreDBContainer.getUsername(),
-                "spring.datasource.password=" + postgreDBContainer.getPassword()
-            );
-        }
-
+    @DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+        registry.add(
+            "spring.datasource.url",
+            () -> String.format(
+                "jdbc:postgresql://localhost:%d/%s",
+                postgres.getFirstMappedPort(),
+                postgres.getDatabaseName()
+            )
+        );
+        registry.add("spring.datasource.username", () -> postgres.getUsername());
+        registry.add("spring.datasource.password", () -> postgres.getPassword());
     }
 }
