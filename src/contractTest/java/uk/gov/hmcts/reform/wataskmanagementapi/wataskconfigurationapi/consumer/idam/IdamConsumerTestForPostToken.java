@@ -15,7 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import java.util.Map;
 
@@ -26,7 +26,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
 
     @Autowired
-    IdamServiceApi idamApi;
+    IdamWebApi idamWebApi;
 
     @Pact(provider = "idamApi_oidc", consumer = "wa_task_configuration_api")
     public RequestResponsePact generatePactFragmentToken(PactDslWithProvider builder) {
@@ -60,7 +60,7 @@ public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
     public void verifyIdamUserDetailsRolesPactToken() {
 
         Map<String, String> tokenRequestMap = buildTokenRequestMap();
-        Token token = idamApi.token(tokenRequestMap);
+        Token token = idamWebApi.token(tokenRequestMap);
         Assertions.assertEquals(
             token.getAccessToken(), "Token is not expected", "eyJ0eXAiOiJKV1QiLCJraWQiOiJiL082T3ZWdjEre");
     }

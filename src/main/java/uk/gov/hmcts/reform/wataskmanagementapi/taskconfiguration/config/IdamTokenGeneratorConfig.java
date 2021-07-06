@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.IdamServiceApi;
 
 @Configuration
 public class IdamTokenGeneratorConfig {
@@ -34,11 +34,11 @@ public class IdamTokenGeneratorConfig {
     @Bean
     public IdamTokenGenerator systemUserIdamToken(
         UserIdamTokenGeneratorInfo systemUserIdamInfo,
-        @Autowired IdamServiceApi idamServiceApi
+        @Autowired IdamWebApi idamWebApi
     ) {
         return new IdamTokenGenerator(
             systemUserIdamInfo,
-            idamServiceApi
+            idamWebApi
         );
     }
 

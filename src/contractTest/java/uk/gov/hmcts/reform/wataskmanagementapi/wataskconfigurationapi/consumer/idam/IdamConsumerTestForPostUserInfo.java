@@ -15,7 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.IdamServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -26,7 +26,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest {
 
     @Autowired
-    IdamServiceApi idamApi;
+    IdamWebApi idamWebApi;
 
     @Pact(provider = "idamApi_oidc", consumer = "wa_task_configuration_api")
     public RequestResponsePact generatePactFragmentUserInfo(PactDslWithProvider builder) {
@@ -47,7 +47,7 @@ public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest 
     @Test
     @PactTestFor(pactMethod = "generatePactFragmentUserInfo")
     public void verifyIdamUserDetailsRolesPactUserInfo() {
-        UserInfo userInfo = idamApi.userInfo(AUTH_TOKEN);
+        UserInfo userInfo = idamWebApi.userInfo(AUTH_TOKEN);
         assertEquals(PACT_TEST_EMAIL_VALUE, userInfo.getEmail(), "User is not Case Officer");
     }
 

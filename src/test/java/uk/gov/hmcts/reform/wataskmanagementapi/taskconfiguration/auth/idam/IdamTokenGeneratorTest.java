@@ -9,8 +9,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.IdamServiceApi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 public class IdamTokenGeneratorTest {
 
     @Mock
-    IdamServiceApi idamServiceApi;
+    IdamWebApi idamWebApi;
     @Mock
     Token token;
     @Mock
@@ -47,7 +47,7 @@ public class IdamTokenGeneratorTest {
 
         idamTokenGenerator = new IdamTokenGenerator(
             userIdamTokenGeneratorInfo,
-            idamServiceApi
+            idamWebApi
         );
     }
 
@@ -64,7 +64,7 @@ public class IdamTokenGeneratorTest {
         map.add("password", systemUserPass);
         map.add("scope", systemUserScope);
 
-        when(idamServiceApi.token(map)).thenReturn(token);
+        when(idamWebApi.token(map)).thenReturn(token);
         when(token.getAccessToken()).thenReturn(returnToken);
 
         final String actualToken = idamTokenGenerator.generate();
@@ -75,7 +75,7 @@ public class IdamTokenGeneratorTest {
     @Test
     public void getUserInfo() {
         final String bearerAccessToken = "Bearer accessToken";
-        when(idamServiceApi.userInfo(bearerAccessToken)).thenReturn(userInfo);
+        when(idamWebApi.userInfo(bearerAccessToken)).thenReturn(userInfo);
 
         final UserInfo actualUserInfo = idamTokenGenerator.getUserInfo(bearerAccessToken);
 
