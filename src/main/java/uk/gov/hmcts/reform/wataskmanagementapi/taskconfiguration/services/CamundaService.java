@@ -10,10 +10,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalV
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions.ResourceNotFoundException;
 
 import java.util.Map;
 
@@ -22,14 +22,14 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings("PMD.LawOfDemeter")
 @Slf4j
 @Service
-public class TaskConfigurationCamundaService {
+public class CamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceTokenGenerator;
 
     @Autowired
-    public TaskConfigurationCamundaService(CamundaServiceApi camundaServiceApi,
-                                           AuthTokenGenerator serviceTokenGenerator
+    public CamundaService(CamundaServiceApi camundaServiceApi,
+                          AuthTokenGenerator serviceTokenGenerator
     ) {
         this.camundaServiceApi = camundaServiceApi;
         this.serviceTokenGenerator = serviceTokenGenerator;

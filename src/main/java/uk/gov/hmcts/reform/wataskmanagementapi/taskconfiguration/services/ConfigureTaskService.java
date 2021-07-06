@@ -23,14 +23,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Component
 public class ConfigureTaskService {
 
-    private final TaskConfigurationCamundaService taskConfigurationCamundaService;
+    private final CamundaService camundaService;
     private final List<TaskConfigurator> taskConfigurators;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
 
-    public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
+    public ConfigureTaskService(CamundaService camundaService,
                                 List<TaskConfigurator> taskConfigurators,
                                 TaskAutoAssignmentService taskAutoAssignmentService) {
-        this.taskConfigurationCamundaService = taskConfigurationCamundaService;
+        this.camundaService = camundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
     }
@@ -38,10 +38,10 @@ public class ConfigureTaskService {
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
     public void configureTask(String taskId) {
 
-        CamundaTask task = taskConfigurationCamundaService.getTask(taskId);
+        CamundaTask task = camundaService.getTask(taskId);
         log.info("CamundaTask id '{}' retrieved from Camunda", task.getId());
 
-        Map<String, CamundaValue<Object>> processVariables = taskConfigurationCamundaService.getVariables(taskId);
+        Map<String, CamundaValue<Object>> processVariables = camundaService.getVariables(taskId);
         CamundaValue<Object> caseIdValue = processVariables.get(CamundaVariableDefinition.CASE_ID.value());
         String caseId = (String) caseIdValue.getValue();
 
@@ -64,7 +64,7 @@ public class ConfigureTaskService {
             ));
 
         //Update Variables
-        taskConfigurationCamundaService.addProcessVariables(taskId, processVariablesToAdd);
+        camundaService.addProcessVariables(taskId, processVariablesToAdd);
 
         //Get latest task state as it was updated previously
         CamundaValue<String> taskState = processVariablesToAdd.get(TASK_STATE.value());

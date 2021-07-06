@@ -17,12 +17,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 public class TaskAutoAssignmentService {
 
     private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
-    private final TaskConfigurationCamundaService taskConfigurationCamundaService;
+    private final CamundaService camundaService;
 
     public TaskAutoAssignmentService(TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService,
-                                     TaskConfigurationCamundaService taskConfigurationCamundaService) {
+                                     CamundaService camundaService) {
         this.taskConfigurationRoleAssignmentService = taskConfigurationRoleAssignmentService;
-        this.taskConfigurationCamundaService = taskConfigurationCamundaService;
+        this.camundaService = camundaService;
     }
 
     public void autoAssignTask(TaskToConfigure taskToConfigure, String currentTaskState) {
@@ -52,7 +52,7 @@ public class TaskAutoAssignmentService {
         log.info("Role assignments retrieved for caseId '{}'", taskToConfigure.getCaseId());
         if (roleAssignments.isEmpty()) {
             log.info("The case did not have specific users assigned, Setting task state to '{}'", UNASSIGNED);
-            taskConfigurationCamundaService.updateTaskStateTo(taskToConfigure.getId(), UNASSIGNED);
+            camundaService.updateTaskStateTo(taskToConfigure.getId(), UNASSIGNED);
         } else {
             String assignee = roleAssignments.get(0).getActorId();
             log.info(
@@ -60,7 +60,7 @@ public class TaskAutoAssignmentService {
                 ASSIGNED
             );
 
-            taskConfigurationCamundaService.assignTask(
+            camundaService.assignTask(
                 taskToConfigure.getId(),
                 assignee,
                 currentTaskState
