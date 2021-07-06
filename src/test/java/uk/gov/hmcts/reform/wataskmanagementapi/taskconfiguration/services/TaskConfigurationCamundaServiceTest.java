@@ -119,7 +119,8 @@ class TaskConfigurationCamundaServiceTest {
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
         when(camundaServiceApi.getVariables(serviceTokenId, taskId)).thenReturn(processVariables);
 
-        Map<String, CamundaValue<Object>> expectedProcessVariables = taskConfigurationCamundaService.getVariables(taskId);
+        Map<String, CamundaValue<Object>> expectedProcessVariables =
+            taskConfigurationCamundaService.getVariables(taskId);
 
         assertNotNull(expectedProcessVariables);
         final CamundaValue<Object> taskState = expectedProcessVariables.get("taskState");
