@@ -22,14 +22,14 @@ import static java.util.Objects.requireNonNull;
 @SuppressWarnings("PMD.LawOfDemeter")
 @Slf4j
 @Service
-public class CamundaService {
+public class TaskConfigurationCamundaService {
 
     private final CamundaServiceApi camundaServiceApi;
     private final AuthTokenGenerator serviceTokenGenerator;
 
     @Autowired
-    public CamundaService(CamundaServiceApi camundaServiceApi,
-                          AuthTokenGenerator serviceTokenGenerator
+    public TaskConfigurationCamundaService(CamundaServiceApi camundaServiceApi,
+                                           AuthTokenGenerator serviceTokenGenerator
     ) {
         this.camundaServiceApi = camundaServiceApi;
         this.serviceTokenGenerator = serviceTokenGenerator;

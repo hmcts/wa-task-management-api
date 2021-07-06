@@ -42,7 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
-class AssignTaskTest extends CamundaServiceBaseTest {
+class AssignTaskTest extends TaskConfigurationCamundaServiceBaseTest {
 
     private AccessControlResponse assignerAccessControlResponse;
     private AccessControlResponse assigneeAccessControlResponse;

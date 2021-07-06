@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOb
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CamundaServiceBaseTest {
+public class TaskConfigurationCamundaServiceBaseTest {
 
     static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     static final String IDAM_USER_ID = "IDAM_USER_ID";

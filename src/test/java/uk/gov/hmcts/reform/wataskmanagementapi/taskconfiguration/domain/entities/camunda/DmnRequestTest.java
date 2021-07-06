@@ -1,19 +1,22 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions;
+package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.Assignment;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class ConfigureTaskExceptionTest {
+class DmnRequestTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = ConfigureTaskException.class;
+        final Class<?> classUnderTest = DmnRequest.class;
 
         assertPojoMethodsFor(classUnderTest)
+            .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
+            .testing(Method.TO_STRING)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
 
