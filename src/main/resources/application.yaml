@@ -12,7 +12,6 @@ management:
         include: health, info, prometheus
 
 config:
-  enableSwagger: ${ENABLE_SWAGGER:true}
   privilegedClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
   search:
     defaultMaxResults: 50
