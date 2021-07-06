@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
-public enum TaskState {
+public enum CFTTaskState {
 
     UNCONFIGURED("UNCONFIGURED"),
     PENDING_AUTO_ASSIGN("PENDING_AUTO_ASSIGN"),
@@ -13,7 +13,7 @@ public enum TaskState {
 
     private String value;
 
-    TaskState(String value) {
+    CFTTaskState(String value) {
         this.value = value;
     }
 

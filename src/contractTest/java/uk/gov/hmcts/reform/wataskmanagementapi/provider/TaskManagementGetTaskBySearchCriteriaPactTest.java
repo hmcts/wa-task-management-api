@@ -77,9 +77,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         }
 
         testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+                                            new MappingJackson2HttpMessageConverter(
+                                                objectMapper
+                                            )));
 
     }
 
@@ -116,7 +116,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList()));
+            new WarningValues(Collections.emptyList())
+        );
 
         return Arrays.asList(taskOne);
     }
