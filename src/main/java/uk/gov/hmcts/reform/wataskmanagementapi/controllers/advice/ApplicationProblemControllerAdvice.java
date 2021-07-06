@@ -26,14 +26,14 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
 
     @ExceptionHandler({
+        GenericForbiddenException.class,
+        RoleAssignmentVerificationException.class,
         TaskAssignAndCompleteException.class,
         TaskAssignException.class,
         TaskClaimException.class,
         TaskCompleteException.class,
         TaskUnclaimException.class,
         TaskCancelException.class,
-        GenericForbiddenException.class,
-        RoleAssignmentVerificationException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex
@@ -42,11 +42,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
             .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
+                      .withType(ex.getType())
+                      .withTitle(ex.getTitle())
+                      .withDetail(ex.getMessage())
+                      .withStatus(ex.getStatus())
+                      .build());
     }
 
 }
