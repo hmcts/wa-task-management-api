@@ -313,7 +313,10 @@ dependencies {
 
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
-  implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
+  implementation (group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0') {
+    exclude group: 'org.hibernate', module: 'hibernate-core'
+  }
+  implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.27.Final'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
 
   implementation 'org.zalando:problem-spring-web-starter:0.26.2'
