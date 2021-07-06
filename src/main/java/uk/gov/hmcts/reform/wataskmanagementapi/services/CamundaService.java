@@ -631,10 +631,11 @@ public class CamundaService {
             if (variablesForProcessInstanceId != null) {
                 //Format variables
                 Map<String, CamundaVariable> variables = variablesForProcessInstanceId.stream()
-                    .collect(toMap(
-                        CamundaVariableInstance::getName,
-                        var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b
-                             )
+                    .collect(
+                        toMap(
+                            CamundaVariableInstance::getName,
+                            variable -> new CamundaVariable(variable.getValue(), variable.getType()), (a, b) -> b
+                        )
                     );
 
                 //3. Evaluate access to task
