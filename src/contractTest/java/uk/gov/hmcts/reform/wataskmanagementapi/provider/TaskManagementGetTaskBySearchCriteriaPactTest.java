@@ -84,9 +84,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         }
 
         testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+                                            new MappingJackson2HttpMessageConverter(
+                                                objectMapper
+                                            )));
 
     }
 
