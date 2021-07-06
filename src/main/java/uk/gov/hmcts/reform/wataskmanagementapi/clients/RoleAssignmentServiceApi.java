@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,8 +9,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.response.RoleAssignmentResource;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -44,4 +48,11 @@ public interface RoleAssignmentServiceApi {
     void createRoleAssignment(@RequestBody String body,
                               @RequestHeader(AUTHORIZATION) String userToken,
                               @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
+
+    @PostMapping(value = "/am/role-assignments/query", consumes = "application/json")
+    RoleAssignmentResource queryRoleAssignments(
+        @RequestHeader(HttpHeaders.AUTHORIZATION) String userToken,
+        @RequestHeader(CoreCaseDataApi.SERVICE_AUTHORIZATION) String s2sToken,
+        @RequestBody QueryRequest queryRequest
+    );
 }

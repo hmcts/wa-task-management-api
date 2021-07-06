@@ -42,7 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
-    
+
     private static final String ENDPOINT_PATH = "/task/%s/claim";
     private static String ENDPOINT_BEING_TESTED;
     @MockBean

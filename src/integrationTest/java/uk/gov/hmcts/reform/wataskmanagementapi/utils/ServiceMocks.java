@@ -38,12 +38,12 @@ public class ServiceMocks {
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
     public static final String SERVICE_AUTHORIZATION_TOKEN = "Bearer SERVICE_AUTHORIZATION_TOKEN";
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private IdamWebApi idamWebApi;
-    private CamundaServiceApi camundaServiceApi;
-    private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    private ServiceAuthorisationApi serviceAuthorisationApi;
+    private final IdamWebApi idamWebApi;
+    private final CamundaServiceApi camundaServiceApi;
+    private final RoleAssignmentServiceApi roleAssignmentServiceApi;
+    private final ServiceAuthorisationApi serviceAuthorisationApi;
 
     public ServiceMocks(IdamWebApi idamWebApi,
                         ServiceAuthorisationApi serviceAuthorisationApi,

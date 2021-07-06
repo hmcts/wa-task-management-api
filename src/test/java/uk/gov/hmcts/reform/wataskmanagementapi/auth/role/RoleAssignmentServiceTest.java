@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
 import feign.FeignException;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -61,7 +61,7 @@ class RoleAssignmentServiceTest {
                 either(is("someCaseRoleName")).or(is("someOrganisationalRoleName"))
             );
             assertThat(roleAssignment.getRoleType(), either(is(RoleType.ORGANISATION)).or(is(RoleType.CASE)));
-            assertEquals(idamUserId, roleAssignment.getActorId());
+            Assertions.assertEquals(idamUserId, roleAssignment.getActorId());
         });
     }
 
