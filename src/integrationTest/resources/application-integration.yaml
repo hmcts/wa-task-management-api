@@ -3,7 +3,7 @@ config:
 
 spring:
   flyway:
-    enabled: true
+    enabled: false
     baselineOnMigrate: true
   jpa:
     hibernate:
