@@ -41,17 +41,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @Slf4j
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
-public class TaskSearchController {
+public class TaskSearchController extends BaseController {
 
     private static final Logger LOG = getLogger(TaskSearchController.class);
-    private static final String UNAUTHORIZED = "Unauthorized";
-    private static final String BAD_REQUEST = "Bad Request";
-    private static final String FORBIDDEN = "Forbidden";
-    private static final String UNSUPPORTED_MEDIA_TYPE = "Unsupported Media Type";
-    private static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
 
@@ -70,7 +64,7 @@ public class TaskSearchController {
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "OK", response = GetTasksResponse.class),
+        @ApiResponse(code = 200, message = OK, response = GetTasksResponse.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
@@ -116,11 +110,11 @@ public class TaskSearchController {
     @ApiOperation("Retrieve a list of Task resources identified by set of search"
                   + " criteria that are eligible for automatic completion")
     @ApiResponses({
-        @ApiResponse(code = 200, message = "OK", response = GetTasksCompletableResponse.class),
+        @ApiResponse(code = 200, message = OK, response = GetTasksCompletableResponse.class),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 403, message = "Forbidden"),
-        @ApiResponse(code = 415, message = "Unsupported Media Type"),
-        @ApiResponse(code = 500, message = "Internal Server Error")
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(

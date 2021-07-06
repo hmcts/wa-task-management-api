@@ -57,7 +57,6 @@ public enum ErrorMessages {
 
     private final String detail;
 
-
     ErrorMessages(String detail) {
         this.detail = detail;
     }

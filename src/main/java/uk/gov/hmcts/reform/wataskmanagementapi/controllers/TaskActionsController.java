@@ -20,14 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
@@ -44,12 +42,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.ExcessiveImports"})
-@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUzE, produces = APPLICATION_JSON_VALUE)
 @RestController
-public class TaskActionsController {
+public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
     private static final String UNAUTHORIZED = "Unauthorized";
@@ -60,15 +56,14 @@ public class TaskActionsController {
     private static final String TASK_ID = "task-id";
     private final CamundaService camundaService;
     private final AccessControlService accessControlService;
-    private final PrivilegedAccessControlService privilegedAccessControlService;
+    private final RestrictedAccessControlService restrictedAccessControlService;
     private final SystemDateProvider systemDateProvider;
 
     @Autowired
     public TaskActionsController(CamundaService camundaService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
-                                 PrivilegedAccessControlService privilegedAccessControlService
-    ) {
+                                 RestrictedAccessControlService restrictedAccessControlService) {
         this.camundaService = camundaService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
@@ -193,7 +188,6 @@ public class TaskActionsController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
@@ -202,23 +196,20 @@ public class TaskActionsController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
-            camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
-        } else {
-            boolean isPrivilegedRequest =
-                privilegedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
+        boolean isPrivilegedRequest =
+            restrictedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
 
-            if (isPrivilegedRequest) {
-                camundaService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    endpointPermissionsRequired,
-                    completeTaskRequest.getCompletionOptions()
-                );
-            } else {
-                throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
-            }
+        if (isPrivilegedRequest && completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
+            camundaService.completeTaskWithPrivilegeAndCompletionOptions(
+                taskId,
+                accessControlResponse,
+                endpointPermissionsRequired,
+                completeTaskRequest.getCompletionOptions()
+            );
+        } else {
+            camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
         }
+
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
