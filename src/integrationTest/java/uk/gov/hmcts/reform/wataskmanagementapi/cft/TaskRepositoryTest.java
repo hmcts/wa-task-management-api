@@ -48,7 +48,6 @@ public class TaskRepositoryTest extends CftRepositoryBaseTest {
             () -> assertEquals(TaskSystem.SELF, tasks.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, tasks.getBusinessContext()),
             () -> assertEquals(LocalDate.of(2022, 05, 9), tasks.getAssignmentExpiry().toLocalDate()),
-            () -> assertEquals(ZoneOffset.of("+01:00"), tasks.getAssignmentExpiry().getOffset()),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.getNoteType())
         );
