@@ -11,8 +11,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients(basePackages =
     {
         "uk.gov.hmcts.reform.authorisation",
-        "uk.gov.hmcts.reform.wataskmanagementapi",
-        "uk.gov.hmcts.reform.ccd.client"
+        "uk.gov.hmcts.reform.wataskmanagementapi"
     })
 public class Application {
 
