@@ -14,3 +14,8 @@ spring:
     hibernate:
       ddl-auto: update
       default_schema: cft_task_db
+
+idam:
+  test:
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
