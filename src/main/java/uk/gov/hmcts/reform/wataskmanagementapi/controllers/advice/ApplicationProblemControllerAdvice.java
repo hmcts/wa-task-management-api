@@ -19,7 +19,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
 @Slf4j
-@ControllerAdvice(basePackages = "uk.gov.hmcts.reform.wataskmanagementapi.controllers")
+@ControllerAdvice(basePackages = {
+    "uk.gov.hmcts.reform.wataskmanagementapi.controllers",
+    "uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers"
+})
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
 
@@ -38,11 +41,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
             .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
+                      .withType(ex.getType())
+                      .withTitle(ex.getTitle())
+                      .withDetail(ex.getMessage())
+                      .withStatus(ex.getStatus())
+                      .build());
     }
 
 }

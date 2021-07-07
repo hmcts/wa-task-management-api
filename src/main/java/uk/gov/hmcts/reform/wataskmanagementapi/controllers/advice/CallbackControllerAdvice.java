@@ -21,7 +21,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@ControllerAdvice(basePackages = "uk.gov.hmcts.reform.wataskmanagementapi.controllers")
+@ControllerAdvice(
+    basePackages = {
+        "uk.gov.hmcts.reform.wataskmanagementapi.controllers",
+        "uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers"
+    })
 @RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 
@@ -44,10 +48,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.INTERNAL_SERVER_ERROR,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -59,10 +63,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.NOT_FOUND,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.NOT_FOUND,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -73,10 +77,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.CONFLICT)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.CONFLICT,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.CONFLICT,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -87,10 +91,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.SERVICE_UNAVAILABLE,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.SERVICE_UNAVAILABLE,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -101,10 +105,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.BAD_REQUEST,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.BAD_REQUEST,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -115,10 +119,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.FORBIDDEN,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.FORBIDDEN,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -129,10 +133,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.UNAUTHORIZED,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.UNAUTHORIZED,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -143,10 +147,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.BAD_REQUEST,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.BAD_REQUEST,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
@@ -157,10 +161,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
             .body(new ErrorMessage(
-                    ex,
-                    HttpStatus.FORBIDDEN,
-                    systemDateProvider.nowWithTime()
-                )
+                      ex,
+                      HttpStatus.FORBIDDEN,
+                      systemDateProvider.nowWithTime()
+                  )
             );
     }
 
