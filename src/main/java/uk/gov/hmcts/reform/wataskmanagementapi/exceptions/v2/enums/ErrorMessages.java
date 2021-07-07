@@ -50,7 +50,7 @@ public enum ErrorMessages {
         + "but he Task could not be completed."),
 
     ROLE_ASSIGNMENT_VERIFICATIONS_FAILED(
-        "Role assignment verifications failed."),
+        "The request failed the Role Assignment checks performed."),
 
     GENERIC_FORBIDDEN_ERROR(
         "The action could not be completed because the client/user had insufficient rights to a resource.");
