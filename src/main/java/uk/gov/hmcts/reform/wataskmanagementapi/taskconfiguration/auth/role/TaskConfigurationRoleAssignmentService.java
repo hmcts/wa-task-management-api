@@ -5,13 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.response.RoleAssignmentResource;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,16 +40,16 @@ public class TaskConfigurationRoleAssignmentService {
         this.systemUserIdamToken = systemUserIdamToken;
     }
 
-    public List<RoleAssignment> searchRolesByCaseId(String caseId) {
+    public List<Assignment> searchRolesByCaseId(String caseId) {
         requireNonNull(caseId, "caseId cannot be null");
 
-        RoleAssignmentResource roleAssignmentResponse = performSearch(buildQueryRequest(caseId));
+        GetRoleAssignmentResponse roleAssignmentResponse = performSearch(buildQueryRequest(caseId));
         log.debug("Roles successfully retrieved from RoleAssignment Service for caseId '{}'", caseId);
 
         return roleAssignmentResponse.getRoleAssignmentResponse();
     }
 
-    public RoleAssignmentResource performSearch(QueryRequest queryRequest) {
+    public GetRoleAssignmentResponse performSearch(QueryRequest queryRequest) {
         try {
             return roleAssignmentServiceApi.queryRoleAssignments(
                 systemUserIdamToken.generate(),

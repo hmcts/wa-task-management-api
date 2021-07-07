@@ -10,15 +10,14 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
@@ -37,6 +36,9 @@ class CaseConfigurationProviderServiceTest {
 
     private CaseConfigurationProviderService caseConfigurationProviderService;
 
+    @Mock
+    private CaseDetails caseDetails;
+
     @BeforeEach
     void setUp() {
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
@@ -44,19 +46,17 @@ class CaseConfigurationProviderServiceTest {
             ccdDataService,
             dmnEvaluationService,
             objectMapper);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
     }
 
     @Test
     void does_not_have_any_fields_to_map() {
         String someCaseId = "someCaseId";
-        String ccdData = "{"
-                         + "\"jurisdiction\": \"IA\","
-                         + "\"case_type\": \"Asylum\","
-                         + "\"security_classification\": \"PUBLIC\","
-                         + "\"data\": {}"
-                         + "}";
 
-        when(ccdDataService.getCaseData(someCaseId)).thenReturn(ccdData);
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}"))
             .thenReturn(asList(
                 new DecisionTableResult(
@@ -77,33 +77,10 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
-    void cannot_parse_response_from_ccd() {
-        assertThrows(
-            IllegalStateException.class,
-            () -> {
-                String someCaseId = "someCaseId";
-                String ccdData = "not valid json";
-                when(ccdDataService.getCaseData(someCaseId)).thenReturn(ccdData);
-
-                Map<String, Object> mappedData =
-                    caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
-
-                assertThat(mappedData, is(emptyMap()));
-            }
-        );
-    }
-
-    @Test
     void gets_fields_to_map() {
         String someCaseId = "someCaseId";
-        String ccdData = "{ "
-                         + "\"jurisdiction\": \"IA\","
-                         + "\"case_type\": \"Asylum\","
-                         + "\"security_classification\": \"PUBLIC\","
-                         + "\"data\": {}"
-                         + "}";
 
-        when(ccdDataService.getCaseData(someCaseId)).thenReturn(ccdData);
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}"))
             .thenReturn(asList(
                 new DecisionTableResult(stringValue("name1"), stringValue("value1")),

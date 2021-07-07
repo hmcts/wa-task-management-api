@@ -8,6 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 
 import java.util.UUID;
 
@@ -26,6 +27,9 @@ public class CcdDataServiceTest {
     @Mock
     IdamTokenGenerator idamTokenGenerator;
 
+    @Mock
+    private CaseDetails caseDetails;
+
     private CcdDataService ccdDataService;
 
     @Before
@@ -39,20 +43,13 @@ public class CcdDataServiceTest {
         String userToken = "user_token";
         String serviceToken = "service_token";
 
-        String caseData = "{ "
-                          + "\"jurisdiction\": \"ia\", "
-                          + "\"case_type_id\": \"Asylum\", "
-                          + "\"security_classification\": \"PUBLIC\","
-                          + "\"data\": {}"
-                          + " }";
-
         when(idamTokenGenerator.generate()).thenReturn(userToken);
         when(authTokenGenerator.generate()).thenReturn(serviceToken);
 
-        when(ccdDataServiceApi.getCase(userToken, serviceToken, caseId)).thenReturn(caseData);
+        when(ccdDataServiceApi.getCase(userToken, serviceToken, caseId)).thenReturn(caseDetails);
 
-        String actualCaseData = ccdDataService.getCaseData(caseId);
+        CaseDetails actualCaseData = ccdDataService.getCaseData(caseId);
 
-        assertEquals(caseData, actualCaseData);
+        assertEquals(actualCaseData, caseDetails);
     }
 }

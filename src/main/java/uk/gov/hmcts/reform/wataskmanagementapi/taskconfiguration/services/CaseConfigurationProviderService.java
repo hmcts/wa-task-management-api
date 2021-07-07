@@ -44,8 +44,7 @@ public class CaseConfigurationProviderService {
      */
     public Map<String, Object> getCaseRelatedConfiguration(String caseId) {
         // Obtain case from ccd
-        String caseData = ccdDataService.getCaseData(caseId);
-        CaseDetails caseDetails = read(caseData, caseId);
+        CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
@@ -85,15 +84,4 @@ public class CaseConfigurationProviderService {
         return null;
     }
 
-    private CaseDetails read(String caseData, String caseId) {
-        try {
-            return objectMapper.readValue(caseData, CaseDetails.class);
-        } catch (JsonProcessingException ex) {
-            log.error("Case Configuration : Cannot parse result from CCD for caseId '{}'", caseId);
-            throw new IllegalStateException(
-                String.format("Cannot parse result from CCD for %s", caseId),
-                ex
-            );
-        }
-    }
 }

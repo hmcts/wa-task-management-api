@@ -15,12 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment.RoleAssignmentConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
 
 import java.time.LocalDateTime;
@@ -86,7 +86,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     @Test
     @PactTestFor(pactMethod = "generatePactFragmentForQueryRoleAssignments")
     public void verifyQueryRoleAssignments() {
-        List<RoleAssignment> queryRoleAssignmentResponse = roleAssignmentService
+        List<Assignment> queryRoleAssignmentResponse = roleAssignmentService
             .performSearch(buildQueryRequest()).getRoleAssignmentResponse();
 
         assertThat(queryRoleAssignmentResponse.get(0).getActorId(), is(assigneeId));

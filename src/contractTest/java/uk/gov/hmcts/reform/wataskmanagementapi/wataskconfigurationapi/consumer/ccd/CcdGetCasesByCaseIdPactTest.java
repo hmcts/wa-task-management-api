@@ -74,9 +74,7 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
     @PactTestFor(pactMethod = "executeCcdGetCasesByCaseId")
     public void verifyGetCaseById() {
 
-        String caseData = ccdDataService.getCaseData(TEST_CASE_ID);
-
-        CaseDetails caseDetails = read(caseData);
+        CaseDetails caseDetails = ccdDataService.getCaseData(TEST_CASE_ID);
 
         assertThat(caseDetails.getSecurityClassification(), is("PRIVATE"));
         assertThat(caseDetails.getJurisdiction(), is("IA"));

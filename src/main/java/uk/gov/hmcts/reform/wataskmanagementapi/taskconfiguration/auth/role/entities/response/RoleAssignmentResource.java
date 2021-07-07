@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.enti
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 
@@ -15,7 +16,8 @@ public final class RoleAssignmentResource {
     private final List<RoleAssignment> roleAssignmentResponse;
     private final Object links;
 
-    public RoleAssignmentResource(List<RoleAssignment> roleAssignmentResponse, Object links) {
+    public RoleAssignmentResource(@JsonProperty("roleAssignmentResponse") List<RoleAssignment> roleAssignmentResponse,
+                                  Object links) {
         this.roleAssignmentResponse = roleAssignmentResponse;
         this.links = links;
     }

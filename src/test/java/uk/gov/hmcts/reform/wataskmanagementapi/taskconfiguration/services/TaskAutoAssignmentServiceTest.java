@@ -5,12 +5,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
@@ -67,7 +67,7 @@ class TaskAutoAssignmentServiceTest {
     @Test
     void getAutoAssignmentVariables_should_return_assigned_task_state_and_assignee() {
 
-        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
+        Assignment roleAssignmentResource = Assignment.builder()
             .id("someId")
             .actorIdType(ActorIdType.IDAM)
             .actorId("someUserId")
@@ -85,9 +85,7 @@ class TaskAutoAssignmentServiceTest {
 
         assertThat(result.getAssignee()).isEqualTo("someUserId");
         assertThat(result.getTaskState()).isEqualTo(ASSIGNED.value());
-
     }
-
 
     @Test
     void autoAssignTask_should_update_task_state_only_to_unassigned() {
@@ -105,8 +103,7 @@ class TaskAutoAssignmentServiceTest {
 
     @Test
     void autoAssignTask_should_update_auto_assign() {
-
-        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
+        Assignment roleAssignmentResource = Assignment.builder()
             .id("someId")
             .actorIdType(ActorIdType.IDAM)
             .actorId("someUserId")
@@ -119,7 +116,6 @@ class TaskAutoAssignmentServiceTest {
         when(roleAssignmentService.searchRolesByCaseId(testTaskToConfigure.getCaseId()))
             .thenReturn(singletonList(roleAssignmentResource));
 
-
         taskAutoAssignmentService.autoAssignTask(testTaskToConfigure, UNCONFIGURED.value());
 
         verify(camundaService).assignTask(
@@ -127,7 +123,6 @@ class TaskAutoAssignmentServiceTest {
             "someUserId",
             UNCONFIGURED.value()
         );
-
     }
 
 }

@@ -6,22 +6,20 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.response.RoleAssignmentResource;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -51,15 +49,8 @@ class TaskConfigurationRoleAssignmentServiceTest {
 
     @Test
     void should_search_roles_by_case_id() {
-
-        final List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-        RoleAssignment roleAssignment =
-            getRoleAssignment();
-
-        roleAssignments.add(roleAssignment);
-
-        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(roleAssignments, null);
+        final GetRoleAssignmentResponse roleAssignmentResource =
+            new GetRoleAssignmentResponse(List.of(getRoleAssignment()));
 
         final String caseId = UUID.randomUUID().toString();
         final String userToken = "userToken";
@@ -75,15 +66,14 @@ class TaskConfigurationRoleAssignmentServiceTest {
         ))
             .thenReturn(roleAssignmentResource);
 
-        final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
+        final List<Assignment> actualRoleAssignments = roleAssignmentService.searchRolesByCaseId(caseId);
 
-        assertNotNull(roleAssignments);
         assertEquals(1, actualRoleAssignments.size());
     }
 
-    private RoleAssignment getRoleAssignment() {
+    private Assignment getRoleAssignment() {
         final String testUserId = UUID.randomUUID().toString();
-        return RoleAssignment.builder()
+        return Assignment.builder()
             .id("someId")
             .actorIdType(ActorIdType.IDAM)
             .actorId(testUserId)

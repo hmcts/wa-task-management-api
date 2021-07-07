@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
@@ -30,7 +30,7 @@ public class TaskAutoAssignmentService {
     }
 
     public AutoAssignmentResult getAutoAssignmentVariables(TaskToConfigure task) {
-        List<RoleAssignment> roleAssignments =
+        List<Assignment> roleAssignments =
             taskConfigurationRoleAssignmentService.searchRolesByCaseId(task.getCaseId());
 
         if (roleAssignments.isEmpty()) {
@@ -47,7 +47,7 @@ public class TaskAutoAssignmentService {
     private void updateTaskStateAndSetAssignee(TaskToConfigure taskToConfigure,
                                                String currentTaskState) {
 
-        List<RoleAssignment> roleAssignments =
+        List<Assignment> roleAssignments =
             taskConfigurationRoleAssignmentService.searchRolesByCaseId(taskToConfigure.getCaseId());
         log.info("Role assignments retrieved for caseId '{}'", taskToConfigure.getCaseId());
         if (roleAssignments.isEmpty()) {

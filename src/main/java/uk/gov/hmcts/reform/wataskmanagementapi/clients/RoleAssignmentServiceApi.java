@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.response.RoleAssignmentResource;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -50,7 +49,7 @@ public interface RoleAssignmentServiceApi {
                               @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
 
     @PostMapping(value = "/am/role-assignments/query", consumes = "application/json")
-    RoleAssignmentResource queryRoleAssignments(
+    GetRoleAssignmentResponse queryRoleAssignments(
         @RequestHeader(HttpHeaders.AUTHORIZATION) String userToken,
         @RequestHeader(CoreCaseDataApi.SERVICE_AUTHORIZATION) String s2sToken,
         @RequestBody QueryRequest queryRequest

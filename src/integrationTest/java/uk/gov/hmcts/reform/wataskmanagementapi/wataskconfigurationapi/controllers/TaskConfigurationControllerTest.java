@@ -7,25 +7,26 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
@@ -34,13 +35,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -89,6 +92,8 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
     private String testProcessInstanceId;
     private String testUserId;
     private String testCaseId;
+    @Mock
+    private CaseDetails caseDetails;
 
     @BeforeEach
     void setUp() {
@@ -96,6 +101,10 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         testProcessInstanceId = UUID.randomUUID().toString();
         testUserId = UUID.randomUUID().toString();
         testCaseId = UUID.randomUUID().toString();
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
     }
 
     @DisplayName("Should return 200 and configure a task over REST with no auto-assign")
@@ -279,29 +288,22 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
 
     private void setupRoleAssignmentResponse(boolean shouldReturnRoleAssignment) {
-
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-        if (shouldReturnRoleAssignment) {
-
-            RoleAssignment roleAssignment = RoleAssignment.builder()
-                .id("someId")
-                .actorIdType(ActorIdType.IDAM)
-                .actorId(testUserId)
-                .roleName("tribunal-caseworker")
-                .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                .roleType(RoleType.ORGANISATION)
-                .classification(Classification.PUBLIC)
-                .build();
-
-            roleAssignments.add(roleAssignment);
-        }
+        Function<Boolean, List<Assignment>> getRoleAssignment = (condition) ->
+            (condition) ? List.of(Assignment.builder()
+                                      .id("someId")
+                                      .actorIdType(ActorIdType.IDAM)
+                                      .actorId(testUserId)
+                                      .roleName("tribunal-caseworker")
+                                      .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                                      .roleType(RoleType.ORGANISATION)
+                                      .classification(Classification.PUBLIC)
+                                      .build()) : emptyList();
 
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
             any(QueryRequest.class)
-        )).thenReturn(new RoleAssignmentResource(roleAssignments, null));
+        )).thenReturn(new GetRoleAssignmentResponse(getRoleAssignment.apply(shouldReturnRoleAssignment)));
 
     }
 
@@ -325,24 +327,17 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         when(systemUserIdamToken.generate()).thenReturn(BEARER_USER_TOKEN);
         when(serviceAuthTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
-        String caseData = "{ "
-            + "\"jurisdiction\": \"IA\", "
-            + "\"case_type\": \"Asylum\", "
-            + "\"security_classification\": \"PUBLIC\","
-            + "\"data\": {}"
-            + " }";
-
         when(ccdDataServiceApi.getCase(
             BEARER_USER_TOKEN,
             BEARER_SERVICE_TOKEN,
             testCaseId
              )
-        ).thenReturn(caseData);
+        ).thenReturn(caseDetails);
 
         when(camundaServiceApi.evaluateDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData)))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
              )
         ).thenReturn(singletonList(new DecisionTableResult(stringValue("name"), stringValue("value1"))));
 
