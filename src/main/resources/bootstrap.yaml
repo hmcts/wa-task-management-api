@@ -7,7 +7,10 @@ spring:
       aliases:
         AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
         wa-idam-client-secret: WA_IDAM_CLIENT_SECRET
+        wa-idam-client-id: WA_IDAM_CLIENT_ID
         s2s-secret-task-management-api: S2S_SECRET_TASK_MANAGEMENT_API
         ld-secret: LAUNCH_DARKLY_SDK_KEY
         cft-task-POSTGRES-PASS: POSTGRES_PASSWORD
         cft-task-POSTGRES-USER: POSTGRES_USERNAME
+        wa-system-username: WA_SYSTEM_USERNAME
+        wa-system-password: WA_SYSTEM_PASSWORD
