@@ -51,6 +51,7 @@ public class TaskActionsController extends BaseController {
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
                                  ClientAccessControlService clientAccessControlService) {
+        super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
@@ -67,7 +68,7 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @GetMapping(path = "/{task-id}")
-    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader(AUTHORIZATION) String authToken,
                                                          @PathVariable(TASK_ID) String id) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -94,7 +95,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/claim")
-    public ResponseEntity<Void> claimTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> claimTask(@RequestHeader(AUTHORIZATION) String authToken,
                                           @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -117,7 +118,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/unclaim")
-    public ResponseEntity<Void> unclaimTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> unclaimTask(@RequestHeader(AUTHORIZATION) String authToken,
                                             @PathVariable(TASK_ID) String taskId) {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
@@ -139,7 +140,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
+    public ResponseEntity<Void> assignTask(@RequestHeader(AUTHORIZATION) String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
 
@@ -210,7 +211,7 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
-    public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> cancelTask(@RequestHeader(AUTHORIZATION) String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 

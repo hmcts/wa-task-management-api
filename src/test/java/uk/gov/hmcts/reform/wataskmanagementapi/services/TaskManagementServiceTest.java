@@ -243,7 +243,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
             List<Assignment> roleAssignmentAssigner = singletonList(mock(Assignment.class));
             when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
-            when(assignerAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
             List<Assignment> roleAssignmentAssignee = singletonList(mock(Assignment.class));
@@ -274,7 +275,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
             List<Assignment> roleAssignmentAssigner = singletonList(mock(Assignment.class));
             when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
-            when(assignerAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
             when(assigneeAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
@@ -307,7 +309,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
             List<Assignment> roleAssignmentAssigner = singletonList(mock(Assignment.class));
             when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
-            when(assignerAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
             List<Assignment> roleAssignmentAssignee = singletonList(mock(Assignment.class));
@@ -357,8 +360,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .hasNoCause()
                 .hasMessage("Assigner userId cannot be null");
 
-            when(assignerAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
-            when(assigneeAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
+            when(assignerAccessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            when(assigneeAccessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(null).build());
 
             assertThatThrownBy(() -> taskManagementService.assignTask(
                 taskId,
@@ -599,7 +604,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 ))
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
-                    .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                    .hasMessage("Role Assignment Verification: "
+                                + "The request failed the Role Assignment checks performed.");
             }
         }
 
@@ -660,7 +666,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 ))
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
-                    .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                    .hasMessage("Role Assignment Verification: "
+                                + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), any());
             }

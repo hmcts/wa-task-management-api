@@ -52,6 +52,7 @@ public class TaskSearchController extends BaseController {
     public TaskSearchController(TaskManagementService taskManagementService,
                                 AccessControlService accessControlService
     ) {
+        super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
     }

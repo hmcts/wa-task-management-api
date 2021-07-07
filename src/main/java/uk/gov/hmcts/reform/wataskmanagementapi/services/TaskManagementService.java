@@ -37,6 +37,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 @Slf4j
 @Service
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -53,6 +54,14 @@ public class TaskManagementService {
         this.permissionEvaluatorService = permissionEvaluatorService;
     }
 
+    /**
+     * Retrieves a task from camunda, performs role assignment verifications and returns a mapped task.
+     * This method requires {@link PermissionTypes.READ} permission.
+     *
+     * @param taskId          the task id.
+     * @param roleAssignments the user role assignments
+     * @return A mapped task {@link Task}
+     */
     public Task getTask(String taskId, List<Assignment> roleAssignments) {
         List<PermissionTypes> permissionsRequired = singletonList(READ);
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
@@ -60,6 +69,13 @@ public class TaskManagementService {
         return camundaService.getMappedTask(taskId, variables);
     }
 
+    /**
+     * Claims a task in camunda also performs role assignment verifications.
+     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     */
     public void claimTask(String taskId,
                           AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
@@ -69,6 +85,13 @@ public class TaskManagementService {
         camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
     }
 
+    /**
+     * Unclaims a task in camunda also performs role assignment verifications.
+     * This method requires {@link PermissionTypes.MANAGE} permission.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     */
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
         String userId = accessControlResponse.getUserInfo().getUid();
         List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
@@ -85,6 +108,17 @@ public class TaskManagementService {
         camundaService.unclaimTask(taskId, variables);
     }
 
+    /**
+     * Assigns the task to another user in Camunda.
+     * Also performs role assignment verifications for both assignee and assigner.
+     * This method requires:
+     * Assigner to have {@link PermissionTypes.MANAGE} permission.
+     * Assignee to have {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     *
+     * @param taskId                        the task id.
+     * @param assignerAccessControlResponse Assigner's access control response containing user id and role assignments.
+     * @param assigneeAccessControlResponse Assignee's access control response containing user id and role assignments.
+     */
     public void assignTask(String taskId,
                            AccessControlResponse assignerAccessControlResponse,
                            AccessControlResponse assigneeAccessControlResponse) {
@@ -109,6 +143,14 @@ public class TaskManagementService {
         camundaService.assignTask(taskId, assigneeAccessControlResponse.getUserInfo().getUid(), variables);
     }
 
+
+    /**
+     * Cancels a task in camunda also performs role assignment verifications.
+     * This method requires {@link PermissionTypes.CANCEL} permission.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     */
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
@@ -121,10 +163,16 @@ public class TaskManagementService {
 
     }
 
+    /**
+     * Completes a task in camunda also performs role assignment verifications.
+     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     *
+     * @param taskId                the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     */
     public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
-        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
 
         CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
 
@@ -139,6 +187,7 @@ public class TaskManagementService {
 
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
 
+        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
         roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
             camundaTask.getAssignee(),
             userId,
@@ -151,9 +200,10 @@ public class TaskManagementService {
 
     /**
      * This method is only used by privileged clients allowing them to set a predefined options for completion.
+     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
      *
      * @param taskId                The task id to complete.
-     * @param accessControlResponse The access control response containing IDAM user info and user role assignments.
+     * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
      */
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
@@ -172,11 +222,20 @@ public class TaskManagementService {
         }
     }
 
-
+    /**
+     * Performs a search in camunda and retrieves mapped tasks also filters out tasks by role assignments permissions.
+     * This method requires {@link PermissionTypes.READ} permission.
+     * This method supports pagination parameters.
+     *
+     * @param searchTaskRequest     the search request.
+     * @param firstResult           pagination parameter the first result where to begin searching.
+     * @param maxResults            pagination parameter the max results to returns.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     * @return a list of filtered and mapped tasks {@link Task}
+     */
     public List<Task> searchWithCriteria(SearchTaskRequest searchTaskRequest,
                                          int firstResult, int maxResults,
                                          AccessControlResponse accessControlResponse) {
-        List<PermissionTypes> permissionsRequired = singletonList(READ);
 
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
 
@@ -184,7 +243,7 @@ public class TaskManagementService {
         if (query == null) {
             return emptyList();
         }
-
+        List<PermissionTypes> permissionsRequired = singletonList(READ);
         return camundaService.searchWithCriteria(
             query,
             firstResult,
@@ -194,17 +253,24 @@ public class TaskManagementService {
         );
     }
 
-    @SuppressWarnings("PMD.CyclomaticComplexity")
+    /**
+     * Performs a specific search in camunda to find tasks that could be completed.
+     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     *
+     * @param searchEventAndCase    the search request.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     * @return
+     */
+    @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                                        AccessControlResponse accessControlResponse) {
-
-        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
 
         //Safe-guard against unsupported Jurisdictions and case types.
         if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
             || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
+
         //1. Evaluate Dmn
         final List<Map<String, CamundaVariable>> evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(
             searchEventAndCase);
@@ -237,6 +303,7 @@ public class TaskManagementService {
             searchResults = tasksAssignedToUser;
         }
 
+        List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
         final List<Task> taskList = camundaService.performSearchAction(
             searchResults,
             accessControlResponse,
@@ -252,6 +319,12 @@ public class TaskManagementService {
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, taskList);
     }
 
+    /**
+     * Retrieve the total amount of tasks based on a query.
+     *
+     * @param searchTaskRequest the search request.
+     * @return the amount of tasks for a specific query.
+     */
     public long getTaskCount(SearchTaskRequest searchTaskRequest) {
         CamundaSearchQuery query = camundaQueryBuilder.createQuery(searchTaskRequest);
         //Safe-guard to avoid sending empty orQueries to camunda and abort early

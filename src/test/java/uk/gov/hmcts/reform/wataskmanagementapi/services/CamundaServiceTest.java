@@ -155,7 +155,7 @@ class CamundaServiceTest extends CamundaHelpers {
     @DisplayName("getUnmappedCamundaTask()")
     class GetUnmappedCamundaTask {
         @Test
-        void getUnmappedCamundaTask_should_succeed() {
+        void should_succeed() {
             CamundaTask mockedCamundaTask = createMockedUnmappedTask();
 
             when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedCamundaTask);
@@ -167,7 +167,7 @@ class CamundaServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void getUnmappedCamundaTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
+        void should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
 
@@ -189,7 +189,7 @@ class CamundaServiceTest extends CamundaHelpers {
     @DisplayName("getTaskVariables()")
     class GetTaskVariables {
         @Test
-        void getUnmappedCamundaTask_should_succeed() {
+        void should_succeed() {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
 
             when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
@@ -201,7 +201,7 @@ class CamundaServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void getUnmappedCamundaTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
+        void should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
@@ -1319,10 +1319,7 @@ class CamundaServiceTest extends CamundaHelpers {
             CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
 
             doThrow(FeignException.FeignServerException.class)
-                .when(camundaServiceApi).searchWithCriteriaAndNoPagination(
-                eq(BEARER_SERVICE_TOKEN),
-                anyMap()
-            );
+                .when(camundaServiceApi).searchWithCriteriaAndNoPagination(eq(BEARER_SERVICE_TOKEN), anyMap());
 
             assertThatThrownBy(() -> camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery))
                 .isInstanceOf(ServerErrorException.class)
