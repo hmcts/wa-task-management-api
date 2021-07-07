@@ -2,6 +2,15 @@
 # To run integration tests with this active profile on your local machine
 # you need to start up your docker app, not minikube but the docker app.
 
+spring:
+  flyway:
+    enabled: false
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+      default_schema: cft_task_db
+
 logging:
   level:
     org.springframework:

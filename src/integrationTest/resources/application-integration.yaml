@@ -1,13 +1,16 @@
-spring.flyway.enabled: false
+config:
+  stacktraceEnabled: false
 
 spring:
+  flyway:
+    enabled: false
   datasource:
     driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:wa_workflow_api
+    url: jdbc:h2:mem:cft_task_db
     username: sa
     password: password
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
-      default_schema: cft_db
+      ddl-auto: update
+      default_schema: cft_task_db
