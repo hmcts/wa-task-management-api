@@ -57,14 +57,14 @@ public class TaskRepositoryTest extends CftRepositoryBaseTest {
         assertTrue(taskRolesSet.size() == 1);
 
         final TaskRoles taskRoles = taskRolesSet.iterator().next();
-        String[] expectedAuthorisations = {"SPECIFIC", "BASIC"};
+        String[] expectedAuthorizations = {"SPECIFIC", "BASIC"};
 
         assertAll(
             () -> assertNotNull(taskRoles.getTaskRoleId()),
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskRoles.getTaskId()),
             () -> assertTrue(taskRoles.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRoles.getRoleName()),
-            () -> assertArrayEquals(expectedAuthorisations, taskRoles.getAuthorisations())
+            () -> assertArrayEquals(expectedAuthorizations, taskRoles.getAuthorizations())
         );
     }
 }

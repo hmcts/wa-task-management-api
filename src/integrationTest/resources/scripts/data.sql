@@ -10,7 +10,7 @@ VALUES('8d6cc5cf-c973-11eb-bdba-0242ac11001e', 'SELF', '2022-05-09T20:15:45.3458
 
 
 INSERT INTO task_roles
-(task_role_id, assignment_priority, authorisations, auto_assignable, cancel, created,
+(task_role_id, assignment_priority, authorizations, auto_assignable, cancel, created,
  "execute", manage, own, "read", refer, role_category, role_name, task_id)
 VALUES('2d6cc5cf-c973-11eb-bdba-0242ac11000e', 0, '{SPECIFIC, BASIC}', false, false, '2021-05-09T20:15:45.345875+01:00',
        false, false, false, true, false, 'JUDICIAL', 'tribunal-caseofficer', '8d6cc5cf-c973-11eb-bdba-0242ac11001e');

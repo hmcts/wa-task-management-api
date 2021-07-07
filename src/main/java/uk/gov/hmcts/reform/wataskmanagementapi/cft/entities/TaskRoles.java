@@ -53,7 +53,7 @@ public class TaskRoles implements Serializable {
 
     @Type(type = "string-array")
     @Column(columnDefinition = "text[]")
-    private String[] authorisations;
+    private String[] authorizations;
 
     private Integer assignmentPriority;
     private Boolean autoAssignable = false;
@@ -62,6 +62,7 @@ public class TaskRoles implements Serializable {
     @Column(name = "task_id", insertable = false, updatable = false, nullable = false)
     private String taskId;
 
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
     @ManyToOne
@@ -74,7 +75,7 @@ public class TaskRoles implements Serializable {
     }
 
     public TaskRoles(String roleName, Boolean read, Boolean own, Boolean execute, Boolean manage, Boolean cancel,
-                     Boolean refer, String[] authorisations, Integer assignmentPriority, Boolean autoAssignable,
+                     Boolean refer, String[] authorizations, Integer assignmentPriority, Boolean autoAssignable,
                      String roleCategory, String taskId, OffsetDateTime created) {
         this.roleName = roleName;
         this.read = read;
@@ -83,7 +84,7 @@ public class TaskRoles implements Serializable {
         this.manage = manage;
         this.cancel = cancel;
         this.refer = refer;
-        this.authorisations = authorisations.clone();
+        this.authorizations = authorizations.clone();
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;
         this.roleCategory = roleCategory;

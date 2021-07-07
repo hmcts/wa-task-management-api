@@ -46,25 +46,27 @@ public class Tasks implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
-    private static final String PLSQL_ENUM = "pgsql_enum";
+    private static final String PGSQL_ENUM = "pgsql_enum";
 
     @Id
     private String taskId;
     private String taskName;
     private String taskType;
+
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime dueDateTime;
 
     @Column
     @Enumerated(EnumType.STRING)
-    @Type(type = PLSQL_ENUM)
+    @Type(type = PGSQL_ENUM)
     private TaskState state;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PLSQL_ENUM)
+    @Type(type = PGSQL_ENUM)
     private TaskSystem taskSystem;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PLSQL_ENUM)
+    @Type(type = PGSQL_ENUM)
     private SecurityClassification securityClassification;
 
     private String title;
@@ -81,6 +83,8 @@ public class Tasks implements Serializable {
     private String workType;
     private String roleCategory;
     private Boolean hasWarnings = false;
+
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime assignmentExpiry;
     private String caseId;
     private String caseTypeId;
@@ -92,10 +96,12 @@ public class Tasks implements Serializable {
     private String locationName;
 
     @Enumerated(EnumType.STRING)
-    @Type(type = PLSQL_ENUM)
+    @Type(type = PGSQL_ENUM)
     private BusinessContext businessContext;
 
     private String terminationReason;
+
+    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
     @OneToOne
