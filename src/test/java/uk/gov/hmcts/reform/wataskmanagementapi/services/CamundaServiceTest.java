@@ -256,7 +256,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.getTask(taskId, roleAssignment, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
         }
 
@@ -1296,7 +1296,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.claimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
         }
 
         @Test
@@ -1441,7 +1441,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.unclaimTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
         }
 
         @Test
@@ -1617,7 +1617,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.completeTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
         }
 
         @Test
@@ -1859,7 +1859,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     ))
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
-                    .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                    .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -2031,7 +2031,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     ))
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
-                    .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                    .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -2808,7 +2808,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
             assertThatThrownBy(() -> camundaService.cancelTask(taskId, accessControlResponse, permissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
         }
 
         @Test
@@ -2969,7 +2969,7 @@ class CamundaServiceTest extends CamundaServiceBaseTest {
                     assignerPermissionsRequired, assigneeAccessControlResponse, assigneePermissionsRequired))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
         }
 
         @Test

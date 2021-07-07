@@ -191,7 +191,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: Role assignment verifications failed."));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -265,7 +265,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: Role assignment verifications failed."));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -334,7 +334,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: Role assignment verifications failed."));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -494,7 +494,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: Role assignment verifications failed."));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -570,7 +570,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: Role assignment verifications failed."));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
         common.cleanUpTask(taskId, REASON_COMPLETED);

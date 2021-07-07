@@ -152,7 +152,7 @@ class AssignTaskTest extends CamundaServiceBaseTest {
         ))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
-            .hasMessage("Role Assignment Verification: Role assignment verifications failed.");
+            .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
         verify(camundaServiceApi, times(0))
             .addLocalVariablesToTask(

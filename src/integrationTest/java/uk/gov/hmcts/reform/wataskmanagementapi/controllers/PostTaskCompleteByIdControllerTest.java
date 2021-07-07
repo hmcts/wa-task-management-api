@@ -302,7 +302,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         jsonPath("$.status").value(403),
                         jsonPath("$.detail").value(
                             "Role Assignment Verification: "
-                            + "Role assignment verifications failed.")
+                            + "The request failed the Role Assignment checks performed.")
                     ));
         }
 
