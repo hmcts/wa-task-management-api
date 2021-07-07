@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment.RoleAssignmentConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.RoleAssignment;
@@ -65,7 +66,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
         );
     }
 
-    @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_configuration_api")
+    @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact generatePactFragmentForQueryRoleAssignments(PactDslWithProvider builder) {
         return builder
             .given("A list of role assignments for the search query")

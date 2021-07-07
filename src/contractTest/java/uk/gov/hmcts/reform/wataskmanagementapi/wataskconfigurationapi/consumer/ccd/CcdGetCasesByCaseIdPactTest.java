@@ -27,7 +27,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-@PactTestFor(providerName = "ccd_data_store_get_case_by_id", port = "8890")
+@PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
 @ContextConfiguration(classes = {CcdConsumerApplication.class})
 public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
 

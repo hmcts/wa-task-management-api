@@ -10,7 +10,7 @@ import static uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi.SERVICE_AUTHORIZATI
 
 @FeignClient(
     name = "ccd-client",
-    url = "${ccd.url}"
+    url = "${core_case_data.api.url}"
 )
 public interface CcdDataServiceApi {
     String EXPERIMENTAL = "experimental=true";
