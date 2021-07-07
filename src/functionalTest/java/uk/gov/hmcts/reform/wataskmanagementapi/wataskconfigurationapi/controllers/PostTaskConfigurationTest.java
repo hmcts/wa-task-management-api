@@ -23,7 +23,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.uti
 @Slf4j
 public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/configuration";
+    private static final String ENDPOINT_BEING_TESTED = "task-configuration/{task-id}/configuration";
 
     private String taskId;
     private String caseId;
