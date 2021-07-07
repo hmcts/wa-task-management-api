@@ -74,12 +74,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuild
 })
 public class CamundaService {
 
-    public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-
-    public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK =
-        "User did not have sufficient permissions to assign task with id: %s";
-    public static final String USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK =
-        "User did not have sufficient permissions to claim task with id: %s";
     public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
     public static final String THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT = "There was a problem retrieving task count";
 
@@ -93,7 +87,6 @@ public class CamundaService {
 
     @Autowired
     public CamundaService(CamundaServiceApi camundaServiceApi,
-                          CamundaQueryBuilder camundaQueryBuilder,
                           TaskMapper taskMapper,
                           AuthTokenGenerator authTokenGenerator,
                           PermissionEvaluatorService permissionEvaluatorService,
@@ -111,6 +104,28 @@ public class CamundaService {
         return value.orElse(null);
     }
 
+
+    public Task getMappedTask(String id, Map<String, CamundaVariable> variables) {
+        CamundaTask camundaTask = performGetCamundaTaskAction(id);
+        return taskMapper.mapToTaskObject(variables, camundaTask);
+    }
+
+    public CamundaTask getUnmappedCamundaTask(String taskId) {
+        return performGetCamundaTaskAction(taskId);
+    }
+
+    public Map<String, CamundaVariable> getTaskVariables(String taskId) {
+        return performGetVariablesAction(taskId);
+    }
+
+    public void cancelTask(String taskId) {
+        try {
+            performCancelTaskAction(taskId);
+        } catch (CamundaTaskCancelException ex) {
+            throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
+        }
+    }
+
     public void claimTask(String taskId, String userId) {
         try {
             performClaimTaskAction(
@@ -121,6 +136,20 @@ public class CamundaService {
             throw new TaskClaimException(TASK_CLAIM_UNABLE_TO_UPDATE_STATE);
         } catch (CamundaTaskClaimException ex) {
             throw new TaskClaimException(TASK_CLAIM_UNABLE_TO_CLAIM);
+        }
+    }
+
+    public void unclaimTask(String taskId,
+                            Map<String, CamundaVariable> variables) {
+        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
+        boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
+
+        try {
+            performUnclaimTaskAction(taskId, taskHasUnassigned);
+        } catch (CamundaTaskStateUpdateException ex) {
+            throw new TaskUnclaimException(TASK_UNCLAIM_UNABLE_TO_UPDATE_STATE);
+        } catch (CamundaTaskUnclaimException ex) {
+            throw new TaskUnclaimException(TASK_UNCLAIM_UNABLE_TO_UNCLAIM);
         }
     }
 
@@ -144,18 +173,20 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String taskId,
-                            Map<String, CamundaVariable> variables) {
+    public void completeTask(String taskId,
+                             Map<String, CamundaVariable> variables) {
+        // Check that task state was not already completed
         String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-        boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
+        boolean taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
 
         try {
-            performUnclaimTaskAction(taskId, taskHasUnassigned);
+            performCompleteTaskAction(taskId, taskHasCompleted);
         } catch (CamundaTaskStateUpdateException ex) {
-            throw new TaskUnclaimException(TASK_UNCLAIM_UNABLE_TO_UPDATE_STATE);
-        } catch (CamundaTaskUnclaimException ex) {
-            throw new TaskUnclaimException(TASK_UNCLAIM_UNABLE_TO_UNCLAIM);
+            throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_UPDATE_STATE);
+        } catch (CamundaTaskCompleteException ex) {
+            throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_COMPLETE);
         }
+
     }
 
     public void assignAndCompleteTask(String taskId,
@@ -181,20 +212,16 @@ public class CamundaService {
 
     }
 
-    public void completeTask(String taskId,
-                             Map<String, CamundaVariable> variables) {
-        // Check that task state was not already completed
-        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-        boolean taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
-
+    public long getTaskCount(CamundaSearchQuery query) {
         try {
-            performCompleteTaskAction(taskId, taskHasCompleted);
-        } catch (CamundaTaskStateUpdateException ex) {
-            throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_UPDATE_STATE);
-        } catch (CamundaTaskCompleteException ex) {
-            throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_COMPLETE);
+            return camundaServiceApi.getTaskCount(
+                authTokenGenerator.generate(),
+                query.getQueries()
+            ).getCount();
+        } catch (FeignException exp) {
+            log.error(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT);
+            throw new ServerErrorException(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT, exp);
         }
-
     }
 
     public List<Task> searchWithCriteria(CamundaSearchQuery query,
@@ -204,7 +231,6 @@ public class CamundaService {
                                          List<PermissionTypes> permissionsRequired) {
 
         try {
-            //1. Perform the search
             List<CamundaTask> searchResults = camundaServiceApi.searchWithCriteriaAndPagination(
                 authTokenGenerator.generate(),
                 firstResult,
@@ -223,18 +249,6 @@ public class CamundaService {
         }
     }
 
-    public long getTaskCount(CamundaSearchQuery query) {
-        try {
-            return camundaServiceApi.getTaskCount(
-                authTokenGenerator.generate(),
-                query.getQueries()
-            ).getCount();
-        } catch (FeignException exp) {
-            log.error(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT);
-            throw new ServerErrorException(THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT, exp);
-        }
-    }
-
     public List<CamundaTask> searchWithCriteriaAndNoPagination(CamundaSearchQuery query) {
         try {
             return camundaServiceApi.searchWithCriteriaAndNoPagination(
@@ -243,27 +257,6 @@ public class CamundaService {
             );
         } catch (FeignException exp) {
             throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, exp);
-        }
-    }
-
-    public Task getMappedTask(String id, Map<String, CamundaVariable> variables) {
-        CamundaTask camundaTask = performGetCamundaTaskAction(id);
-        return taskMapper.mapToTaskObject(variables, camundaTask);
-    }
-
-    public CamundaTask getUnmappedCamundaTask(String taskId) {
-        return performGetCamundaTaskAction(taskId);
-    }
-
-    public Map<String, CamundaVariable> getTaskVariables(String taskId) {
-        return performGetVariablesAction(taskId);
-    }
-
-    public void cancelTask(String taskId) {
-        try {
-            performCancelTaskAction(taskId);
-        } catch (CamundaTaskCancelException ex) {
-            throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
         }
     }
 
@@ -333,7 +326,6 @@ public class CamundaService {
             throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, ex);
         }
     }
-
 
     private Map<String, CamundaVariable> performGetVariablesAction(String id) {
         try {

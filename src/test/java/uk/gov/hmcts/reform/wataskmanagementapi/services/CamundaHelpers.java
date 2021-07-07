@@ -123,7 +123,7 @@ public class CamundaHelpers {
     }
 
     protected List<CamundaVariableInstance> mockedVariablesResponse(String processInstanceId, String taskId) {
-        Map<String, CamundaVariable> mockVariables = mockVariables();
+        Map<String, CamundaVariable> mockVariables = createMockCamundaVariables();
 
         return mockVariables.keySet().stream()
             .map(
