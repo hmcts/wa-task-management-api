@@ -54,6 +54,10 @@ public class RestApiActions {
         return this.get(path, null, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
     }
 
+    public Response get(String path, String resourceId, Header header) {
+        return this.get(path, resourceId, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
+    }
+
     public Response get(String path, String resourceId, Headers headers) {
         return this.get(path, resourceId, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
     }
