@@ -11,14 +11,14 @@ public enum TaskState {
     TERMINATED("TERMINATED"),
     PENDING_RECONFIGURATION("PENDING_RECONFIGURATION");
 
-    private String taskState;
+    private String value;
 
-    TaskState(String taskState) {
-        this.taskState = taskState;
+    TaskState(String value) {
+        this.value = value;
     }
 
-    public String getTaskState() {
-        return taskState;
+    public String getValue() {
+        return value;
     }
 
 }

@@ -8,14 +8,14 @@ class TaskStateTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String unconfiguredEnum = TaskState.UNCONFIGURED.getTaskState();
-        final String autoAssignEnum = TaskState.PENDING_AUTO_ASSIGN.getTaskState();
-        final String assignedEnum = TaskState.ASSIGNED.getTaskState();
-        final String unassignedEnum = TaskState.UNASSIGNED.getTaskState();
-        final String completedEnum = TaskState.COMPLETED.getTaskState();
-        final String cancelledEnum = TaskState.CANCELLED.getTaskState();
-        final String terminatedEnum = TaskState.TERMINATED.getTaskState();
-        final String reconfigureENum = TaskState.PENDING_RECONFIGURATION.getTaskState();
+        final String unconfiguredEnum = TaskState.UNCONFIGURED.getValue();
+        final String autoAssignEnum = TaskState.PENDING_AUTO_ASSIGN.getValue();
+        final String assignedEnum = TaskState.ASSIGNED.getValue();
+        final String unassignedEnum = TaskState.UNASSIGNED.getValue();
+        final String completedEnum = TaskState.COMPLETED.getValue();
+        final String cancelledEnum = TaskState.CANCELLED.getValue();
+        final String terminatedEnum = TaskState.TERMINATED.getValue();
+        final String reconfigureENum = TaskState.PENDING_RECONFIGURATION.getValue();
 
         assertEquals("UNCONFIGURED", unconfiguredEnum);
         assertEquals("PENDING_AUTO_ASSIGN", autoAssignEnum);

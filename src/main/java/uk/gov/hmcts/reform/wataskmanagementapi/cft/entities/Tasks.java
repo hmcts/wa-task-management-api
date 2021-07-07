@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -31,15 +30,13 @@ import javax.persistence.OneToOne;
 @ToString
 @Getter
 @Entity
-@TypeDefs({
-    @TypeDef(
-        name = "pgsql_enum",
-        typeClass = PostgreSQLEnumType.class
-    ),
-    @TypeDef(
-        name = "jsonb",
-        typeClass = JsonType.class
-    )}
+@TypeDef(
+    name = "pgsql_enum",
+    typeClass = PostgreSQLEnumType.class
+)
+@TypeDef(
+    name = "jsonb",
+    typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
 public class Tasks implements Serializable {
@@ -116,6 +113,7 @@ public class Tasks implements Serializable {
         // required for runtime proxy generation in Hibernate
     }
 
+    @SuppressWarnings("squid:S00107")
     public Tasks(String taskId, String taskName, String taskType, OffsetDateTime dueDateTime, TaskState state,
                  TaskSystem taskSystem, SecurityClassification securityClassification, String title,
                  String description, Notes notes, Integer majorPriority, Integer minorPriority, String assignee,

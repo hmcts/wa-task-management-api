@@ -7,7 +7,6 @@ import net.logstash.logback.encoder.org.apache.commons.lang3.builder.ToStringExc
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -23,13 +22,11 @@ import javax.persistence.ManyToOne;
 @ToString
 @Getter
 @Entity
-@TypeDefs({
-    @TypeDef(
-        name = "string-array",
-        typeClass = StringArrayType.class
-    )
-})
-@SuppressWarnings({"PMD.ExcessiveParameterList"})
+@TypeDef(
+    name = "string-array",
+    typeClass = StringArrayType.class
+)
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
 public class TaskRoles implements Serializable {
 
     private static final long serialVersionUID = -4769530559311463016L;
@@ -74,6 +71,7 @@ public class TaskRoles implements Serializable {
         // required for runtime proxy generation in Hibernate
     }
 
+    @SuppressWarnings("squid:S00107")
     public TaskRoles(String roleName, Boolean read, Boolean own, Boolean execute, Boolean manage, Boolean cancel,
                      Boolean refer, String[] authorizations, Integer assignmentPriority, Boolean autoAssignable,
                      String roleCategory, String taskId, OffsetDateTime created) {

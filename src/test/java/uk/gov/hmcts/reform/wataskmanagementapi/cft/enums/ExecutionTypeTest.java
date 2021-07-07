@@ -8,9 +8,9 @@ class ExecutionTypeTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String manualEnum = ExecutionType.MANUAL.getExecutionType();
-        final String builtInEnum = ExecutionType.BUILT_IN.getExecutionType();
-        final String caseEventEnum = ExecutionType.CASE_EVENT.getExecutionType();
+        final String manualEnum = ExecutionType.MANUAL.getValue();
+        final String builtInEnum = ExecutionType.BUILT_IN.getValue();
+        final String caseEventEnum = ExecutionType.CASE_EVENT.getValue();
 
         assertEquals("MANUAL", manualEnum);
         assertEquals("BUILT_IN", builtInEnum);

@@ -5,13 +5,13 @@ public enum TaskSystem {
     SELF("SELF"),
     CTSC("CTSC");
 
-    private String taskStystem;
+    private String value;
 
-    TaskSystem(String taskStystem) {
-        this.taskStystem = taskStystem;
+    TaskSystem(String value) {
+        this.value = value;
     }
 
-    public String getTaskStystem() {
-        return taskStystem;
+    public String getValue() {
+        return value;
     }
 }

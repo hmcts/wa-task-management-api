@@ -8,7 +8,7 @@ class BusinessContextTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String businessContext = BusinessContext.CFT_TASK.getBusinessContext();
+        final String businessContext = BusinessContext.CFT_TASK.getValue();
 
         assertEquals("CFT_TASK", businessContext);
     }

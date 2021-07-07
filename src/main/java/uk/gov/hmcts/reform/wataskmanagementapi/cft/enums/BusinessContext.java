@@ -4,13 +4,13 @@ public enum BusinessContext {
 
     CFT_TASK("CFT_TASK");
 
-    private String businessContext;
+    private final String value;
 
-    BusinessContext(String businessContext) {
-        this.businessContext = businessContext;
+    BusinessContext(String value) {
+        this.value = value;
     }
 
-    public String getBusinessContext() {
-        return businessContext;
+    public String getValue() {
+        return value;
     }
 }

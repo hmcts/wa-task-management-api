@@ -8,8 +8,8 @@ class TaskSystemTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String selfEnum = TaskSystem.SELF.getTaskStystem();
-        final String ctscEnum = TaskSystem.CTSC.getTaskStystem();
+        final String selfEnum = TaskSystem.SELF.getValue();
+        final String ctscEnum = TaskSystem.CTSC.getValue();
 
         assertEquals("SELF", selfEnum);
         assertEquals("CTSC", ctscEnum);

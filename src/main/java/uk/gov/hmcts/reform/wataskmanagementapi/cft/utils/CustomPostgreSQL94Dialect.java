@@ -4,6 +4,7 @@ import org.hibernate.dialect.PostgreSQL10Dialect;
 
 import java.sql.Types;
 
+@SuppressWarnings("squid:MaximumInheritanceDepth")
 public class CustomPostgreSQL94Dialect extends PostgreSQL10Dialect {
 
     public CustomPostgreSQL94Dialect() {

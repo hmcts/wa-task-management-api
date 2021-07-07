@@ -6,13 +6,13 @@ public enum ExecutionType {
     BUILT_IN("BUILT_IN"),
     CASE_EVENT("CASE_EVENT");
 
-    private String executionType;
+    private final String value;
 
-    ExecutionType(String executionType) {
-        this.executionType = executionType;
+    ExecutionType(String value) {
+        this.value = value;
     }
 
-    public String getExecutionType() {
-        return executionType;
+    public String getValue() {
+        return value;
     }
 }
