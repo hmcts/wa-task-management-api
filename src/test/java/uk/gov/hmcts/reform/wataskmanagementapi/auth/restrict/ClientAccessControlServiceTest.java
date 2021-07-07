@@ -16,6 +16,7 @@ import java.util.Collections;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,9 +39,9 @@ class ClientAccessControlServiceTest {
 
     @BeforeEach
     void setup() {
-        when(accessControlResponse.getUserInfo())
+        lenient().when(accessControlResponse.getUserInfo())
             .thenReturn(userInfo);
-        when(userInfo.getUid())
+        lenient().when(userInfo.getUid())
             .thenReturn(USER_ID);
 
         clientAccessControlService = new ClientAccessControlService(
