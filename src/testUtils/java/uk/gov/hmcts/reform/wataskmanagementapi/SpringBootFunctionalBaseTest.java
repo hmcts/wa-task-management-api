@@ -181,7 +181,7 @@ public abstract class SpringBootFunctionalBaseTest {
         );
         String caseData = new String(
             (Objects.requireNonNull(Thread.currentThread().getContextClassLoader()
-                                        .getResourceAsStream("case_data.json"))).readAllBytes()
+                                        .getResourceAsStream("requests/ccd/case_data.json"))).readAllBytes()
         );
 
         caseData = caseData.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
