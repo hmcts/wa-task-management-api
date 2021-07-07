@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.utils.Notes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.stream.StreamSupport;
 
