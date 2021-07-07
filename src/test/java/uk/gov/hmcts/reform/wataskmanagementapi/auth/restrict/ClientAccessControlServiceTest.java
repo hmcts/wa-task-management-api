@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,10 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PrivilegedAccessControlServiceTest {
+class ClientAccessControlServiceTest {
 
     private static final String SERVICE_AUTH_TOKEN = "some serviceAuthorizationToken";
-    private static final String PRIVILEGED_SERVICE_NAME = "somePrivilegedServiceName";
+    private static final String PRIVILEGED_ACCESS_SERVICE_NAME = "somePrivilegedServiceName";
+    private static final String EXCLUSIVE_ACCESS_SERVICE_NAME = "someExclusiveServiceName";
     private static final String USER_ID = "someUserId";
     @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -33,7 +34,7 @@ class PrivilegedAccessControlServiceTest {
     @Mock
     private UserInfo userInfo;
 
-    private PrivilegedAccessControlService privilegedAccessControlService;
+    private ClientAccessControlService clientAccessControlService;
 
     @BeforeEach
     void setup() {
@@ -42,10 +43,11 @@ class PrivilegedAccessControlServiceTest {
         when(userInfo.getUid())
             .thenReturn(USER_ID);
 
-        privilegedAccessControlService = new PrivilegedAccessControlService(
+        clientAccessControlService = new ClientAccessControlService(
             serviceAuthTokenValidator,
             launchDarklyFeatureFlagProvider,
-            Collections.singletonList(PRIVILEGED_SERVICE_NAME)
+            Collections.singletonList(PRIVILEGED_ACCESS_SERVICE_NAME),
+            Collections.singletonList(EXCLUSIVE_ACCESS_SERVICE_NAME)
         );
     }
 
@@ -55,9 +57,9 @@ class PrivilegedAccessControlServiceTest {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID))
             .thenReturn(true);
         when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
-            .thenReturn(PRIVILEGED_SERVICE_NAME);
+            .thenReturn(PRIVILEGED_ACCESS_SERVICE_NAME);
 
-        boolean result = privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
+        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
 
         assertTrue(result);
     }
@@ -68,7 +70,7 @@ class PrivilegedAccessControlServiceTest {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID))
             .thenReturn(false);
 
-        boolean result = privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
+        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
 
         assertFalse(result);
     }
@@ -81,7 +83,7 @@ class PrivilegedAccessControlServiceTest {
         when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
             .thenReturn("anotherService");
 
-        boolean result = privilegedAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
+        boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
 
         assertFalse(result);
     }
@@ -89,21 +91,53 @@ class PrivilegedAccessControlServiceTest {
     @Test
     void hasPrivilegedAccess_should_throw_null_pointer_exception_if_required_parameters_are_null() {
 
-        assertThatThrownBy(() -> privilegedAccessControlService.hasPrivilegedAccess(
+        assertThatThrownBy(() -> clientAccessControlService.hasPrivilegedAccess(
             null,
-            accessControlResponse))
+            accessControlResponse
+        ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("ServiceAuthorization must not be null");
 
         when(userInfo.getUid())
             .thenReturn(null);
 
-        assertThatThrownBy(() -> privilegedAccessControlService.hasPrivilegedAccess(
+        assertThatThrownBy(() -> clientAccessControlService.hasPrivilegedAccess(
             SERVICE_AUTH_TOKEN,
-            accessControlResponse))
+            accessControlResponse
+        ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("UserId must not be null");
     }
 
+
+    @Test
+    void hasExclusiveAccess_should_return_true_if_service_whitelisted() {
+
+        when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
+            .thenReturn(EXCLUSIVE_ACCESS_SERVICE_NAME);
+
+        boolean result = clientAccessControlService.hasExclusiveAccess(SERVICE_AUTH_TOKEN);
+
+        assertTrue(result);
+    }
+
+    @Test
+    void hasExclusiveAccess_should_return_false_if_service_is_not_whitelisted() {
+        when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
+            .thenReturn("anotherService");
+
+        boolean result = clientAccessControlService.hasExclusiveAccess(SERVICE_AUTH_TOKEN);
+
+        assertFalse(result);
+    }
+
+    @Test
+    void hasExclusiveAccess_should_throw_null_pointer_exception_if_required_parameters_are_null() {
+
+        assertThatThrownBy(() -> clientAccessControlService.hasExclusiveAccess(null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("ServiceAuthorization must not be null");
+
+    }
 
 }

@@ -14,7 +14,7 @@ import java.util.Objects;
 
 @Slf4j
 @Service
-public class RestrictedAccessControlService {
+public class ClientAccessControlService {
 
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ServiceAuthTokenValidator serviceAuthTokenValidator;
@@ -22,10 +22,10 @@ public class RestrictedAccessControlService {
     private final List<String> exclusiveAccessClients;
 
     @Autowired
-    public RestrictedAccessControlService(ServiceAuthTokenValidator serviceAuthTokenValidator,
-                                          LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                          @Value("${config.privilegedAccessClients}") List<String> privilegedAccessClients,
-                                          @Value("${config.exclusiveAccessClients}") List<String> exclusiveAccessClients) {
+    public ClientAccessControlService(ServiceAuthTokenValidator serviceAuthTokenValidator,
+                                      LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                      @Value("${config.privilegedAccessClients}") List<String> privilegedAccessClients,
+                                      @Value("${config.exclusiveAccessClients}") List<String> exclusiveAccessClients) {
         this.serviceAuthTokenValidator = serviceAuthTokenValidator;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.privilegedAccessClients = privilegedAccessClients;

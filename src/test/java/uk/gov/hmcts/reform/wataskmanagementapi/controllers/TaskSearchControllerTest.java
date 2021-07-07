@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -49,7 +48,7 @@ class TaskSearchControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
     @Mock
-    private CamundaService camundaService;
+    private TaskManagementService taskManagementService;
     @Mock
     private AccessControlService accessControlService;
     @Mock
@@ -63,7 +62,7 @@ class TaskSearchControllerTest {
     void setUp() {
 
         taskSearchController = new TaskSearchController(
-            camundaService,
+            taskManagementService,
             accessControlService
         );
 
@@ -75,8 +74,8 @@ class TaskSearchControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
-        when(camundaService.searchWithCriteria(any(), anyInt(), anyInt(), any(), any())).thenReturn(taskList);
-        when(camundaService.getTaskCount(any())).thenReturn(1L);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
+        when(taskManagementService.getTaskCount(any())).thenReturn(1L);
 
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
@@ -96,8 +95,8 @@ class TaskSearchControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
-        when(camundaService.searchWithCriteria(any(), anyInt(), anyInt(), any(), any())).thenReturn(taskList);
-        when(camundaService.getTaskCount(any())).thenReturn(1L);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
+        when(taskManagementService.getTaskCount(any())).thenReturn(1L);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
@@ -111,13 +110,12 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalRecords());
-        verify(camundaService, times(1))
+        verify(taskManagementService, times(1))
             .searchWithCriteria(
                 eq(searchTaskRequest),
                 eq(0),
                 eq(50),
-                any(AccessControlResponse.class),
-                anyList()
+                any(AccessControlResponse.class)
             );
     }
 
