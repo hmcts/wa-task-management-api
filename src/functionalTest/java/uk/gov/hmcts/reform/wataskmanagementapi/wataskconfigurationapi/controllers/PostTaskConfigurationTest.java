@@ -62,7 +62,6 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
 
         result.prettyPeek();
 
-
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
