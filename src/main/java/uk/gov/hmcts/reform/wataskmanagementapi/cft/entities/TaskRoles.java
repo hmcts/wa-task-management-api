@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
 import lombok.Getter;
 import lombok.ToString;
-import net.logstash.logback.encoder.org.apache.commons.lang3.builder.ToStringExclude;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -64,7 +63,7 @@ public class TaskRoles implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "task_id", nullable = false)
-    @ToStringExclude
+    @ToString.Exclude
     private Tasks tasks;
 
     protected TaskRoles() {
@@ -91,18 +90,17 @@ public class TaskRoles implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object anotherObject) {
+        if (this == anotherObject) {
             return true;
         }
-
-        if (!(obj instanceof TaskRoles)) {
+        if (anotherObject == null || getClass() != anotherObject.getClass()) {
             return false;
         }
+        TaskRoles taskRoles = (TaskRoles) anotherObject;
 
-        TaskRoles taskRoles = (TaskRoles) obj;
-
-        return taskRoleId.equals(taskRoles.taskRoleId) && taskId.equals(taskRoles.taskId);
+        return Objects.equals(taskRoleId, taskRoles.taskRoleId)
+               && Objects.equals(taskId, taskRoles.taskId);
     }
 
     @Override

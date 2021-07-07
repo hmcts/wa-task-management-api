@@ -157,22 +157,21 @@ public class Tasks implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object anotherObject) {
+        if (this == anotherObject) {
             return true;
         }
-
-        if (!(obj instanceof Tasks)) {
+        if (anotherObject == null || getClass() != anotherObject.getClass()) {
             return false;
         }
+        Tasks tasks = (Tasks) anotherObject;
 
-        Tasks tasks = (Tasks) obj;
-
-        return taskId.equals(tasks.taskId);
+        return Objects.equals(taskId, tasks.taskId)
+               && Objects.equals(caseId, tasks.caseId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(taskId);
+        return Objects.hash(taskId, caseId);
     }
 }

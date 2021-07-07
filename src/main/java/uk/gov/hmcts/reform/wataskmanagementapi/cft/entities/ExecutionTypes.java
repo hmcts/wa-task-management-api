@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
@@ -15,6 +16,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+@EqualsAndHashCode
 @Getter
 @ToString
 @Entity

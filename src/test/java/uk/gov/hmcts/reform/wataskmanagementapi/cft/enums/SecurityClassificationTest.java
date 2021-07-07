@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -9,9 +8,9 @@ class SecurityClassificationTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String publicEnum = SecurityClassification.PUBLIC.getSecurityClassification();
-        final String privateEnum = SecurityClassification.PRIVATE.getSecurityClassification();
-        final String restrictedEnum = SecurityClassification.RESTRICTED.getSecurityClassification();
+        final String publicEnum = SecurityClassification.PUBLIC.getValue();
+        final String privateEnum = SecurityClassification.PRIVATE.getValue();
+        final String restrictedEnum = SecurityClassification.RESTRICTED.getValue();
 
 
         assertEquals("PUBLIC", publicEnum);
