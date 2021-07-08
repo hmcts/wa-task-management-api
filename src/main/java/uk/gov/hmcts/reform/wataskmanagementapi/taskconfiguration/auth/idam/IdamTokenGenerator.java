@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
@@ -7,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
+@Slf4j
 public class IdamTokenGenerator {
 
     private final UserIdamTokenGeneratorInfo userIdamTokenGeneratorInfo;
@@ -19,6 +21,7 @@ public class IdamTokenGenerator {
     }
 
     public String generate() {
+        log.info(userIdamTokenGeneratorInfo.toString());
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "password");
         map.add("redirect_uri", userIdamTokenGeneratorInfo.getIdamRedirectUrl());
