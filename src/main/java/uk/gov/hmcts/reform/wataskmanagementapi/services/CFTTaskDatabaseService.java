@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TasksRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
 import java.util.Optional;
 
@@ -11,18 +11,18 @@ import java.util.Optional;
 @Service
 @SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis"})
 public class CFTTaskDatabaseService {
-    private TasksRepository tasksRepository;
+    private TaskResourceRepository tasksRepository;
 
-    public CFTTaskDatabaseService(TasksRepository tasksRepository) {
+    public CFTTaskDatabaseService(TaskResourceRepository tasksRepository) {
         this.tasksRepository = tasksRepository;
     }
 
-    public Optional<Tasks> findByIdAndObtainPessimisticWriteLock(String taskId) {
+    public Optional<TaskResource> findByIdAndObtainPessimisticWriteLock(String taskId) {
         return tasksRepository.findById(taskId);
     }
 
 
-    public Tasks saveTask(Tasks task) {
+    public TaskResource saveTask(TaskResource task) {
         return tasksRepository.save(task);
     }
 }

@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -356,7 +357,7 @@ public class TaskManagementService {
      */
     @Transactional
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
-        Tasks task = findByIdAndObtainLock(taskId);
+        TaskResource task = findByIdAndObtainLock(taskId);
 
         switch (terminateInfo.getTerminateReason()) {
             case COMPLETED:
@@ -382,12 +383,12 @@ public class TaskManagementService {
      * @return The updated entity {@link Tasks}
      */
     @Transactional
-    public Tasks initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        Tasks mappedTask = cftTaskMapper.mapToTaskObject(taskId, initiateTaskRequest.getTaskAttributes());
+    public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        TaskResource mappedTask = cftTaskMapper.mapToTaskObject(taskId, initiateTaskRequest.getTaskAttributes());
         return cftTaskDatabaseService.saveTask(mappedTask);
     }
 
-    private Tasks findByIdAndObtainLock(String taskId) {
+    private TaskResource findByIdAndObtainLock(String taskId) {
         return cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
             .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
     }

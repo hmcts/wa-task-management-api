@@ -1,14 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.utils.Notes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import java.util.Set;
 
+@SuppressWarnings("java:S3740")
 public enum TaskAttributeDefinition {
     TASK_ASSIGNEE("task_assignee", new TypeReference<String>() {}),
     TASK_ASSIGNMENT_EXPIRY("task_assignment_expiry", new TypeReference<String>() {}),
@@ -20,7 +21,7 @@ public enum TaskAttributeDefinition {
     TASK_CREATED("task_created", new TypeReference<String>() {}),
     TASK_DESCRIPTION("task_description", new TypeReference<String>() {}),
     TASK_DUE_DATE("task_due_date", new TypeReference<String>() {}),
-    TASK_EXECUTION_TYPE_CODE("task_execution_type_code", new TypeReference<ExecutionTypes>() {}),
+    TASK_EXECUTION_TYPE_CODE("task_execution_type_code", new TypeReference<ExecutionType>() {}),
     TASK_HAS_WARNINGS("task_has_warnings", new TypeReference<Boolean>() {}),
     TASK_JURISDICTION("task_jurisdiction", new TypeReference<String>() {}),
     TASK_LOCATION("task_location", new TypeReference<String>() {}),
@@ -28,7 +29,7 @@ public enum TaskAttributeDefinition {
     TASK_MAJOR_PRIORITY("task_major_priority", new TypeReference<Integer>() {}),
     TASK_MINOR_PRIORITY("task_minor_priority", new TypeReference<Integer>() {}),
     TASK_NAME("task_name", new TypeReference<String>() {}),
-    TASK_NOTES("task_notes", new TypeReference<Notes>() {}),
+    TASK_NOTES("task_notes", new TypeReference<NoteResource>() {}),
     TASK_REGION("task_region", new TypeReference<String>() {}),
     TASK_REGION_NAME("task_region_name", new TypeReference<String>() {}),
     TASK_ROLE_CATEGORY("task_role_category", new TypeReference<String>() {}),

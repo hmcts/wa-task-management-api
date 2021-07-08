@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
@@ -56,16 +57,16 @@ public class ExclusiveTaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping(path = "/{task-id}")
-    public ResponseEntity<Tasks> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
-                                          @PathVariable(TASK_ID) String taskId,
-                                          @RequestBody InitiateTaskRequest initiateTaskRequest) {
+    public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+                                                 @PathVariable(TASK_ID) String taskId,
+                                                 @RequestBody InitiateTaskRequest initiateTaskRequest) {
 
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
         }
 
-        Tasks savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        TaskResource savedTask = taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
