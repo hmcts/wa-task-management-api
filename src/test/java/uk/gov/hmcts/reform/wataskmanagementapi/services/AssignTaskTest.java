@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalV
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 
 import java.util.Collections;
@@ -150,11 +150,9 @@ class AssignTaskTest extends CamundaServiceBaseTest {
             assigneeAccessControlResponse,
             List.of(OWN, EXECUTE)
         ))
-            .isInstanceOf(InsufficientPermissionsException.class)
-            .hasMessage(String.format(
-                "User did not have sufficient permissions to assign task with id: %s",
-                taskId
-            ));
+            .isInstanceOf(RoleAssignmentVerificationException.class)
+            .hasNoCause()
+            .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
         verify(camundaServiceApi, times(0))
             .addLocalVariablesToTask(

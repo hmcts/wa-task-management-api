@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -84,7 +85,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
+    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() throws JsonProcessingException {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();

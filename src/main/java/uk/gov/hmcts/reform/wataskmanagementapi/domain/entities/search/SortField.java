@@ -33,4 +33,8 @@ public enum SortField {
         this.camundaVariableName = camundaVariableName;
     }
 
+    @Override
+    public String toString() {
+        return this.id;
+    }
 }
