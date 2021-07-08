@@ -65,8 +65,6 @@ idam:
     password: ${WA_SYSTEM_PASSWORD:some_system_password}
 
 spring:
-  config:
-    import: "optional:configtree:/mnt/secrets/"
   application:
     name: WA Task Management
   main:
