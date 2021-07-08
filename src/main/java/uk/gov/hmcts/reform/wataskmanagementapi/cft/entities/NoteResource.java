@@ -14,7 +14,7 @@ import java.time.OffsetDateTime;
 @Getter
 @EqualsAndHashCode
 @ToString
-public class Notes implements Serializable {
+public class NoteResource implements Serializable {
 
     private static final long serialVersionUID = 1928058324454924191L;
 
@@ -23,12 +23,12 @@ public class Notes implements Serializable {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private OffsetDateTime created;
 
-    private Notes(){
+    private NoteResource(){
 
     }
 
     @JsonCreator
-    public Notes(String noteType, String user, OffsetDateTime created) {
+    public NoteResource(String noteType, String user, OffsetDateTime created) {
         this.noteType = noteType;
         this.user = user;
         this.created = created;

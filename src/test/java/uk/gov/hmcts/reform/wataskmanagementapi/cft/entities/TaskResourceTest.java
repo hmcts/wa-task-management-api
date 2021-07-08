@@ -17,7 +17,7 @@ public class TaskResourceTest {
             .testing(Method.CONSTRUCTOR)
             .areWellImplemented();
 
-        assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("taskRoles"))
+        assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("taskRoleResources"))
             .testing(Method.TO_STRING)
             .areWellImplemented();
 

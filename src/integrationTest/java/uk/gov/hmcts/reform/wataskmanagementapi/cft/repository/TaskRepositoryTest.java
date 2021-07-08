@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Notes;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRole;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
@@ -36,11 +36,11 @@ public class TaskRepositoryTest extends CftRepositoryBaseTest {
         assertTrue(StreamSupport.stream(tasksIt.spliterator(), false).count() == 1);
 
         final TaskResource taskResource = tasksIt.iterator().next();
-        final Notes notes = taskResource.getNotes();
+        final NoteResource notes = taskResource.getNotes();
 
         assertAll(
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
-            () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode()),
+            () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeResource().getExecutionCode()),
             () -> assertEquals(SecurityClassification.RESTRICTED, taskResource.getSecurityClassification()),
             () -> assertEquals(TaskState.ASSIGNED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
@@ -50,10 +50,10 @@ public class TaskRepositoryTest extends CftRepositoryBaseTest {
             () -> assertEquals("noteTypeVal", notes.getNoteType())
         );
 
-        final Set<TaskRole> taskRoles = taskResource.getTaskRoles();
+        final Set<TaskRoleResource> taskRoles = taskResource.getTaskRoleResources();
         assertTrue(taskRoles.size() == 1);
 
-        final TaskRole taskRole = taskRoles.iterator().next();
+        final TaskRoleResource taskRole = taskRoles.iterator().next();
         String[] expectedAuthorizations = {"SPECIFIC", "BASIC"};
 
         assertAll(

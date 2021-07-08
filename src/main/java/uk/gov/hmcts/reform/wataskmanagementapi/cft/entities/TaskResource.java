@@ -70,7 +70,7 @@ public class TaskResource implements Serializable {
 
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    private Notes notes;
+    private NoteResource notes;
 
     private Integer majorPriority;
     private Integer minorPriority;
@@ -102,11 +102,11 @@ public class TaskResource implements Serializable {
 
     @OneToOne
     @JoinColumn(name = "execution_code", referencedColumnName = "execution_code")
-    private ExecutionTypes executionTypeCode;
+    private ExecutionTypeResource executionTypeResource;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<TaskRole> taskRoles;
+    private Set<TaskRoleResource> taskRoleResources;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -115,12 +115,12 @@ public class TaskResource implements Serializable {
     @SuppressWarnings("squid:S00107")
     public TaskResource(String taskId, String taskName, String taskType, OffsetDateTime dueDateTime, TaskState state,
                         TaskSystem taskSystem, SecurityClassification securityClassification, String title,
-                        String description, Notes notes, Integer majorPriority, Integer minorPriority, String assignee,
-                        boolean autoAssigned, ExecutionTypes executionTypeCode, String workType, String roleCategory,
-                        boolean hasWarnings, OffsetDateTime assignmentExpiry, String caseId, String caseTypeId,
-                        String caseName, String jurisdiction, String region, String regionName, String location,
-                        String locationName, BusinessContext businessContext, String terminationReason,
-                        OffsetDateTime created, Set<TaskRole> taskRoles) {
+                        String description, NoteResource notes, Integer majorPriority, Integer minorPriority,
+                        String assignee, boolean autoAssigned, ExecutionTypeResource executionTypeResource,
+                        String workType, String roleCategory, boolean hasWarnings, OffsetDateTime assignmentExpiry,
+                        String caseId, String caseTypeId, String caseName, String jurisdiction, String region,
+                        String regionName, String location, String locationName, BusinessContext businessContext,
+                        String terminationReason, OffsetDateTime created, Set<TaskRoleResource> taskRoleResources) {
 
         this.taskId = taskId;
         this.taskName = taskName;
@@ -136,7 +136,7 @@ public class TaskResource implements Serializable {
         this.minorPriority = minorPriority;
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;
-        this.executionTypeCode = executionTypeCode;
+        this.executionTypeResource = executionTypeResource;
         this.workType = workType;
         this.roleCategory = roleCategory;
         this.hasWarnings = hasWarnings;
@@ -152,7 +152,7 @@ public class TaskResource implements Serializable {
         this.businessContext = businessContext;
         this.terminationReason = terminationReason;
         this.created = created;
-        this.taskRoles = taskRoles;
+        this.taskRoleResources = taskRoleResources;
     }
 
     @Override

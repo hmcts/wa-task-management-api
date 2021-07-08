@@ -14,18 +14,16 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 @EqualsAndHashCode
 @Getter
 @ToString
-@Entity
+@Entity(name = "execution_types")
 @TypeDef(
     name = "pgsql_enum",
     typeClass = PostgreSQLEnumType.class
 )
-@Table
-public class ExecutionTypes implements Serializable {
+public class ExecutionTypeResource implements Serializable {
 
     private static final long serialVersionUID = -5241589570453132436L;
 
@@ -40,11 +38,11 @@ public class ExecutionTypes implements Serializable {
 
     private String description;
 
-    protected  ExecutionTypes() {
+    protected ExecutionTypeResource() {
         // required for runtime proxy generation in Hibernate
     }
 
-    public ExecutionTypes(ExecutionType executionCode, String executionName, String description) {
+    public ExecutionTypeResource(ExecutionType executionCode, String executionName, String description) {
         this.executionCode = executionCode;
         this.executionName = executionName;
         this.description = description;
