@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.controlle
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -35,6 +36,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    @Ignore
     public void should_return_task_configuration_then_expect_task_is_auto_assigned() throws Exception {
         caseId = createCcdCase();
         createTaskMessage = createBasicMessageForTask()
@@ -81,6 +83,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    @Ignore
     public void should_return_task_configuration_then_expect_task_is_unassigned() throws Exception {
         caseId = createCcdCase();
         createTaskMessage = createBasicMessageForTask()
