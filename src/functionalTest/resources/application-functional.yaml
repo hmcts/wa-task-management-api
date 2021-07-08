@@ -9,6 +9,3 @@ idam:
   test:
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
     password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
-  system:
-    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
-    password: ${WA_SYSTEM_PASSWORD:password}
