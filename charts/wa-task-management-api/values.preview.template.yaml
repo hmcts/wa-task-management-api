@@ -1,16 +1,19 @@
 java:
-  # Don't modify below here
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
   keyVaults:
     wa:
       secrets:
         - AppInsightsInstrumentationKey
+        - wa-system-username
+        - wa-system-password
+        - wa-idam-client-id
         - wa-idam-client-secret
         - s2s-secret-task-management-api
         - ld-secret
+        - cft-task-POSTGRES-PASS
+        - cft-task-POSTGRES-USER
   environment:
-    RESTART_APP: 1
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
