@@ -1,8 +1,7 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -29,7 +28,7 @@ public class Notes implements Serializable {
     }
 
     @JsonCreator
-    public Notes(@JsonProperty String noteType, @JsonProperty String user, @JsonProperty OffsetDateTime created) {
+    public Notes(String noteType, String user, OffsetDateTime created) {
         this.noteType = noteType;
         this.user = user;
         this.created = created;

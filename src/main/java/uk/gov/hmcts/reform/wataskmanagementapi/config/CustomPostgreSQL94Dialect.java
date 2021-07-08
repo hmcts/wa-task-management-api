@@ -1,6 +1,7 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import org.hibernate.dialect.PostgreSQL10Dialect;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Notes;
 
 import java.sql.Types;
 

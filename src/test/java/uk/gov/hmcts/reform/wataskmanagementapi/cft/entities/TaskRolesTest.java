@@ -21,7 +21,7 @@ public class TaskRolesTest {
             .testing(Method.TO_STRING)
             .areWellImplemented();
 
-        assertPojoMethodsFor(classUnderTest, FieldPredicate.include("taskRoleId", "taskId"))
+        assertPojoMethodsFor(classUnderTest, FieldPredicate.include("roleName", "taskId"))
             .testing(Method.EQUALS)
             .testing(Method.HASH_CODE)
             .areWellImplemented();

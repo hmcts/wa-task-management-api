@@ -1,17 +1,16 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft;
+package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Notes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TasksRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.utils.Notes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import java.time.LocalDate;

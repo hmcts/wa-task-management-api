@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;

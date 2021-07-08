@@ -77,7 +77,7 @@ spring:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
-        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.cft.utils.CustomPostgreSQL94Dialect"
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
     enabled: true
     baselineOnMigrate: true

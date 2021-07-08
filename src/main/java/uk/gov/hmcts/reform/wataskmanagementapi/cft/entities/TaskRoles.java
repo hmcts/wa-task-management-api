@@ -99,12 +99,12 @@ public class TaskRoles implements Serializable {
         }
         TaskRoles taskRoles = (TaskRoles) anotherObject;
 
-        return Objects.equals(taskRoleId, taskRoles.taskRoleId)
+        return Objects.equals(roleName, taskRoles.roleName)
                && Objects.equals(taskId, taskRoles.taskId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(taskRoleId, taskId);
+        return Objects.hash(roleName, taskId);
     }
 }
