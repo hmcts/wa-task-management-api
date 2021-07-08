@@ -1,15 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft.utils;
+package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class NotesTest {
+class NoteResourceTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = Notes.class;
+        final Class<?> classUnderTest = NoteResource.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

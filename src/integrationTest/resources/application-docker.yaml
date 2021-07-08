@@ -6,7 +6,6 @@ spring:
   flyway:
     enabled: false
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
       default_schema: cft_task_db

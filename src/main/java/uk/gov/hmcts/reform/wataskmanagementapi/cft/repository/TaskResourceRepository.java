@@ -3,16 +3,16 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import java.util.Optional;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
-public interface TasksRepository extends CrudRepository<Tasks, String> {
+public interface TaskResourceRepository extends CrudRepository<TaskResource, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "30000")})
-    Optional<Tasks> findById(String id);
+    Optional<TaskResource> findById(String id);
 
 }
