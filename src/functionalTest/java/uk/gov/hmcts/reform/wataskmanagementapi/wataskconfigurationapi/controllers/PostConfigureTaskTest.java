@@ -4,6 +4,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -79,6 +80,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    @Ignore
     public void given_configure_task_then_expect_task_state_is_unassigned() throws IOException {
         caseId = createCcdCase();
         createTaskMessage = createBasicMessageForTask()
