@@ -20,7 +20,7 @@ import javax.persistence.ManyToOne;
 
 @ToString
 @Getter
-@Entity
+@Entity(name = "task_roles")
 @TypeDef(
     name = "string-array",
     typeClass = StringArrayType.class

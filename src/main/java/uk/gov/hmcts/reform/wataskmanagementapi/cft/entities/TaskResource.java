@@ -28,7 +28,7 @@ import javax.persistence.OneToOne;
 
 @ToString
 @Getter
-@Entity
+@Entity(name = "tasks")
 @TypeDef(
     name = "pgsql_enum",
     typeClass = PostgreSQLEnumType.class
@@ -105,7 +105,7 @@ public class TaskResource implements Serializable {
     private ExecutionTypes executionTypeCode;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "tasks", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRole> taskRoles;
 
     protected TaskResource() {
