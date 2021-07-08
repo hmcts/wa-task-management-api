@@ -23,15 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TaskRepositoryTest extends CftRepositoryBaseTest {
+public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Autowired
-    private TasksRepository tasksRepository;
+    private TaskResourceRepository taskResourceRepository;
 
     @Test
     @Sql("/scripts/data.sql")
     void shouldReadTaskData() {
-        final Iterable<TaskResource> tasksIt = tasksRepository.findAll();
+        final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
         assertTrue(StreamSupport.stream(tasksIt.spliterator(), false).count() == 1);
 
