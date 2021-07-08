@@ -2,15 +2,15 @@ spring:
   cloud:
     propertiesvolume:
       enabled: true
-      prefixed: false
+      prefixed: true
       paths: /mnt/secrets/wa
       aliases:
-        AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
-        wa-idam-client-secret: WA_IDAM_CLIENT_SECRET
-        wa-idam-client-id: WA_IDAM_CLIENT_ID
-        s2s-secret-task-management-api: S2S_SECRET_TASK_MANAGEMENT_API
-        ld-secret: LAUNCH_DARKLY_SDK_KEY
-        cft-task-POSTGRES-PASS: POSTGRES_PASSWORD
-        cft-task-POSTGRES-USER: POSTGRES_USERNAME
-        wa-system-username: idam.system.username
-        wa-system-password: idam.system.password
+        wa.AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
+        wa.wa-idam-client-secret: WA_IDAM_CLIENT_SECRET
+        wa.wa-idam-client-id: WA_IDAM_CLIENT_ID
+        wa.s2s-secret-task-management-api: S2S_SECRET_TASK_MANAGEMENT_API
+        wa.ld-secret: LAUNCH_DARKLY_SDK_KEY
+        wa.cft-task-POSTGRES-PASS: POSTGRES_PASSWORD
+        wa.cft-task-POSTGRES-USER: POSTGRES_USERNAME
+        wa.wa-system-username: idam.system.username
+        wa.wa-system-password: idam.system.password
