@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Notes;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoles;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRole;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
@@ -31,37 +31,37 @@ public class TaskRepositoryTest extends CftRepositoryBaseTest {
     @Test
     @Sql("/scripts/data.sql")
     void shouldReadTaskData() {
-        final Iterable<Tasks> tasksIt = tasksRepository.findAll();
+        final Iterable<TaskResource> tasksIt = tasksRepository.findAll();
 
         assertTrue(StreamSupport.stream(tasksIt.spliterator(), false).count() == 1);
 
-        final Tasks tasks = tasksIt.iterator().next();
-        final Notes notes = tasks.getNotes();
+        final TaskResource taskResource = tasksIt.iterator().next();
+        final Notes notes = taskResource.getNotes();
 
         assertAll(
-            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", tasks.getTaskId()),
-            () -> assertEquals(ExecutionType.MANUAL, tasks.getExecutionTypeCode().getExecutionCode()),
-            () -> assertEquals(SecurityClassification.RESTRICTED, tasks.getSecurityClassification()),
-            () -> assertEquals(TaskState.ASSIGNED, tasks.getState()),
-            () -> assertEquals(TaskSystem.SELF, tasks.getTaskSystem()),
-            () -> assertEquals(BusinessContext.CFT_TASK, tasks.getBusinessContext()),
-            () -> assertEquals(LocalDate.of(2022, 05, 9), tasks.getAssignmentExpiry().toLocalDate()),
+            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
+            () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode()),
+            () -> assertEquals(SecurityClassification.RESTRICTED, taskResource.getSecurityClassification()),
+            () -> assertEquals(TaskState.ASSIGNED, taskResource.getState()),
+            () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
+            () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
+            () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.getNoteType())
         );
 
-        final Set<TaskRoles> taskRolesSet = tasks.getTaskRoles();
-        assertTrue(taskRolesSet.size() == 1);
+        final Set<TaskRole> taskRoles = taskResource.getTaskRoles();
+        assertTrue(taskRoles.size() == 1);
 
-        final TaskRoles taskRoles = taskRolesSet.iterator().next();
+        final TaskRole taskRole = taskRoles.iterator().next();
         String[] expectedAuthorizations = {"SPECIFIC", "BASIC"};
 
         assertAll(
-            () -> assertNotNull(taskRoles.getTaskRoleId()),
-            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskRoles.getTaskId()),
-            () -> assertTrue(taskRoles.getRead()),
-            () -> assertEquals("tribunal-caseofficer", taskRoles.getRoleName()),
-            () -> assertArrayEquals(expectedAuthorizations, taskRoles.getAuthorizations())
+            () -> assertNotNull(taskRole.getTaskRoleId()),
+            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskRole.getTaskId()),
+            () -> assertTrue(taskRole.getRead()),
+            () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
+            () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
         );
     }
 }

@@ -38,7 +38,7 @@ import javax.persistence.OneToOne;
     typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
-public class Tasks implements Serializable {
+public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
@@ -106,21 +106,21 @@ public class Tasks implements Serializable {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "tasks", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<TaskRoles> taskRoles;
+    private Set<TaskRole> taskRoles;
 
-    protected Tasks() {
+    protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
 
     @SuppressWarnings("squid:S00107")
-    public Tasks(String taskId, String taskName, String taskType, OffsetDateTime dueDateTime, TaskState state,
-                 TaskSystem taskSystem, SecurityClassification securityClassification, String title,
-                 String description, Notes notes, Integer majorPriority, Integer minorPriority, String assignee,
-                 boolean autoAssigned, ExecutionTypes executionTypeCode, String workType, String roleCategory,
-                 boolean hasWarnings, OffsetDateTime assignmentExpiry, String caseId, String caseTypeId,
-                 String caseName, String jurisdiction, String region, String regionName, String location,
-                 String locationName, BusinessContext businessContext, String terminationReason, OffsetDateTime created,
-                 Set<TaskRoles> taskRoles) {
+    public TaskResource(String taskId, String taskName, String taskType, OffsetDateTime dueDateTime, TaskState state,
+                        TaskSystem taskSystem, SecurityClassification securityClassification, String title,
+                        String description, Notes notes, Integer majorPriority, Integer minorPriority, String assignee,
+                        boolean autoAssigned, ExecutionTypes executionTypeCode, String workType, String roleCategory,
+                        boolean hasWarnings, OffsetDateTime assignmentExpiry, String caseId, String caseTypeId,
+                        String caseName, String jurisdiction, String region, String regionName, String location,
+                        String locationName, BusinessContext businessContext, String terminationReason,
+                        OffsetDateTime created, Set<TaskRole> taskRoles) {
 
         this.taskId = taskId;
         this.taskName = taskName;
@@ -163,7 +163,7 @@ public class Tasks implements Serializable {
         if (anotherObject == null || getClass() != anotherObject.getClass()) {
             return false;
         }
-        Tasks tasks = (Tasks) anotherObject;
+        TaskResource tasks = (TaskResource) anotherObject;
 
         return Objects.equals(taskId, tasks.taskId)
                && Objects.equals(caseId, tasks.caseId);

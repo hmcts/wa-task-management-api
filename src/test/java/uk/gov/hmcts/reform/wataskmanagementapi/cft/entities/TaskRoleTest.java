@@ -6,18 +6,18 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class TaskRolesTest {
+public class TaskRoleTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = TaskRoles.class;
+        final Class<?> classUnderTest = TaskRole.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
             .areWellImplemented();
 
-        assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("tasks"))
+        assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("taskResource"))
             .testing(Method.TO_STRING)
             .areWellImplemented();
 

@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import org.springframework.data.repository.CrudRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
-public interface TasksRepository extends CrudRepository<Tasks, String> {
+public interface TasksRepository extends CrudRepository<TaskResource, String> {
 
 }

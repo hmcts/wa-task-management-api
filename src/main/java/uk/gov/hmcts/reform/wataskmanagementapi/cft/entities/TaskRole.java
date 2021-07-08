@@ -26,7 +26,7 @@ import javax.persistence.ManyToOne;
     typeClass = StringArrayType.class
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
-public class TaskRoles implements Serializable {
+public class TaskRole implements Serializable {
 
     private static final long serialVersionUID = -4769530559311463016L;
 
@@ -64,16 +64,16 @@ public class TaskRoles implements Serializable {
     @ManyToOne
     @JoinColumn(name = "task_id", nullable = false)
     @ToString.Exclude
-    private Tasks tasks;
+    private TaskResource taskResource;
 
-    protected TaskRoles() {
+    protected TaskRole() {
         // required for runtime proxy generation in Hibernate
     }
 
     @SuppressWarnings("squid:S00107")
-    public TaskRoles(String roleName, Boolean read, Boolean own, Boolean execute, Boolean manage, Boolean cancel,
-                     Boolean refer, String[] authorizations, Integer assignmentPriority, Boolean autoAssignable,
-                     String roleCategory, String taskId, OffsetDateTime created) {
+    public TaskRole(String roleName, Boolean read, Boolean own, Boolean execute, Boolean manage, Boolean cancel,
+                    Boolean refer, String[] authorizations, Integer assignmentPriority, Boolean autoAssignable,
+                    String roleCategory, String taskId, OffsetDateTime created) {
         this.roleName = roleName;
         this.read = read;
         this.own = own;
@@ -97,7 +97,7 @@ public class TaskRoles implements Serializable {
         if (anotherObject == null || getClass() != anotherObject.getClass()) {
             return false;
         }
-        TaskRoles taskRoles = (TaskRoles) anotherObject;
+        TaskRole taskRoles = (TaskRole) anotherObject;
 
         return Objects.equals(roleName, taskRoles.roleName)
                && Objects.equals(taskId, taskRoles.taskId);
