@@ -49,10 +49,14 @@ public enum ErrorMessages {
         + "The Task was assigned to the user making the request, the task state was also updated to completed, "
         + "but he Task could not be completed."),
 
+    ROLE_ASSIGNMENT_VERIFICATIONS_FAILED(
+        "The request failed the Role Assignment checks performed."),
+
     GENERIC_FORBIDDEN_ERROR(
         "The action could not be completed because the client/user had insufficient rights to a resource.");
 
     private final String detail;
+
 
     ErrorMessages(String detail) {
         this.detail = detail;

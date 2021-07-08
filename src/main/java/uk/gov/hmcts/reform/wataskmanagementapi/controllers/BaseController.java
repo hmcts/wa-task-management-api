@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class BaseController {
 
     protected static final String OK = "OK";

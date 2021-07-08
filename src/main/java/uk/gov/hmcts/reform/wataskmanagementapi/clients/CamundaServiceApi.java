@@ -46,8 +46,9 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    List<CamundaTask> searchWithCriteria(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                         @RequestBody Map<String, Object> body);
+    List<CamundaTask> searchWithCriteriaAndNoPagination(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @RequestBody Map<String, Object> body);
 
     @PostMapping(value = "/task",
         consumes = APPLICATION_JSON_VALUE,

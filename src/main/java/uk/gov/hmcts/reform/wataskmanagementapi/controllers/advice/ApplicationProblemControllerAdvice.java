@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -25,13 +26,14 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
 
     @ExceptionHandler({
+        GenericForbiddenException.class,
+        RoleAssignmentVerificationException.class,
         TaskAssignAndCompleteException.class,
         TaskAssignException.class,
         TaskClaimException.class,
         TaskCompleteException.class,
         TaskUnclaimException.class,
         TaskCancelException.class,
-        GenericForbiddenException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex
@@ -40,11 +42,11 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
         return ResponseEntity.status(ex.getStatus().getStatusCode())
             .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
             .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
+                      .withType(ex.getType())
+                      .withTitle(ex.getTitle())
+                      .withDetail(ex.getMessage())
+                      .withStatus(ex.getStatus())
+                      .build());
     }
 
 }

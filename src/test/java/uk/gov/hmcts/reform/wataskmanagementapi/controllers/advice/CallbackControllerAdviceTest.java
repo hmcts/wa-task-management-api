@@ -12,7 +12,6 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -135,24 +134,6 @@ class CallbackControllerAdviceTest {
     }
 
     @Test
-    void should_handle_insufficient_permission_exception() {
-
-        final String exceptionMessage = "Some exception message";
-        final InsufficientPermissionsException exception =
-            new InsufficientPermissionsException(exceptionMessage, new Exception());
-
-        ResponseEntity<ErrorMessage> response = callbackControllerAdvice
-            .handleInsufficientPermissionsException(exception);
-
-        assertEquals(HttpStatus.FORBIDDEN.value(), response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(HttpStatus.FORBIDDEN.getReasonPhrase(), response.getBody().getError());
-        assertEquals(HttpStatus.FORBIDDEN.value(), response.getBody().getStatus());
-        assertEquals(exceptionMessage, response.getBody().getMessage());
-    }
-
-    @Test
     void should_handle_bad_request_exception() {
 
         final String exceptionMessage = "Some exception message";
@@ -193,7 +174,7 @@ class CallbackControllerAdviceTest {
 
         String genericExceptionMessage = "Some generic error exception message";
 
-        final Exception genericException = new Exception(genericExceptionMessage);
+        final NullPointerException genericException = new NullPointerException(genericExceptionMessage);
 
         ResponseEntity<ErrorMessage> genericExceptionResponse = callbackControllerAdvice
             .handleGenericException(genericException);

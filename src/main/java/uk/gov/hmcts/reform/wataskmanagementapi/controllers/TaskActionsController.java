@@ -19,50 +19,43 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.RestrictedAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
-import java.util.List;
-
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 
-@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUzE, produces = APPLICATION_JSON_VALUE)
+@RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
-    private final CamundaService camundaService;
+    private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
-    private final RestrictedAccessControlService restrictedAccessControlService;
+    private final ClientAccessControlService clientAccessControlService;
     private final SystemDateProvider systemDateProvider;
 
     @Autowired
-    public TaskActionsController(CamundaService camundaService,
+    public TaskActionsController(TaskManagementService taskManagementService,
                                  AccessControlService accessControlService,
                                  SystemDateProvider systemDateProvider,
-                                 RestrictedAccessControlService restrictedAccessControlService) {
-        this.camundaService = camundaService;
+                                 ClientAccessControlService clientAccessControlService) {
+        super();
+        this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.systemDateProvider = systemDateProvider;
-        this.restrictedAccessControlService = restrictedAccessControlService;
+        this.clientAccessControlService = clientAccessControlService;
     }
 
     @ApiOperation("Retrieve a Task Resource identified by its unique id.")
@@ -75,13 +68,15 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
     @GetMapping(path = "/{task-id}")
-    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader(AUTHORIZATION) String authToken,
                                                          @PathVariable(TASK_ID) String id) {
 
-        List<PermissionTypes> endpointPermissionsRequired = singletonList(READ);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        Task task = camundaService.getTask(id, accessControlResponse.getRoleAssignments(), endpointPermissionsRequired);
+        Task task = taskManagementService.getTask(
+            id,
+            accessControlResponse.getRoleAssignments()
+        );
 
         return ResponseEntity
             .ok()
@@ -100,13 +95,11 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/claim")
-    public ResponseEntity<Void> claimTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> claimTask(@RequestHeader(AUTHORIZATION) String authToken,
                                           @PathVariable(TASK_ID) String taskId) {
 
-        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
-
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-        camundaService.claimTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        taskManagementService.claimTask(taskId, accessControlResponse);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
@@ -125,13 +118,11 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/unclaim")
-    public ResponseEntity<Void> unclaimTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> unclaimTask(@RequestHeader(AUTHORIZATION) String authToken,
                                             @PathVariable(TASK_ID) String taskId) {
 
-        List<PermissionTypes> endpointPermissionsRequired = singletonList(MANAGE);
-
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-        camundaService.unclaimTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        taskManagementService.unclaimTask(taskId, accessControlResponse);
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
@@ -149,12 +140,9 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
-    public ResponseEntity<Void> assignTask(@RequestHeader("Authorization") String assignerAuthToken,
+    public ResponseEntity<Void> assignTask(@RequestHeader(AUTHORIZATION) String assignerAuthToken,
                                            @PathVariable(TASK_ID) String taskId,
                                            @RequestBody AssignTaskRequest assignTaskRequest) {
-
-        List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
-        List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
         AccessControlResponse assignerAccessControlResponse = accessControlService.getRoles(assignerAuthToken);
         AccessControlResponse assigneeAccessControlResponse = accessControlService.getRolesGivenUserId(
@@ -162,12 +150,10 @@ public class TaskActionsController extends BaseController {
             assignerAuthToken
         );
 
-        camundaService.assignTask(
+        taskManagementService.assignTask(
             taskId,
             assignerAccessControlResponse,
-            assignerPermissionsRequired,
-            assigneeAccessControlResponse,
-            assigneePermissionsRequired
+            assigneeAccessControlResponse
         );
         return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
@@ -183,26 +169,29 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> completeTask(@RequestHeader(AUTHORIZATION) String authToken,
                                              @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                              @PathVariable(TASK_ID) String taskId,
                                              @RequestBody(required = false) CompleteTaskRequest completeTaskRequest) {
-        List<PermissionTypes> endpointPermissionsRequired = asList(OWN, EXECUTE);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        boolean isPrivilegedRequest =
-            restrictedAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
-
-        if (isPrivilegedRequest && completeTaskRequest != null && completeTaskRequest.getCompletionOptions() != null) {
-            camundaService.completeTaskWithPrivilegeAndCompletionOptions(
-                taskId,
-                accessControlResponse,
-                endpointPermissionsRequired,
-                completeTaskRequest.getCompletionOptions()
-            );
+        if (completeTaskRequest == null || completeTaskRequest.getCompletionOptions() == null) {
+            taskManagementService.completeTask(taskId, accessControlResponse);
         } else {
-            camundaService.completeTask(taskId, accessControlResponse, endpointPermissionsRequired);
+            boolean isPrivilegedRequest =
+                clientAccessControlService.hasPrivilegedAccess(serviceAuthToken, accessControlResponse);
+
+            if (isPrivilegedRequest) {
+                taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    completeTaskRequest.getCompletionOptions()
+                );
+            } else {
+                throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+            }
         }
 
         return ResponseEntity
@@ -222,12 +211,11 @@ public class TaskActionsController extends BaseController {
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
-    public ResponseEntity<Void> cancelTask(@RequestHeader("Authorization") String authToken,
+    public ResponseEntity<Void> cancelTask(@RequestHeader(AUTHORIZATION) String authToken,
                                            @PathVariable(TASK_ID) String taskId) {
-        List<PermissionTypes> endpointPermissionsRequired = singletonList(CANCEL);
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        camundaService.cancelTask(taskId, accessControlResponse, endpointPermissionsRequired);
+        taskManagementService.cancelTask(taskId, accessControlResponse);
 
         return ResponseEntity
             .noContent()
