@@ -3,18 +3,24 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 
@@ -44,19 +50,25 @@ public class TaskManagementService {
     private final CamundaService camundaService;
     private final CamundaQueryBuilder camundaQueryBuilder;
     private final PermissionEvaluatorService permissionEvaluatorService;
+    private final CFTTaskDatabaseService cftTaskDatabaseService;
+    private final CFTTaskMapper cftTaskMapper;
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CamundaQueryBuilder camundaQueryBuilder,
-                                 PermissionEvaluatorService permissionEvaluatorService) {
+                                 PermissionEvaluatorService permissionEvaluatorService,
+                                 CFTTaskDatabaseService cftTaskDatabaseService,
+                                 CFTTaskMapper cftTaskMapper) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
+        this.cftTaskDatabaseService = cftTaskDatabaseService;
+        this.cftTaskMapper = cftTaskMapper;
     }
 
     /**
      * Retrieves a task from camunda, performs role assignment verifications and returns a mapped task.
-     * This method requires {@link PermissionTypes.READ} permission.
+     * This method requires {@link PermissionTypes#READ} permission.
      *
      * @param taskId          the task id.
      * @param roleAssignments the user role assignments
@@ -71,7 +83,7 @@ public class TaskManagementService {
 
     /**
      * Claims a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -87,7 +99,7 @@ public class TaskManagementService {
 
     /**
      * Unclaims a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.MANAGE} permission.
+     * This method requires {@link PermissionTypes#MANAGE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -112,8 +124,8 @@ public class TaskManagementService {
      * Assigns the task to another user in Camunda.
      * Also performs role assignment verifications for both assignee and assigner.
      * This method requires:
-     * Assigner to have {@link PermissionTypes.MANAGE} permission.
-     * Assignee to have {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * Assigner to have {@link PermissionTypes#MANAGE} permission.
+     * Assignee to have {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                        the task id.
      * @param assignerAccessControlResponse Assigner's access control response containing user id and role assignments.
@@ -143,10 +155,9 @@ public class TaskManagementService {
         camundaService.assignTask(taskId, assigneeAccessControlResponse.getUserInfo().getUid(), variables);
     }
 
-
     /**
      * Cancels a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.CANCEL} permission.
+     * This method requires {@link PermissionTypes#CANCEL} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -165,7 +176,7 @@ public class TaskManagementService {
 
     /**
      * Completes a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -200,7 +211,7 @@ public class TaskManagementService {
 
     /**
      * This method is only used by privileged clients allowing them to set a predefined options for completion.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -224,7 +235,7 @@ public class TaskManagementService {
 
     /**
      * Performs a search in camunda and retrieves mapped tasks also filters out tasks by role assignments permissions.
-     * This method requires {@link PermissionTypes.READ} permission.
+     * This method requires {@link PermissionTypes#READ} permission.
      * This method supports pagination parameters.
      *
      * @param searchTaskRequest     the search request.
@@ -255,7 +266,7 @@ public class TaskManagementService {
 
     /**
      * Performs a specific search in camunda to find tasks that could be completed.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param searchEventAndCase    the search request.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -332,6 +343,53 @@ public class TaskManagementService {
             return 0;
         }
         return camundaService.getTaskCount(query);
+    }
+
+
+    /**
+     * Exclusive client access only.
+     * This method terminates a task and orchestrates the logic between CFT Task db and camunda.
+     * This method is transactional so if any exception occurs when calling camunda the transaction will be reverted.
+     *
+     * @param taskId        the task id.
+     * @param terminateInfo Additional data to define how a task should be terminated.
+     */
+    @Transactional
+    public void terminateTask(String taskId, TerminateInfo terminateInfo) {
+        Tasks task = findByIdAndObtainLock(taskId);
+
+        switch (terminateInfo.getTerminateReason()) {
+            case COMPLETED:
+                task.setState(CFTTaskState.COMPLETED);
+                camundaService.completeTaskById(taskId);
+                cftTaskDatabaseService.saveTask(task);
+                break;
+            case CANCELLED:
+                task.setState(CFTTaskState.CANCELLED);
+                camundaService.cancelTask(taskId);
+                cftTaskDatabaseService.saveTask(task);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + terminateInfo.getTerminateReason());
+        }
+    }
+
+    /**
+     * Exclusive client access only.
+     * This method initiates a task and orchestrates the logic between CFT Task db and camunda.
+     *  @param taskId              the task id.
+     * @param initiateTaskRequest Additional data to define how a task should be initiated.
+     * @return The updated entity {@link Tasks}
+     */
+    @Transactional
+    public Tasks initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        Tasks mappedTask = cftTaskMapper.mapToTaskObject(taskId, initiateTaskRequest.getTaskAttributes());
+        return cftTaskDatabaseService.saveTask(mappedTask);
+    }
+
+    private Tasks findByIdAndObtainLock(String taskId) {
+        return cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
+            .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
     }
 
     private boolean isTaskRequired(List<Map<String, CamundaVariable>> evaluateDmnResult, List<String> taskTypes) {

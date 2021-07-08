@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 
 @ApiModel(
     value = "TaskAttribute",
@@ -13,20 +14,20 @@ import lombok.ToString;
 @ToString
 public class TaskAttribute {
 
-    private final String name;
-    private final String value;
+    private final TaskAttributeDefinition name;
+    private final Object value;
 
     @JsonCreator
-    public TaskAttribute(String name, String value) {
+    public TaskAttribute(TaskAttributeDefinition name, Object value) {
         this.name = name;
         this.value = value;
     }
 
-    public String getName() {
+    public TaskAttributeDefinition getName() {
         return name;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 }

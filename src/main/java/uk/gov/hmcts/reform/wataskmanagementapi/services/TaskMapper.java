@@ -34,7 +34,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @SuppressWarnings("PMD.LinguisticNaming")
 public class TaskMapper {
 
-
     private final CamundaObjectMapper camundaObjectMapper;
 
     @Autowired
@@ -66,7 +65,7 @@ public class TaskMapper {
         String caseName = getVariableValue(variables.get(CASE_NAME.value()), String.class);
         String caseCategory = getVariableValue(variables.get(APPEAL_TYPE.value()), String.class);
         Boolean hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), Boolean.class);
-        WarningValues warningList = getVariableValue(variables.get(WARNING_LIST.value()),WarningValues.class);
+        WarningValues warningList = getVariableValue(variables.get(WARNING_LIST.value()), WarningValues.class);
 
 
         return new Task(

@@ -40,7 +40,7 @@ public class ExecutionTypes implements Serializable {
 
     private String description;
 
-    protected  ExecutionTypes() {
+    protected ExecutionTypes() {
         // required for runtime proxy generation in Hibernate
     }
 
@@ -50,4 +50,27 @@ public class ExecutionTypes implements Serializable {
         this.description = description;
     }
 
+    public ExecutionType getExecutionCode() {
+        return executionCode;
+    }
+
+    public void setExecutionCode(ExecutionType executionCode) {
+        this.executionCode = executionCode;
+    }
+
+    public String getExecutionName() {
+        return executionName;
+    }
+
+    public void setExecutionName(String executionName) {
+        this.executionName = executionName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 }

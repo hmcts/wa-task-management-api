@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import com.vladmihalcea.hibernate.type.array.StringArrayType;
-import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
@@ -19,7 +18,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @ToString
-@Getter
 @Entity
 @TypeDef(
     name = "string-array",
@@ -87,6 +85,126 @@ public class TaskRoles implements Serializable {
         this.roleCategory = roleCategory;
         this.taskId = taskId;
         this.created = created;
+    }
+
+    public UUID getTaskRoleId() {
+        return taskRoleId;
+    }
+
+    public void setTaskRoleId(UUID taskRoleId) {
+        this.taskRoleId = taskRoleId;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public Boolean getRead() {
+        return read;
+    }
+
+    public void setRead(Boolean read) {
+        this.read = read;
+    }
+
+    public Boolean getOwn() {
+        return own;
+    }
+
+    public void setOwn(Boolean own) {
+        this.own = own;
+    }
+
+    public Boolean getExecute() {
+        return execute;
+    }
+
+    public void setExecute(Boolean execute) {
+        this.execute = execute;
+    }
+
+    public Boolean getManage() {
+        return manage;
+    }
+
+    public void setManage(Boolean manage) {
+        this.manage = manage;
+    }
+
+    public Boolean getCancel() {
+        return cancel;
+    }
+
+    public void setCancel(Boolean cancel) {
+        this.cancel = cancel;
+    }
+
+    public Boolean getRefer() {
+        return refer;
+    }
+
+    public void setRefer(Boolean refer) {
+        this.refer = refer;
+    }
+
+    public String[] getAuthorizations() {
+        return authorizations;
+    }
+
+    public void setAuthorizations(String[] authorizations) {
+        this.authorizations = authorizations;
+    }
+
+    public Integer getAssignmentPriority() {
+        return assignmentPriority;
+    }
+
+    public void setAssignmentPriority(Integer assignmentPriority) {
+        this.assignmentPriority = assignmentPriority;
+    }
+
+    public Boolean getAutoAssignable() {
+        return autoAssignable;
+    }
+
+    public void setAutoAssignable(Boolean autoAssignable) {
+        this.autoAssignable = autoAssignable;
+    }
+
+    public String getRoleCategory() {
+        return roleCategory;
+    }
+
+    public void setRoleCategory(String roleCategory) {
+        this.roleCategory = roleCategory;
+    }
+
+    public String getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
+
+    public OffsetDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(OffsetDateTime created) {
+        this.created = created;
+    }
+
+    public Tasks getTasks() {
+        return tasks;
+    }
+
+    public void setTasks(Tasks tasks) {
+        this.tasks = tasks;
     }
 
     @Override

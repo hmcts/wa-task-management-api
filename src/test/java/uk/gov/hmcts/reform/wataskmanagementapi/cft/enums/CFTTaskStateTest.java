@@ -4,18 +4,18 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class TaskStateTest {
+class CFTTaskStateTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String unconfiguredEnum = TaskState.UNCONFIGURED.getValue();
-        final String autoAssignEnum = TaskState.PENDING_AUTO_ASSIGN.getValue();
-        final String assignedEnum = TaskState.ASSIGNED.getValue();
-        final String unassignedEnum = TaskState.UNASSIGNED.getValue();
-        final String completedEnum = TaskState.COMPLETED.getValue();
-        final String cancelledEnum = TaskState.CANCELLED.getValue();
-        final String terminatedEnum = TaskState.TERMINATED.getValue();
-        final String reconfigureENum = TaskState.PENDING_RECONFIGURATION.getValue();
+        final String unconfiguredEnum = CFTTaskState.UNCONFIGURED.getValue();
+        final String autoAssignEnum = CFTTaskState.PENDING_AUTO_ASSIGN.getValue();
+        final String assignedEnum = CFTTaskState.ASSIGNED.getValue();
+        final String unassignedEnum = CFTTaskState.UNASSIGNED.getValue();
+        final String completedEnum = CFTTaskState.COMPLETED.getValue();
+        final String cancelledEnum = CFTTaskState.CANCELLED.getValue();
+        final String terminatedEnum = CFTTaskState.TERMINATED.getValue();
+        final String reconfigureENum = CFTTaskState.PENDING_RECONFIGURATION.getValue();
 
         assertEquals("UNCONFIGURED", unconfiguredEnum);
         assertEquals("PENDING_AUTO_ASSIGN", autoAssignEnum);
@@ -30,7 +30,7 @@ class TaskStateTest {
 
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
-        int assigneeEnumLength = TaskState.values().length;
+        int assigneeEnumLength = CFTTaskState.values().length;
         assertEquals(8, assigneeEnumLength);
     }
 }

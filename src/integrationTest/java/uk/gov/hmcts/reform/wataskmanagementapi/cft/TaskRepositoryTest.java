@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoles;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TasksRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.utils.Notes;
@@ -43,7 +43,7 @@ public class TaskRepositoryTest extends CftRepositoryBaseTest {
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", tasks.getTaskId()),
             () -> assertEquals(ExecutionType.MANUAL, tasks.getExecutionTypeCode().getExecutionCode()),
             () -> assertEquals(SecurityClassification.RESTRICTED, tasks.getSecurityClassification()),
-            () -> assertEquals(TaskState.ASSIGNED, tasks.getState()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, tasks.getState()),
             () -> assertEquals(TaskSystem.SELF, tasks.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, tasks.getBusinessContext()),
             () -> assertEquals(LocalDate.of(2022, 05, 9), tasks.getAssignmentExpiry().toLocalDate()),
