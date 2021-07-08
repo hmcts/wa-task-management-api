@@ -12,5 +12,5 @@ spring:
         wa.ld-secret: LAUNCH_DARKLY_SDK_KEY
         wa.cft-task-POSTGRES-PASS: POSTGRES_PASSWORD
         wa.cft-task-POSTGRES-USER: POSTGRES_USERNAME
-        wa.wa-system-username: idam.system.username
-        wa.wa-system-password: idam.system.password
+        wa.wa-system-username: WA_SYSTEM_USERNAME
+        wa.wa-system-password: WA_SYSTEM_PASSWORD
