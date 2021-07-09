@@ -8,8 +8,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
@@ -42,7 +42,7 @@ public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
             () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeResource().getExecutionCode()),
             () -> assertEquals(SecurityClassification.RESTRICTED, taskResource.getSecurityClassification()),
-            () -> assertEquals(TaskState.ASSIGNED, taskResource.getState()),
+            () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
             () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),

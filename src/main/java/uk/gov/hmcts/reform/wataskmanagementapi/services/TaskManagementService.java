@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -378,9 +377,10 @@ public class TaskManagementService {
     /**
      * Exclusive client access only.
      * This method initiates a task and orchestrates the logic between CFT Task db and camunda.
-     *  @param taskId              the task id.
+     *
+     * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
-     * @return The updated entity {@link Tasks}
+     * @return The updated entity {@link TaskResource}
      */
     @Transactional
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {

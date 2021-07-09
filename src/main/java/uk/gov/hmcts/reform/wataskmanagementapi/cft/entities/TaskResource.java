@@ -112,6 +112,14 @@ public class TaskResource implements Serializable {
         // required for runtime proxy generation in Hibernate
     }
 
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+    }
+
     @SuppressWarnings("squid:S00107")
     public TaskResource(String taskId,
                         String taskName,

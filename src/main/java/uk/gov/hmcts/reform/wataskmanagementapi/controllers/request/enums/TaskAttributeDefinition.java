@@ -42,7 +42,6 @@ public enum TaskAttributeDefinition {
     TASK_TYPE("task_type", new TypeReference<String>() {}),
     TASK_WORK_TYPE("task_work_type", new TypeReference<String>() {});
 
-
     private final String value;
     private final TypeReference typeReference;
 

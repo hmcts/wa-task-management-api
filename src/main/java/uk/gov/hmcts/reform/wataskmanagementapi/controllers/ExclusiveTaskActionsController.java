@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
@@ -48,7 +47,7 @@ public class ExclusiveTaskActionsController extends BaseController {
 
     @ApiOperation("Exclusive access only: Initiate a Task identified by an id.")
     @ApiResponses({
-        @ApiResponse(code = 201, message = "Task has been initiated", response = Tasks.class),
+        @ApiResponse(code = 201, message = "Task has been initiated", response = TaskResource.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
         @ApiResponse(code = 403, message = FORBIDDEN),

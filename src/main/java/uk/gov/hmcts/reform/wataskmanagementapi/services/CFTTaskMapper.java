@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.Tasks;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 
@@ -50,12 +50,12 @@ public class CFTTaskMapper {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public Tasks mapToTaskObject(String taskId, List<TaskAttribute> taskAttributes) {
+    public TaskResource mapToTaskObject(String taskId, List<TaskAttribute> taskAttributes) {
 
         Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
             .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
 
-        return new Tasks(
+        return new TaskResource(
             taskId,
             read(attributes, TASK_NAME, null),
             read(attributes, TASK_TYPE, null),
