@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -17,9 +15,6 @@ import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class AssignmentTest extends SpringBootIntegrationBaseTest {
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Test
     void deserialize_as_expected_for_unknown_values() throws IOException {
