@@ -343,6 +343,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
+        @Ignore
         void should_return_400_bad_request_application_problem_when_unknown_property_provided_in_completion_options()
             throws Exception {
 
@@ -376,6 +377,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
+        @Ignore
         void should_return_400_bad_request_application_problem_when_completion_options_invalid_value()
             throws Exception {
 
