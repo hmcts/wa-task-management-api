@@ -30,7 +30,6 @@ public class JacksonConfiguration {
         return new Jackson2ObjectMapperBuilder()
             .propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
             .serializationInclusion(JsonInclude.Include.NON_ABSENT)
-            .featuresToEnable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
             .featuresToEnable(READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE)
             .featuresToEnable(READ_ENUMS_USING_TO_STRING)
             .featuresToEnable(WRITE_ENUMS_USING_TO_STRING)
