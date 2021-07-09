@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -95,7 +95,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
-            roleAssignmentServiceApi);
+            roleAssignmentServiceApi
+        );
     }
 
     @Nested
@@ -132,7 +133,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -152,7 +154,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -163,7 +169,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -197,7 +204,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
                     jsonPath("$.title").value("Task Assign and Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -230,7 +238,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
                     jsonPath("$.title").value("Task Assign and Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -252,7 +261,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -264,7 +277,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
                     jsonPath("$.title").value("Task Assign and Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -298,7 +312,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     ResultMatcher.matchAll(
                         status().isForbidden(),
                         content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                        jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+                        jsonPath("$.type").value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
                         jsonPath("$.title").value("Role Assignment Verification"),
                         jsonPath("$.status").value(403),
                         jsonPath("$.detail").value(
@@ -308,7 +323,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @Ignore
+        @Disabled("Disabled temporarily")
         void should_return_400_bad_request_application_problem_when_completion_options_value_is_null()
             throws Exception {
 
@@ -343,7 +358,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @Ignore
+        @Disabled("Disabled temporarily")
         void should_return_400_bad_request_application_problem_when_unknown_property_provided_in_completion_options()
             throws Exception {
 
@@ -377,7 +392,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @Ignore
+        @Disabled("Disabled temporarily")
         void should_return_400_bad_request_application_problem_when_completion_options_invalid_value()
             throws Exception {
 
@@ -446,7 +461,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -466,7 +482,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -477,7 +497,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
