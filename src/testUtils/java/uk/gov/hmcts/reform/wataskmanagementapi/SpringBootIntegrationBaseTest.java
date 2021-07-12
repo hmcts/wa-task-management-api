@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -18,9 +20,10 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(PostgreSQLExtension.class)
+@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
@@ -28,16 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     "OPEN_ID_IDAM_URL=https://idam-web-public.aat.platform.hmcts.net",
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
-@Testcontainers
-@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class SpringBootIntegrationBaseTest {
-
-    @Container
-    private static PostgreSQLContainer<?> POSTGRES_SQL_CONTAINER = new PostgreSQLContainer<>(
-        DockerImageName.parse("postgres:11"))
-        .withDatabaseName("cft_db_test")
-        .withUsername("postgres")
-        .withPassword("pass");
 
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -53,7 +47,7 @@ public abstract class SpringBootIntegrationBaseTest {
     }
 
     @Test
-    public void db_container_is_running() {
-        assertTrue(POSTGRES_SQL_CONTAINER.isRunning());
+    void contextLoads() {
+        assertThat(mockMvc).isNotNull();
     }
 }

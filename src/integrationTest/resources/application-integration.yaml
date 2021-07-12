@@ -2,13 +2,9 @@ config:
   stacktraceEnabled: false
 
 spring:
-  driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+  driverClassName: org.postgresql.Driver
   flyway:
     enabled: true
-  datasource:
-    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
-    properties:
-    charSet: UTF-8
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
