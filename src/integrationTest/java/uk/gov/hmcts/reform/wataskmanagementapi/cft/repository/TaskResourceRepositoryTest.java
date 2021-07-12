@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.time.LocalDate;
 import java.util.Set;
-import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
+class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
@@ -31,9 +30,9 @@ public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
     @Test
     @Sql("/scripts/data.sql")
     void shouldReadTaskData() {
-        final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
+        assertEquals(1, taskResourceRepository.count());
 
-        assertTrue(StreamSupport.stream(tasksIt.spliterator(), false).count() == 1);
+        final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
         final TaskResource taskResource = tasksIt.iterator().next();
         final NoteResource notes = taskResource.getNotes();
@@ -51,7 +50,7 @@ public class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
         );
 
         final Set<TaskRoleResource> taskRoles = taskResource.getTaskRoleResources();
-        assertTrue(taskRoles.size() == 1);
+        assertEquals(1, taskRoles.size());
 
         final TaskRoleResource taskRole = taskRoles.iterator().next();
         String[] expectedAuthorizations = {"SPECIFIC", "BASIC"};

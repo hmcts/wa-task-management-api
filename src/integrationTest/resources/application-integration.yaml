@@ -2,12 +2,17 @@ config:
   stacktraceEnabled: false
 
 spring:
-  driverClassName: org.postgresql.Driver
   flyway:
-    enabled: true
+    enabled: false
+  datasource:
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    properties:
+      charSet: UTF-8
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
+      ddl-auto: create-drop
       naming:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:

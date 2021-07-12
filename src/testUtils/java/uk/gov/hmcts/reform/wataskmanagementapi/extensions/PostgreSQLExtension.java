@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi;
+package uk.gov.hmcts.reform.wataskmanagementapi.extensions;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;

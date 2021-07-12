@@ -1,12 +1,16 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 
@@ -14,6 +18,7 @@ import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -27,11 +32,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s";
     private static String ENDPOINT_BEING_TESTED;
     @MockBean
     private ClientAccessControlService clientAccessControlService;
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
 
     private String taskId;
 
@@ -40,6 +48,11 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
+    }
+
+    @AfterAll
+    void tearDown() {
+        taskResourceRepository.deleteAll();
     }
 
     @Test
@@ -92,10 +105,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ).andExpect(
             ResultMatcher.matchAll(
                 status().isCreated(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.taskId").value(taskId),
-                jsonPath("$.taskType").value("aTaskType"),
-                jsonPath("$.taskName").value("aTaskName")
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_type").value("aTaskType"),
+                jsonPath("$.task_name").value("aTaskName")
             ));
     }
 

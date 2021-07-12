@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,9 +11,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-@ExtendWith(PostgreSQLExtension.class)
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
@@ -39,8 +34,4 @@ public abstract class SpringBootIntegrationBaseTest {
         return objectMapper.writeValueAsString(object);
     }
 
-    @Test
-    void contextLoads() {
-        assertThat(mockMvc).isNotNull();
-    }
 }
