@@ -15,7 +15,8 @@ public class PostgreSQLExtension implements BeforeAllCallback, AfterAllCallback 
         postgres = new PostgreSQLContainer<>(DockerImageName.parse("postgres:11"))
             .withDatabaseName("cft_task_db")
             .withUsername("postgres")
-            .withPassword("pass");
+            .withPassword("pass")
+        .withReuse(true);
 
         postgres.start();
         String jdbcUrl = String.format("jdbc:postgresql://localhost:%d/cft_task_db", postgres.getFirstMappedPort());
