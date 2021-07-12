@@ -235,7 +235,7 @@ public class GivensBuilder {
         Map data = null;
         try {
             String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
             caseDataString = caseDataString.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);

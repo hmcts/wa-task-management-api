@@ -70,6 +70,14 @@ spring:
     password: ${POSTGRES_PASSWORD:}
     properties:
       charSet: UTF-8
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+    properties:
+      hibernate:
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
     enabled: true
     baselineOnMigrate: true
