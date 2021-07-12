@@ -11,7 +11,7 @@ import java.util.Optional;
 @Service
 @SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis"})
 public class CFTTaskDatabaseService {
-    private TaskResourceRepository tasksRepository;
+    private final TaskResourceRepository tasksRepository;
 
     public CFTTaskDatabaseService(TaskResourceRepository tasksRepository) {
         this.tasksRepository = tasksRepository;

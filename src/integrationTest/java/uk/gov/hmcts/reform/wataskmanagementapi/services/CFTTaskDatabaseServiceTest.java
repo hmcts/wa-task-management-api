@@ -49,7 +49,8 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     void should_succeed_and_find_a_task_by_id() {
 
         String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
-        Optional<TaskResource> updatedTaskResource = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+        Optional<TaskResource> updatedTaskResource =
+            cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
 
         assertNotNull(updatedTaskResource);
         assertTrue(updatedTaskResource.isPresent());

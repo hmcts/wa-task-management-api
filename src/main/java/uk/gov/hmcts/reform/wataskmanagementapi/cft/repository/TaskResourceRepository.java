@@ -11,6 +11,7 @@ import javax.persistence.QueryHint;
 
 public interface TaskResourceRepository extends CrudRepository<TaskResource, String> {
 
+    @Override
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "30000")})
     Optional<TaskResource> findById(String id);

@@ -44,7 +44,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 
 
 @Service
-@SuppressWarnings("PMD.LinguisticNaming")
+@SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports"})
 public class CFTTaskMapper {
 
     @Autowired
@@ -103,8 +103,8 @@ public class CFTTaskMapper {
         if (object == null) {
             return Optional.empty();
         }
-        Object o = object.get(extractor);
-        Object value = objectMapper.convertValue(o, extractor.getTypeReference());
+        Object obj = object.get(extractor);
+        Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return Optional.of((T) value);
     }
