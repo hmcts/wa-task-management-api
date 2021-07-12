@@ -78,7 +78,7 @@ class RoleAssignmentServiceTest {
     void should_search_roles_by_case_id() {
 
         final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
-            singletonList(testRoleAssignment), null
+            singletonList(testRoleAssignment)
         );
 
         when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
@@ -114,7 +114,7 @@ class RoleAssignmentServiceTest {
     void should_throw_server_error_exception_when_call_to_role_assignment_fails() {
 
         final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
-            singletonList(testRoleAssignment), null
+            singletonList(testRoleAssignment)
         );
 
 
