@@ -11,8 +11,11 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleAssignmentResource {
-    private final List<RoleAssignment> roleAssignmentResponse;
+    private List<RoleAssignment> roleAssignmentResponse;
 
+    private RoleAssignmentResource() {
+        //No-op constructor
+    }
     public RoleAssignmentResource(List<RoleAssignment> roleAssignmentResponse) {
         this.roleAssignmentResponse = roleAssignmentResponse;
     }

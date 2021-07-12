@@ -37,7 +37,7 @@ public class RoleAssignment {
     private List<String> authorisations;
 
     private RoleAssignment() {
-        //Hidden constructor
+        //No-op constructor
     }
 
     public RoleAssignment(ActorIdType actorIdType,
