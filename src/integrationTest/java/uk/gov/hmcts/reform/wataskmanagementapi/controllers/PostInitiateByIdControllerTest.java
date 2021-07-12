@@ -55,7 +55,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             ResultMatcher.matchAll(
-                status().is5xxServerError(),
+                status().isForbidden(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
@@ -85,7 +85,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .content(asJsonString(req))
         ).andExpect(
             ResultMatcher.matchAll(
-                status().is2xxSuccessful(),
+                status().isCreated(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.taskId").value(taskId),
                 jsonPath("$.taskType").value("aTaskType"),

@@ -56,7 +56,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
         ).andExpect(
             ResultMatcher.matchAll(
-                status().is5xxServerError(),
+                status().isForbidden(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
