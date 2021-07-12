@@ -130,8 +130,8 @@ public class RoleAssignmentServiceApiTest {
                 .withStatus(200)
                 .withHeader(
                     "Content-Type",
-                    "application/vnd.uk.gov.hmcts.role-assignment-service.post-assignment-query-request+json; "
-                        + "version=1.0;charset=UTF-8"
+                    "application/vnd.uk.gov.hmcts.role-assignment-service"
+                    + ".post-assignment-query-request+json;charset=UTF-8;version=2.0"
                 )
                 .withBody(roleAssignmentsResponseAsJsonString))
         );
