@@ -4,11 +4,7 @@
 
 spring:
   flyway:
-    enabled: false
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-      default_schema: cft_task_db
+    enabled: true
 
 logging:
   level:

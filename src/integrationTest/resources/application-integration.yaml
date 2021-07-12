@@ -3,14 +3,16 @@ config:
 
 spring:
   flyway:
-    enabled: false
+    enabled: true
   datasource:
-    driverClassName: org.h2.Driver
-    url: jdbc:h2:mem:cft_task_db
-    username: sa
-    password: password
+    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    properties:
+    charSet: UTF-8
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop
-      default_schema: cft_task_db
+      naming:
+        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+    properties:
+      hibernate:
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
