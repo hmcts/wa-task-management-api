@@ -2,6 +2,7 @@ config:
   stacktraceEnabled: false
 
 spring:
+  driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
   flyway:
     enabled: true
   datasource:
