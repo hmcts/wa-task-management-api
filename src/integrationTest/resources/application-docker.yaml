@@ -21,3 +21,4 @@ logging:
       type.descriptor.sql.BasicBinder: trace
       engine: debug
     uk.gov.hmcts.reform: debug
+
