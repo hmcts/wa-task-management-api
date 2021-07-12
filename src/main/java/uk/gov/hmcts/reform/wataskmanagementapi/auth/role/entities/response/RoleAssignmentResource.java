@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.EqualsAndHashCode;
@@ -14,7 +13,6 @@ import java.util.List;
 public class RoleAssignmentResource {
     private final List<RoleAssignment> roleAssignmentResponse;
 
-    @JsonCreator
     public RoleAssignmentResource(List<RoleAssignment> roleAssignmentResponse) {
         this.roleAssignmentResponse = roleAssignmentResponse;
     }
