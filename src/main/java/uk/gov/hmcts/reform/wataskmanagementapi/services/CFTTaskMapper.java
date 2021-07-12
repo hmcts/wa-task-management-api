@@ -106,7 +106,7 @@ public class CFTTaskMapper {
         Object obj = object.get(extractor);
         Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
-        return Optional.of((T) value);
+        return value == null ? Optional.empty() : Optional.of((T) value);
     }
 }
 
