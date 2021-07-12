@@ -64,7 +64,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.type")
                     .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
                 jsonPath("$.title").value("Forbidden"),
-                jsonPath("$.status").value(500),
+                jsonPath("$.status").value(403),
                 jsonPath("$.detail").value(
                     "Forbidden: The action could not be completed because the client/user "
                     + "had insufficient rights to a resource.")
