@@ -49,11 +49,14 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
 
+        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+
         mockMvc.perform(
             delete(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req))
         ).andExpect(
             ResultMatcher.matchAll(
                 status().isForbidden(),
