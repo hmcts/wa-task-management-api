@@ -15,11 +15,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class AssignmentTest {
+class RoleAssignmentTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = Assignment.class;
+        final Class<?> classUnderTest = RoleAssignment.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -33,7 +33,7 @@ class AssignmentTest {
     @Test
     void should_set_properties() {
         String id = UUID.randomUUID().toString();
-        Assignment assignment = new Assignment(
+        RoleAssignment roleAssignment = new RoleAssignment(
             id,
             ActorIdType.IDAM,
             "someactorId",
@@ -50,20 +50,20 @@ class AssignmentTest {
             emptyList()
         );
 
-        Assertions.assertEquals(id, assignment.getId());
-        Assertions.assertEquals(ActorIdType.IDAM, assignment.getActorIdType());
-        Assertions.assertEquals("someactorId", assignment.getActorId());
-        Assertions.assertEquals(RoleType.ORGANISATION, assignment.getRoleType());
-        Assertions.assertEquals("some-role-name", assignment.getRoleName());
-        Assertions.assertEquals(Classification.PUBLIC, assignment.getClassification());
-        Assertions.assertEquals(GrantType.SPECIFIC, assignment.getGrantType());
-        Assertions.assertEquals(RoleCategory.LEGAL_OPERATIONS, assignment.getRoleCategory());
-        Assertions.assertFalse(assignment.isReadOnly());
-        Assertions.assertNull(assignment.getBeginTime());
-        Assertions.assertNull(assignment.getEndTime());
-        Assertions.assertNull(assignment.getCreated());
-        Assertions.assertEquals(emptyMap(), assignment.getAttributes());
-        Assertions.assertEquals(emptyList(), assignment.getAuthorisations());
+        Assertions.assertEquals(id, roleAssignment.getId());
+        Assertions.assertEquals(ActorIdType.IDAM, roleAssignment.getActorIdType());
+        Assertions.assertEquals("someactorId", roleAssignment.getActorId());
+        Assertions.assertEquals(RoleType.ORGANISATION, roleAssignment.getRoleType());
+        Assertions.assertEquals("some-role-name", roleAssignment.getRoleName());
+        Assertions.assertEquals(Classification.PUBLIC, roleAssignment.getClassification());
+        Assertions.assertEquals(GrantType.SPECIFIC, roleAssignment.getGrantType());
+        Assertions.assertEquals(RoleCategory.LEGAL_OPERATIONS, roleAssignment.getRoleCategory());
+        Assertions.assertFalse(roleAssignment.isReadOnly());
+        Assertions.assertNull(roleAssignment.getBeginTime());
+        Assertions.assertNull(roleAssignment.getEndTime());
+        Assertions.assertNull(roleAssignment.getCreated());
+        Assertions.assertEquals(emptyMap(), roleAssignment.getAttributes());
+        Assertions.assertEquals(emptyList(), roleAssignment.getAuthorisations());
 
     }
 }

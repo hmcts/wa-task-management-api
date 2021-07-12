@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -308,7 +308,7 @@ public class GivensBuilder {
         Map<String, String> attributes = Map.of(
             "caseId", caseId
         );
-        Assignment assignment = new Assignment(
+        RoleAssignment roleAssignment = new RoleAssignment(
             ActorIdType.IDAM,
             userId,
             RoleType.CASE,
@@ -322,7 +322,7 @@ public class GivensBuilder {
 
         return new RoleAssignmentRequest(
             roleRequest,
-            singletonList(assignment)
+            singletonList(roleAssignment)
         );
     }
 

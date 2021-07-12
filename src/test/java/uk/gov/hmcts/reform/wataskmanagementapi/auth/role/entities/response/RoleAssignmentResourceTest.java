@@ -5,16 +5,15 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class GetRoleAssignmentResponseTest {
+class RoleAssignmentResourceTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = GetRoleAssignmentResponse.class;
+        final Class<?> classUnderTest = RoleAssignmentResource.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
-            .testing(Method.TO_STRING)
             .testing(Method.EQUALS)
             .testing(Method.HASH_CODE)
             .areWellImplemented();

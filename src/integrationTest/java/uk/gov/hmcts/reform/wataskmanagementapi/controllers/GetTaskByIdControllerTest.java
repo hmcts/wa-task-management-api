@@ -9,11 +9,11 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -104,10 +104,10 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
 
         // Role attribute is IA
-        List<Assignment> allTestRoles = new ArrayList<>();
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                Assignment roleAssignment = mockServices.createBaseAssignment(
+                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
                     UUID.randomUUID().toString(), "tribunal-caseworker",
                     roleType,
                     Classification.PUBLIC,
@@ -116,7 +116,7 @@ class GetTaskByIdControllerTest extends SpringBootIntegrationBaseTest {
                 allTestRoles.add(roleAssignment);
             }));
 
-        GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             allTestRoles
         );
         when(roleAssignmentServiceApi.getRolesForUser(

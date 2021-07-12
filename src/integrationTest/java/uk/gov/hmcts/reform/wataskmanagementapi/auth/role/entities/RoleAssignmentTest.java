@@ -14,7 +14,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class AssignmentTest extends SpringBootIntegrationBaseTest {
+class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void deserialize_as_expected_for_unknown_values() throws IOException {
@@ -35,15 +35,15 @@ class AssignmentTest extends SpringBootIntegrationBaseTest {
             + "\"authorisations\":[]"
             + "}";
 
-        final Assignment expected = objectMapper.readValue(jsonContent, Assignment.class);
+        final RoleAssignment expected = objectMapper.readValue(jsonContent, RoleAssignment.class);
 
-        Assignment actual = getAssignmentForUnknownValues();
+        RoleAssignment actual = getAssignmentForUnknownValues();
 
         assertEquals(expected, actual);
     }
 
-    private Assignment getAssignmentForUnknownValues() {
-        return new Assignment(
+    private RoleAssignment getAssignmentForUnknownValues() {
+        return new RoleAssignment(
             "00d1ebd4-06ef-4b53-9571-b138981dc8e0",
             ActorIdType.UNKNOWN,
             "someactorId",

@@ -21,6 +21,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonNaming
 @JsonInclude(Include.NON_NULL)
 @ToString
+@SuppressWarnings("PMD.LinguisticNaming")
 public final class QueryRequest {
 
     private final List<String> actorId;
@@ -32,6 +33,8 @@ public final class QueryRequest {
     private final List<RoleCategory> roleCategory;
     private final Map<String, List<String>> attributes;
     private final List<String> authorisations;
+    private final List<String> hasAttributes;
+    private final Boolean readOnly;
 
     public List<String> getActorId() {
         return actorId;
@@ -67,5 +70,13 @@ public final class QueryRequest {
 
     public List<String> getAuthorisations() {
         return authorisations;
+    }
+
+    public List<String> getHasAttributes() {
+        return hasAttributes;
+    }
+
+    public Boolean getReadOnly() {
+        return readOnly;
     }
 }

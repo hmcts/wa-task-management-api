@@ -14,19 +14,19 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.MultipleQueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
@@ -288,8 +288,8 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
 
     private void setupRoleAssignmentResponse(boolean shouldReturnRoleAssignment) {
-        Function<Boolean, List<Assignment>> getRoleAssignment = (condition) ->
-            (condition) ? List.of(Assignment.builder()
+        Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
+            (condition) ? List.of(RoleAssignment.builder()
                                       .id("someId")
                                       .actorIdType(ActorIdType.IDAM)
                                       .actorId(testUserId)
@@ -302,8 +302,8 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
             eq(BEARER_SERVICE_TOKEN),
-            any(QueryRequest.class)
-        )).thenReturn(new GetRoleAssignmentResponse(getRoleAssignment.apply(shouldReturnRoleAssignment)));
+            any(MultipleQueryRequest.class)
+        )).thenReturn(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment)));
 
     }
 

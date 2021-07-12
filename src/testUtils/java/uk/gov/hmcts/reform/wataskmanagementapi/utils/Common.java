@@ -11,8 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
@@ -330,7 +330,7 @@ public class Common {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
 
-        GetRoleAssignmentResponse response = null;
+        RoleAssignmentResource response = null;
 
         try {
             //Retrieve All role assignments
@@ -346,11 +346,11 @@ public class Common {
 
         if (response != null) {
             //Delete All role assignments
-            List<Assignment> organisationalRoleAssignments = response.getRoleAssignmentResponse().stream()
+            List<RoleAssignment> organisationalRoleAssignments = response.getRoleAssignmentResponse().stream()
                 .filter(assignment -> ORGANISATION.equals(assignment.getRoleType()))
                 .collect(toList());
 
-            List<Assignment> caseRoleAssignments = response.getRoleAssignmentResponse().stream()
+            List<RoleAssignment> caseRoleAssignments = response.getRoleAssignmentResponse().stream()
                 .filter(assignment -> CASE.equals(assignment.getRoleType()))
                 .collect(toList());
 
