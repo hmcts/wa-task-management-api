@@ -397,7 +397,9 @@ public class Common {
                            final String attributes) {
         String assignmentRequestBody = null;
         try {
-            assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
+            assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile(
+                "classpath:" + resourceFilename), "UTF-8"
+            );
             assignmentRequestBody = assignmentRequestBody.replace("{ACTOR_ID_PLACEHOLDER}", userInfo.getUid());
             assignmentRequestBody = assignmentRequestBody.replace("{ASSIGNER_ID_PLACEHOLDER}", userInfo.getUid());
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);

@@ -27,10 +27,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteT
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.InsufficientPermissionsException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
@@ -59,6 +59,7 @@ import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_UPDATE_STATE;
@@ -91,7 +92,7 @@ public class CamundaService {
     public static final String THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH = "There was a problem performing the search";
     public static final String THERE_WAS_A_PROBLEM_RETRIEVING_TASK_COUNT = "There was a problem retrieving task count";
 
-    private static final  String ESCALATION_CODE = "wa-esc-cancellation";
+    private static final String ESCALATION_CODE = "wa-esc-cancellation";
 
     private final CamundaServiceApi camundaServiceApi;
     private final CamundaQueryBuilder camundaQueryBuilder;
@@ -139,9 +140,7 @@ public class CamundaService {
             }
         } else {
             log.error(String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId));
-            throw new InsufficientPermissionsException(
-                String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_CLAIM_TASK, taskId)
-            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
     }
@@ -155,8 +154,8 @@ public class CamundaService {
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
 
-        hasAccess(taskId, assignerAccessControlResponse, assignerPermissionsRequired, variables);
-        hasAccess(taskId, assigneeAccessControlResponse, assigneePermissionsRequired, variables);
+        hasAccess(assignerAccessControlResponse, assignerPermissionsRequired, variables);
+        hasAccess(assigneeAccessControlResponse, assigneePermissionsRequired, variables);
 
         String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
         boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
@@ -203,9 +202,7 @@ public class CamundaService {
                 throw new TaskUnclaimException(TASK_UNCLAIM_UNABLE_TO_UNCLAIM);
             }
         } else {
-            throw new InsufficientPermissionsException(
-                String.format("User did not have sufficient permissions to unclaim task with id: %s", taskId)
-            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
     }
 
@@ -251,9 +248,7 @@ public class CamundaService {
                     throw new TaskAssignAndCompleteException(TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE);
                 }
             } else {
-                throw new InsufficientPermissionsException(
-                    String.format("User did not have sufficient permissions to complete task with id: %s", taskId)
-                );
+                throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
             }
         } else {
             completeTask(taskId, accessControlResponse, permissionsRequired);
@@ -300,9 +295,7 @@ public class CamundaService {
                 throw new TaskCompleteException(TASK_COMPLETE_UNABLE_TO_COMPLETE);
             }
         } else {
-            throw new InsufficientPermissionsException(
-                String.format("User did not have sufficient permissions to complete task with id: %s", taskId)
-            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
     }
@@ -424,11 +417,9 @@ public class CamundaService {
         if (hasAccess) {
             CamundaTask camundaTask = performGetCamundaTaskAction(id);
             return taskMapper.mapToTaskObject(variables, camundaTask);
+        } else {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
-
-        throw new InsufficientPermissionsException(
-            String.format("User did not have sufficient permissions to access task with id: %s", id)
-        );
     }
 
     public Map<String, CamundaVariable> performGetVariablesAction(String id) {
@@ -461,9 +452,7 @@ public class CamundaService {
                 throw new TaskCancelException(TASK_CANCEL_UNABLE_TO_CANCEL);
             }
         } else {
-            throw new InsufficientPermissionsException(
-                String.format("User did not have sufficient permissions to cancel task with id: %s", taskId)
-            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
     }
@@ -512,8 +501,7 @@ public class CamundaService {
         return Map.of("variables", eventIdCamundaVariable);
     }
 
-    private void hasAccess(String taskId,
-                           AccessControlResponse accessControlResponse,
+    private void hasAccess(AccessControlResponse accessControlResponse,
                            List<PermissionTypes> permissionsRequired,
                            Map<String, CamundaVariable> variables) {
         boolean hasAccess = permissionEvaluatorService.hasAccess(
@@ -523,9 +511,7 @@ public class CamundaService {
         );
 
         if (!hasAccess) {
-            throw new InsufficientPermissionsException(
-                String.format(USER_DID_NOT_HAVE_SUFFICIENT_PERMISSIONS_TO_ASSIGN_TASK, taskId)
-            );
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
     }
 
@@ -645,9 +631,10 @@ public class CamundaService {
             if (variablesForProcessInstanceId != null) {
                 //Format variables
                 Map<String, CamundaVariable> variables = variablesForProcessInstanceId.stream()
-                    .collect(toMap(
-                        CamundaVariableInstance::getName,
-                        var -> new CamundaVariable(var.getValue(), var.getType()), (a, b) -> b
+                    .collect(
+                        toMap(
+                            CamundaVariableInstance::getName,
+                            variable -> new CamundaVariable(variable.getValue(), variable.getType()), (a, b) -> b
                         )
                     );
 
@@ -746,7 +733,8 @@ public class CamundaService {
         } catch (FeignException ex) {
             log.error(
                 "There was a problem updating task '{}', task state could not be updated to '{}'",
-                taskId, newState);
+                taskId, newState
+            );
             throw new CamundaTaskStateUpdateException(ex);
         }
 

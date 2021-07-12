@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -35,6 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -82,9 +85,9 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
-        when(authTokenGenerator.generate())
+        lenient().when(authTokenGenerator.generate())
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
-        when(mockedUserInfo.getUid())
+        lenient().when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
@@ -92,7 +95,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
-            roleAssignmentServiceApi);
+            roleAssignmentServiceApi
+        );
     }
 
     @Nested
@@ -129,7 +133,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -149,7 +154,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -160,7 +169,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -194,7 +204,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
                     jsonPath("$.title").value("Task Assign and Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -227,7 +238,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
                     jsonPath("$.title").value("Task Assign and Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -249,7 +261,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -261,7 +277,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"),
                     jsonPath("$.title").value("Task Assign and Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -269,6 +286,145 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                         + "The Task was assigned to the user making the request, "
                         + "the task state was also updated to completed, but he Task could not be completed.")
                 ));
+        }
+
+        @Test
+        void should_return_403_with_application_problem_response_when_completion_options_value_is_null()
+            throws Exception {
+
+            mockServices.mockServiceAPIs();
+
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
+                .thenReturn(false);
+
+            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(new CompleteTaskRequest(null)))
+            )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(
+                    ResultMatcher.matchAll(
+                        status().isForbidden(),
+                        content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                        jsonPath("$.type").value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"),
+                        jsonPath("$.title").value("Role Assignment Verification"),
+                        jsonPath("$.status").value(403),
+                        jsonPath("$.detail").value(
+                            "Role Assignment Verification: "
+                            + "The request failed the Role Assignment checks performed.")
+                    ));
+        }
+
+        @Test
+        @Disabled("Disabled temporarily")
+        void should_return_400_bad_request_application_problem_when_completion_options_value_is_null()
+            throws Exception {
+
+            mockServices.mockServiceAPIs();
+
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+            doNothing().when(camundaServiceApi).completeTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content("{\n"
+                             + "  \"completionOptions\": {\n"
+                             + "    \"assignAndComplete\": null\n"
+                             + "  }\n"
+                             + "}")
+            )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(
+                    ResultMatcher.matchAll(
+                        status().isBadRequest()
+                    ));
+
+        }
+
+        @Test
+        @Disabled("Disabled temporarily")
+        void should_return_400_bad_request_application_problem_when_unknown_property_provided_in_completion_options()
+            throws Exception {
+
+            mockServices.mockServiceAPIs();
+
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+            doNothing().when(camundaServiceApi).completeTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content("{\n"
+                             + "  \"completionOptions\": {\n"
+                             + "    \"anotherNonExistingProperty\": true\n"
+                             + "  }\n"
+                             + "}")
+            )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(
+                    ResultMatcher.matchAll(
+                        status().isBadRequest()
+                    ));
+        }
+
+        @Test
+        @Disabled("Disabled temporarily")
+        void should_return_400_bad_request_application_problem_when_completion_options_invalid_value()
+            throws Exception {
+
+            mockServices.mockServiceAPIs();
+
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+            doNothing().when(camundaServiceApi).completeTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content("{\n"
+                             + "  \"completionOptions\": {\n"
+                             + "    \"assignAndComplete\": \"stringValue\"\n"
+                             + "  }\n"
+                             + "}")
+            )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(
+                    ResultMatcher.matchAll(
+                        status().isBadRequest()
+                    ));
+
+
         }
     }
 
@@ -305,7 +461,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -325,7 +482,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(
+                any(),
+                any(),
+                any()
+            );
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -336,7 +497,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ResultMatcher.matchAll(
                     status().is5xxServerError(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
+                    jsonPath("$.type").value(
+                        "https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
                     jsonPath("$.title").value("Task Complete Error"),
                     jsonPath("$.status").value(500),
                     jsonPath("$.detail").value(
@@ -345,21 +507,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ));
         }
 
-
         @Test
-        void should_return_500_with_application_problem_response_when_task_update_call_fails_with_completion_options()
+        void should_return_403_with_application_problem_response_when_client_is_not_privileged_and_completion_options()
             throws Exception {
 
             mockServices.mockServiceAPIs();
-
-            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
-                .thenReturn(true);
-
-            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-
-            doThrow(FeignException.FeignServerException.class)
-                .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
@@ -367,50 +519,19 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
-            ).andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
-                    jsonPath("$.title").value("Task Complete Error"),
-                    jsonPath("$.status").value(500),
-                    jsonPath("$.detail").value(
-                        "Task Complete Error: Task complete failed. Unable to update task state to completed.")
-                ));
-        }
-
-        @Test
-        void should_return_500_with_application_problem_response_when_complete_call_fails_with_completion_options()
-            throws Exception {
-
-            mockServices.mockServiceAPIs();
-
-            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
-                .thenReturn(true);
-
-            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-
-            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).completeTask(any(), any(), any());
-
-            mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
-            ).andExpect(
-                ResultMatcher.matchAll(
-                    status().is5xxServerError(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-complete-error"),
-                    jsonPath("$.title").value("Task Complete Error"),
-                    jsonPath("$.status").value(500),
-                    jsonPath("$.detail").value(
-                        "Task Complete Error: Task complete partially succeeded. "
-                        + "The Task state was updated to completed, but the Task could not be completed.")
-                ));
+            )
+                .andDo(MockMvcResultHandlers.print())
+                .andExpect(
+                    ResultMatcher.matchAll(
+                        status().isForbidden(),
+                        content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                        jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+                        jsonPath("$.title").value("Forbidden"),
+                        jsonPath("$.status").value(403),
+                        jsonPath("$.detail").value(
+                            "Forbidden: "
+                            + "The action could not be completed because the client/user had insufficient rights to a resource.")
+                    ));
         }
     }
 

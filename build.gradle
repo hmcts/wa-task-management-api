@@ -258,7 +258,8 @@ dependencyManagement {
       entry 'spring-web'
       entry 'spring-webmvc'
     }
-
+    //CVE-2021-27568
+    dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
   }
 }
 
@@ -298,10 +299,13 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jdbc', version: versions.springBoot
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: versions.springBoot
 
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
 
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: versions.springBoot
+  implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
 
   implementation group: 'io.springfox', name: 'springfox-boot-starter', version: versions.springfoxSwagger
@@ -311,7 +315,10 @@ dependencies {
 
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
-  implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
+  implementation (group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0') {
+    exclude group: 'org.hibernate', module: 'hibernate-core'
+  }
+  implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.27.Final'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
 
   implementation 'org.zalando:problem-spring-web-starter:0.26.2'
@@ -334,7 +341,12 @@ dependencies {
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '6.5.7'
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.22'
-  testImplementation group: 'com.h2database', name: 'h2', version: '1.4.200'
+  // required to convert postgres to hibernate types
+  implementation group: 'com.vladmihalcea', name: 'hibernate-types-55', version: '2.12.0'
+
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.15.3'
+  testImplementation group: 'com.h2database', name: 'h2', version: '1.4.197'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {

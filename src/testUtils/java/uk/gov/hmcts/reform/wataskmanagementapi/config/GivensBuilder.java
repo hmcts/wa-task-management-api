@@ -206,7 +206,8 @@ public class GivensBuilder {
             .withProcessVariable("taskType", "reviewTheAppeal")
             .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            //for testing-purposes
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
@@ -292,7 +293,7 @@ public class GivensBuilder {
         Map data = null;
         try {
             String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
             caseDataString = caseDataString.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
@@ -303,10 +304,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -336,10 +337,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 

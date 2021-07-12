@@ -41,7 +41,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .given()
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
-            .body(creteSearchEventCaseRequest())
+            .body(createSearchEventCaseRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -54,7 +54,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .given()
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
-            .body(creteSearchEventCaseRequest())
+            .body(createSearchEventCaseRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -70,7 +70,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(creteSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTask())
@@ -88,7 +88,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(creteSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
@@ -168,7 +168,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .build();
     }
 
-    private String creteSearchEventCaseRequest() {
+    private String createSearchEventCaseRequest() {
         String request = "";
         request = "{\n"
             + "    \"search_parameters\": [\n"
