@@ -13,9 +13,10 @@ import java.util.List;
 public class RoleAssignmentResource {
     private List<RoleAssignment> roleAssignmentResponse;
 
-    private RoleAssignmentResource() {
-        //No-op constructor
+    public RoleAssignmentResource() {
+        //Default constructor
     }
+
     public RoleAssignmentResource(List<RoleAssignment> roleAssignmentResponse) {
         this.roleAssignmentResponse = roleAssignmentResponse;
     }

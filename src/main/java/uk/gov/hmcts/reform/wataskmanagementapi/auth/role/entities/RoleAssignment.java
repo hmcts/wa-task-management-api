@@ -36,8 +36,8 @@ public class RoleAssignment {
     private Map<String, String> attributes;
     private List<String> authorisations;
 
-    private RoleAssignment() {
-        //No-op constructor
+    public RoleAssignment() {
+        //Default constructor
     }
 
     public RoleAssignment(ActorIdType actorIdType,
@@ -76,7 +76,7 @@ public class RoleAssignment {
                           Map<String, String> attributes,
                           List<String> authorisations) {
         this(actorIdType, actorId, roleType,
-             roleName, classification, grantType, roleCategory, readOnly, attributes
+            roleName, classification, grantType, roleCategory, readOnly, attributes
         );
         this.id = id;
         this.beginTime = beginTime;

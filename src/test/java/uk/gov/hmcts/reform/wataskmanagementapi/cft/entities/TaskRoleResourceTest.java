@@ -6,7 +6,7 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class TaskRoleResourceTest {
+class TaskRoleResourceTest {
 
     @Test
     void isWellImplemented() {
