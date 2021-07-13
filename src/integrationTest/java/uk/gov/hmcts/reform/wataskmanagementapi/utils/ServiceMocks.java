@@ -5,14 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -38,12 +38,12 @@ public class ServiceMocks {
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
     public static final String SERVICE_AUTHORIZATION_TOKEN = "Bearer SERVICE_AUTHORIZATION_TOKEN";
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private IdamWebApi idamWebApi;
-    private CamundaServiceApi camundaServiceApi;
-    private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    private ServiceAuthorisationApi serviceAuthorisationApi;
+    private final IdamWebApi idamWebApi;
+    private final CamundaServiceApi camundaServiceApi;
+    private final RoleAssignmentServiceApi roleAssignmentServiceApi;
+    private final ServiceAuthorisationApi serviceAuthorisationApi;
 
     public ServiceMocks(IdamWebApi idamWebApi,
                         ServiceAuthorisationApi serviceAuthorisationApi,
@@ -74,12 +74,12 @@ public class ServiceMocks {
         }
     }
 
-    public Assignment createBaseAssignment(String actorId,
-                                           String roleName,
-                                           RoleType roleType,
-                                           Classification classification,
-                                           Map<String, String> attributes) {
-        return new Assignment(
+    public RoleAssignment createBaseAssignment(String actorId,
+                                               String roleName,
+                                               RoleType roleType,
+                                               Classification classification,
+                                               Map<String, String> attributes) {
+        return new RoleAssignment(
             ActorIdType.IDAM,
             actorId,
             roleType,
@@ -121,58 +121,58 @@ public class ServiceMocks {
         );
     }
 
-    public List<Assignment> createRoleAssignmentsWithSCSSandIA() {
-        List<Assignment> allTestRoles = new ArrayList<>();
+    public List<RoleAssignment> createRoleAssignmentsWithSCSSandIA() {
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
         // Role Assignment with IA and RoleType Organisation
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        final Assignment orgAssignment = createBaseAssignment(
+        final RoleAssignment orgRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
             "tribunal-caseworker",
             RoleType.ORGANISATION,
             Classification.PUBLIC,
             roleAttributes
         );
-        allTestRoles.add(orgAssignment);
+        allTestRoles.add(orgRoleAssignment);
 
         // Role Assignment with SCSS and RoleType CASE
         roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
         roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
-        final Assignment caseAssignment = createBaseAssignment(
+        final RoleAssignment caseRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
             "tribunal-caseworker",
             RoleType.CASE,
             Classification.PUBLIC,
             roleAttributes
         );
-        allTestRoles.add(caseAssignment);
+        allTestRoles.add(caseRoleAssignment);
 
         return allTestRoles;
     }
 
     private void mockRoleAssignments(RoleAssignmentServiceApi roleAssignmentServiceApi) {
-        List<Assignment> assignments = createTestAssignments(
+        List<RoleAssignment> roleAssignments = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
         );
-        GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
-            assignments
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
+            roleAssignments
         );
         when(roleAssignmentServiceApi.getRolesForUser(
             any(), any(), any()
         )).thenReturn(accessControlResponse);
     }
 
-    private List<Assignment> createTestAssignments(List<String> roleNames,
-                                                   Classification roleClassification,
-                                                   Map<String, String> roleAttributes) {
+    private List<RoleAssignment> createTestAssignments(List<String> roleNames,
+                                                       Classification roleClassification,
+                                                       Map<String, String> roleAttributes) {
 
-        List<Assignment> allTestRoles = new ArrayList<>();
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                Assignment roleAssignment = createBaseAssignment(
+                RoleAssignment roleAssignment = createBaseAssignment(
                     UUID.randomUUID().toString(), "tribunal-caseworker",
                     roleType,
                     roleClassification,

@@ -7,6 +7,9 @@ java:
     wa:
       secrets:
         - AppInsightsInstrumentationKey
+        - wa-system-username
+        - wa-system-password
+        - wa-idam-client-id
         - wa-idam-client-secret
         - s2s-secret-task-management-api
         - ld-secret
@@ -18,6 +21,7 @@ java:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_PORT: 5432
     POSTGRES_HOST: cft-task-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: cft_task_db

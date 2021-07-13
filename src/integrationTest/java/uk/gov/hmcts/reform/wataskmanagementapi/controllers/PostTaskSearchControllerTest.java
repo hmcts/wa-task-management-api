@@ -11,11 +11,11 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -87,10 +87,10 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
 
-        List<Assignment> allTestRoles = new ArrayList<>();
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                Assignment roleAssignment = mockServices.createBaseAssignment(
+                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
                     UUID.randomUUID().toString(), "tribunal-caseworker",
                     roleType,
                     Classification.PUBLIC,
@@ -99,7 +99,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 allTestRoles.add(roleAssignment);
             }));
 
-        GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             allTestRoles
         );
         when(roleAssignmentServiceApi.getRolesForUser(
@@ -148,7 +148,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         mockServices.mockUserInfo();
 
         // create role assignments with IA, Organisation and SCSS , Case
-        GetRoleAssignmentResponse accessControlResponse = new GetRoleAssignmentResponse(
+        RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
             mockServices.createRoleAssignmentsWithSCSSandIA()
         );
 

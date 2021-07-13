@@ -20,7 +20,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-@ControllerAdvice(basePackages = "uk.gov.hmcts.reform.wataskmanagementapi.controllers")
+@ControllerAdvice(
+    basePackages = {
+        "uk.gov.hmcts.reform.wataskmanagementapi.controllers",
+        "uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers"
+    })
 @RequestMapping(produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
 

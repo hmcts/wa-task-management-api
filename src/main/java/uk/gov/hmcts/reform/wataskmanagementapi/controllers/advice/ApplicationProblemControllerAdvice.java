@@ -21,7 +21,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 
 @Slf4j
-@ControllerAdvice(basePackages = "uk.gov.hmcts.reform.wataskmanagementapi.controllers")
+@ControllerAdvice(basePackages = {
+    "uk.gov.hmcts.reform.wataskmanagementapi.controllers",
+    "uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers"
+})
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
 

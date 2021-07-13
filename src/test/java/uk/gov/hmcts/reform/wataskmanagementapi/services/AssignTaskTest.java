@@ -11,7 +11,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
@@ -42,7 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
-class AssignTaskTest extends CamundaServiceBaseTest {
+class AssignTaskTest extends TaskConfigurationCamundaServiceBaseTest {
 
     private AccessControlResponse assignerAccessControlResponse;
     private AccessControlResponse assigneeAccessControlResponse;
@@ -231,7 +231,7 @@ class AssignTaskTest extends CamundaServiceBaseTest {
 
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlResponse.getRoleAssignments())
-            .thenReturn(Collections.singletonList(Assignment.builder().build()));
+            .thenReturn(Collections.singletonList(RoleAssignment.builder().build()));
         return accessControlResponse;
     }
 

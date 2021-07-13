@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
@@ -59,12 +59,12 @@ public class PermissionEvaluatorService {
     public boolean hasAccessWithAssigneeCheckAndHierarchy(String taskAssignee,
                                                           String userId,
                                                           Map<String, CamundaVariable> variables,
-                                                          List<Assignment> roleAssignments,
+                                                          List<RoleAssignment> roleAssignments,
                                                           List<PermissionTypes> permissionsRequired) {
 
         boolean hasAccess = false;
         // Loop through the roleAssignments and attempt to find a role with sufficient permissions
-        for (Assignment roleAssignment : roleAssignments) {
+        for (RoleAssignment roleAssignment : roleAssignments) {
             //Safe-guard
             if (hasAccess) {
                 break;
@@ -87,12 +87,12 @@ public class PermissionEvaluatorService {
     }
 
     public boolean hasAccess(Map<String, CamundaVariable> variables,
-                             List<Assignment> roleAssignments,
+                             List<RoleAssignment> roleAssignments,
                              List<PermissionTypes> permissionsRequired) {
 
         boolean hasAccess = false;
         // Loop through the roleAssignments and attempt to find a role with sufficient permissions
-        for (Assignment roleAssignment : roleAssignments) {
+        for (RoleAssignment roleAssignment : roleAssignments) {
             //Safe-guard
             if (hasAccess) {
                 break;
@@ -105,7 +105,7 @@ public class PermissionEvaluatorService {
     private boolean checkAccessWithAssignee(String taskAssignee,
                                             String userId,
                                             Map<String, CamundaVariable> variables,
-                                            Assignment roleAssignment,
+                                            RoleAssignment roleAssignment,
                                             List<PermissionTypes> permissionsRequired) {
         boolean hasAccess = false;
         if (taskAssignee != null && taskAssignee.equals(userId)) {
@@ -115,7 +115,7 @@ public class PermissionEvaluatorService {
     }
 
     private boolean evaluateAccess(Map<String, CamundaVariable> variables,
-                                   Assignment roleAssignment,
+                                   RoleAssignment roleAssignment,
                                    List<PermissionTypes> permissionsRequired) {
         boolean hasAccess;
 
@@ -145,7 +145,7 @@ public class PermissionEvaluatorService {
     }
 
     private boolean attributesPermissionCheck(Map<String, CamundaVariable> variables,
-                                              Assignment roleAssignment) {
+                                              RoleAssignment roleAssignment) {
         boolean hasAccess = true;
         Map<String, String> attributes = roleAssignment.getAttributes();
         // 3. Conditionally check Jurisdiction matches the one on the task
@@ -193,7 +193,7 @@ public class PermissionEvaluatorService {
         return hasAccess;
     }
 
-    private boolean hasEndTimePermission(Assignment roleAssignment, boolean hasAccess) {
+    private boolean hasEndTimePermission(RoleAssignment roleAssignment, boolean hasAccess) {
         LocalDateTime endTime = roleAssignment.getEndTime();
         if (hasAccess && endTime != null) {
 
@@ -206,7 +206,7 @@ public class PermissionEvaluatorService {
         return hasAccess;
     }
 
-    private boolean hasBeginTimePermission(Assignment roleAssignment, boolean hasAccess) {
+    private boolean hasBeginTimePermission(RoleAssignment roleAssignment, boolean hasAccess) {
         LocalDateTime beginTime = roleAssignment.getBeginTime();
         if (hasAccess && beginTime != null) {
 
