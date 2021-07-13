@@ -56,7 +56,7 @@ public class TaskManagementService {
 
     /**
      * Retrieves a task from camunda, performs role assignment verifications and returns a mapped task.
-     * This method requires {@link PermissionTypes.READ} permission.
+     * This method requires {@link PermissionTypes#READ} permission.
      *
      * @param taskId          the task id.
      * @param roleAssignments the user role assignments
@@ -71,7 +71,7 @@ public class TaskManagementService {
 
     /**
      * Claims a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -87,7 +87,7 @@ public class TaskManagementService {
 
     /**
      * Unclaims a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.MANAGE} permission.
+     * This method requires {@link PermissionTypes#MANAGE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -112,8 +112,8 @@ public class TaskManagementService {
      * Assigns the task to another user in Camunda.
      * Also performs role assignment verifications for both assignee and assigner.
      * This method requires:
-     * Assigner to have {@link PermissionTypes.MANAGE} permission.
-     * Assignee to have {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * Assigner to have {@link PermissionTypes#MANAGE} permission.
+     * Assignee to have {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                        the task id.
      * @param assignerAccessControlResponse Assigner's access control response containing user id and role assignments.
@@ -146,7 +146,7 @@ public class TaskManagementService {
 
     /**
      * Cancels a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.CANCEL} permission.
+     * This method requires {@link PermissionTypes#CANCEL} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -165,7 +165,7 @@ public class TaskManagementService {
 
     /**
      * Completes a task in camunda also performs role assignment verifications.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -200,7 +200,7 @@ public class TaskManagementService {
 
     /**
      * This method is only used by privileged clients allowing them to set a predefined options for completion.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param taskId                The task id to complete.
      * @param accessControlResponse the access control response containing user id and role assignments.
@@ -224,7 +224,7 @@ public class TaskManagementService {
 
     /**
      * Performs a search in camunda and retrieves mapped tasks also filters out tasks by role assignments permissions.
-     * This method requires {@link PermissionTypes.READ} permission.
+     * This method requires {@link PermissionTypes#READ} permission.
      * This method supports pagination parameters.
      *
      * @param searchTaskRequest     the search request.
@@ -255,7 +255,7 @@ public class TaskManagementService {
 
     /**
      * Performs a specific search in camunda to find tasks that could be completed.
-     * This method requires {@link PermissionTypes.OWN} or {@link PermissionTypes.EXECUTE} permission.
+     * This method requires {@link PermissionTypes#OWN} or {@link PermissionTypes#EXECUTE} permission.
      *
      * @param searchEventAndCase    the search request.
      * @param accessControlResponse the access control response containing user id and role assignments.
