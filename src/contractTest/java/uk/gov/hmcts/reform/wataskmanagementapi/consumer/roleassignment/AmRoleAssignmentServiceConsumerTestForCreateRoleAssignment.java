@@ -24,7 +24,7 @@ import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@PactTestFor(providerName = "am_role_assignment_service_create", port = "8991")
+@PactTestFor(providerName = "am_roleAssignment_createAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends SpringBootContractBaseTest {
 
