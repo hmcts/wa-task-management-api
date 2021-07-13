@@ -17,11 +17,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -48,10 +48,10 @@ public class TaskManagerClaimTaskProviderTest {
     private AccessControlService accessControlService;
 
     @Mock
-    private CamundaService camundaService;
+    private TaskManagementService taskManagementService;
 
     @Mock
-    private PrivilegedAccessControlService privilegedAccessControlService;
+    private ClientAccessControlService clientAccessControlService;
 
     @Autowired
     private SystemDateProvider systemDateProvider;
@@ -68,10 +68,10 @@ public class TaskManagerClaimTaskProviderTest {
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskActionsController(
-            camundaService,
+            taskManagementService,
             accessControlService,
             systemDateProvider,
-            privilegedAccessControlService
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -85,7 +85,7 @@ public class TaskManagerClaimTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).claimTask(any(), any(), any());
+        doNothing().when(taskManagementService).claimTask(any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }

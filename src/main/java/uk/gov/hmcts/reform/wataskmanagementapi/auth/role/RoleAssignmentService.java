@@ -4,8 +4,8 @@ import feign.FeignException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 
@@ -28,14 +28,14 @@ public class RoleAssignmentService {
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
     }
 
-    public List<Assignment> getRolesForUser(String idamUserId, String authToken) {
+    public List<RoleAssignment> getRolesForUser(String idamUserId, String authToken) {
         requireNonNull(idamUserId, "IdamUserId cannot be null");
 
-        GetRoleAssignmentResponse getRoleAssignmentResponse = getRoles(idamUserId, authToken);
-        return getRoleAssignmentResponse.getRoleAssignmentResponse();
+        RoleAssignmentResource roleAssignmentResource = getRoles(idamUserId, authToken);
+        return roleAssignmentResource.getRoleAssignmentResponse();
     }
 
-    private GetRoleAssignmentResponse getRoles(String idamUserId, String authToken) {
+    private RoleAssignmentResource getRoles(String idamUserId, String authToken) {
         try {
             return roleAssignmentServiceApi.getRolesForUser(
                 idamUserId,

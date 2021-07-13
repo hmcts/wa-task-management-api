@@ -20,8 +20,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.privilege.PrivilegedAccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -69,11 +69,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private AccessControlService accessControlService;
     @MockBean
-    private PrivilegedAccessControlService privilegedAccessControlService;
+    private ClientAccessControlService clientAccessControlService;
     @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
     @Mock
-    private Assignment mockedRoleAssignment;
+    private RoleAssignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
 
@@ -106,7 +106,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         @BeforeEach
         void beforeEach() {
 
-            when(privilegedAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
                 .thenReturn(true);
         }
 
@@ -323,7 +323,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @Disabled("Disabled temporarily")
+        @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_completion_options_value_is_null()
             throws Exception {
 
@@ -358,7 +358,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @Disabled("Disabled temporarily")
+        @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_unknown_property_provided_in_completion_options()
             throws Exception {
 
@@ -392,7 +392,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         }
 
         @Test
-        @Disabled("Disabled temporarily")
+        @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_completion_options_invalid_value()
             throws Exception {
 
@@ -434,7 +434,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @BeforeEach
         void beforeEach() {
-            when(privilegedAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+            when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
                 .thenReturn(false);
         }
 

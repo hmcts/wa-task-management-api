@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -27,6 +29,7 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -269,7 +272,76 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].id", equalTo(taskId2))
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
-            .body("tasks[0].case_type_id", equalTo("Asylum"));
+            .body("tasks[0].case_type_id", equalTo("Asylum"))
+            .body("tasks[0].warnings", is(false));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "tasks[0].warning_list.values");
+
+        assertTrue(actualWarnings.isEmpty());
+
+        common.cleanUpTask(taskId1, REASON_COMPLETED);
+        common.cleanUpTask(taskId2, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_and_retrieve_single_task_by_event_and_case_match_and_assignee_with_warnings() {
+        final String assigneeId = getAssigneeId(authenticationHeaders);
+
+        // create a caseId
+        final String caseId = given.iCreateACcdCase();
+
+        // create a 2 tasks for caseId
+        sendMessageWithWarnings(caseId);
+        sendMessageWithWarnings(caseId);
+
+        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
+
+        // No user assigned to this task
+        final String taskId1 = tasksList.get(0).getId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        // assign user to taskId2
+        final String taskId2 = tasksList.get(1).getId();
+        // assign user to taskId2
+        restApiActions.post(
+            "task/{task-id}/assign",
+            taskId2,
+            new AssignTaskRequest(assigneeId),
+            authenticationHeaders
+        );
+
+        // search for completable
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            caseId, "requestRespondentEvidence", "IA", "Asylum");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].task_state", equalTo("assigned"))
+            .body("tasks[0].case_id", equalTo(caseId))
+            .body("tasks[0].id", equalTo(taskId2))
+            .body("tasks[0].type", equalTo("reviewTheAppeal"))
+            .body("tasks[0].jurisdiction", equalTo("IA"))
+            .body("tasks[0].case_type_id", equalTo("Asylum"))
+            .body("tasks[0].warnings", is(true));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "tasks[0].warning_list.values");
+
+        List<Map<String, String>> expectedWarnings = Lists.list(
+            Map.of("warningCode", "Code1", "warningText", "Text1"),
+            Map.of("warningCode", "Code2", "warningText", "Text2")
+        );
+        Assertions.assertEquals(expectedWarnings, actualWarnings);
 
         common.cleanUpTask(taskId1, REASON_COMPLETED);
         common.cleanUpTask(taskId2, REASON_COMPLETED);
@@ -531,6 +603,25 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+
+        variablesOverride.keySet()
+            .forEach(key -> processVariables
+                .put(key.value(), new CamundaValue<>(variablesOverride.get(key), "String")));
+
+        given.iCreateATaskWithCustomVariables(processVariables);
+    }
+
+    private void sendMessageWithWarnings(String caseId) {
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.LOCATION, "765324",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_TYPE, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_STATE, "unassigned",
+            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
+        );
+
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariablesWithWarnings(caseId);
 
         variablesOverride.keySet()
             .forEach(key -> processVariables

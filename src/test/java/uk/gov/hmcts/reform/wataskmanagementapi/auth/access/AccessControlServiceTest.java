@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 
 import java.util.Collections;
 
@@ -41,7 +41,7 @@ class AccessControlServiceTest {
     @Test
     void should_succeed_and_return_role_assignments() {
 
-        final Assignment mockedRoleAssignments = mock(Assignment.class);
+        final RoleAssignment mockedRoleAssignments = mock(RoleAssignment.class);
         final UserInfo mockedUserInfo = mock(UserInfo.class);
         final String idamToken = "someToken";
 
@@ -63,7 +63,7 @@ class AccessControlServiceTest {
     void given_user_id_should_return_roles_assignments() {
 
         when(roleAssignmentService.getRolesForUser("some user id", "Bearer user token"))
-            .thenReturn(Collections.singletonList(Assignment.builder().build()));
+            .thenReturn(Collections.singletonList(RoleAssignment.builder().build()));
 
         AccessControlResponse actualAccessResponse = accessControlService.getRolesGivenUserId(
             "some user id",
@@ -72,7 +72,7 @@ class AccessControlServiceTest {
 
         AccessControlResponse expectedAccessResponse = new AccessControlResponse(
             UserInfo.builder().uid("some user id").build(),
-            Collections.singletonList(Assignment.builder().build())
+            Collections.singletonList(RoleAssignment.builder().build())
         );
         assertThat(actualAccessResponse)
             .isEqualTo(expectedAccessResponse);

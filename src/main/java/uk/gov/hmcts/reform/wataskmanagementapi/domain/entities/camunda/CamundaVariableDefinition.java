@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 public enum CamundaVariableDefinition {
     APPEAL_TYPE("appealType"),
+    AUTO_ASSIGNED("autoAssigned"),
     ASSIGNEE("assignee"),
     CASE_ID("caseId"),
     CASE_NAME("caseName"),

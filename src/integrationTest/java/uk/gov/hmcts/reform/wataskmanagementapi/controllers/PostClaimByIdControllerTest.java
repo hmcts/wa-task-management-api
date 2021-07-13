@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -42,7 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_US
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
-    
+
     private static final String ENDPOINT_PATH = "/task/%s/claim";
     private static String ENDPOINT_BEING_TESTED;
     @MockBean
@@ -60,7 +60,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
     @Mock
-    private Assignment mockedRoleAssignment;
+    private RoleAssignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
 

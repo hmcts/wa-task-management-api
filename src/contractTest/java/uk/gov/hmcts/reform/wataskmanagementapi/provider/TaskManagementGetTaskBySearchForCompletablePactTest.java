@@ -22,9 +22,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -54,7 +55,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     private AccessControlService accessControlService;
 
     @Mock
-    private CamundaService camundaService;
+    private TaskManagementService taskManagementService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -71,7 +72,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskSearchController(
-            camundaService,
+            taskManagementService,
             accessControlService
         ));
 
@@ -89,6 +90,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     @State({"appropriate tasks are returned by search for completable"})
     public void getTasksBySearchForCompletableCriteria() {
         setInitMockForSearchByCompletableTask();
+    }
+
+    @State({"appropriate tasks are returned by search for completable with warnings"})
+    public void getTasksBySearchForCompletableCriteriaWithWarnings() {
+        setInitMockForSearchByCompletableTaskWithWarnings();
     }
 
     public List<Task> createTasks() {
@@ -122,11 +128,53 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         return tasks;
     }
 
+    public List<Task> createTasksWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+        WarningValues warningValues = new WarningValues(warnings);
+        var tasks = new ArrayList<Task>();
+        Task taskOne = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            true,
+            warningValues
+        );
+
+        tasks.add(taskOne);
+        return tasks;
+    }
+
     private void setInitMockForSearchByCompletableTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchForCompletableTasks(any(), any(), any()))
+        when(taskManagementService.searchForCompletableTasks(any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
+    }
+
+    private void setInitMockForSearchByCompletableTaskWithWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchForCompletableTasks(any(), any()))
+            .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
 
 

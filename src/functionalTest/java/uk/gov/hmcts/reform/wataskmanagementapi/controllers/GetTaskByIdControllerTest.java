@@ -2,8 +2,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -12,12 +14,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
@@ -171,7 +175,50 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .and().body("task.id", equalTo(taskId));
+            .and().body("task.id", equalTo(taskId))
+            .body("task.warnings", is(false));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "task.warning_list.values");
+
+        assertTrue(actualWarnings.isEmpty());
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_with_task_warnings() {
+
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.warnings", is(true));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "task.warning_list.values");
+
+        List<Map<String, String>> expectedWarnings = Lists.list(
+            Map.of("warningCode", "Code1", "warningText", "Text1"),
+            Map.of("warningCode", "Code2", "warningText", "Text2")
+        );
+        Assertions.assertEquals(expectedWarnings, actualWarnings);
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -220,9 +267,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue())
-            .body("task.warning_list", notNullValue());
-
+            .body("task.warnings", notNullValue());
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
