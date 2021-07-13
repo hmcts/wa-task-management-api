@@ -69,7 +69,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact generatePactFragmentForQueryRoleAssignments(PactDslWithProvider builder) throws JsonProcessingException {
         return builder
-            .given("A list of role assignments for the search query")
+            .given("A list of role assignments for the advanced search query")
             .uponReceiving("A query request for roles by caseId")
             .path("/am/role-assignments/query")
             .method(HttpMethod.POST.toString())
