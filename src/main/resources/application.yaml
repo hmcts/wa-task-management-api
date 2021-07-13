@@ -12,7 +12,8 @@ management:
         include: health, info, prometheus
 
 config:
-  privilegedClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
+  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor}
   search:
     defaultMaxResults: 50
 
@@ -22,8 +23,6 @@ core_case_data:
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-  dmnKeys:
-    complete-task: "completeTask_IA_Asylum"
 
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}

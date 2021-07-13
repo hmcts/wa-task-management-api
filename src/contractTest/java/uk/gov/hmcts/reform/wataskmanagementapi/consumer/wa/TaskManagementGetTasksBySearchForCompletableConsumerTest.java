@@ -97,67 +97,67 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
-            .booleanType("task_required_for_event", false)
-            .minArrayLike("tasks", 1, 1,
-                task -> task
-                   .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
-                   .stringType("name", "Review the appeal")
-                   .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
-                   .stringType("type", "ReviewTheAppeal")
-                   .stringType("task_state", "assigned")
-                   .stringType("task_system", "SELF")
-                   .stringType("security_classification", "PUBLIC")
-                   .stringType("task_title", "Review the appeal")
-                   .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                   .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                   .stringType("location_name", "Taylor House")
-                   .stringType("location", "765324")
-                   .stringType("execution_type", "Case Management Task")
-                   .stringType("jurisdiction", "IA")
-                   .stringType("region", "1")
-                   .stringType("case_type_id", "Asylum")
-                   .stringType("case_id", "1617708245335311")
-                   .stringType("case_category", "refusalOfHumanRights")
-                   .stringType("case_name", "Bob Smith")
-                   .booleanType("auto_assigned", true)
-                   .booleanType("warnings", false)
-        )).build();
+                .booleanType("task_required_for_event", false)
+                .minArrayLike("tasks", 1, 1,
+                    task -> task
+                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("name", "Review the appeal")
+                        .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
+                        .stringType("type", "ReviewTheAppeal")
+                        .stringType("task_state", "assigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "Review the appeal")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("location", "765324")
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "IA")
+                        .stringType("region", "1")
+                        .stringType("case_type_id", "Asylum")
+                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_category", "refusalOfHumanRights")
+                        .stringType("case_name", "Bob Smith")
+                        .booleanType("auto_assigned", true)
+                        .booleanType("warnings", false)
+                )).build();
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {
         return newJsonBody(
             o -> o
-            .booleanType("task_required_for_event", false)
-            .minArrayLike("tasks", 1, 1,
+                .booleanType("task_required_for_event", false)
+                .minArrayLike("tasks", 1, 1,
                     task -> task
-                          .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
-                          .stringType("name", "Review the appeal")
-                          .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
-                          .stringType("type", "ReviewTheAppeal")
-                          .stringType("task_state", "assigned")
-                          .stringType("task_system", "SELF")
-                          .stringType("security_classification", "PUBLIC")
-                          .stringType("task_title", "Review the appeal")
-                          .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                          .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                          .stringType("location_name", "Taylor House")
-                          .stringType("location", "765324")
-                          .stringType("execution_type", "Case Management Task")
-                          .stringType("jurisdiction", "IA")
-                          .stringType("region", "1")
-                          .stringType("case_type_id", "Asylum")
-                          .stringType("case_id", "1617708245335311")
-                          .stringType("case_category", "refusalOfHumanRights")
-                          .stringType("case_name", "Bob Smith")
-                          .booleanType("auto_assigned", true)
-                          .booleanType("warnings", true)
-                          .object("warning_list", values -> values
-                              .minArrayLike("values", 1, value -> value
-                                  .stringType("warningCode", "Code1")
-                                  .stringType("warningText", "Text1")
-                              )
-                          )
-            )).build();
+                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("name", "Review the appeal")
+                        .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
+                        .stringType("type", "ReviewTheAppeal")
+                        .stringType("task_state", "assigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "Review the appeal")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("location", "765324")
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "IA")
+                        .stringType("region", "1")
+                        .stringType("case_type_id", "Asylum")
+                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_category", "refusalOfHumanRights")
+                        .stringType("case_name", "Bob Smith")
+                        .booleanType("auto_assigned", true)
+                        .booleanType("warnings", true)
+                        .object("warning_list", values -> values
+                            .minArrayLike("values", 1, value -> value
+                                .stringType("warningCode", "Code1")
+                                .stringType("warningText", "Text1")
+                            )
+                        )
+                )).build();
     }
 
     private Map<String, String> getTaskManagementServiceResponseHeaders() {
@@ -172,11 +172,11 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     private String creteSearchEventCaseRequest() {
         String request = "";
         request = "{\n"
-            + "    \"case_id\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
-            + "    \"event_id\": \"requestRespondentEvidence\",\n"
-            + "    \"case_jurisdiction\": \"IA\",\n"
-            + "    \"case_type\": \"Asylum\",\n"
-            + "  }\n";
+                  + "    \"case_id\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
+                  + "    \"event_id\": \"requestRespondentEvidence\",\n"
+                  + "    \"case_jurisdiction\": \"IA\",\n"
+                  + "    \"case_type\": \"Asylum\",\n"
+                  + "  }\n";
         return request;
     }
 }

@@ -24,7 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private AccessControlService accessControlService;
 
     @Mock
-    private CamundaService camundaService;
+    private TaskManagementService taskManagementService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -69,7 +69,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskSearchController(
-            camundaService,
+            taskManagementService,
             accessControlService
         ));
         if (context != null) {
@@ -156,17 +156,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private void setInitMockForsearchTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasks()
-        );
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(createTasks());
     }
 
     private void setInitMockForsearchTaskWithWarnings() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasksWithWarnings()
-        );
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(createTasksWithWarnings());
     }
 
 
