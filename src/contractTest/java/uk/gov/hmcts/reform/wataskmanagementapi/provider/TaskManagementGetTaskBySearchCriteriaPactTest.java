@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -76,15 +77,20 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         }
 
         testTarget.setMessageConverters((
-                                            new MappingJackson2HttpMessageConverter(
-                                                objectMapper
-                                            )));
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
     }
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
         setInitMockForsearchTask();
+    }
+
+    @State({"appropriate tasks are returned by criteria with warnings"})
+    public void getTasksBySearchCriteriaWithWarnings() {
+        setInitMockForsearchTaskWithWarnings();
     }
 
     public List<Task> createTasks() {
@@ -110,9 +116,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList())
-        );
+            new WarningValues(Collections.emptyList()));
 
+        return Arrays.asList(taskOne);
+    }
+
+    public List<Task> createTasksWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+        WarningValues warningValues = new WarningValues(warnings);
         Task taskTwo = new Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
             "Review the appeal",
@@ -135,10 +148,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "John Doe",
             true,
-            new WarningValues(Collections.emptyList())
-        );
+            warningValues);
 
-        return Arrays.asList(taskOne, taskTwo);
+        return Arrays.asList(taskTwo);
     }
 
     private void setInitMockForsearchTask() {
@@ -146,6 +158,13 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(createTasks());
+    }
+
+    private void setInitMockForsearchTaskWithWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(createTasksWithWarnings());
     }
 
 

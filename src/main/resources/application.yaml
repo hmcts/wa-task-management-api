@@ -12,7 +12,6 @@ management:
         include: health, info, prometheus
 
 config:
-  enableSwagger: ${ENABLE_SWAGGER:true}
   privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
   exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor}
   search:
@@ -24,8 +23,6 @@ core_case_data:
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-  dmnKeys:
-    complete-task: "completeTask_IA_Asylum"
 
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
@@ -62,6 +59,9 @@ idam:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
+  system:
+    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
+    password: ${WA_SYSTEM_PASSWORD:password}
 
 spring:
   application:
@@ -75,6 +75,14 @@ spring:
     password: ${POSTGRES_PASSWORD:}
     properties:
       charSet: UTF-8
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+    properties:
+      hibernate:
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
     enabled: true
     baselineOnMigrate: true
