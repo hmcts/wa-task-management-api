@@ -66,7 +66,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
         roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
     }
 
-    @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_configuration_api")
+    @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact generatePactFragmentForQueryRoleAssignments(PactDslWithProvider builder) throws JsonProcessingException {
         return builder
             .given("A list of role assignments for the search query")
