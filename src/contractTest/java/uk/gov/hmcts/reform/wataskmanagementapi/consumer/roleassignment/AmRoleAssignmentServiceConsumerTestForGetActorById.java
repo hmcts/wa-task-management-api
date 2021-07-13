@@ -28,7 +28,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@PactTestFor(providerName = "am_role_assignment_service_get_actor_by_id", port = "8991")
+@PactTestFor(providerName = "am_roleAssignment_getAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBootContractBaseTest {
 

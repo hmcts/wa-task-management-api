@@ -15,7 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@PactTestFor(providerName = "am_role_assignment_service_delete_actor", port = "8991")
+@PactTestFor(providerName = "am_roleAssignment_deleteAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForDeleteByAssignmentId extends SpringBootContractBaseTest {
 
