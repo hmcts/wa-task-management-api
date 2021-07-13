@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.when;
 @PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
     @VersionSelector(tag = "master")})
+//@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
@@ -86,6 +88,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         setInitMockForSearchByCompletableTask();
     }
 
+    @State({"appropriate tasks are returned by search for completable with warnings"})
+    public void getTasksBySearchForCompletableCriteriaWithWarnings() {
+        setInitMockForSearchByCompletableTaskWithWarnings();
+    }
+
     public List<Task> createTasks() {
         var tasks = new ArrayList<Task>();
         Task taskOne = new Task(
@@ -117,11 +124,53 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         return tasks;
     }
 
+    public List<Task> createTasksWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+        WarningValues warningValues = new WarningValues(warnings);
+        var tasks = new ArrayList<Task>();
+        Task taskOne = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            true,
+            warningValues
+        );
+
+        tasks.add(taskOne);
+        return tasks;
+    }
+
     private void setInitMockForSearchByCompletableTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(camundaService.searchForCompletableTasks(any(), any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
+    }
+
+    private void setInitMockForSearchByCompletableTaskWithWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(camundaService.searchForCompletableTasks(any(), any(), any()))
+            .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
 
 

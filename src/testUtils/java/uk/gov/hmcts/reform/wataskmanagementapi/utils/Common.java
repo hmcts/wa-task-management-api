@@ -153,7 +153,23 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId)
+            .iCreateATaskWithCaseId(caseId, false)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
+    public TestVariables setupTaskWithWarningsAndRetrieveIds() {
+
+        String caseId = given.iCreateACcdCase();
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, true)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
