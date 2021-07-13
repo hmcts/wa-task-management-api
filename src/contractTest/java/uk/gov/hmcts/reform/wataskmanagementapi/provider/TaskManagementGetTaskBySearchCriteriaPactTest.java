@@ -75,14 +75,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             camundaService,
             accessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
 
         testTarget.setMessageConverters((
-                                            new MappingJackson2HttpMessageConverter(
-                                                objectMapper
-                                            )));
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
     }
 

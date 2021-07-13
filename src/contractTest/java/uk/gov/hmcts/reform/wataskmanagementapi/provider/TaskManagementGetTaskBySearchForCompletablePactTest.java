@@ -74,6 +74,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             camundaService,
             accessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }

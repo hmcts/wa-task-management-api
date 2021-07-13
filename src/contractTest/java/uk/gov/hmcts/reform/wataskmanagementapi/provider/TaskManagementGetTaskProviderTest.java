@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -82,9 +83,15 @@ public class TaskManagementGetTaskProviderTest {
             systemDateProvider,
             privilegedAccessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
+
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
     }
 
