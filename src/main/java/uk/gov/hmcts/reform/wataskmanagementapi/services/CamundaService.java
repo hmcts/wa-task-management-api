@@ -188,7 +188,6 @@ public class CamundaService {
         }
     }
 
-
     public void completeTaskById(String taskId) {
 
         Map<String, CamundaVariable> variables = performGetVariablesAction(taskId);
