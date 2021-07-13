@@ -10,16 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.ResourceUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.MultipleQueryRequest;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -58,13 +58,13 @@ public class RoleAssignmentServiceApiTest {
 
         stubRoleAssignmentApiResponse(roleAssignmentsResponseAsJsonString);
 
-        GetRoleAssignmentResponse roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
+        RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
-            QueryRequest.builder().build()
+            MultipleQueryRequest.builder().build()
         );
 
-        Assignment expectedRoleAssignment = Assignment.builder()
+        RoleAssignment expectedRoleAssignment = RoleAssignment.builder()
             .id("428971b1-3954-4783-840f-c2718732b466")
             .actorIdType(ActorIdType.IDAM)
             .actorId("122f8de4-2eb6-4dcf-91c9-16c2c8aaa422")
@@ -95,13 +95,13 @@ public class RoleAssignmentServiceApiTest {
 
         stubRoleAssignmentApiResponse(roleAssignmentsResponseAsJsonString);
 
-        GetRoleAssignmentResponse roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
+        RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
             "user token",
             "s2s token",
-            QueryRequest.builder().build()
+            MultipleQueryRequest.builder().build()
         );
 
-        Assignment expectedRoleAssignment = Assignment.builder()
+        RoleAssignment expectedRoleAssignment = RoleAssignment.builder()
             .id("428971b1-3954-4783-840f-c2718732b466")
             .actorIdType(ActorIdType.UNKNOWN)
             .actorId("122f8de4-2eb6-4dcf-91c9-16c2c8aaa422")
@@ -130,8 +130,8 @@ public class RoleAssignmentServiceApiTest {
                 .withStatus(200)
                 .withHeader(
                     "Content-Type",
-                    "application/vnd.uk.gov.hmcts.role-assignment-service.post-assignment-query-request+json; "
-                        + "version=1.0;charset=UTF-8"
+                    "application/vnd.uk.gov.hmcts.role-assignment-service"
+                    + ".post-assignment-query-request+json;charset=UTF-8;version=2.0"
                 )
                 .withBody(roleAssignmentsResponseAsJsonString))
         );

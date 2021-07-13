@@ -17,7 +17,7 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @PactTestFor(providerName = "am_roleAssignment_deleteAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
-public class AmRoleAssignmentServiceConsumerTestForDeleteByAssignmentId extends SpringBootContractBaseTest {
+public class AmRoleAssignmentServiceConsumerTestForDeleteByRoleAssignmentId extends SpringBootContractBaseTest {
 
     private static final String ASSIGMENT_ID = "704c8b1c-e89b-436a-90f6-953b1dc40157";
     private static final String AM_RAS_URL = "/am/role-assignments";

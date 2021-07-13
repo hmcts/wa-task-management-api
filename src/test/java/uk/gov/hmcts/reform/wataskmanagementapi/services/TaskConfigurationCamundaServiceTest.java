@@ -12,7 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -267,7 +267,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void getTask_should_succeed() {
 
             String taskId = UUID.randomUUID().toString();
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             CamundaTask mockedCamundaTask = createMockCamundaTask();
             Map<String, CamundaVariable> mockedVariables = mockVariables();
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -295,7 +295,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void getTask_should_throw_insufficient_permissions_exception_when_has_access_returns_false() {
 
             String taskId = UUID.randomUUID().toString();
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
@@ -317,7 +317,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void getTask_throw_a_resource_not_found_exception_exception_when_feign_exception_is_thrown_by_get_variables() {
 
             String taskId = UUID.randomUUID().toString();
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             List<PermissionTypes> permissionsRequired = singletonList(READ);
 
 
@@ -344,7 +344,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void getTask_should_throw_a_resource_not_found_exception_when_feign_exception_is_thrown_by_get_task() {
 
             String taskId = UUID.randomUUID().toString();
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             Map<String, CamundaVariable> mockedVariables = mockVariables();
             List<PermissionTypes> permissionsRequired = singletonList(READ);
 
@@ -373,7 +373,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void given_task_assigneeId_equals_to_userId_then_add_task_once() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             UserInfo userInfoMock = mock(UserInfo.class);
             String someAssignee = "someAssignee";
             final AccessControlResponse accessControlResponse = new AccessControlResponse(userInfoMock, roleAssignment);
@@ -442,7 +442,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void searchWithCriteria_should_succeed() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             final AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             final List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -510,7 +510,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         @MockitoSettings(strictness = Strictness.LENIENT)
         void searchWithCriteria_should_succeed_and_return_empty_list_if_camunda_query_was_null() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -532,7 +532,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void searchWithCriteria_should_succeed_and_return_empty_list_if_user_did_not_have_sufficient_permission() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             final AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             final List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -592,7 +592,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         @MockitoSettings(strictness = Strictness.LENIENT)
         void searchWithCriteria_should_succeed_and_return_empty_list_if_task_did_not_have_variables() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             final AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             final List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -644,7 +644,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void should_succeed_when_multiple_tasks_returned_and_sufficient_permission() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -801,7 +801,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void should_succeed_when_multiple_tasks_returned_and_only_one_with_variables_sufficient_permission() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -885,7 +885,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void should_succeed_and_return_empty_list_when_multiple_tasks_returned_and_not_sufficient_permission() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -960,7 +960,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void searchWithCriteria_should_succeed_when_multiple_process_variables_returned_and_sufficient_permission() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -1032,7 +1032,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void should_return_empty_list_when_multiple_process_variables_returned_and_user_did_not_have_permissions() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
 
@@ -1097,7 +1097,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_local_variables_call_fails() {
 
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -1135,7 +1135,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void searchWithCriteria_should_succeed_and_return_empty_list_if_camunda_searchWithCriteria_returns_emptyList() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
 
@@ -1168,7 +1168,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void searchWithCriteria_should_succeed_and_return_empty_list_if_camunda_getAllVariables_returns_emptyList() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -1225,7 +1225,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
         @Test
         void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_search_call_fails() {
-            List<Assignment> roleAssignment = singletonList(mock(Assignment.class));
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(mock(UserInfo.class), roleAssignment);
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -1252,7 +1252,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         void should_succeed_and_return_empty_array_when_wrong_jurisdiction_is_passed() {
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -1331,7 +1331,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void claimTask_should_succeed() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -1360,7 +1360,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void claimTask_should_throw_resource_not_found_exception_when_getVariables_threw_exception() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
@@ -1391,7 +1391,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void claimTask_should_throw_insufficient_permissions_exception_when_user_did_not_have_enough_permission() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -1420,7 +1420,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void claimTask_should_throw__when_updateTaskState_failed() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -1460,7 +1460,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void unclaimTask_should_succeed_when_same_user() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = new UserInfo("email", "someCamundaTaskAssignee",
@@ -1502,7 +1502,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
 
             String taskId = UUID.randomUUID().toString();
             String exceptionMessage = "some exception message";
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
 
             List<PermissionTypes> permissionsRequired = List.of(MANAGE);
             AccessControlResponse accessControlResponse =
@@ -1531,7 +1531,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void unclaimTask_should_throw_insufficient_permissions_exception_when_user_did_not_have_enough_permission() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
@@ -1566,7 +1566,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         void unclaimTask_should_throw_a_task_unclaim_exception_when_unclaim_task_fails() {
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
@@ -1609,7 +1609,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
     class CompleteTask {
         UserInfo mockedUserInfo;
         String taskId;
-        Assignment mockedRoleAssignment;
+        RoleAssignment mockedRoleAssignment;
         Map<String, CamundaVariable> mockedVariables;
         List<PermissionTypes> permissionsRequired;
         AccessControlResponse accessControlResponse;
@@ -1619,7 +1619,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @BeforeEach
         void beforeEach() {
             taskId = UUID.randomUUID().toString();
-            mockedRoleAssignment = mock(Assignment.class);
+            mockedRoleAssignment = mock(RoleAssignment.class);
             mockedVariables = mockVariables();
             mockedUserInfo = mock(UserInfo.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
@@ -1786,7 +1786,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
     class CompleteTaskWithPrivilegeAndCompletionOptions {
         UserInfo mockedUserInfo;
         String taskId;
-        Assignment mockedRoleAssignment;
+        RoleAssignment mockedRoleAssignment;
         Map<String, CamundaVariable> mockedVariables;
         List<PermissionTypes> permissionsRequired;
         AccessControlResponse accessControlResponse;
@@ -1795,7 +1795,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @BeforeEach
         void beforeEach() {
             taskId = UUID.randomUUID().toString();
-            mockedRoleAssignment = mock(Assignment.class);
+            mockedRoleAssignment = mock(RoleAssignment.class);
             mockedVariables = mockVariables();
             mockedUserInfo = mock(UserInfo.class);
             mockedCompletionOptions = mock(CompletionOptions.class);
@@ -2257,7 +2257,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(mockDMN());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             when(mockedUserInfo.getUid()).thenReturn("dummyId");
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -2345,7 +2345,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(mockDMN());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -2433,7 +2433,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(mockDMN());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
             );
@@ -2491,7 +2491,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(mockDMN());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -2566,7 +2566,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(mockDMN());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -2598,7 +2598,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         void searchWithCriteria_should_throw_a_server_error_exception_when_camunda_dmn_evaluating_fails() {
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -2654,7 +2654,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(new ArrayList<>());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -2677,7 +2677,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         void searchWithCriteria_should_return_an_empty_task_list_when_camunda_takes_wrong_caseType() {
             List<PermissionTypes> permissionsRequired = asList(PermissionTypes.OWN, PermissionTypes.MANAGE);
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             UserInfo mockedUserInfo = mock(UserInfo.class);
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -2734,7 +2734,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                  )
             ).thenReturn(mockDMN());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
             );
@@ -2795,7 +2795,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
                 any()
             )).thenReturn(mockDMNWithEmptyRow());
 
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 mockedUserInfo, singletonList(mockedRoleAssignment)
@@ -2851,7 +2851,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         @Test
         void should_cancel_task() {
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -2880,7 +2880,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void cancelTask_should_throw_resource_not_found_exception_when_getVariables_threw_exception() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
             when(mockedUserInfo.getUid()).thenReturn(IDAM_USER_ID);
@@ -2912,7 +2912,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void cancelTask_should_throw_insufficient_permissions_exception_when_user_did_not_have_enough_permission() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -2941,7 +2941,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
         void cancelTask_should_throw_a_task_cancel_exception_when_cancelling_task_fails() {
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -2983,7 +2983,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
             List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -3026,7 +3026,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
             List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -3069,7 +3069,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
             List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
 
             UserInfo mockedUserInfo = mock(UserInfo.class);
@@ -3107,7 +3107,7 @@ class TaskConfigurationCamundaServiceTest extends TaskConfigurationCamundaServic
             final List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
             String taskId = UUID.randomUUID().toString();
-            Assignment mockedRoleAssignment = mock(Assignment.class);
+            RoleAssignment mockedRoleAssignment = mock(RoleAssignment.class);
             Map<String, CamundaVariable> mockedVariables = mockVariables();
             mockedVariables.put("taskState", new CamundaVariable("assigned", "String"));
 

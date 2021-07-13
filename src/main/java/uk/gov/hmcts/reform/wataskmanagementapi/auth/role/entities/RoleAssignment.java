@@ -19,7 +19,7 @@ import java.util.Map;
 @Builder
 @EqualsAndHashCode
 @ToString
-public class Assignment {
+public class RoleAssignment {
 
     private String id;
     private ActorIdType actorIdType;
@@ -36,19 +36,19 @@ public class Assignment {
     private Map<String, String> attributes;
     private List<String> authorisations;
 
-    private Assignment() {
-        //Hidden constructor
+    public RoleAssignment() {
+        //Default constructor
     }
 
-    public Assignment(ActorIdType actorIdType,
-                      String actorId,
-                      RoleType roleType,
-                      String roleName,
-                      Classification classification,
-                      GrantType grantType,
-                      RoleCategory roleCategory,
-                      boolean readOnly,
-                      Map<String, String> attributes
+    public RoleAssignment(ActorIdType actorIdType,
+                          String actorId,
+                          RoleType roleType,
+                          String roleName,
+                          Classification classification,
+                          GrantType grantType,
+                          RoleCategory roleCategory,
+                          boolean readOnly,
+                          Map<String, String> attributes
     ) {
         this.actorIdType = actorIdType;
         this.actorId = actorId;
@@ -61,22 +61,22 @@ public class Assignment {
         this.attributes = attributes;
     }
 
-    public Assignment(String id,
-                      ActorIdType actorIdType,
-                      String actorId,
-                      RoleType roleType,
-                      String roleName,
-                      Classification classification,
-                      GrantType grantType,
-                      RoleCategory roleCategory,
-                      boolean readOnly,
-                      LocalDateTime beginTime,
-                      LocalDateTime endTime,
-                      LocalDateTime created,
-                      Map<String, String> attributes,
-                      List<String> authorisations) {
+    public RoleAssignment(String id,
+                          ActorIdType actorIdType,
+                          String actorId,
+                          RoleType roleType,
+                          String roleName,
+                          Classification classification,
+                          GrantType grantType,
+                          RoleCategory roleCategory,
+                          boolean readOnly,
+                          LocalDateTime beginTime,
+                          LocalDateTime endTime,
+                          LocalDateTime created,
+                          Map<String, String> attributes,
+                          List<String> authorisations) {
         this(actorIdType, actorId, roleType,
-             roleName, classification, grantType, roleCategory, readOnly, attributes
+            roleName, classification, grantType, roleCategory, readOnly, attributes
         );
         this.id = id;
         this.beginTime = beginTime;

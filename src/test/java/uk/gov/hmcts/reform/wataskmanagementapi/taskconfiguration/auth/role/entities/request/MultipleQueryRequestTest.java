@@ -1,15 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration;
+package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class AutoAssignmentResultTest {
+class MultipleQueryRequestTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = AutoAssignmentResult.class;
+        final Class<?> classUnderTest = MultipleQueryRequest.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

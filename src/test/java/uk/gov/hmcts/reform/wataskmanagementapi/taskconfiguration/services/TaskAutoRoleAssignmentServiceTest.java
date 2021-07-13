@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
@@ -25,7 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
-class TaskAutoAssignmentServiceTest {
+class TaskAutoRoleAssignmentServiceTest {
 
     @Mock
     private TaskConfigurationRoleAssignmentService roleAssignmentService;
@@ -67,7 +67,7 @@ class TaskAutoAssignmentServiceTest {
     @Test
     void getAutoAssignmentVariables_should_return_assigned_task_state_and_assignee() {
 
-        Assignment roleAssignmentResource = Assignment.builder()
+        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
             .id("someId")
             .actorIdType(ActorIdType.IDAM)
             .actorId("someUserId")
@@ -103,7 +103,7 @@ class TaskAutoAssignmentServiceTest {
 
     @Test
     void autoAssignTask_should_update_auto_assign() {
-        Assignment roleAssignmentResource = Assignment.builder()
+        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
             .id("someId")
             .actorIdType(ActorIdType.IDAM)
             .actorId("someUserId")

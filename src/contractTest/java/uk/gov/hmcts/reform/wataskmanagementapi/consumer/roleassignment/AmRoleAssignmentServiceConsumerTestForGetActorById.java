@@ -16,7 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 
 import java.util.List;
@@ -52,7 +52,8 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     @Test
     @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
     void verifyGetActorById() {
-        List<Assignment> roleAssignmentsResponse = roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
+        List<RoleAssignment> roleAssignmentsResponse =
+            roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
 
         assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
     }
