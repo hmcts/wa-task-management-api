@@ -1,62 +1,97 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.ResultMatcher;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
-    TaskManagementService taskManagementService;
-    @MockBean
-    private ClientAccessControlService clientAccessControlService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     @MockBean
+    private CamundaServiceApi camundaServiceApi;
+    @Autowired
     private CamundaService camundaService;
-    @Autowired
+    @MockBean
     private CamundaQueryBuilder camundaQueryBuilder;
-    @Autowired
+    @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Autowired
+    @MockBean
     private CFTTaskMapper cftTaskMapper;
+    @Autowired
+    private TaskManagementService taskManagementService;
+    private String taskId;
+    @MockBean
+    private IdamWebApi idamWebApi;
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+    @MockBean
+    private RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @MockBean
+    private ServiceAuthorisationApi serviceAuthorisationApi;
+
+    private ServiceMocks mockServices;
+
 
     @BeforeEach
     void setUp() {
+        taskId = UUID.randomUUID().toString();
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
@@ -64,71 +99,285 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             cftTaskDatabaseService,
             cftTaskMapper
         );
-
-
-        mockMvc
+        mockServices.mockServiceAPIs();
     }
 
-    @Test
-    void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+    protected Map<String, CamundaVariable> createMockCamundaVariables() {
 
-        String taskId = initiateATask();
+        Map<String, CamundaVariable> variables = new HashMap<>();
+        variables.put("caseId", new CamundaVariable("00000", "String"));
+        variables.put("caseName", new CamundaVariable("someCaseName", "String"));
+        variables.put("caseTypeId", new CamundaVariable("someCaseType", "String"));
+        variables.put("taskState", new CamundaVariable("configured", "String"));
+        variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
+        variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("securityClassification", new CamundaVariable("SC", "String"));
+        variables.put("title", new CamundaVariable("some_title", "String"));
+        variables.put("executionType", new CamundaVariable("some_executionType", "String"));
+        variables.put("taskSystem", new CamundaVariable("some_taskSystem", "String"));
+        variables.put("jurisdiction", new CamundaVariable("some_jurisdiction", "String"));
+        variables.put("region", new CamundaVariable("some_region", "String"));
+        variables.put("appealType", new CamundaVariable("some_appealType", "String"));
+        variables.put("autoAssigned", new CamundaVariable("false", "Boolean"));
+        variables.put("assignee", new CamundaVariable("uid", "String"));
+        return variables;
+    }
 
-        String taskId = UUID.randomUUID().toString();
-        TaskResource taskResource = new TaskResource(
-            taskId,
-            "someTaskName",
-            "someTaskType"
+    protected CamundaTask createMockedUnmappedTask() {
+        return new CamundaTask(
+            "someCamundaTaskId",
+            "someCamundaTaskName",
+            IDAM_USER_ID,
+            ZonedDateTime.now(),
+            ZonedDateTime.now().plusDays(1),
+            "someCamundaTaskDescription",
+            "someCamundaTaskOwner",
+            "someCamundaTaskFormKey",
+            "someProcessInstanceId"
         );
-
-        TaskResource updatedTaskResource = cftTaskDatabaseService.saveTask(taskResource);
-        assertNotNull(updatedTaskResource);
-        assertEquals(updatedTaskResource.getTaskId(), taskId);
-        assertEquals(updatedTaskResource.getTaskName(), "someTaskName");
-        assertEquals(updatedTaskResource.getTaskType(), "someTaskType");
     }
 
-    @Test
-    @Sql("/scripts/data.sql")
-    void should_succeed_and_find_a_task_by_id() {
+    private void verifyTransactionWasRolledBack(String taskId) {
 
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
-        Optional<TaskResource> updatedTaskResource =
-            cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+        //Find the task
+        Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
 
-        assertNotNull(updatedTaskResource);
-        assertTrue(updatedTaskResource.isPresent());
-        assertEquals(updatedTaskResource.get().getTaskId(), taskId);
-        assertEquals(updatedTaskResource.get().getTaskName(), "taskName");
-        assertEquals(updatedTaskResource.get().getTaskType(), "startAppeal");
+        assertNotNull(savedTaskResource);
+        assertTrue(savedTaskResource.isPresent());
+        assertEquals(taskId, savedTaskResource.get().getTaskId());
+        assertEquals("taskName", savedTaskResource.get().getTaskName());
+        assertEquals("taskType", savedTaskResource.get().getTaskType());
+
+        //Because transaction was rolled back we should have no state
+        assertEquals(null, savedTaskResource.get().getState());
+
     }
 
-    private String initiateATask() throws Exception {
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-            .thenReturn(true);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_STATE, "UNASSIGNED")
-        ));
-
-        String taskId = UUID.randomUUID().toString();
-        mockMvc.perform(
-            post(String.format("/task/%s", taskId))
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isCreated(),
-                content().contentType(APPLICATION_JSON_VALUE),
-                jsonPath("$.task_id").value(taskId),
-                jsonPath("$.task_type").value("aTaskType"),
-                jsonPath("$.task_name").value("aTaskName")
-            ));
+    private void createAndSaveTestTask(String taskId) {
+        TaskResource taskResource = new TaskResource(taskId, "taskName", "taskType");
+        taskResourceRepository.save(taskResource);
     }
 
+    @Nested
+    @DisplayName("cancelTask()")
+    class CancelTask {
+        @Test
+        void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
 
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                roleAssignment,
+                singletonList(CANCEL)
+            )).thenReturn(true);
+
+            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).bpmnEscalation(any(),
+                                                                                                      any(), any()
+            );
+
+            createAndSaveTestTask(taskId);
+
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+                .isInstanceOf(TaskCancelException.class)
+                .hasNoCause()
+                .hasMessage("Task Cancel Error: Unable to cancel the task.");
+
+            verifyTransactionWasRolledBack(taskId);
+
+        }
+    }
+
+    @Nested
+    @DisplayName("completeTask()")
+    class CompleteTask {
+        @Test
+        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                IDAM_USER_ID,
+                IDAM_USER_ID,
+                mockedVariables,
+                roleAssignment,
+                asList(OWN, EXECUTE)
+            )).thenReturn(true);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).completeTask(any(), any(), any());
+
+            createAndSaveTestTask(taskId);
+
+            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
+                .isInstanceOf(TaskCompleteException.class)
+                .hasNoCause()
+                .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
+
+            verifyTransactionWasRolledBack(taskId);
+
+        }
+    }
+
+    @Nested
+    @DisplayName("completeTaskWithPrivilegeAndCompletionOptions()")
+    class CompleteTaskWithPrivilegeAndCompletionOptions {
+
+
+        @Nested
+        @DisplayName("when assignAndComplete completion option is true")
+        class AssignAndCompleteIsTrue {
+
+            @Test
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+
+                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+                when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+                when(permissionEvaluatorService.hasAccess(
+                    mockedVariables,
+                    roleAssignment,
+                    asList(OWN, EXECUTE)
+                )).thenReturn(true);
+
+
+                doThrow(FeignException.FeignServerException.class)
+                    .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+                createAndSaveTestTask(taskId);
+
+                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    new CompletionOptions(true)
+                ))
+                    .isInstanceOf(TaskAssignAndCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage(
+                        "Task Assign and Complete Error: Task assign and complete partially succeeded. "
+                        + "The Task was assigned to the user making the request but the Task could not be completed.");
+
+                verifyTransactionWasRolledBack(taskId);
+
+            }
+
+        }
+
+        @Nested
+        @DisplayName("when assignAndComplete completion option is false")
+        class AssignAndCompleteIsFalse {
+
+            @Test
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+
+                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+                when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
+                when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+                when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                    IDAM_USER_ID,
+                    IDAM_USER_ID,
+                    mockedVariables,
+                    roleAssignment,
+                    asList(OWN, EXECUTE)
+                )).thenReturn(true);
+
+                doThrow(FeignException.FeignServerException.class)
+                    .when(camundaServiceApi).completeTask(any(), any(), any());
+
+
+                createAndSaveTestTask(taskId);
+
+                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    new CompletionOptions(false)
+                ))
+                    .isInstanceOf(TaskCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage("Task Complete Error: Task complete partially succeeded. "
+                                + "The Task state was updated to completed, but the Task could not be completed.");
+
+                verifyTransactionWasRolledBack(taskId);
+            }
+        }
+    }
+
+    @Nested
+    @DisplayName("terminateTask()")
+    class TerminateTask {
+
+        @Nested
+        @DisplayName("when terminate reason is completed")
+        class Completed {
+
+            @Test
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+                when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+
+                doThrow(FeignException.FeignServerException.class)
+                    .when(camundaServiceApi).completeTask(any(), any(), any());
+
+                createAndSaveTestTask(taskId);
+
+                assertThatThrownBy(() -> taskManagementService.terminateTask(
+                    taskId,
+                    new TerminateInfo(TerminateReason.COMPLETED)
+                ))
+                    .isInstanceOf(TaskCompleteException.class)
+                    .hasNoCause()
+                    .hasMessage(
+                        "Task Complete Error: Task complete partially succeeded. "
+                        + "The Task state was updated to completed, but the Task could not be completed.");
+
+                verifyTransactionWasRolledBack(taskId);
+
+            }
+
+        }
+
+        @Nested
+        @DisplayName("when terminate reason is cancelled")
+        class Cancelled {
+
+            @Test
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+
+
+                doThrow(FeignException.FeignServerException.class)
+                    .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
+
+                createAndSaveTestTask(taskId);
+
+                assertThatThrownBy(() -> taskManagementService.terminateTask(
+                    taskId,
+                    new TerminateInfo(TerminateReason.CANCELLED)
+                ))
+                    .isInstanceOf(TaskCancelException.class)
+                    .hasNoCause()
+                    .hasMessage("Task Cancel Error: Unable to cancel the task.");
+
+                verifyTransactionWasRolledBack(taskId);
+            }
+        }
+    }
 }
