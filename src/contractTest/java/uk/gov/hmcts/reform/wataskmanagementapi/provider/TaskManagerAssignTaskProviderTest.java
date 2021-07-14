@@ -76,7 +76,6 @@ public class TaskManagerAssignTaskProviderTest {
         if (context != null) {
             context.setTarget(testTarget);
         }
-
     }
 
     @State({"assign a task using taskId"})
@@ -85,8 +84,10 @@ public class TaskManagerAssignTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(taskManagementService).assignTask(any(), any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+
+        doNothing().when(taskManagementService).assignTask(any(), any(), any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlService.getRolesGivenUserId(anyString(), anyString())).thenReturn(accessControlResponse);
     }
 }
