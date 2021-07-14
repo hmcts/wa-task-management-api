@@ -40,4 +40,13 @@ class AssignTaskRequestTest {
 
         actualAssigneeRequest.assertThat().isEqualTo(assignTaskRequest);
     }
+
+    @Test
+    void testDeserializeAssignedRequestSnakeCased() throws IOException {
+        String request = "{\"user_id\": \"" + ID + "\"}";
+
+        ObjectContent<AssignTaskRequest> actualAssigneeRequest = jacksonTester.parse(request);
+
+        actualAssigneeRequest.assertThat().isEqualTo(assignTaskRequest);
+    }
 }

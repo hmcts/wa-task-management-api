@@ -57,7 +57,7 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
 
     private String createAssignTaskRequest() {
         String request = "{\n"
-                         + "  \"userId\":\"fda422de-b381-43ff-94ea-eea5790188a3\"\n"
+                         + "  \"user_id\":\"fda422de-b381-43ff-94ea-eea5790188a3\"\n"
                          + "}";
         return request;
     }
