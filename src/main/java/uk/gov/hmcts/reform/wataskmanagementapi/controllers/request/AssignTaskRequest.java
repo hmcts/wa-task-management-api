@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -13,7 +14,7 @@ public class AssignTaskRequest {
     private final String userId;
 
     @JsonCreator
-    public AssignTaskRequest(String userId) {
+    public AssignTaskRequest(@JsonProperty("userId") String userId) {
         this.userId = userId;
     }
 
