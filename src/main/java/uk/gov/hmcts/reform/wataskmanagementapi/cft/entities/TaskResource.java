@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
@@ -13,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.Objects;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -28,6 +28,7 @@ import javax.persistence.OneToOne;
 
 @ToString
 @Getter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "tasks")
 @TypeDef(
     name = "pgsql_enum",
@@ -45,6 +46,7 @@ public class TaskResource implements Serializable {
     private static final String PGSQL_ENUM = "pgsql_enum";
 
     @Id
+    @EqualsAndHashCode.Include()
     private String taskId;
     private String taskName;
     private String taskType;
@@ -82,6 +84,7 @@ public class TaskResource implements Serializable {
 
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime assignmentExpiry;
+    @EqualsAndHashCode.Include()
     private String caseId;
     private String caseTypeId;
     private String caseName;
@@ -310,22 +313,4 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
     }
 
-    @Override
-    public boolean equals(Object anotherObject) {
-        if (this == anotherObject) {
-            return true;
-        }
-        if (anotherObject == null || getClass() != anotherObject.getClass()) {
-            return false;
-        }
-        TaskResource tasks = (TaskResource) anotherObject;
-
-        return Objects.equals(taskId, tasks.taskId)
-               && Objects.equals(caseId, tasks.caseId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(taskId, caseId);
-    }
 }

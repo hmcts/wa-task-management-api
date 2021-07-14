@@ -1,9 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import org.junit.jupiter.api.Test;
-import pl.pojo.tester.api.FieldPredicate;
 import pl.pojo.tester.api.assertion.Method;
 
+import static pl.pojo.tester.api.FieldPredicate.exclude;
+import static pl.pojo.tester.api.FieldPredicate.include;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class TaskResourceTest {
@@ -18,7 +19,7 @@ class TaskResourceTest {
             .testing(Method.CONSTRUCTOR)
             .areWellImplemented();
 
-        assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("taskRoleResources"))
+        assertPojoMethodsFor(classUnderTest, exclude("taskRoleResources"))
             .testing(Method.TO_STRING)
             .areWellImplemented();
 
