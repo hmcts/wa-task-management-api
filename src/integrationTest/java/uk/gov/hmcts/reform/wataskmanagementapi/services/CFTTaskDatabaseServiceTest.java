@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -25,7 +25,11 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
     @BeforeEach
     void setUp() {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
+    }
 
+    @AfterEach
+    void tearDown() {
+        taskResourceRepository.deleteAll();
     }
 
     @Test
@@ -45,10 +49,15 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
     }
 
     @Test
-    @Sql("/scripts/data.sql")
     void should_succeed_and_find_a_task_by_id() {
+        String taskId = UUID.randomUUID().toString();
+        TaskResource taskResource = new TaskResource(
+            taskId,
+            "someTaskName",
+            "someTaskType"
+        );
 
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
+        taskResourceRepository.saveAndFlush(taskResource);
         Optional<TaskResource> updatedTaskResource =
             cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
 
@@ -58,6 +67,5 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
         assertEquals(updatedTaskResource.get().getTaskName(), "taskName");
         assertEquals(updatedTaskResource.get().getTaskType(), "startAppeal");
     }
-
 
 }
