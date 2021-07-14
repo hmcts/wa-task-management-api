@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.FieldPredicate.exclude;
-import static pl.pojo.tester.api.FieldPredicate.include;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 class TaskResourceTest {
