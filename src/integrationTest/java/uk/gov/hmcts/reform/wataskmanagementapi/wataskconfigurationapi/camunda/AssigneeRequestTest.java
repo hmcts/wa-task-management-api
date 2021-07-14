@@ -24,7 +24,7 @@ class AssigneeRequestTest {
 
         JsonContent<AssigneeRequest> assigneeRequestJsonContent = jacksonTester.write(assigneeRequest);
 
-        assertThat(assigneeRequestJsonContent).isEqualToJson("{\"userId\": \"37d4eab7-e14c-404e-8cd1-55cd06b2fc06\"}");
+        assertThat(assigneeRequestJsonContent).isEqualToJson("{\"user_id\": \"37d4eab7-e14c-404e-8cd1-55cd06b2fc06\"}");
     }
 
 }

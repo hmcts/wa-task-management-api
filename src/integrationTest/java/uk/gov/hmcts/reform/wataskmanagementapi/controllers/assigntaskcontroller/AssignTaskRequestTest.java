@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AssignTaskRequestTest {
 
     public static final String ID = "37d4eab7-e14c-404e-8cd1-55cd06b2fc06";
-    public static final String USER_ID = "{\"userId\": \"" + ID + "\"}";
+    public static final String USER_ID = "{\"user_id\": \"" + ID + "\"}";
     private final AssignTaskRequest assignTaskRequest = new AssignTaskRequest(ID);
     @Autowired
     private JacksonTester<AssignTaskRequest> jacksonTester;
