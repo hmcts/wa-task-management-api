@@ -79,21 +79,22 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     private DslPart createResponseForOrgRoleAssignment() {
         return newJsonBody(o -> o
-            .minArrayLike("roleAssignmentResponse", 1, 1,
-                          roleAssignmentResponse -> roleAssignmentResponse
-                              .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
-                              .stringValue("actorIdType", "IDAM")
-                              .stringValue("actorId", ORG_ROLE_ACTOR_ID)
-                              .stringValue("roleType", "ORGANISATION")
-                              .stringType("roleName", "tribunal-caseworker")
-                              .stringValue("classification", "PUBLIC")
-                              .stringValue("grantType", "STANDARD")
-                              .stringType("roleCategory", "LEGAL_OPERATIONS")
-                              .booleanValue("readOnly", false)
-                              .object("attributes", attribute -> attribute
-                                  .stringType("primaryLocation", "198444")
-                                  .stringType("jurisdiction", "IA")
-                              )
+            .minArrayLike(
+                "roleAssignmentResponse", 1, 1,
+                roleAssignmentResponse -> roleAssignmentResponse
+                    .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
+                    .stringValue("actorIdType", "IDAM")
+                    .stringValue("actorId", ORG_ROLE_ACTOR_ID)
+                    .stringValue("roleType", "ORGANISATION")
+                    .stringType("roleName", "tribunal-caseworker")
+                    .stringValue("classification", "PUBLIC")
+                    .stringValue("grantType", "STANDARD")
+                    .stringType("roleCategory", "LEGAL_OPERATIONS")
+                    .booleanValue("readOnly", false)
+                    .object("attributes", attribute -> attribute
+                        .stringType("primaryLocation", "198444")
+                        .stringType("jurisdiction", "IA")
+                    )
             )).build();
     }
 
