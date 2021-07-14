@@ -27,10 +27,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,9 +41,13 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 //@PactFolder("pacts")
@@ -72,6 +77,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             taskManagementService,
             accessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -85,16 +91,21 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
-        setInitMockForsearchTask();
+        setInitMockForSearchTask();
     }
 
-    @State({"appropriate tasks are returned by criteria with warnings"})
-    public void getTasksBySearchCriteriaWithWarnings() {
-        setInitMockForsearchTaskWithWarnings();
+    @State({"appropriate tasks are returned by criteria with no warnings"})
+    public void getTasksBySearchCriteriaWithNoWarnings() {
+        setInitMockForSearchTaskWithNoWarnings();
     }
 
-    public List<Task> createTasks() {
-        Task taskOne = new Task(
+    @State({"appropriate tasks are returned by criteria with warnings only"})
+    public void getTasksBySearchCriteriaWithWarningsOnly() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    public Task createTaskWithNoWarnings() {
+        return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -116,17 +127,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList()));
-
-        return Arrays.asList(taskOne);
+            new WarningValues(emptyList())
+        );
     }
 
-    public List<Task> createTasksWithWarnings() {
+    public Task createTaskWithWarnings() {
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
-        WarningValues warningValues = new WarningValues(warnings);
-        Task taskTwo = new Task(
+
+        return new Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
             "Review the appeal",
             "reviewTheAppeal",
@@ -148,25 +158,30 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "John Doe",
             true,
-            warningValues);
-
-        return Arrays.asList(taskTwo);
+            new WarningValues(warnings));
     }
 
-    private void setInitMockForsearchTask() {
+    private void setInitMockForSearchTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(createTasks());
+            .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithWarnings()));
     }
 
-    private void setInitMockForsearchTaskWithWarnings() {
+    private void setInitMockForSearchTaskWithWarningsOnly() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(createTasksWithWarnings());
+            .thenReturn(singletonList(createTaskWithWarnings()));
     }
 
+
+    private void setInitMockForSearchTaskWithNoWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(singletonList(createTaskWithNoWarnings()));
+    }
 
 }
 

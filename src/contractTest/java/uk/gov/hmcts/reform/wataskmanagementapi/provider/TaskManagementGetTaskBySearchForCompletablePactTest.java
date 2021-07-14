@@ -28,10 +28,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -40,10 +40,13 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search_completable")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
-//@PactFolder("pacts")
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
@@ -72,6 +75,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             taskManagementService,
             accessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -94,8 +98,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     public List<Task> createTasks() {
-        var tasks = new ArrayList<Task>();
-        Task taskOne = new Task(
+        Task task = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -117,11 +120,10 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             true,
-            new WarningValues(Collections.emptyList())
+            new WarningValues(emptyList())
         );
 
-        tasks.add(taskOne);
-        return tasks;
+        return singletonList(task);
     }
 
     public List<Task> createTasksWithWarnings() {
@@ -129,8 +131,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             new Warning("Code1", "Text1")
         );
         WarningValues warningValues = new WarningValues(warnings);
-        var tasks = new ArrayList<Task>();
-        Task taskOne = new Task(
+        Task taskWithWarnings = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -155,8 +156,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             warningValues
         );
 
-        tasks.add(taskOne);
-        return tasks;
+        return singletonList(taskWithWarnings);
     }
 
     private void setInitMockForSearchByCompletableTask() {
