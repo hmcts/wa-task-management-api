@@ -162,6 +162,7 @@ public class TaskManagementService {
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      */
+    @Transactional
     public void cancelTask(String taskId,
                            AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
@@ -170,7 +171,13 @@ public class TaskManagementService {
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
         roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        task.setState(CFTTaskState.CANCELLED);
+        //Perform Camunda updates
         camundaService.cancelTask(taskId);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
 
     }
 
@@ -181,6 +188,7 @@ public class TaskManagementService {
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      */
+    @Transactional
     public void completeTask(String taskId, AccessControlResponse accessControlResponse) {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
@@ -206,7 +214,14 @@ public class TaskManagementService {
             accessControlResponse.getRoleAssignments(),
             permissionsRequired
         );
+
+        //Lock & update Task
+        TaskResource task = findByIdAndObtainLock(taskId);
+        task.setState(CFTTaskState.COMPLETED);
+        //Perform Camunda updates
         camundaService.completeTask(taskId, variables);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
     }
 
     /**
@@ -217,6 +232,7 @@ public class TaskManagementService {
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @param completionOptions     The completion options to orchestrate how this completion should be handled.
      */
+    @Transactional
     public void completeTaskWithPrivilegeAndCompletionOptions(String taskId,
                                                               AccessControlResponse accessControlResponse,
                                                               CompletionOptions completionOptions) {
@@ -227,7 +243,14 @@ public class TaskManagementService {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
+            //Lock & update Task
+            TaskResource task = findByIdAndObtainLock(taskId);
+            task.setState(CFTTaskState.COMPLETED);
+            //Perform Camunda updates
             camundaService.assignAndCompleteTask(taskId, accessControlResponse.getUserInfo().getUid(), variables);
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+
         } else {
             completeTask(taskId, accessControlResponse);
         }
@@ -356,17 +379,24 @@ public class TaskManagementService {
      */
     @Transactional
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
+        //Find and Lock Task
         TaskResource task = findByIdAndObtainLock(taskId);
 
         switch (terminateInfo.getTerminateReason()) {
             case COMPLETED:
+                //Update cft task
                 task.setState(CFTTaskState.COMPLETED);
+                //Perform Camunda updates
                 camundaService.completeTaskById(taskId);
+                //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
                 break;
             case CANCELLED:
+                //Update cft task
                 task.setState(CFTTaskState.CANCELLED);
+                //Perform Camunda updates
                 camundaService.cancelTask(taskId);
+                //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
                 break;
             default:

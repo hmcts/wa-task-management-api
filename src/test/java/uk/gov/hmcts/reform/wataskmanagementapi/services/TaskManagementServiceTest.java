@@ -412,9 +412,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 singletonList(CANCEL)
             )).thenReturn(true);
 
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
             taskManagementService.cancelTask(taskId, accessControlResponse);
 
+            assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
             verify(camundaService, times(1)).cancelTask(taskId);
+            verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
         }
 
         @Test
@@ -456,6 +464,34 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .hasNoCause()
                 .hasMessage("UserId cannot be null");
         }
+
+        @Test
+        void should_throw_exception_when_task_resource_not_found() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccess(
+                mockedVariables,
+                roleAssignment,
+                singletonList(CANCEL)
+            )).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasNoCause()
+                .hasMessage("Resource not found");
+            verify(camundaService, times(0)).cancelTask(any());
+            verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+        }
     }
 
     @Nested
@@ -479,8 +515,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 asList(OWN, EXECUTE)
             )).thenReturn(true);
 
+            TaskResource taskResource = spy(TaskResource.class);
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
             taskManagementService.completeTask(taskId, accessControlResponse);
 
+            assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+            verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             verify(camundaService, times(1)).completeTask(taskId, mockedVariables);
         }
 
@@ -541,13 +584,45 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(null).build());
 
-            assertThatThrownBy(() -> taskManagementService.cancelTask(
+            assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
                 accessControlResponse
             ))
                 .isInstanceOf(NullPointerException.class)
                 .hasNoCause()
                 .hasMessage("UserId cannot be null");
+        }
+
+        @Test
+        void should_throw_exception_when_task_resource_not_found() {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                IDAM_USER_ID,
+                IDAM_USER_ID,
+                mockedVariables,
+                roleAssignment,
+                asList(OWN, EXECUTE)
+            )).thenReturn(true);
+
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasNoCause()
+                .hasMessage("Resource not found");
+            verify(camundaService, times(0)).completeTask(any(), any());
+            verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
         }
 
     }
@@ -571,7 +646,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .hasMessage("UserId cannot be null");
         }
 
-
         @Nested
         @DisplayName("when assignAndComplete completion option is true")
         class AssignAndCompleteIsTrue {
@@ -590,12 +664,21 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     asList(OWN, EXECUTE)
                 )).thenReturn(true);
 
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true)
                 );
 
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1))
                     .assignAndCompleteTask(taskId, IDAM_USER_ID, mockedVariables);
             }
@@ -624,6 +707,38 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .hasMessage("Role Assignment Verification: "
                                 + "The request failed the Role Assignment checks performed.");
             }
+
+            @Test
+            void should_throw_exception_when_task_resource_not_found() {
+                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+                when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+                when(permissionEvaluatorService.hasAccess(
+                    mockedVariables,
+                    roleAssignment,
+                    asList(OWN, EXECUTE)
+                )).thenReturn(true);
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    new CompletionOptions(true)
+                ))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasNoCause()
+                    .hasMessage("Resource not found");
+                verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), any());
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+            }
+
         }
 
         @Nested
@@ -648,12 +763,20 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     asList(OWN, EXECUTE)
                 )).thenReturn(true);
 
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false)
                 );
 
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1)).completeTask(taskId, mockedVariables);
             }
 
@@ -709,6 +832,43 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     );
 
                 verify(camundaService, times(0)).completeTask(any(), any());
+            }
+
+
+            @Test
+            void should_throw_exception_when_task_resource_not_found() {
+                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
+                Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+                when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
+                when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+                when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                    IDAM_USER_ID,
+                    IDAM_USER_ID,
+                    mockedVariables,
+                    roleAssignment,
+                    asList(OWN, EXECUTE)
+                )).thenReturn(true);
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    new CompletionOptions(false)
+                ))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasNoCause()
+                    .hasMessage("Resource not found");
+
+                verify(camundaService, times(0)).completeTask(any(), any());
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
         }
     }
@@ -1080,7 +1240,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 verify(camundaService, times(1)).completeTaskById(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
-
 
             @Test
             void should_throw_exception_when_task_resource_not_found() {
