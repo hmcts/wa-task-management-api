@@ -62,8 +62,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     public RequestResponsePact executeGetActorByIdOrgRoleAssignmentAndGet200(PactDslWithProvider builder) {
 
         return builder
-            .given("An actor with provided id and organisational role assignment "
-                   + "is available in role assignment service for a WA API")
+            .given("An actor with provided id is available in role assignment service")
             .uponReceiving(
                 "Provider receives a GET /am/role-assignments/actors/{user-id} request from a WA API")
             .path(RAS_GET_ACTOR_BY_ID_URL + ORG_ROLE_ACTOR_ID)
