@@ -48,9 +48,10 @@ import static org.mockito.Mockito.when;
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
+//@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-//@PactFolder("pacts")
+
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @Mock
@@ -165,7 +166,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
-            .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithWarnings()));
+            .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {

@@ -33,7 +33,7 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
             .given()
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
-            .body("")
+            .body(createAssignTaskRequest())
             .post(mockServer.getUrl() + WA_ASSIGN_TASK_BY_ID)
             .then()
             .statusCode(204);
@@ -47,11 +47,18 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
             .uponReceiving("taskId to assign a task")
             .path(WA_ASSIGN_TASK_BY_ID)
             .method(HttpMethod.POST.toString())
-            .body("", String.valueOf(ContentType.JSON))
+            .body(createAssignTaskRequest(), String.valueOf(ContentType.JSON))
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    private String createAssignTaskRequest() {
+        String request = "{\n"
+                         + "  \"user_id\":\"fda422de-b381-43ff-94ea-eea5790188a3\"\n"
+                         + "}";
+        return request;
     }
 }
