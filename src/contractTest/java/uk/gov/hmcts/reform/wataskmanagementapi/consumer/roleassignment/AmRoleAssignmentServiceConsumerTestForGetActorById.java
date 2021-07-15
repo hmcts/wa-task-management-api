@@ -58,7 +58,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
         assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
     }
 
-    @Pact(provider = "am_role_assignment_service_get_actor_by_id", consumer = "wa_task_management_api")
+    @Pact(provider = "am_roleAssignment_getAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetActorByIdOrgRoleAssignmentAndGet200(PactDslWithProvider builder) {
 
         return builder
@@ -79,7 +79,8 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     private DslPart createResponseForOrgRoleAssignment() {
         return newJsonBody(o -> o
-            .minArrayLike("roleAssignmentResponse", 1, 1,
+            .minArrayLike(
+                "roleAssignmentResponse", 1, 1,
                 roleAssignmentResponse -> roleAssignmentResponse
                     .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
                     .stringValue("actorIdType", "IDAM")
@@ -99,8 +100,10 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     private Map<String, String> getResponseHeaders() {
         Map<String, String> responseHeaders = Maps.newHashMap();
-        responseHeaders.put("Content-Type",
-            "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0");
+        responseHeaders.put(
+            "Content-Type",
+            "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0"
+        );
         return responseHeaders;
     }
 
