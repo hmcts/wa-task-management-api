@@ -5,6 +5,8 @@ import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import com.google.common.collect.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,13 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @PactTestFor(providerName = "am_roleAssignment_getAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBootContractBaseTest {
 
     private static final String ORG_ROLE_ACTOR_ID = "23486";
