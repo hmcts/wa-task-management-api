@@ -142,7 +142,8 @@ public class TaskManagementGetTaskProviderTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList()));
+            new WarningValues(Collections.emptyList())
+        );
     }
 
     private Task createTaskWithWarnings() {

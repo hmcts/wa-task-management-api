@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -143,7 +144,7 @@ class CamundaServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> camundaService.getMappedTask(taskId, mockedVariables))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
+                .hasMessage(format(
                     EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID,
                     taskId
                 ));
@@ -176,7 +177,7 @@ class CamundaServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> camundaService.getUnmappedCamundaTask(taskId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
+                .hasMessage(format(
                     EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID,
                     taskId
                 ));
@@ -209,7 +210,7 @@ class CamundaServiceTest extends CamundaHelpers {
             assertThatThrownBy(() -> camundaService.getTaskVariables(taskId))
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasCauseInstanceOf(FeignException.class)
-                .hasMessage(String.format(
+                .hasMessage(format(
                     EXPECTED_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                     taskId
                 ));
@@ -443,6 +444,80 @@ class CamundaServiceTest extends CamundaHelpers {
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
             assertThatThrownBy(() -> camundaService.completeTask(taskId, mockedVariables))
+                .isInstanceOf(TaskCompleteException.class)
+                .hasNoCause()
+                .hasMessage("Task Complete Error: Task complete partially succeeded. "
+                            + "The Task state was updated to completed, but the Task could not be completed.");
+        }
+    }
+
+    @Nested
+    @DisplayName("completeTaskById()")
+    class CompleteTaskById {
+        @Test
+        void completeTaskById_should_succeed() {
+
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            camundaService.completeTaskById(taskId);
+
+
+            verify(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
+
+            verify(camundaServiceApi)
+                .addLocalVariablesToTask(
+                    eq(BEARER_SERVICE_TOKEN),
+                    eq(taskId),
+                    any(AddLocalVariableRequest.class)
+                );
+
+            verify(camundaServiceApi)
+                .completeTask(eq(BEARER_SERVICE_TOKEN), eq(taskId), any(CompleteTaskVariables.class));
+
+            verifyNoMoreInteractions(camundaServiceApi);
+        }
+
+        @Test
+        void completeTaskById_should_throw_a_resource_not_found_exception_when_get_variables_fails() {
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).getVariables(BEARER_SERVICE_TOKEN, taskId);
+
+            assertThatThrownBy(() -> camundaService.completeTaskById(taskId))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(
+                    format("There was a problem fetching the variables for task with id: %s", taskId)
+                );
+        }
+
+        @Test
+        void completeTaskById_should_throw_a_task_assign_exception_when_state_update_fails() {
+
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+            assertThatThrownBy(() -> camundaService.completeTaskById(taskId))
+                .isInstanceOf(TaskCompleteException.class)
+                .hasNoCause()
+                .hasMessage("Task Complete Error: Task complete failed. "
+                            + "Unable to update task state to completed.");
+        }
+
+        @Test
+        void completeTaskById_should_throw_a_task_assign_exception_when_assign_task_fails() {
+
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaServiceApi.getVariables(BEARER_SERVICE_TOKEN, taskId)).thenReturn(mockedVariables);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).completeTask(any(), any(), any());
+
+            assertThatThrownBy(() -> camundaService.completeTaskById(taskId))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "

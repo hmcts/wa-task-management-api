@@ -1,12 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import org.junit.jupiter.api.Test;
-import pl.pojo.tester.api.FieldPredicate;
 import pl.pojo.tester.api.assertion.Method;
 
+import static pl.pojo.tester.api.FieldPredicate.exclude;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class TaskResourceTest {
+class TaskResourceTest {
 
     @Test
     void isWellImplemented() {
@@ -14,10 +14,11 @@ public class TaskResourceTest {
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
+            .testing(Method.SETTER)
             .testing(Method.CONSTRUCTOR)
             .areWellImplemented();
 
-        assertPojoMethodsFor(classUnderTest, FieldPredicate.exclude("taskRoleResources"))
+        assertPojoMethodsFor(classUnderTest, exclude("taskRoleResources"))
             .testing(Method.TO_STRING)
             .areWellImplemented();
 

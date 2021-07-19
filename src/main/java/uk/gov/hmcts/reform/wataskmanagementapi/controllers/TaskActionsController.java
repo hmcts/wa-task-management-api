@@ -193,7 +193,6 @@ public class TaskActionsController extends BaseController {
                 throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
             }
         }
-
         return ResponseEntity
             .noContent()
             .cacheControl(CacheControl.noCache())
