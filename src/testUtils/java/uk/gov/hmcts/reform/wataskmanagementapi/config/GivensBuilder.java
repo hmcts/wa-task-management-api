@@ -214,6 +214,7 @@ public class GivensBuilder {
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
+            .withProcessVariable("caseManagementCategory", "Protection")
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -245,6 +246,7 @@ public class GivensBuilder {
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", true)
             .withProcessVariable("warningList", values)
+            .withProcessVariable("caseManagementCategory", "Protection")
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -268,6 +270,7 @@ public class GivensBuilder {
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
+            .withProcessVariable("caseManagementCategory", "Protection")
             .build();
 
         return processVariables.getProcessVariablesMap();

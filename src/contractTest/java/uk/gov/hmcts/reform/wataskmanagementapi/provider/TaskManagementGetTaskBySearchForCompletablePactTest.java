@@ -120,7 +120,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             true,
-            new WarningValues(emptyList())
+            new WarningValues(emptyList()),
+            "Some Case Management Category"
         );
 
         return singletonList(task);
@@ -153,7 +154,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             true,
-            warningValues
+            warningValues,
+            "Some Case Management Category"
         );
 
         return singletonList(taskWithWarnings);

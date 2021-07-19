@@ -128,7 +128,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(emptyList())
+            new WarningValues(emptyList()),
+            "Some Case Management Category"
         );
     }
 
@@ -159,7 +160,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "John Doe",
             true,
-            new WarningValues(warnings));
+            new WarningValues(warnings),
+            "Some Case Management Category");
     }
 
     private void setInitMockForSearchTask() {
