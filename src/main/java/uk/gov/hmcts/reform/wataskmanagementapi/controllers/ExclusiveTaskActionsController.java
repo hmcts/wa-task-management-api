@@ -85,7 +85,6 @@ public class ExclusiveTaskActionsController extends BaseController {
     public ResponseEntity<Void> terminateTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                               @PathVariable(TASK_ID) String taskId,
                                               @RequestBody TerminateTaskRequest terminateTaskRequest) {
-
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

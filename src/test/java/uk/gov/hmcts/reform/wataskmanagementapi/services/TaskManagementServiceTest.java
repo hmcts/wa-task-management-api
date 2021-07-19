@@ -1077,7 +1077,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
                 assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
-                verify(camundaService, times(1)).completeTaskById(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
 
@@ -1094,7 +1093,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasNoCause()
                     .hasMessage("Resource not found");
-                verify(camundaService, times(0)).completeTaskById(taskId);
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
 
@@ -1120,7 +1118,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
                 assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
-                verify(camundaService, times(1)).cancelTask(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
 
@@ -1137,7 +1134,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasNoCause()
                     .hasMessage("Resource not found");
-                verify(camundaService, times(0)).cancelTask(taskId);
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
 

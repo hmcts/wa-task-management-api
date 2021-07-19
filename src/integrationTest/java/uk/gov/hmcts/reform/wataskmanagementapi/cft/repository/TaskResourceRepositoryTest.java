@@ -39,7 +39,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
         assertAll(
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
-            () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeResource().getExecutionCode()),
+            () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode()),
             () -> assertEquals(SecurityClassification.RESTRICTED, taskResource.getSecurityClassification()),
             () -> assertEquals(CFTTaskState.ASSIGNED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
