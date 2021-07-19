@@ -73,6 +73,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .oauth2Client();
     }
 
+    @Override
+    public void configure(WebSecurity web) {
+        web.ignoring().mvcMatchers(anonymousPaths.toArray(String[]::new));
+    }
+
     @Bean
     @Primary
     JwtDecoder jwtDecoder() {
@@ -84,11 +89,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         jwtDecoder.setJwtValidator(validator);
 
         return jwtDecoder;
-    }
-
-    @Override
-    public void configure(WebSecurity web) {
-        web.ignoring().mvcMatchers(anonymousPaths.toArray(String[]::new));
     }
 
     public List<String> getAnonymousPaths() {
