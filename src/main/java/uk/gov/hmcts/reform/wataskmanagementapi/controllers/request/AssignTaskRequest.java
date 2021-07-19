@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +15,7 @@ public class AssignTaskRequest {
     private final String userId;
 
     @JsonCreator
-    public AssignTaskRequest(@JsonProperty("userId") String userId) {
+    public AssignTaskRequest(@JsonProperty("userId") @JsonAlias("user_id") String userId) {
         this.userId = userId;
     }
 

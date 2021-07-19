@@ -53,7 +53,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
 
     }
 
-    @Pact(provider = "am_role_assignment_service_create", consumer = "wa_task_management_api")
+    @Pact(provider = "am_roleAssignment_createAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
 
         return builder
@@ -103,16 +103,24 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
             .object("roleAssignmentResponse", ob -> ob
                 .object("roleRequest", roleRequest -> roleRequest
                     .stringType("id", "14a21569-eb80-4681-b62c-6ae2ed069e1f")
-                    .stringValue("authenticatedUserId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e2f")
-                    .stringType("correlationId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e3f")
-                    .stringValue("assignerId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e4f")
+                    .stringValue(
+                        "authenticatedUserId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e2f"
+                    )
+                    .stringType(
+                        "correlationId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e3f"
+                    )
+                    .stringValue(
+                        "assignerId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e4f"
+                    )
                     .stringValue("requestType", "CREATE")
                     .stringValue("process", "staff-organisational-role-mapping")
-                    .stringValue("reference",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e5f")
+                    .stringValue(
+                        "reference",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e5f"
+                    )
                     .booleanValue("replaceExisting", true)
                     .stringValue("status", "APPROVED")
                     .stringType("log", "Request has been approved")
@@ -120,21 +128,27 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                 .minArrayLike("requestedRoles", 1, 1, requestedRoles -> requestedRoles
                     .stringType("id", "14a21569-eb80-4681-b62c-6ae2ed069e6f")
                     .stringValue("actorIdType", "IDAM")
-                    .stringValue("actorId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e5f")
+                    .stringValue(
+                        "actorId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e5f"
+                    )
                     .stringValue("roleType", "ORGANISATION")
                     .stringValue("roleName", "tribunal-caseworker")
                     .stringValue("classification", "PUBLIC")
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
                     .stringValue("process", "staff-organisational-role-mapping")
-                    .stringValue("reference",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e5f")
+                    .stringValue(
+                        "reference",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e5f"
+                    )
                     .stringValue("status", "LIVE")
-                    .stringType("log",
+                    .stringType(
+                        "log",
                         "Create requested with replace: true\n"
                         + "Create approved : staff_organisational_role_mapping_service_create\n"
-                        + "Approved : validate_role_assignment_against_patterns")
+                        + "Approved : validate_role_assignment_against_patterns"
+                    )
                     .object("attributes", attribute -> attribute
                         .stringType("jurisdiction", "IA")
                         .stringType("primaryLocation", "765324")

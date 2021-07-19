@@ -81,7 +81,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     public RequestResponsePact executeSearchQueryWithWarnings200(PactDslWithProvider builder)
         throws JsonProcessingException {
         return builder
-            .given("appropriate tasks are returned by criteria with warnings")
+            .given("appropriate tasks are returned by criteria with warnings only")
             .uponReceiving("Provider receives a POST /task request from a WA API")
             .path(WA_SEARCH_QUERY)
             .method(HttpMethod.POST.toString())
@@ -138,7 +138,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("task_title", "Review the appeal")
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("assignee", null)
                         .booleanType("auto_assigned", true)
                         .stringType("execution_type", "Case Management Task")
                         .stringType("jurisdiction", "IA")

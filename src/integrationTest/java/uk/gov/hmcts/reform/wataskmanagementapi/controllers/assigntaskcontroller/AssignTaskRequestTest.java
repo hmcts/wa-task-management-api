@@ -19,21 +19,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AssignTaskRequestTest {
 
     public static final String ID = "37d4eab7-e14c-404e-8cd1-55cd06b2fc06";
-    public static final String USER_ID = "{\"userId\": \"" + ID + "\"}";
     private final AssignTaskRequest assignTaskRequest = new AssignTaskRequest(ID);
     @Autowired
     private JacksonTester<AssignTaskRequest> jacksonTester;
 
     @Test
     void testSerializeAssigneeRequest() throws IOException {
+        String result = "{\"userId\": \"" + ID + "\"}";
+
         JsonContent<AssignTaskRequest> assigneeRequestJsonContent = jacksonTester.write(assignTaskRequest);
 
-        assertThat(assigneeRequestJsonContent).isEqualToJson(USER_ID);
+        assertThat(assigneeRequestJsonContent).isEqualToJson(result);
     }
 
     @Test
-    void testDeserializeAssignedRequest() throws IOException {
-        ObjectContent<AssignTaskRequest> actualAssigneeRequest = jacksonTester.parse(USER_ID);
+    void testDeserializeAssignedRequestCamelCased() throws IOException {
+        String request = "{\"userId\": \"" + ID + "\"}";
+
+        ObjectContent<AssignTaskRequest> actualAssigneeRequest = jacksonTester.parse(request);
+
+        actualAssigneeRequest.assertThat().isEqualTo(assignTaskRequest);
+    }
+
+    @Test
+    void testDeserializeAssignedRequestSnakeCased() throws IOException {
+        String request = "{\"user_id\": \"" + ID + "\"}";
+
+        ObjectContent<AssignTaskRequest> actualAssigneeRequest = jacksonTester.parse(request);
 
         actualAssigneeRequest.assertThat().isEqualTo(assignTaskRequest);
     }

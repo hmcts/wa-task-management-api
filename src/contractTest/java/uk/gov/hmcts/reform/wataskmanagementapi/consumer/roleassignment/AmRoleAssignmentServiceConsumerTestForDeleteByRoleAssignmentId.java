@@ -35,7 +35,7 @@ public class AmRoleAssignmentServiceConsumerTestForDeleteByRoleAssignmentId exte
             .statusCode(204);
     }
 
-    @Pact(provider = "am_role_assignment_service_delete_actor", consumer = "wa_task_management_api")
+    @Pact(provider = "am_roleAssignment_deleteAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact executeDeleteActorByIdAndGet204(PactDslWithProvider builder) {
 
         return builder
