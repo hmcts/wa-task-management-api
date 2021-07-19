@@ -12,21 +12,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -36,19 +41,24 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
+//@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-//@PactFolder("pacts")
+
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
-    private CamundaService camundaService;
+    @Mock
+    private TaskManagementService taskManagementService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -64,10 +74,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
-            camundaService,
+        testTarget.setControllers(new TaskSearchController(
+            taskManagementService,
             accessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -80,71 +91,98 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     @State({"appropriate tasks are returned by criteria"})
-    public void getTaskByCriteria() {
-        setInitMockForsearchTask();
+    public void getTasksBySearchCriteria() {
+        setInitMockForSearchTask();
     }
 
-    private void setInitMockForsearchTask() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), anyInt(), anyInt(), any(), any())).thenReturn(createTasks()
+    @State({"appropriate tasks are returned by criteria with no warnings"})
+    public void getTasksBySearchCriteriaWithNoWarnings() {
+        setInitMockForSearchTaskWithNoWarnings();
+    }
+
+    @State({"appropriate tasks are returned by criteria with warnings only"})
+    public void getTasksBySearchCriteriaWithWarningsOnly() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    public Task createTaskWithNoWarnings() {
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            new WarningValues(emptyList())
         );
     }
 
-    public List<Task> createTasks() {
-        var tasks = new ArrayList<Task>();
-        var taskOne =  new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                                              "Jake",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Mark Alistair",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "765324",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
+    public Task createTaskWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
 
-        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
-                                              "Megan",
-                                              "ReviewTheAppeal",
-                                              "unconfigured",
-                                              "SELF",
-                                              "PRIVATE",
-                                              "task name",
-                                              ZonedDateTime.now(),
-                                              ZonedDateTime.now(),
-                                              "Jean Pierre",
-                                              true,
-                                              "Time extension",
-                                              "IA",
-                                              "1",
-                                              "766524",
-                                              "Newcastle",
-                                              "Asylum",
-                                              "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
-                                              "processApplication",
-                                              "Bob Smith",
-                                              true);
+        return new Task(
+            "fda422de-b381-43ff-94ea-eea5790188a3",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            null,
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245308495",
+            "refusalOfHumanRights",
+            "John Doe",
+            true,
+            new WarningValues(warnings));
+    }
 
-        tasks.add(taskOne);
-        tasks.add(taskTwo);
+    private void setInitMockForSearchTask() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
+    }
 
-        return tasks;
+    private void setInitMockForSearchTaskWithWarningsOnly() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(singletonList(createTaskWithWarnings()));
     }
 
 
+    private void setInitMockForSearchTaskWithNoWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(singletonList(createTaskWithNoWarnings()));
+    }
 
 }
 

@@ -9,3 +9,7 @@ spring:
         wa-idam-client-secret: WA_IDAM_CLIENT_SECRET
         s2s-secret-task-management-api: S2S_SECRET_TASK_MANAGEMENT_API
         ld-secret: LAUNCH_DARKLY_SDK_KEY
+        cft-task-POSTGRES-PASS: POSTGRES_PASSWORD
+        cft-task-POSTGRES-USER: POSTGRES_USERNAME
+        wa-system-username: idam.system.username
+        wa-system-password: idam.system.password

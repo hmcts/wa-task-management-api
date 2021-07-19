@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.skyscreamer.jsonassert.JSONAssert;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
@@ -50,13 +52,15 @@ class CamundaQueryBuilderTest {
         assertNull(camundaSearchQuery);
     }
 
-    @Test
-    void createQuery_should_return_null_when_orQueries_is_empty_but_has_order_by() {
+    @SuppressWarnings("JUnit5MalformedParameterized")
+    @ParameterizedTest
+    @EnumSource(names = {"DUE_DATE_CAMEL_CASE", "DUE_DATE_SNAKE_CASE"})
+    void createQuery_should_return_null_when_orQueries_is_empty_but_has_order_by(SortField sortField) {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             emptyList(),
             singletonList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+                new SortingParameter(sortField, SortOrder.DESCENDANT)
             ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -69,7 +73,7 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned"))
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -363,7 +367,7 @@ class CamundaQueryBuilderTest {
                 new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             singletonList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+                new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
 
@@ -412,11 +416,11 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            asList(
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId"))
+            singletonList(
+                new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("aCaseId"))
             ),
             singletonList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+                new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
 
@@ -455,11 +459,11 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            asList(
+            singletonList(
                 new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId"))
             ),
             singletonList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT)
+                new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
 
@@ -507,7 +511,7 @@ class CamundaQueryBuilderTest {
                 new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             singletonList(
-                new SortingParameter(SortField.CASE_CATEGORY, SortOrder.ASCENDANT)
+                new SortingParameter(SortField.CASE_CATEGORY_CAMEL_CASE, SortOrder.ASCENDANT)
             )
         );
 
@@ -540,10 +544,10 @@ class CamundaQueryBuilderTest {
                           + "    ],\n"
                           + "    \"sorting\": [\n"
                           + "      {\n"
-                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortBy\": \"taskVariable\",\n"
                           + "        \"sortOrder\": \"asc\",\n"
                           + "        \"parameters\": {\n"
-                          + "          \"variable\": \"caseCategory\",\n"
+                          + "          \"variable\": \"appealType\",\n"
                           + "          \"type\": \"String\"\n"
                           + "        }\n"
                           + "      }\n"
@@ -565,8 +569,8 @@ class CamundaQueryBuilderTest {
                 new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             asList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT),
-                new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)
+                new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT),
+                new SortingParameter(SortField.CASE_ID_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
 
@@ -603,7 +607,7 @@ class CamundaQueryBuilderTest {
                           + "        \"sortOrder\": \"desc\"\n"
                           + "      },\n"
                           + "      {\n"
-                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortBy\": \"taskVariable\",\n"
                           + "        \"sortOrder\": \"desc\",\n"
                           + "        \"parameters\": {\n"
                           + "          \"variable\": \"caseId\",\n"
@@ -629,8 +633,8 @@ class CamundaQueryBuilderTest {
                 new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             asList(
-                new SortingParameter(SortField.DUE_DATE, SortOrder.DESCENDANT),
-                new SortingParameter(SortField.CASE_ID, SortOrder.DESCENDANT)
+                new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT),
+                new SortingParameter(SortField.CASE_ID_CAMEL_CASE, SortOrder.DESCENDANT)
             )
         );
 
@@ -681,7 +685,7 @@ class CamundaQueryBuilderTest {
                           + "        \"sortOrder\": \"desc\"\n"
                           + "      },\n"
                           + "      {\n"
-                          + "        \"sortBy\": \"processVariable\",\n"
+                          + "        \"sortBy\": \"taskVariable\",\n"
                           + "        \"sortOrder\": \"desc\",\n"
                           + "        \"parameters\": {\n"
                           + "          \"variable\": \"caseId\",\n"

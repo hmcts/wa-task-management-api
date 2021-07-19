@@ -12,21 +12,26 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -35,18 +40,22 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search_completable")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}", port = "${PACT_BROKER_PORT:9292}", consumerVersionSelectors = {
-    @VersionSelector(tag = "master")})
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
-    @Autowired
-    private CamundaService camundaService;
+    @Mock
+    private TaskManagementService taskManagementService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -62,10 +71,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
-            camundaService,
+        testTarget.setControllers(new TaskSearchController(
+            taskManagementService,
             accessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
@@ -77,72 +87,91 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     }
 
-
     @State({"appropriate tasks are returned by search for completable"})
-    public void getTaskByCriteria() {
+    public void getTasksBySearchForCompletableCriteria() {
         setInitMockForSearchByCompletableTask();
+    }
+
+    @State({"appropriate tasks are returned by search for completable with warnings"})
+    public void getTasksBySearchForCompletableCriteriaWithWarnings() {
+        setInitMockForSearchByCompletableTaskWithWarnings();
+    }
+
+    public List<Task> createTasks() {
+        Task task = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            true,
+            new WarningValues(emptyList())
+        );
+
+        return singletonList(task);
+    }
+
+    public List<Task> createTasksWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+        WarningValues warningValues = new WarningValues(warnings);
+        Task taskWithWarnings = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            true,
+            warningValues
+        );
+
+        return singletonList(taskWithWarnings);
     }
 
     private void setInitMockForSearchByCompletableTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(camundaService.searchWithCriteria(
-            any(), any(), any(), any(),any())).thenReturn(createTasks()
-        );
+        when(taskManagementService.searchForCompletableTasks(any(), any()))
+            .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
     }
 
-    public List<Task> createTasks() {
-        var tasks = new ArrayList<Task>();
-        var taskOne =  new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                                "Jake",
-                                "ReviewTheAppeal",
-                                "unconfigured",
-                                "SELF",
-                                "PRIVATE",
-                                "task name",
-                                ZonedDateTime.now(),
-                                ZonedDateTime.now(),
-                                "Mark Alistair",
-                                true,
-                                "Time extension",
-                                "IA",
-                                "1",
-                                "765324",
-                                "Newcastle",
-                                "Asylum",
-                                "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                                "processApplication",
-                                "Bob Smith",
-                                true);
-
-        var taskTwo =  new Task("4d4b6fgh-cc1f-433f-92ac-e456aed4f72a",
-                                "Megan",
-                                "ReviewTheAppeal",
-                                "unconfigured",
-                                "SELF",
-                                "PRIVATE",
-                                "task name",
-                                ZonedDateTime.now(),
-                                ZonedDateTime.now(),
-                                "Jean Pierre",
-                                true,
-                                "Time extension",
-                                "IA",
-                                "1",
-                                "766524",
-                                "Newcastle",
-                                "Asylum",
-                                "4d4b3a4e-c9df-43sf-92ac-e456ee34fe2a",
-                                "processApplication",
-                                "Bob Smith",
-                                true);
-
-        tasks.add(taskOne);
-        tasks.add(taskTwo);
-
-        return tasks;
+    private void setInitMockForSearchByCompletableTaskWithWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchForCompletableTasks(any(), any()))
+            .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
-
 
 
 }

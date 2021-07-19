@@ -12,9 +12,9 @@ plugins {
   id 'checkstyle'
   id 'pmd'
   id 'jacoco'
-  id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+  id 'io.spring.dependency-management' version '1.0.11.RELEASE'
   id 'org.springframework.boot' version '2.3.4.RELEASE'
-  id 'org.owasp.dependencycheck' version '6.0.2'
+  id 'org.owasp.dependencycheck' version '6.1.1'
   id 'com.github.ben-manes.versions' version '0.36.0'
   id 'org.sonarqube' version '3.0'
   id 'info.solidsoft.pitest' version '1.5.2'
@@ -22,6 +22,7 @@ plugins {
   id 'io.freefair.lombok' version '5.3.0'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.1.8'
+  id 'org.flywaydb.flyway' version '6.5.7'
 }
 
 apply plugin: 'net.serenity-bdd.aggregator'
@@ -168,8 +169,8 @@ pitest {
   junit5PluginVersion = '0.12'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
-    'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
-    'uk.gov.hmcts.reform.wataskmanagementapi.Application'
+      'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
+      'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
   threads = 10
   outputFormats = ['XML', 'HTML']
@@ -200,9 +201,9 @@ sonarqube {
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
-                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
-                                 "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
-                                 "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
+      "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
   }
 }
 
@@ -240,6 +241,25 @@ dependencyManagement {
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
     // CVE-2021-22112 - Privilege Escalation
     dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.4.6'
+
+    //CVE-2021-22118
+    dependencySet(group: 'org.springframework', version: '5.2.15.RELEASE') {
+      entry 'spring-aop'
+      entry 'spring-aspects'
+      entry 'spring-beans'
+      entry 'spring-context'
+      entry 'spring-context-support'
+      entry 'spring-core'
+      entry 'spring-expression'
+      entry 'spring-jcl'
+      entry 'spring-jdbc'
+      entry 'spring-orm'
+      entry 'spring-tx'
+      entry 'spring-web'
+      entry 'spring-webmvc'
+    }
+    //CVE-2021-27568
+    dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
   }
 }
 
@@ -250,27 +270,27 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.7.0',
-  junitPlatform   : '1.7.0',
-  reformLogging   : '5.1.5',
-  springBoot      : '2.4.2',
-  springfoxSwagger: '3.0.0',
-  serenity        : '2.2.12',
-  gradlePitest    : '1.5.1',
-  pitest          : '1.5.2',
-  sonarPitest     : '0.5',
-  pactVersion     : '4.1.7',
-  logbook         : '2.6.2'
+    junit           : '5.7.0',
+    junitPlatform   : '1.7.0',
+    reformLogging   : '5.1.5',
+    springBoot      : '2.4.2',
+    springfoxSwagger: '3.0.0',
+    serenity        : '2.2.12',
+    gradlePitest    : '1.5.1',
+    pitest          : '1.5.2',
+    sonarPitest     : '0.5',
+    pactVersion     : '4.1.7',
+    logbook         : '2.6.2'
 ]
 
 ext.libraries = [
-  junit5: [
-    "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
-    "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
-    "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
-    "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
-    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
-  ]
+    junit5: [
+        "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
+        "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
+        "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
+        "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
+        "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+    ]
 ]
 
 dependencies {
@@ -278,8 +298,14 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json', version: versions.springBoot
-  implementation group: 'org.zalando', name:'logbook-spring-boot-starter', version: versions.logbook
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jdbc', version: versions.springBoot
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: versions.springBoot
+
+  implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
+
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client', version: versions.springBoot
+  implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+
   compile group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server', version: versions.springBoot
 
   implementation group: 'io.springfox', name: 'springfox-boot-starter', version: versions.springfoxSwagger
@@ -289,8 +315,13 @@ dependencies {
 
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
-  implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
+  implementation (group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0') {
+    exclude group: 'org.hibernate', module: 'hibernate-core'
+  }
+  implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.27.Final'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
+
+  implementation 'org.zalando:problem-spring-web-starter:0.26.2'
 
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
@@ -308,10 +339,23 @@ dependencies {
 
   compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.12.0'
 
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '6.5.7'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.22'
+  // required to convert postgres to hibernate types
+  implementation group: 'com.vladmihalcea', name: 'hibernate-types-55', version: '2.12.0'
+
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.15.3'
+  testImplementation group: 'com.h2database', name: 'h2', version: '1.4.197'
+
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+  }
+
+  testImplementation (group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.27.2') {
+    exclude group: 'com.github.jknack.handlebars.java'
   }
 
   testCompile group: 'org.pitest', name: 'pitest', version: versions.pitest
@@ -361,7 +405,6 @@ task runAndPublishConsumerPactTests(type: Test) {
   logger.lifecycle("Runs pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
-
 }
 
 runAndPublishConsumerPactTests.finalizedBy pactPublish

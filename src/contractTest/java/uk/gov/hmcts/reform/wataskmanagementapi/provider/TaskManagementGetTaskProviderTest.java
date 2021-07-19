@@ -19,12 +19,18 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -35,10 +41,13 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
 //@PactFolder("pacts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
-    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
-    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskProviderTest {
@@ -47,10 +56,16 @@ public class TaskManagementGetTaskProviderTest {
     private AccessControlService accessControlService;
 
     @Mock
-    private CamundaService camundaService;
+    private TaskManagementService taskManagementService;
+
+    @Autowired
+    private SystemDateProvider systemDateProvider;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Mock
+    private ClientAccessControlService clientAccessControlService;
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -60,22 +75,25 @@ public class TaskManagementGetTaskProviderTest {
         }
     }
 
-
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
-            camundaService,
-            accessControlService
+        testTarget.setControllers(new TaskActionsController(
+            taskManagementService,
+            accessControlService,
+            systemDateProvider,
+            clientAccessControlService
         ));
+
         if (context != null) {
             context.setTarget(testTarget);
         }
 
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+        testTarget.setMessageConverters(
+            (
+                new MappingJackson2HttpMessageConverter(objectMapper)
+            )
+        );
 
     }
 
@@ -84,37 +102,78 @@ public class TaskManagementGetTaskProviderTest {
         setInitMockTask();
     }
 
+    @State({"get a task using taskId with warnings"})
+    public void getTaskByIdWithWarnings() {
+        setInitMockTaskWithWarnings();
+    }
+
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
-        when(camundaService.getTask(any(),any(),any())).thenReturn(createTask());
+        when(taskManagementService.getTask(any(), any())).thenReturn(createTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
-    private Task createTask() {
-        return new Task("4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-                         "Jake",
-                         "ReviewTheAppeal",
-                         "unconfigured",
-                         "SELF",
-                         "PRIVATE",
-                         "task name",
-                          ZonedDateTime.now(),
-                          ZonedDateTime.now(),
-                         "Mark Alistair",
-                         true,
-                         "Time extension",
-                         "IA",
-                         "1",
-                         "765324",
-                         "Newcastle",
-                         "Asylum",
-                         "4d4b3a4e-c91f-433f-92ac-e456ae34f72a",
-                         "processApplication",
-                         "Bob Smith",
-                         true);
+    private void setInitMockTaskWithWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.getTask(any(), any())).thenReturn(createTaskWithWarnings());
     }
 
+    private Task createTask() {
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()));
+    }
 
+    private Task createTaskWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+        WarningValues warningValues = new WarningValues(warnings);
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            warningValues);
+    }
 
 }
 

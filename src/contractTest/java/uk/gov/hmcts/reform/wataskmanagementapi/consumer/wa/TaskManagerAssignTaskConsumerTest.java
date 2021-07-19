@@ -26,6 +26,19 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
     private static final String WA_URL = "/task";
     private static final String WA_ASSIGN_TASK_BY_ID = WA_URL + "/" + TASK_ID + "/" + "assign";
 
+    @Test
+    @PactTestFor(pactMethod = "executeAssignTaskById204")
+    void testAssignTaskByTaskId204Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createAssignTaskRequest())
+            .post(mockServer.getUrl() + WA_ASSIGN_TASK_BY_ID)
+            .then()
+            .statusCode(204);
+    }
+
     @Pact(provider = "wa_task_management_api_assign_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeAssignTaskById204(PactDslWithProvider builder) {
 
@@ -34,7 +47,7 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
             .uponReceiving("taskId to assign a task")
             .path(WA_ASSIGN_TASK_BY_ID)
             .method(HttpMethod.POST.toString())
-            .body("", String.valueOf(ContentType.JSON))
+            .body(createAssignTaskRequest(), String.valueOf(ContentType.JSON))
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .willRespondWith()
@@ -42,16 +55,10 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
             .toPact();
     }
 
-    @Test
-    @PactTestFor(pactMethod = "executeAssignTaskById204")
-    void testAssignTaskByTaskId204Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body("")
-            .post(mockServer.getUrl() + WA_ASSIGN_TASK_BY_ID)
-            .then()
-            .statusCode(204);
+    private String createAssignTaskRequest() {
+        String request = "{\n"
+                         + "  \"user_id\":\"fda422de-b381-43ff-94ea-eea5790188a3\"\n"
+                         + "}";
+        return request;
     }
 }

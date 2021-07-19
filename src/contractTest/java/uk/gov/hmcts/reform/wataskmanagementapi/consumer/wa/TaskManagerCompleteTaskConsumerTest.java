@@ -26,6 +26,31 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
     private static final String WA_URL = "/task";
     private static final String WA_COMPLETE_TASK_BY_ID = WA_URL + "/" + TASK_ID + "/" + "complete";
 
+    @Test
+    @PactTestFor(pactMethod = "executeCompleteTaskById204")
+    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
+            .then()
+            .statusCode(204);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeCompleteTaskById204WithAssignAndComplete")
+    void testClaimTaskByTaskId204WithAssignAndCompleteTest(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createCompleteTaskRequest())
+            .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
+            .then()
+            .statusCode(204);
+    }
+
     @Pact(provider = "wa_task_management_api_complete_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeCompleteTaskById204(PactDslWithProvider builder) {
 
@@ -42,16 +67,32 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
             .toPact();
     }
 
-    @Test
-    @PactTestFor(pactMethod = "executeCompleteTaskById204")
-    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body("")
-            .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
-            .then()
-            .statusCode(204);
+    @Pact(
+        provider = "wa_task_management_api_complete_task_by_id_with_assign_and_complete",
+        consumer = "wa_task_management_api"
+    )
+    public RequestResponsePact executeCompleteTaskById204WithAssignAndComplete(PactDslWithProvider builder) {
+
+
+        return builder
+            .given("complete a task using taskId and assign and complete completion options")
+            .uponReceiving("taskId to complete a task")
+            .path(WA_COMPLETE_TASK_BY_ID)
+            .method(HttpMethod.POST.toString())
+            .body(createCompleteTaskRequest(), String.valueOf(ContentType.JSON))
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.NO_CONTENT.value())
+            .toPact();
+    }
+
+    private String createCompleteTaskRequest() {
+        String request = "{\n"
+                         + "  \"completion_options\": {\n"
+                         + "    \"assign_and_complete\": true\n"
+                         + "  }\n"
+                         + "}";
+        return request;
     }
 }

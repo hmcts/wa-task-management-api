@@ -24,13 +24,36 @@ import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-@PactTestFor(providerName = "am_role_assignment_service_create", port = "8991")
+@PactTestFor(providerName = "am_roleAssignment_createAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends SpringBootContractBaseTest {
 
     private static final String RAS_CREATE_ROLE_ASSIGNMENT_URL = "/am/role-assignments";
 
-    @Pact(provider = "am_role_assignment_service_create", consumer = "wa_task_management_api")
+    @Test
+    @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201")
+    void createRoleAssignmentOneRoleAndGet201Test(MockServer mockServer)
+        throws JSONException {
+        String actualResponseBody =
+            SerenityRest
+                .given()
+                .headers(getHttpHeaders())
+                .contentType(ContentType.JSON)
+                .body(createRoleAssignmentRequest())
+                .post(mockServer.getUrl() + RAS_CREATE_ROLE_ASSIGNMENT_URL)
+                .then()
+                .extract().asString();
+
+        JSONObject response = new JSONObject(actualResponseBody);
+        Assertions.assertThat(response).isNotNull();
+        JSONObject roleRequest = response.getJSONObject("roleAssignmentResponse").getJSONObject("roleRequest");
+        assertThat(roleRequest.get("status"), equalTo("APPROVED"));
+        assertThat(roleRequest.get("requestType"), equalTo("CREATE"));
+        assertThat(roleRequest.get("replaceExisting"), equalTo(true));
+
+    }
+
+    @Pact(provider = "am_roleAssignment_createAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
 
         return builder
@@ -45,7 +68,6 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
             .body(createRoleAssignmentResponse())
             .toPact();
     }
-
 
     private String createRoleAssignmentRequest() {
         String request = "";
@@ -76,22 +98,29 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
         return request;
     }
 
-
     private DslPart createRoleAssignmentResponse() {
         return newJsonBody(o -> o
             .object("roleAssignmentResponse", ob -> ob
                 .object("roleRequest", roleRequest -> roleRequest
                     .stringType("id", "14a21569-eb80-4681-b62c-6ae2ed069e1f")
-                    .stringValue("authenticatedUserId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e2f")
-                    .stringType("correlationId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e3f")
-                    .stringValue("assignerId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e4f")
+                    .stringValue(
+                        "authenticatedUserId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e2f"
+                    )
+                    .stringType(
+                        "correlationId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e3f"
+                    )
+                    .stringValue(
+                        "assignerId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e4f"
+                    )
                     .stringValue("requestType", "CREATE")
                     .stringValue("process", "staff-organisational-role-mapping")
-                    .stringValue("reference",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e5f")
+                    .stringValue(
+                        "reference",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e5f"
+                    )
                     .booleanValue("replaceExisting", true)
                     .stringValue("status", "APPROVED")
                     .stringType("log", "Request has been approved")
@@ -99,50 +128,33 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                 .minArrayLike("requestedRoles", 1, 1, requestedRoles -> requestedRoles
                     .stringType("id", "14a21569-eb80-4681-b62c-6ae2ed069e6f")
                     .stringValue("actorIdType", "IDAM")
-                    .stringValue("actorId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e5f")
+                    .stringValue(
+                        "actorId",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e5f"
+                    )
                     .stringValue("roleType", "ORGANISATION")
                     .stringValue("roleName", "tribunal-caseworker")
                     .stringValue("classification", "PUBLIC")
                     .stringValue("grantType", "STANDARD")
                     .stringValue("roleCategory", "LEGAL_OPERATIONS")
                     .stringValue("process", "staff-organisational-role-mapping")
-                    .stringValue("reference",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e5f")
+                    .stringValue(
+                        "reference",
+                        "14a21569-eb80-4681-b62c-6ae2ed069e5f"
+                    )
                     .stringValue("status", "LIVE")
-                    .stringType("log",
+                    .stringType(
+                        "log",
                         "Create requested with replace: true\n"
                         + "Create approved : staff_organisational_role_mapping_service_create\n"
-                        + "Approved : validate_role_assignment_against_patterns")
+                        + "Approved : validate_role_assignment_against_patterns"
+                    )
                     .object("attributes", attribute -> attribute
                         .stringType("jurisdiction", "IA")
                         .stringType("primaryLocation", "765324")
                     )
                 )
             )).build();
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201")
-    void createRoleAssignmentOneRoleAndGet201Test(MockServer mockServer)
-        throws JSONException {
-        String actualResponseBody =
-            SerenityRest
-                .given()
-                .headers(getHttpHeaders())
-                .contentType(ContentType.JSON)
-                .body(createRoleAssignmentRequest())
-                .post(mockServer.getUrl() + RAS_CREATE_ROLE_ASSIGNMENT_URL)
-                .then()
-                .extract().asString();
-
-        JSONObject response = new JSONObject(actualResponseBody);
-        Assertions.assertThat(response).isNotNull();
-        JSONObject roleRequest = response.getJSONObject("roleAssignmentResponse").getJSONObject("roleRequest");
-        assertThat(roleRequest.get("status"), equalTo("APPROVED"));
-        assertThat(roleRequest.get("requestType"), equalTo("CREATE"));
-        assertThat(roleRequest.get("replaceExisting"), equalTo(true));
-
     }
 
     private Map<String, String> getRoleAssignmentResponseHeaders() {

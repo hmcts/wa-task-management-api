@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.io.IOException;
@@ -89,30 +90,13 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId) {
-
-        Map<String, CamundaValue<?>> processVariables = createDefaultTaskVariables(caseId);
-
-        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
-            CREATE_TASK_MESSAGE.toString(),
-            processVariables
-        );
-
-        Response result = camundaApiActions.post(
-            "message",
-            request,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        return this;
-    }
-
-    public GivensBuilder iCreateATaskWithCaseIdForSCSS(String caseId) {
-
-        Map<String, CamundaValue<?>> processVariables = createTaskVariablesForSCSS(caseId);
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings) {
+        Map<String, CamundaValue<?>> processVariables;
+        if (warnings) {
+            processVariables = createDefaultTaskVariablesWithWarnings(caseId);
+        } else {
+            processVariables = createDefaultTaskVariables(caseId);
+        }
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -222,12 +206,45 @@ public class GivensBuilder {
             .withProcessVariable("taskType", "reviewTheAppeal")
             .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+            //for testing-purposes
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
+            .withProcessVariable("warningList", (new WarningValues()).toString())
+            .build();
+
+        return processVariables.getProcessVariablesMap();
+    }
+
+    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(String caseId) {
+        String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("caseId", caseId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("region", "1")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("group", "TCW")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", "reviewTheAppeal")
+            .withProcessVariable("taskType", "reviewTheAppeal")
+            .withProcessVariable("taskCategory", "Case Progression")
+            .withProcessVariable("taskState", "unconfigured")
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
+            .withProcessVariableBoolean("hasWarnings", true)
+            .withProcessVariable("warningList", values)
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -250,6 +267,7 @@ public class GivensBuilder {
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariableBoolean("hasWarnings", false)
+            .withProcessVariable("warningList", (new WarningValues()).toString())
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -275,7 +293,7 @@ public class GivensBuilder {
         Map data = null;
         try {
             String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename));
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
             caseDataString = caseDataString.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
@@ -286,10 +304,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -319,10 +337,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -348,7 +366,7 @@ public class GivensBuilder {
         Map<String, String> attributes = Map.of(
             "caseId", caseId
         );
-        Assignment assignment = new Assignment(
+        RoleAssignment roleAssignment = new RoleAssignment(
             ActorIdType.IDAM,
             userId,
             RoleType.CASE,
@@ -362,7 +380,7 @@ public class GivensBuilder {
 
         return new RoleAssignmentRequest(
             roleRequest,
-            singletonList(assignment)
+            singletonList(roleAssignment)
         );
     }
 

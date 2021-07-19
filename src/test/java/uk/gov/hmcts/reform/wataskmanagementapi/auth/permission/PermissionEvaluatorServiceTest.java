@@ -8,7 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -74,8 +74,8 @@ class PermissionEvaluatorServiceTest {
         );
     }
 
-    private static Assignment buildRoleAssignmentGivenEndTime(LocalDateTime endTime) {
-        return Assignment.builder()
+    private static RoleAssignment buildRoleAssignmentGivenEndTime(LocalDateTime endTime) {
+        return RoleAssignment.builder()
             .actorIdType(ActorIdType.IDAM)
             .actorId("some actor id")
             .roleType(RoleType.ORGANISATION)
@@ -111,8 +111,8 @@ class PermissionEvaluatorServiceTest {
         );
     }
 
-    private static Assignment buildRoleAssignmentGivenBeginTime(LocalDateTime beginTime) {
-        return Assignment.builder()
+    private static RoleAssignment buildRoleAssignmentGivenBeginTime(LocalDateTime beginTime) {
+        return RoleAssignment.builder()
             .actorIdType(ActorIdType.IDAM)
             .actorId("some actor id")
             .roleType(RoleType.ORGANISATION)
@@ -139,14 +139,14 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             singletonList("senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 null,
                 "someUserId",
                 defaultVariables,
@@ -162,14 +162,14 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             singletonList("senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 "anotherUserId",
                 "someUserId",
                 defaultVariables,
@@ -185,14 +185,14 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             singletonList("tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 "someUserId",
                 "someUserId",
                 defaultVariables,
@@ -209,14 +209,14 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             singletonList("tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
         );
 
         testCases.forEach(roleAssignment -> {
-            boolean result = permissionEvaluatorService.hasAccessWithUserIdAssigneeCheck(
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
                 "anotherUserId",
                 "someUserId",
                 defaultVariables,
@@ -232,7 +232,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -253,7 +253,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -272,7 +272,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = asList(PermissionTypes.READ, PermissionTypes.CANCEL);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -301,7 +301,7 @@ class PermissionEvaluatorServiceTest {
             "senior-tribunal-caseworker",
             new CamundaVariable("Refer,Own,Manage,Cancel", "String")
         );
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -323,7 +323,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PUBLIC", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -345,7 +345,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PRIVATE", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -367,7 +367,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("RESTRICTED", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             emptyMap()
@@ -389,7 +389,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PUBLIC", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PRIVATE,
             emptyMap()
@@ -411,7 +411,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PRIVATE", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PRIVATE,
             emptyMap()
@@ -433,7 +433,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PUBLIC", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.RESTRICTED,
             emptyMap()
@@ -455,7 +455,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("PRIVATE", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.RESTRICTED,
             emptyMap()
@@ -477,7 +477,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("RESTRICTED", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.RESTRICTED,
             emptyMap()
@@ -499,7 +499,7 @@ class PermissionEvaluatorServiceTest {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
         defaultVariables.put(SECURITY_CLASSIFICATION.value(), new CamundaVariable("RESTRICTED", "String"));
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.UNKNOWN,
             emptyMap()
@@ -549,7 +549,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA")
@@ -570,7 +570,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.JURISDICTION.value(), "AnotherJurisdiction")
@@ -591,7 +591,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.CASE_ID.value(), "123456789")
@@ -612,7 +612,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.CASE_ID.value(), "AnotherCaseId")
@@ -633,7 +633,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.REGION.value(), "1")
@@ -654,7 +654,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.REGION.value(), "anotherRegion")
@@ -675,7 +675,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.PRIMARY_LOCATION.value(), "012345")
@@ -696,7 +696,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "anotherLocationId")
@@ -717,7 +717,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum")
@@ -738,7 +738,7 @@ class PermissionEvaluatorServiceTest {
 
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.READ);
 
-        List<Assignment> testCases = createTestAssignments(
+        List<RoleAssignment> testCases = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
             Classification.PUBLIC,
             Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "invalidAsylum")
@@ -754,14 +754,14 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
-    private List<Assignment> createTestAssignments(List<String> roleNames,
-                                                   Classification roleClassification,
-                                                   Map<String, String> roleAttributes) {
+    private List<RoleAssignment> createTestAssignments(List<String> roleNames,
+                                                       Classification roleClassification,
+                                                       Map<String, String> roleAttributes) {
 
-        List<Assignment> allTestRoles = new ArrayList<>();
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                    Assignment roleAssignment = createBaseAssignment(
+                    RoleAssignment roleAssignment = createBaseAssignment(
                         UUID.randomUUID().toString(),
                         roleName,
                         roleType,
@@ -774,12 +774,12 @@ class PermissionEvaluatorServiceTest {
         return allTestRoles;
     }
 
-    private Assignment createBaseAssignment(String actorId,
-                                            String roleName,
-                                            RoleType roleType,
-                                            Classification classification,
-                                            Map<String, String> attributes) {
-        return new Assignment(
+    private RoleAssignment createBaseAssignment(String actorId,
+                                                String roleName,
+                                                RoleType roleType,
+                                                Classification classification,
+                                                Map<String, String> attributes) {
+        return new RoleAssignment(
             ActorIdType.IDAM,
             actorId,
             roleType,
@@ -818,13 +818,13 @@ class PermissionEvaluatorServiceTest {
 
     @Builder
     private static class EndTimeScenario {
-        Assignment roleAssignment;
+        RoleAssignment roleAssignment;
         boolean expectedHasAccess;
     }
 
     @Builder
     private static class BeginTimeScenario {
-        Assignment roleAssignment;
+        RoleAssignment roleAssignment;
         boolean expectedHasAccess;
     }
 

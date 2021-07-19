@@ -6,15 +6,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
@@ -42,7 +43,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -50,7 +51,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
@@ -58,10 +59,6 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
                 LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
                 nonExistentTaskId
             )));
-    }
-
-    private String getAssigneeId(Headers headers) {
-        return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
     @Test
@@ -73,7 +70,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -95,7 +92,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -115,14 +112,14 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
                 .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
@@ -142,19 +139,19 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message",
-                equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -172,21 +169,26 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
-            .body("message",
-                equalTo("User did not have sufficient permissions to assign task with id: " + taskId));
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    private String getAssigneeId(Headers headers) {
+        return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
 }

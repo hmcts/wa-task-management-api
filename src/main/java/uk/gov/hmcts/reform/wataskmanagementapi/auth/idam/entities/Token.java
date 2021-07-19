@@ -3,11 +3,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
+@EqualsAndHashCode
+@ToString
 public class Token {
 
     private String accessToken;
@@ -30,29 +32,4 @@ public class Token {
         return scope;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        Token token = (Token) object;
-        return Objects.equals(accessToken, token.accessToken)
-               && Objects.equals(scope, token.scope);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(accessToken, scope);
-    }
-
-    @Override
-    public String toString() {
-        return "Token{"
-               + "accessToken='" + accessToken + '\''
-               + ", scope='" + scope + '\''
-               + '}';
-    }
 }

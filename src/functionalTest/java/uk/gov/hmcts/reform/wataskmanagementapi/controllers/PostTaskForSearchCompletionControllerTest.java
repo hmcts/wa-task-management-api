@@ -4,20 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -29,12 +29,11 @@ import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 @Slf4j
@@ -55,7 +54,39 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     @Test
-    public void should_return_a_401_when_the_user_is_unauthorised() {
+    public void given_processApplication_task_when_decideAnApplication_event_then_return_processApplication_tasks() {
+        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+            Map.of(
+                CamundaVariableDefinition.TASK_TYPE, "processApplication",
+                CamundaVariableDefinition.TASK_ID, "processApplication"
+            ));
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            processApplicationTaskVariables.getCaseId(),
+            "decideAnApplication",
+            "IA",
+            "Asylum"
+        );
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].type", equalTo("processApplication"));
+
+        common.cleanUpTask(processApplicationTaskVariables.getTaskId(), REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_empty_list_when_the_user_is_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -69,13 +100,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value())
+            .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(LocalDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
-            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+            .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -110,6 +137,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -150,6 +178,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].id", equalTo(taskId2));
 
@@ -184,6 +213,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].task_state", equalTo("unassigned"))
             .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
@@ -218,7 +248,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -235,13 +265,83 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].task_state", equalTo("assigned"))
             .body("tasks[0].case_id", equalTo(caseId))
             .body("tasks[0].id", equalTo(taskId2))
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
-            .body("tasks[0].case_type_id", equalTo("Asylum"));
+            .body("tasks[0].case_type_id", equalTo("Asylum"))
+            .body("tasks[0].warnings", is(false));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "tasks[0].warning_list.values");
+
+        assertTrue(actualWarnings.isEmpty());
+
+        common.cleanUpTask(taskId1, REASON_COMPLETED);
+        common.cleanUpTask(taskId2, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_200_and_retrieve_single_task_by_event_and_case_match_and_assignee_with_warnings() {
+        final String assigneeId = getAssigneeId(authenticationHeaders);
+
+        // create a caseId
+        final String caseId = given.iCreateACcdCase();
+
+        // create a 2 tasks for caseId
+        sendMessageWithWarnings(caseId);
+        sendMessageWithWarnings(caseId);
+
+        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
+
+        // No user assigned to this task
+        final String taskId1 = tasksList.get(0).getId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        // assign user to taskId2
+        final String taskId2 = tasksList.get(1).getId();
+        // assign user to taskId2
+        restApiActions.post(
+            "task/{task-id}/assign",
+            taskId2,
+            new AssignTaskRequest(assigneeId),
+            authenticationHeaders
+        );
+
+        // search for completable
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            caseId, "requestRespondentEvidence", "IA", "Asylum");
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchEventAndCase,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].task_state", equalTo("assigned"))
+            .body("tasks[0].case_id", equalTo(caseId))
+            .body("tasks[0].id", equalTo(taskId2))
+            .body("tasks[0].type", equalTo("reviewTheAppeal"))
+            .body("tasks[0].jurisdiction", equalTo("IA"))
+            .body("tasks[0].case_type_id", equalTo("Asylum"))
+            .body("tasks[0].warnings", is(true));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "tasks[0].warning_list.values");
+
+        List<Map<String, String>> expectedWarnings = Lists.list(
+            Map.of("warningCode", "Code1", "warningText", "Text1"),
+            Map.of("warningCode", "Code2", "warningText", "Text2")
+        );
+        Assertions.assertEquals(expectedWarnings, actualWarnings);
 
         common.cleanUpTask(taskId1, REASON_COMPLETED);
         common.cleanUpTask(taskId2, REASON_COMPLETED);
@@ -270,7 +370,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -279,7 +379,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         restApiActions.post(
             "task/{task-id}/assign",
             taskId3,
-            new AssigneeRequest(assigneeId),
+            new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
 
@@ -296,6 +396,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(2))
             .body("tasks.id", hasItems(taskId2, taskId3))
             .body("tasks.case_id", everyItem(is(caseId)))
@@ -327,13 +428,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
-    public void should_return_a_400_and_when_event_id_does_not_match_not_ia() {
+    public void should_return_a_200_and_when_event_id_does_not_match_not_ia() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -349,12 +451,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("message", equalTo("Please check your request. "
-                                     + "This endpoint currently only supports "
-                                     + "the Immigration & Asylum service"));
-
+            .body("tasks.size()", equalTo(0));
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
@@ -377,6 +476,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -401,6 +501,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
@@ -432,13 +533,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
+            .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
-    public void should_return_a_400_and_when_performing_search_when_jurisdiction_is_incorrect() {
+    public void should_return_a_200_and_when_performing_search_when_jurisdiction_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(JURISDICTION, "SSCS");
         String taskId = taskVariables.getTaskId();
 
@@ -454,13 +556,16 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value());
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
-    public void should_return_a_400_and_when_performing_search_when_caseType_is_incorrect() {
+    public void should_return_a_200_and_when_performing_search_when_caseType_is_incorrect() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -476,7 +581,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value());
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
@@ -496,6 +603,25 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
 
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+
+        variablesOverride.keySet()
+            .forEach(key -> processVariables
+                .put(key.value(), new CamundaValue<>(variablesOverride.get(key), "String")));
+
+        given.iCreateATaskWithCustomVariables(processVariables);
+    }
+
+    private void sendMessageWithWarnings(String caseId) {
+        Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
+            CamundaVariableDefinition.JURISDICTION, "IA",
+            CamundaVariableDefinition.LOCATION, "765324",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_TYPE, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_STATE, "unassigned",
+            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
+        );
+
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariablesWithWarnings(caseId);
 
         variablesOverride.keySet()
             .forEach(key -> processVariables

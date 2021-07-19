@@ -16,7 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 
 import java.util.List;
@@ -28,7 +28,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
-@PactTestFor(providerName = "am_role_assignment_service_get_actor_by_id", port = "8991")
+@PactTestFor(providerName = "am_roleAssignment_getAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBootContractBaseTest {
 
@@ -49,13 +49,20 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
         roleAssignmentService = new RoleAssignmentService(roleAssignmentApi, authTokenGenerator);
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
+    void verifyGetActorById() {
+        List<RoleAssignment> roleAssignmentsResponse =
+            roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
 
-    @Pact(provider = "am_role_assignment_service_get_actor_by_id", consumer = "wa_task_management_api")
+        assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
+    }
+
+    @Pact(provider = "am_roleAssignment_getAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetActorByIdOrgRoleAssignmentAndGet200(PactDslWithProvider builder) {
 
         return builder
-            .given("An actor with provided id and organisational role assignment "
-                   + "is available in role assignment service for a WA API")
+            .given("An actor with provided id is available in role assignment service")
             .uponReceiving(
                 "Provider receives a GET /am/role-assignments/actors/{user-id} request from a WA API")
             .path(RAS_GET_ACTOR_BY_ID_URL + ORG_ROLE_ACTOR_ID)
@@ -69,17 +76,10 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
             .toPact();
     }
 
-    @Test
-    @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
-    void verifyGetActorById() {
-        List<Assignment> roleAssignmentsResponse = roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);
-
-        assertThat(roleAssignmentsResponse.get(0).getActorId(), is(ORG_ROLE_ACTOR_ID));
-    }
-
     private DslPart createResponseForOrgRoleAssignment() {
         return newJsonBody(o -> o
-            .minArrayLike("roleAssignmentResponse", 1, 1,
+            .minArrayLike(
+                "roleAssignmentResponse", 1, 1,
                 roleAssignmentResponse -> roleAssignmentResponse
                     .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
                     .stringValue("actorIdType", "IDAM")
@@ -99,8 +99,10 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
 
     private Map<String, String> getResponseHeaders() {
         Map<String, String> responseHeaders = Maps.newHashMap();
-        responseHeaders.put("Content-Type",
-            "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0");
+        responseHeaders.put(
+            "Content-Type",
+            "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0"
+        );
         return responseHeaders;
     }
 

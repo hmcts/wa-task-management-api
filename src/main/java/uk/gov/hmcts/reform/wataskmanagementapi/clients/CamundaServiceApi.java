@@ -46,8 +46,9 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    List<CamundaTask> searchWithCriteria(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                         @RequestBody Map<String, Object> body);
+    List<CamundaTask> searchWithCriteriaAndNoPagination(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @RequestBody Map<String, Object> body);
 
     @PostMapping(value = "/task",
         consumes = APPLICATION_JSON_VALUE,
@@ -115,7 +116,6 @@ public interface CamundaServiceApi {
     void assignTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                     @PathVariable("task-id") String id,
                     @RequestBody Map<String, String> body);
-
 
     @PostMapping(
         value = "/decision-definition/key/{key}/tenant-id/ia/evaluate",
