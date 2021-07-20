@@ -68,7 +68,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
     }
 
     @Pact(
-        provider = "wa_task_management_api_complete_task_by_id_with_assign_and_complete",
+        provider = "wa_task_management_api_complete_task_by_id",
         consumer = "wa_task_management_api"
     )
     public RequestResponsePact executeCompleteTaskById204WithAssignAndComplete(PactDslWithProvider builder) {
