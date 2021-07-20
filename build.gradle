@@ -243,7 +243,7 @@ dependencyManagement {
     dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.4.6'
 
     //CVE-2021-22118
-    dependencySet(group: 'org.springframework', version: '5.2.15.RELEASE') {
+    dependencySet(group: 'org.springframework', version: '5.3.9') {
       entry 'spring-aop'
       entry 'spring-aspects'
       entry 'spring-beans'
