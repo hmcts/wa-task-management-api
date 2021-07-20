@@ -9,7 +9,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class Assertions {
 
@@ -39,6 +40,8 @@ public class Assertions {
             .collect(Collectors.toList());
 
         //Entire history of the variable including multiple scopes we assert that it contains the expected entry
-        assertTrue(taskStateHistory.contains(new HistoryVariableInstance(variable, value)));
+        assertNotNull(taskStateHistory.get(0).getId());
+        assertEquals(taskStateHistory.get(0).getName(), variable);
+        assertEquals(taskStateHistory.get(0).getValue(), value);
     }
 }
