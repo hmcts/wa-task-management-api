@@ -5,6 +5,7 @@ import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
+@IgnoreNoPactsToVerify
 @PactTestFor(providerName = "ccdDataStoreAPI_Cases", port = "8891")
 @ContextConfiguration(classes = {CcdConsumerApplication.class})
 public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {

@@ -4,6 +4,7 @@ import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
+import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -21,6 +22,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd.util.PactDslBuilderForCaseDetailsList.buildStartEventForCaseWorkerPactDsl;
 
+@IgnoreNoPactsToVerify
 public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
 
     public Map<String, Object> setUpStateMapForProviderWithCaseData(CaseDataContent caseDataContent)
