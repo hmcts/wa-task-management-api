@@ -3,14 +3,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.utils;
 import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.is;
 
 public class Assertions {
 
@@ -24,24 +23,23 @@ public class Assertions {
 
     public void taskVariableWasUpdated(String processInstanceId, String variable, String value) {
 
-        Response result = camundaApiActions.get(
-            "/history/variable-instance?processInstanceId=" + processInstanceId,
+        Map<String, Object> request = Map.of(
+            "variableName", variable,
+            "processInstanceId", processInstanceId
+        );
+
+        Response result = camundaApiActions.post(
+            "/history/variable-instance",
+            request,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
-        List<HistoryVariableInstance> historyVariableInstances = result.then().assertThat()
+        result.prettyPrint();
+
+        result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and()
-            .extract()
-            .jsonPath().getList("", HistoryVariableInstance.class);
-
-        List<HistoryVariableInstance> taskStateHistory = historyVariableInstances.stream()
-            .filter(historyVariableInstance -> historyVariableInstance.getName().equals(variable))
-            .collect(Collectors.toList());
-
-        //Entire history of the variable including multiple scopes we assert that it contains the expected entry
-        assertNotNull(taskStateHistory.get(0).getId());
-        assertEquals(taskStateHistory.get(0).getName(), variable);
-        assertEquals(taskStateHistory.get(0).getValue(), value);
+            .body("name", everyItem(is(variable)))
+            .body("value", hasItem(value));
     }
 }

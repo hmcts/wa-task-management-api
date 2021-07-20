@@ -353,7 +353,6 @@ public class CamundaService {
      * @param taskId the task id
      */
     public void deleteCftTaskState(String taskId) {
-        //Search for the taskId
 
         Map<String, Object> body = Map.of(
             "variableName", CFT_TASK_STATE.value(),
