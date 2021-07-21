@@ -103,7 +103,7 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 

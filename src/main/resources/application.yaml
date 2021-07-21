@@ -74,7 +74,6 @@ spring:
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
   jpa:
-    show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       naming:
