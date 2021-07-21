@@ -9,6 +9,7 @@ import javax.persistence.LockModeType;
 
 public interface TaskResourceRepository extends CrudRepository<TaskResource, String> {
 
+    @Override
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TaskResource> findById(String id);
 
