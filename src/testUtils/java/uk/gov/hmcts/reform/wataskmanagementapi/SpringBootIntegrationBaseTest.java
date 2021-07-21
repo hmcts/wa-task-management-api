@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TransactionHelper;
 
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"integration"})
@@ -23,6 +24,8 @@ public abstract class SpringBootIntegrationBaseTest {
 
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
+    @Autowired
+    protected TransactionHelper transactionHelper;
     @Autowired
     protected MockMvc mockMvc;
     @Autowired

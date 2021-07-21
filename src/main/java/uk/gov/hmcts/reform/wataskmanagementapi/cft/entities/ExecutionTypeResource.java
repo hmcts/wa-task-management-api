@@ -33,7 +33,7 @@ public class ExecutionTypeResource implements Serializable {
     @Type(type = "pgsql_enum")
     private ExecutionType executionCode;
 
-    @Column
+    @Column(name = "execution_name")
     private String executionName;
 
     private String description;

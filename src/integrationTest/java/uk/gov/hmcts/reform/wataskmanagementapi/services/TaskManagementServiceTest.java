@@ -49,6 +49,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
@@ -81,7 +82,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     private ServiceMocks mockServices;
 
-
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
@@ -100,6 +100,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             cftTaskMapper
         );
         mockServices.mockServiceAPIs();
+
     }
 
     protected Map<String, CamundaVariable> createMockCamundaVariables() {
@@ -137,25 +138,32 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    private void verifyTransactionWasRolledBack(String taskId) {
+    void verifyTransactionWasRolledBack(String taskId) {
+        transactionHelper.doInNewTransaction(() -> {
+            //Find the task
+            Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
 
-        //Find the task
-        Optional<TaskResource> savedTaskResource = taskResourceRepository.findById(taskId);
+            assertNotNull(savedTaskResource);
+            assertTrue(savedTaskResource.isPresent());
+            assertEquals(taskId, savedTaskResource.get().getTaskId());
+            assertEquals("taskName", savedTaskResource.get().getTaskName());
+            assertEquals("taskType", savedTaskResource.get().getTaskType());
 
-        assertNotNull(savedTaskResource);
-        assertTrue(savedTaskResource.isPresent());
-        assertEquals(taskId, savedTaskResource.get().getTaskId());
-        assertEquals("taskName", savedTaskResource.get().getTaskName());
-        assertEquals("taskType", savedTaskResource.get().getTaskType());
-
-        //Because transaction was rolled back we should have no state
-        assertEquals(null, savedTaskResource.get().getState());
-
+            //Because transaction was rolled back we should have a state of unconfigured
+            assertEquals(UNCONFIGURED, savedTaskResource.get().getState());
+        });
     }
 
     private void createAndSaveTestTask(String taskId) {
-        TaskResource taskResource = new TaskResource(taskId, "taskName", "taskType");
-        taskResourceRepository.save(taskResource);
+        transactionHelper.doInNewTransaction(() -> {
+            TaskResource taskResource = new TaskResource(
+                taskId,
+                "taskName",
+                "taskType",
+                UNCONFIGURED
+            );
+            taskResourceRepository.save(taskResource);
+        });
     }
 
     @Nested
@@ -176,13 +184,13 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 singletonList(CANCEL)
             )).thenReturn(true);
 
-            doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).bpmnEscalation(any(),
-                                                                                                      any(), any()
-            );
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
             createAndSaveTestTask(taskId);
 
-            assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                () -> taskManagementService.cancelTask(taskId, accessControlResponse)))
                 .isInstanceOf(TaskCancelException.class)
                 .hasNoCause()
                 .hasMessage("Task Cancel Error: Unable to cancel the task.");
@@ -219,7 +227,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
             createAndSaveTestTask(taskId);
 
-            assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
+            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
@@ -259,11 +268,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 createAndSaveTestTask(taskId);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(true)
-                ))
+                assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                    () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(true)
+                    )))
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
                     .hasMessage(
@@ -305,11 +315,12 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 createAndSaveTestTask(taskId);
 
-                assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
-                    taskId,
-                    accessControlResponse,
-                    new CompletionOptions(false)
-                ))
+                assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                    () -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                        taskId,
+                        accessControlResponse,
+                        new CompletionOptions(false)
+                    )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage("Task Complete Error: Task complete partially succeeded. "
@@ -339,10 +350,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 createAndSaveTestTask(taskId);
 
-                assertThatThrownBy(() -> taskManagementService.terminateTask(
-                    taskId,
-                    new TerminateInfo(TerminateReason.COMPLETED)
-                ))
+                assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                    () -> taskManagementService.terminateTask(
+                        taskId,
+                        new TerminateInfo(TerminateReason.COMPLETED)
+                    )))
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage(
@@ -362,16 +374,18 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             @Test
             void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
 
-
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
                 createAndSaveTestTask(taskId);
 
-                assertThatThrownBy(() -> taskManagementService.terminateTask(
-                    taskId,
-                    new TerminateInfo(TerminateReason.CANCELLED)
-                ))
+                assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                    () ->
+                        taskManagementService.terminateTask(
+                            taskId,
+                            new TerminateInfo(TerminateReason.CANCELLED)
+                        ))
+                )
                     .isInstanceOf(TaskCancelException.class)
                     .hasNoCause()
                     .hasMessage("Task Cancel Error: Unable to cancel the task.");
