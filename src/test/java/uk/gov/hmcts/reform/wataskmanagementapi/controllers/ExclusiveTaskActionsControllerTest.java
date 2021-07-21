@@ -24,6 +24,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
@@ -78,6 +79,7 @@ class ExclusiveTaskActionsControllerTest {
         assertEquals(taskId, response.getBody().getTaskId());
         assertEquals("aTaskName", response.getBody().getTaskName());
         assertEquals("aTaskType", response.getBody().getTaskType());
+        assertEquals(UNCONFIGURED, response.getBody().getState());
     }
 
     @Test
@@ -151,7 +153,8 @@ class ExclusiveTaskActionsControllerTest {
         return new TaskResource(
             taskId,
             "aTaskName",
-            "aTaskType"
+            "aTaskType",
+            UNCONFIGURED
         );
     }
 }

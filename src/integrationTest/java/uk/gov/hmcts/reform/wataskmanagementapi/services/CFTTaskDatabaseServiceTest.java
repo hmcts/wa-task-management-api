@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -14,6 +13,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 
 class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
 
@@ -25,7 +25,6 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
     @BeforeEach
     void setUp() {
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-
     }
 
     @Test
@@ -34,30 +33,43 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
         TaskResource taskResource = new TaskResource(
             taskId,
             "someTaskName",
-            "someTaskType"
+            "someTaskType",
+            UNCONFIGURED
         );
 
         TaskResource updatedTaskResource = cftTaskDatabaseService.saveTask(taskResource);
         assertNotNull(updatedTaskResource);
-        assertEquals(updatedTaskResource.getTaskId(), taskId);
-        assertEquals(updatedTaskResource.getTaskName(), "someTaskName");
-        assertEquals(updatedTaskResource.getTaskType(), "someTaskType");
+        assertEquals(taskId, updatedTaskResource.getTaskId());
+        assertEquals("someTaskName", updatedTaskResource.getTaskName());
+        assertEquals("someTaskType", updatedTaskResource.getTaskType());
+        assertEquals(UNCONFIGURED, updatedTaskResource.getState());
     }
 
     @Test
-    @Sql("/scripts/data.sql")
     void should_succeed_and_find_a_task_by_id() {
 
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
+        TaskResource taskResource = createAndSaveTask();
+
         Optional<TaskResource> updatedTaskResource =
-            cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+            cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResource.getTaskId());
 
         assertNotNull(updatedTaskResource);
         assertTrue(updatedTaskResource.isPresent());
-        assertEquals(updatedTaskResource.get().getTaskId(), taskId);
-        assertEquals(updatedTaskResource.get().getTaskName(), "taskName");
-        assertEquals(updatedTaskResource.get().getTaskType(), "startAppeal");
+        assertEquals(taskResource.getTaskId(), updatedTaskResource.get().getTaskId());
+        assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
+        assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
+        assertEquals(UNCONFIGURED, updatedTaskResource.get().getState());
     }
 
+    private TaskResource createAndSaveTask() {
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someTaskName",
+            "someTaskType",
+            UNCONFIGURED
+        );
+
+        return taskResourceRepository.saveAndFlush(taskResource);
+    }
 
 }

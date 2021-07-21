@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -55,14 +56,14 @@ public class TaskRoleResource implements Serializable {
     private Boolean autoAssignable = false;
     private String roleCategory;
 
-    @Column(name = "task_id", insertable = false, updatable = false, nullable = false)
+    @Column(name = "task_id")
     private String taskId;
 
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @ManyToOne
-    @JoinColumn(name = "task_id", nullable = false)
+    @JoinColumn(name = "task_id", insertable = false, updatable = false)
+    @ManyToOne(targetEntity = TaskResource.class, fetch = FetchType.EAGER)
     @ToString.Exclude
     private TaskResource taskResource;
 
