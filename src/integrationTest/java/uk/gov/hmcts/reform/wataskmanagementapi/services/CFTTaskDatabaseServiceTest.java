@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -45,18 +44,28 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
     }
 
     @Test
-    @Sql("/scripts/data.sql")
     void should_succeed_and_find_a_task_by_id() {
 
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
+        TaskResource taskResource = createAndSaveTask();
+
         Optional<TaskResource> updatedTaskResource =
-            cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
+            cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResource.getTaskId());
 
         assertNotNull(updatedTaskResource);
         assertTrue(updatedTaskResource.isPresent());
-        assertEquals(updatedTaskResource.get().getTaskId(), taskId);
-        assertEquals(updatedTaskResource.get().getTaskName(), "taskName");
-        assertEquals(updatedTaskResource.get().getTaskType(), "startAppeal");
+        assertEquals(updatedTaskResource.get().getTaskId(), taskResource.getTaskId());
+        assertEquals(updatedTaskResource.get().getTaskName(), taskResource.getTaskName());
+        assertEquals(updatedTaskResource.get().getTaskType(), taskResource.getTaskType());
+    }
+
+    private TaskResource createAndSaveTask() {
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someTaskName",
+            "someTaskType"
+        );
+
+        return cftTaskDatabaseService.saveTask(taskResource);
     }
 
 
