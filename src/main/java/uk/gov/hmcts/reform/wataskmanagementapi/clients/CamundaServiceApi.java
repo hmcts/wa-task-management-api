@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
     configuration = CamundaFeignConfiguration.class
 )
 @Service
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UnnecessaryFullyQualifiedName", "PMD.TooManyMethods"})
 public interface CamundaServiceApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
@@ -143,4 +145,19 @@ public interface CamundaServiceApi {
                         @RequestBody Map<String, String> body);
 
 
+    @DeleteMapping(
+        value = "/history/variable-instance/{variable-instance-id}",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    void deleteVariableFromHistory(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                   @PathVariable("variable-instance-id") String variableInstanceId);
+
+
+    @PostMapping(
+        value = "/history/variable-instance",
+        produces = APPLICATION_JSON_VALUE,
+        consumes = APPLICATION_JSON_VALUE
+    )
+    List<HistoryVariableInstance> searchHistory(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                @RequestBody Map<String, Object> body);
 }

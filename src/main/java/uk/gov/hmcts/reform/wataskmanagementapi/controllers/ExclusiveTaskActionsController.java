@@ -51,7 +51,7 @@ public class ExclusiveTaskActionsController extends BaseController {
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(path = "/{task-id}")
     public ResponseEntity<TaskResource> initiate(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                                  @PathVariable(TASK_ID) String taskId,
@@ -85,7 +85,6 @@ public class ExclusiveTaskActionsController extends BaseController {
     public ResponseEntity<Void> terminateTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
                                               @PathVariable(TASK_ID) String taskId,
                                               @RequestBody TerminateTaskRequest terminateTaskRequest) {
-
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);

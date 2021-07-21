@@ -210,6 +210,17 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
             .then()
             .statusCode(HttpStatus.UNAUTHORIZED.value());
 
+        given()
+            .relaxedHTTPSValidation()
+            .contentType(MediaType.APPLICATION_JSON_VALUE)
+            .baseUri(testUrl)
+            .when()
+            .pathParam("task-id", taskId)
+            .basePath("task/{task-id}")
+            .when()
+            .delete()
+            .then()
+            .statusCode(HttpStatus.UNAUTHORIZED.value());
 
         given()
             .relaxedHTTPSValidation()

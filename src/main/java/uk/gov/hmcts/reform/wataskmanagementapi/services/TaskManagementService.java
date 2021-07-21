@@ -361,12 +361,12 @@ public class TaskManagementService {
         switch (terminateInfo.getTerminateReason()) {
             case COMPLETED:
                 task.setState(CFTTaskState.COMPLETED);
-                camundaService.completeTaskById(taskId);
+                camundaService.deleteCftTaskState(taskId);
                 cftTaskDatabaseService.saveTask(task);
                 break;
             case CANCELLED:
                 task.setState(CFTTaskState.CANCELLED);
-                camundaService.cancelTask(taskId);
+                camundaService.deleteCftTaskState(taskId);
                 cftTaskDatabaseService.saveTask(task);
                 break;
             default:

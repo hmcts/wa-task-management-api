@@ -28,26 +28,26 @@ public class RestApiActions {
         this.propertyNamingStrategy = propertyNamingStrategy;
     }
 
-    public RestApiActions setUp() {
-        requestSpecBuilder.setBaseUri(baseUri);
-        specification = requestSpecBuilder.build();
-        return this;
-    }
-
     protected RequestSpecification given() {
         return RestAssured.given()
             .spec(specification)
             .config(RestAssured.config()
-                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                    (type, s) -> {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
-                        objectMapper.registerModule(new Jdk8Module());
-                        objectMapper.registerModule(new JavaTimeModule());
-                        return objectMapper;
-                    }
-                ))
+                        .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                            (type, s) -> {
+                                ObjectMapper objectMapper = new ObjectMapper();
+                                objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
+                                objectMapper.registerModule(new Jdk8Module());
+                                objectMapper.registerModule(new JavaTimeModule());
+                                return objectMapper;
+                            }
+                        ))
             ).relaxedHTTPSValidation();
+    }
+
+    public RestApiActions setUp() {
+        requestSpecBuilder.setBaseUri(baseUri);
+        specification = requestSpecBuilder.build();
+        return this;
     }
 
     public Response get(String path, Header header) {
@@ -119,6 +119,14 @@ public class RestApiActions {
             : postWithoutBody(path, resourceId, contentType, accept, headers);
     }
 
+    public Response delete(String path, String resourceId, Headers headers) {
+        return deleteWithoutBody(path, resourceId, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+    }
+
+    public Response delete(String path, String resourceId, Object body, Headers headers) {
+        return deleteWithBody(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+    }
+
     private Response postWithBody(String path,
                                   String resourceId,
                                   Object body,
@@ -171,4 +179,57 @@ public class RestApiActions {
         }
     }
 
+
+    private Response deleteWithBody(String path,
+                                    String resourceId,
+                                    Object body,
+                                    String contentType,
+                                    String accept,
+                                    Headers headers) {
+        if (resourceId != null) {
+            log.info("Calling DELETE {} with resource id: {}", path, resourceId);
+
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .body(body)
+                .when()
+                .delete(path, resourceId);
+        } else {
+            log.info("Calling DELETE {}", path);
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .body(body)
+                .when()
+                .delete(path);
+        }
+    }
+
+    private Response deleteWithoutBody(String path,
+                                       String resourceId,
+                                       String contentType,
+                                       String accept,
+                                       Headers headers) {
+        if (resourceId != null) {
+            log.info("Calling DELETE {} with resource id: {}", path, resourceId);
+
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .when()
+                .delete(path, resourceId);
+        } else {
+            log.info("Calling DELETE {}", path);
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .when()
+                .delete(path);
+        }
+    }
 }
