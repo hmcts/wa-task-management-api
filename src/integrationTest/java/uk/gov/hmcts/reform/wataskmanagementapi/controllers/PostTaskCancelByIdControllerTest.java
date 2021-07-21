@@ -15,18 +15,22 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -57,6 +61,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     private AccessControlService accessControlService;
     @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
+    @MockBean
+    private CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
     private RoleAssignment mockedRoleAssignment;
     @Mock
@@ -90,6 +96,10 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(permissionEvaluatorService.hasAccess(any(), any(), any()))
             .thenReturn(true);
+
+        TaskResource taskResource = spy(TaskResource.class);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+            .thenReturn(Optional.of(taskResource));
 
         CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);

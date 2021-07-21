@@ -64,8 +64,8 @@ class CFTTaskDatabaseServiceTest extends CftRepositoryBaseTest {
         assertNotNull(updatedTaskResource);
         assertTrue(updatedTaskResource.isPresent());
         assertEquals(updatedTaskResource.get().getTaskId(), taskId);
-        assertEquals(updatedTaskResource.get().getTaskName(), "taskName");
-        assertEquals(updatedTaskResource.get().getTaskType(), "startAppeal");
+        assertEquals(updatedTaskResource.get().getTaskName(), "someTaskName");
+        assertEquals(updatedTaskResource.get().getTaskType(), "someTaskType");
     }
 
 }
