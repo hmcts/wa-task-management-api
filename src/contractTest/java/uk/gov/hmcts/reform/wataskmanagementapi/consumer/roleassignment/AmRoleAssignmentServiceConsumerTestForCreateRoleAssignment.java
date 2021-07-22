@@ -58,7 +58,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
 
         return builder
             .given("The assignment request is valid with one requested role and replaceExisting flag as true")
-            .uponReceiving("Provider receives a POST /am/role-assignments/actors/{user-id} request from a WA API")
+            .uponReceiving("Provider receives a POST /am/role-assignments request from a WA API")
             .path(RAS_CREATE_ROLE_ASSIGNMENT_URL)
             .method(HttpMethod.POST.toString())
             .body(createRoleAssignmentRequest(), String.valueOf(ContentType.JSON))
