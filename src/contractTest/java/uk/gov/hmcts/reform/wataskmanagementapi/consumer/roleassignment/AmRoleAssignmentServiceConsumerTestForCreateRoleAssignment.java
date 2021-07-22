@@ -105,7 +105,7 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
                     .stringType("id", "14a21569-eb80-4681-b62c-6ae2ed069e1f")
                     .stringValue(
                         "authenticatedUserId",
-                        "14a21569-eb80-4681-b62c-6ae2ed069e2f"
+                        "3168da13-00b3-41e3-81fa-cbc71ac28a0f"
                     )
                     .stringType(
                         "correlationId",
