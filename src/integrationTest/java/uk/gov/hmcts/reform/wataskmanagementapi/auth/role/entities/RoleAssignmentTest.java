@@ -19,21 +19,21 @@ class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
     @Test
     void deserialize_as_expected_for_unknown_values() throws IOException {
         String jsonContent = "{\""
-            + "id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
-            + "\"actor_id_type\":\"actorIdType\","
-            + "\"actor_id\":\"someactorId\","
-            + "\"role_type\":\"roleType\","
-            + "\"role_name\":\"some-role-name\","
-            + "\"classification\":\"classification\","
-            + "\"grant_type\":\"grantType\","
-            + "\"role_category\":\"roleCategory\","
-            + "\"read_only\":false,"
-            + "\"begin_time\":null,"
-            + "\"end_time\":null,"
-            + "\"created\":null,"
-            + "\"attributes\":{},"
-            + "\"authorisations\":[]"
-            + "}";
+                             + "id\":\"00d1ebd4-06ef-4b53-9571-b138981dc8e0\","
+                             + "\"actorIdType\":\"testUnknownValue\","
+                             + "\"actorId\":\"someActorId\","
+                             + "\"roleType\":\"testUnknownValue\","
+                             + "\"roleName\":\"some-role-name\","
+                             + "\"classification\":\"testUnknownValue\","
+                             + "\"grantType\":\"testUnknownValue\","
+                             + "\"roleCategory\":\"testUnknownValue\","
+                             + "\"readOnly\":false,"
+                             + "\"beginTime\":null,"
+                             + "\"endTime\":null,"
+                             + "\"created\":null,"
+                             + "\"attributes\":{},"
+                             + "\"authorisations\":[]"
+                             + "}";
 
         final RoleAssignment expected = objectMapper.readValue(jsonContent, RoleAssignment.class);
 
@@ -46,7 +46,7 @@ class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
         return new RoleAssignment(
             "00d1ebd4-06ef-4b53-9571-b138981dc8e0",
             ActorIdType.UNKNOWN,
-            "someactorId",
+            "someActorId",
             RoleType.UNKNOWN,
             "some-role-name",
             Classification.UNKNOWN,

@@ -4,12 +4,10 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.ResourceUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -32,9 +30,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@ActiveProfiles("integration")
-public class RoleAssignmentServiceApiTest {
+public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest {
 
     private static WireMockServer wireMockServer;
     @Autowired
@@ -88,7 +84,6 @@ public class RoleAssignmentServiceApiTest {
     }
 
     @Test
-    @Disabled("fix issue with the unknown enums")
     void queryRoleAssignmentTestWhenValuesAreUnknown() throws IOException {
 
         String roleAssignmentsResponseAsJsonString = loadJsonFileResourceWithUknownValues();
@@ -140,13 +135,13 @@ public class RoleAssignmentServiceApiTest {
     private String loadJsonFileResource() throws IOException {
         return FileUtils.readFileToString(ResourceUtils.getFile(
             "classpath:uk/gov/hmcts/reform/wataskmanagementapi/wataskconfigurationapi/variableextractors/"
-                + "roleAssignmentsResponse.json"), StandardCharsets.UTF_8);
+            + "roleAssignmentsResponse.json"), StandardCharsets.UTF_8);
     }
 
     private String loadJsonFileResourceWithUknownValues() throws IOException {
         return FileUtils.readFileToString(ResourceUtils.getFile(
             "classpath:uk/gov/hmcts/reform/wataskmanagementapi/wataskconfigurationapi/variableextractors/"
-                + "roleAssignmentsResponseUnknownValues.json"), StandardCharsets.UTF_8);
+            + "roleAssignmentsResponseUnknownValues.json"), StandardCharsets.UTF_8);
     }
 
 }

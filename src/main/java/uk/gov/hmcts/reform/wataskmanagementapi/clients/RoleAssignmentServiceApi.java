@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.FeignConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CamelCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.MultipleQueryRequest;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -18,7 +18,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @FeignClient(
     name = "role-assignment-api",
     url = "${role-assignment-service.url}",
-    configuration = FeignConfiguration.class
+    configuration = CamelCaseFeignConfiguration.class
 )
 @SuppressWarnings("checkstyle:LineLength")
 public interface RoleAssignmentServiceApi {
@@ -26,7 +26,6 @@ public interface RoleAssignmentServiceApi {
     String V2_MEDIA_TYPE_POST_ASSIGNMENTS =
         "application/vnd.uk.gov.hmcts.role-assignment-service"
         + ".post-assignment-query-request+json;charset=UTF-8;version=2.0";
-
 
     @GetMapping(
         value = "/am/role-assignments/actors/{user-id}",
