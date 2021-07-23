@@ -15,28 +15,32 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 @Configuration
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CamelCaseFeignConfiguration {
 
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    ObjectMapper objectMapper;
+    public CamelCaseFeignConfiguration(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Bean
     public Decoder feignDecoder() {
-        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(camundaObjectMapper());
+        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(camelCasedObjectMapper());
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
     }
 
     @Bean
     public Encoder feignEncoder() {
-        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(camundaObjectMapper());
+        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(camelCasedObjectMapper());
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
         return new SpringEncoder(objectFactory);
     }
 
-    public ObjectMapper camundaObjectMapper() {
+    public ObjectMapper camelCasedObjectMapper() {
         //Override naming strategy for this class only
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
         return objectMapper;

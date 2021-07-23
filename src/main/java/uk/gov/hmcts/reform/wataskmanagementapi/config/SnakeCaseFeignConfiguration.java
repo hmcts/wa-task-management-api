@@ -15,10 +15,15 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
 @Configuration
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class SnakeCaseFeignConfiguration {
 
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    private ObjectMapper objectMapper;
+    public SnakeCaseFeignConfiguration(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Bean
     public Decoder feignDecoder() {

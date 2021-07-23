@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -26,7 +25,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 public class JacksonConfiguration {
 
     @Bean
-    @Primary
     public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
         // Set default date to RFC3339 standards
         SimpleDateFormat df = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
@@ -46,10 +44,16 @@ public class JacksonConfiguration {
     }
 
     @Bean
+    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
+        Jackson2ObjectMapperBuilder builder = jackson2ObjectMapperBuilder();
+        return new MappingJackson2HttpMessageConverter(builder.build());
+    }
+
+    @Bean
     @Primary
-    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
-        ObjectMapper objectMapper = builder.createXmlMapper(false).build();
-        return objectMapper;
+    public ObjectMapper objectMapper() {
+        Jackson2ObjectMapperBuilder builder = jackson2ObjectMapperBuilder();
+        return builder.createXmlMapper(false).build();
     }
 
 }

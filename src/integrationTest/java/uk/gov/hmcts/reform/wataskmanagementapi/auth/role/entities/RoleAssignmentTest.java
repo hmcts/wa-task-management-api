@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 
 import java.io.IOException;
 
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +36,10 @@ class RoleAssignmentTest extends SpringBootIntegrationBaseTest {
                              + "\"authorisations\":[]"
                              + "}";
 
-        final RoleAssignment expected = objectMapper.readValue(jsonContent, RoleAssignment.class);
+        //ObjectMapper has default configuration as set in JacksonConfiguration.class
+        final RoleAssignment expected = objectMapper
+            .setPropertyNamingStrategy(LOWER_CAMEL_CASE)
+            .readValue(jsonContent, RoleAssignment.class);
 
         RoleAssignment actual = getAssignmentForUnknownValues();
 
