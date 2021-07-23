@@ -36,7 +36,34 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_succeed() {
+    public void should_succeed_when_terminate_reason_is_cancelled() {
+
+        TestVariables testVariables = createTaskAndCancel();
+        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
+        initiateTask(testVariables);
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo(TerminateReason.CANCELLED)
+        );
+
+        Response result = restApiActions.delete(
+            ENDPOINT_BEING_TESTED,
+            testVariables.getTaskId(),
+            terminateTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", null);
+    }
+
+
+    @Test
+    public void should_succeed_when_terminate_reason_is_completed() {
 
         TestVariables testVariables = createTaskAndComplete();
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
@@ -113,6 +140,29 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task_id", equalTo(testVariables.getTaskId()))
             .body("case_id", equalTo(testVariables.getCaseId()));
     }
+
+
+    private TestVariables createTaskAndCancel() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            authenticationHeaders
+        );
+        Response result = restApiActions.post(
+            "task/{task-id}/cancel",
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return taskVariables;
+    }
+
 
     private TestVariables createTaskAndComplete() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();

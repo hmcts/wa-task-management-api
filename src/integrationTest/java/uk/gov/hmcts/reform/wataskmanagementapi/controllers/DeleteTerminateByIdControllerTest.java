@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -43,53 +45,110 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
     }
 
-    @Test
-    void should_return_403_with_application_problem_response_when_client_is_not_allowed() throws Exception {
 
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-            .thenReturn(false);
+    @Nested
+    @DisplayName("Terminate reason is cancelled")
+    class Cancelled {
+        @Test
+        void should_return_403_with_application_problem_response_when_client_is_not_allowed() throws Exception {
 
-        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+            when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(false);
 
-        mockMvc.perform(
-            delete(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isForbidden(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type")
-                    .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
-                jsonPath("$.title").value("Forbidden"),
-                jsonPath("$.status").value(403),
-                jsonPath("$.detail").value(
-                    "Forbidden: The action could not be completed because the client/user "
-                    + "had insufficient rights to a resource.")
-            ));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+
+            mockMvc.perform(
+                delete(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isForbidden(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+                    jsonPath("$.title").value("Forbidden"),
+                    jsonPath("$.status").value(403),
+                    jsonPath("$.detail").value(
+                        "Forbidden: The action could not be completed because the client/user "
+                        + "had insufficient rights to a resource.")
+                ));
+        }
+
+        @Test
+        void should_return_204_and_delete_task() throws Exception {
+
+            when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(true);
+
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+
+            mockMvc.perform(
+                delete(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isNoContent()
+                ));
+        }
+
     }
 
-    @Test
-    void should_return_204_and_delete_task() throws Exception {
+    @Nested
+    @DisplayName("Terminate reason is completed")
+    class Completed {
+        @Test
+        void should_return_403_with_application_problem_response_when_client_is_not_allowed() throws Exception {
 
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-            .thenReturn(true);
+            when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(false);
 
-        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.COMPLETED));
 
-        mockMvc.perform(
-            delete(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isNoContent()
-            ));
+            mockMvc.perform(
+                delete(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isForbidden(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+                    jsonPath("$.title").value("Forbidden"),
+                    jsonPath("$.status").value(403),
+                    jsonPath("$.detail").value(
+                        "Forbidden: The action could not be completed because the client/user "
+                        + "had insufficient rights to a resource.")
+                ));
+        }
+
+        @Test
+        void should_return_204_and_delete_task() throws Exception {
+
+            when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(true);
+
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.COMPLETED));
+
+            mockMvc.perform(
+                delete(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isNoContent()
+                ));
+        }
     }
-
 }
 
