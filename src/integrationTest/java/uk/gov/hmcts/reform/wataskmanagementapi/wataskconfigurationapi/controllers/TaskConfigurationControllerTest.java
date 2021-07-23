@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -28,7 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamT
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.MultipleQueryRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.TaskConfigurationController;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.AssigneeRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
@@ -72,8 +70,6 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
     private static final String TASK_NAME = "taskName";
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     private static final String BEARER_USER_TOKEN = "Bearer user token";
-    @Autowired
-    TaskConfigurationController taskConfigurationController;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @MockBean
