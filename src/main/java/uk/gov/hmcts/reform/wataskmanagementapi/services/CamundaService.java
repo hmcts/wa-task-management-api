@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
@@ -46,10 +47,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE;
@@ -340,6 +343,40 @@ public class CamundaService {
             return response;
         } catch (FeignException | ResourceNotFoundException ex) {
             throw new ServerErrorException(THERE_WAS_A_PROBLEM_PERFORMING_THE_SEARCH, ex);
+        }
+    }
+
+    /**
+     * Removes 'cft_task_state' process variable from the history.
+     * Since the delete method only offers deletion via variable instance id the history must be retrieved.
+     *
+     * @param taskId the task id
+     */
+    public void deleteCftTaskState(String taskId) {
+
+        Map<String, Object> body = Map.of(
+            "variableName", CFT_TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+
+        try {
+            List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
+                authTokenGenerator.generate(),
+                body
+            );
+
+            Optional<HistoryVariableInstance> maybeCftTaskState = results.stream()
+                .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
+                .findFirst();
+
+            maybeCftTaskState.ifPresent(
+                historyVariableInstance -> camundaServiceApi.deleteVariableFromHistory(
+                    authTokenGenerator.generate(),
+                    historyVariableInstance.getId()
+                )
+            );
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when deleting the historic cftTaskState", ex);
         }
     }
 
