@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
@@ -43,6 +44,8 @@ public class TaskManagementProviderTestConfiguration {
     private IdamService idamService;
     @MockBean
     private RoleAssignmentService roleAssignmentService;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Bean
     @Primary
@@ -58,7 +61,8 @@ public class TaskManagementProviderTestConfiguration {
             camundaQueryBuilder,
             permissionEvaluatorService,
             cftTaskDatabaseService,
-            cftTaskMapper
+            cftTaskMapper,
+            launchDarklyFeatureFlagProvider
         );
     }
 

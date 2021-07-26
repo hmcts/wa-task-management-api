@@ -11,6 +11,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -52,18 +54,21 @@ public class TaskManagementService {
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CamundaQueryBuilder camundaQueryBuilder,
                                  PermissionEvaluatorService permissionEvaluatorService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
-                                 CFTTaskMapper cftTaskMapper) {
+                                 CFTTaskMapper cftTaskMapper,
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     /**
@@ -171,13 +176,22 @@ public class TaskManagementService {
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
         roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
-        //Lock & update Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        task.setState(CFTTaskState.CANCELLED);
-        //Perform Camunda updates
-        camundaService.cancelTask(taskId);
-        //Commit transaction
-        cftTaskDatabaseService.saveTask(task);
+        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            accessControlResponse.getUserInfo().getUid()
+        );
+
+        if (isFeatureEnabled) {
+            //Lock & update Task
+            TaskResource task = findByIdAndObtainLock(taskId);
+            task.setState(CFTTaskState.CANCELLED);
+            //Perform Camunda updates
+            camundaService.cancelTask(taskId);
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+        } else {
+            camundaService.cancelTask(taskId);
+        }
 
     }
 
@@ -215,13 +229,22 @@ public class TaskManagementService {
             permissionsRequired
         );
 
-        //Lock & update Task
-        TaskResource task = findByIdAndObtainLock(taskId);
-        task.setState(CFTTaskState.COMPLETED);
-        //Perform Camunda updates
-        camundaService.completeTask(taskId, variables);
-        //Commit transaction
-        cftTaskDatabaseService.saveTask(task);
+        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            userId
+        );
+
+        if (isFeatureEnabled) {
+            //Lock & update Task
+            TaskResource task = findByIdAndObtainLock(taskId);
+            task.setState(CFTTaskState.COMPLETED);
+            //Perform Camunda updates
+            camundaService.completeTask(taskId, variables);
+            //Commit transaction
+            cftTaskDatabaseService.saveTask(task);
+        } else {
+            camundaService.completeTask(taskId, variables);
+        }
     }
 
     /**
@@ -243,13 +266,22 @@ public class TaskManagementService {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
-            //Lock & update Task
-            TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.COMPLETED);
-            //Perform Camunda updates
-            camundaService.assignAndCompleteTask(taskId, accessControlResponse.getUserInfo().getUid(), variables);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+            boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                accessControlResponse.getUserInfo().getUid()
+            );
+
+            if (isFeatureEnabled) {
+                //Lock & update Task
+                TaskResource task = findByIdAndObtainLock(taskId);
+                task.setState(CFTTaskState.COMPLETED);
+                //Perform Camunda updates
+                camundaService.assignAndCompleteTask(taskId, accessControlResponse.getUserInfo().getUid(), variables);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+            } else {
+                camundaService.assignAndCompleteTask(taskId, accessControlResponse.getUserInfo().getUid(), variables);
+            }
 
         } else {
             completeTask(taskId, accessControlResponse);
