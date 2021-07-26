@@ -103,9 +103,9 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @OneToOne
-    @JoinColumn(name = "execution_code", referencedColumnName = "execution_code")
-    private ExecutionTypeResource executionTypeResource;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
+    private ExecutionTypeResource executionTypeCode;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -138,7 +138,7 @@ public class TaskResource implements Serializable {
                         Integer minorPriority,
                         String assignee,
                         boolean autoAssigned,
-                        ExecutionTypeResource executionTypeResource,
+                        ExecutionTypeResource executionTypeCode,
                         String workType,
                         String roleCategory,
                         boolean hasWarnings,
@@ -170,7 +170,7 @@ public class TaskResource implements Serializable {
         this.minorPriority = minorPriority;
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;
-        this.executionTypeResource = executionTypeResource;
+        this.executionTypeCode = executionTypeCode;
         this.workType = workType;
         this.roleCategory = roleCategory;
         this.hasWarnings = hasWarnings;
@@ -305,8 +305,8 @@ public class TaskResource implements Serializable {
         this.created = created;
     }
 
-    public void setExecutionTypeResource(ExecutionTypeResource executionTypeResource) {
-        this.executionTypeResource = executionTypeResource;
+    public void setExecutionTypeCode(ExecutionTypeResource executionTypeResource) {
+        this.executionTypeCode = executionTypeResource;
     }
 
     public void setTaskRoleResources(Set<TaskRoleResource> taskRoleResources) {
