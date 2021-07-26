@@ -419,7 +419,7 @@ public class TaskManagementService {
                 //Update cft task
                 task.setState(CFTTaskState.COMPLETED);
                 //Perform Camunda updates
-                camundaService.completeTaskById(taskId);
+                camundaService.deleteCftTaskState(taskId);
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
                 break;
@@ -427,7 +427,7 @@ public class TaskManagementService {
                 //Update cft task
                 task.setState(CFTTaskState.CANCELLED);
                 //Perform Camunda updates
-                camundaService.cancelTask(taskId);
+                camundaService.deleteCftTaskState(taskId);
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
                 break;
