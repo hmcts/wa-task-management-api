@@ -46,7 +46,8 @@ public class CamundaHelpers {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList())
+            new WarningValues(Collections.emptyList()),
+            "someCaseManagementCategory"
         );
     }
 

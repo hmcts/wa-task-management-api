@@ -142,8 +142,8 @@ public class TaskManagementGetTaskProviderTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(Collections.emptyList())
-        );
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category");
     }
 
     private Task createTaskWithWarnings() {
@@ -173,7 +173,8 @@ public class TaskManagementGetTaskProviderTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            warningValues);
+            warningValues,
+            "Case Management Category");
     }
 
 }

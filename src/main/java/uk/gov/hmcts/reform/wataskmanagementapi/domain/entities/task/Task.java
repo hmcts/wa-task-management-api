@@ -121,6 +121,10 @@ public class Task {
         notes = "A list of values containing a warning code and warning text")
     private WarningValues warningList;
 
+    @ApiModelProperty(required = false,
+        notes = "A value describing the category of the case, for IA, it has the same value as the AppealType field")
+    private String caseManagementCategory;
+
     private Task() {
         //Hidden constructor
         super();
@@ -147,7 +151,8 @@ public class Task {
                 String caseCategory,
                 String caseName,
                 Boolean hasWarnings,
-                WarningValues warningList
+                WarningValues warningList,
+                String caseManagementCategory
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -173,6 +178,7 @@ public class Task {
         this.location = location;
         this.hasWarnings = hasWarnings;
         this.warningList = warningList;
+        this.caseManagementCategory = caseManagementCategory;
     }
 
     public String getLocation() {
@@ -261,6 +267,10 @@ public class Task {
 
     public WarningValues getWarningList() {
         return warningList;
+    }
+
+    public String getCaseManagementCategory() {
+        return caseManagementCategory;
     }
 
 }
