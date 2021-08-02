@@ -2,15 +2,19 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TransactionHelper;
+
+import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles({"integration"})
@@ -20,8 +24,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TransactionHelper;
     "OPEN_ID_IDAM_URL=https://idam-web-public.aat.platform.hmcts.net",
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
+@TestInstance(PER_CLASS)
 public abstract class SpringBootIntegrationBaseTest {
-
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
     @Autowired
@@ -29,12 +33,17 @@ public abstract class SpringBootIntegrationBaseTest {
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
+    protected Jackson2ObjectMapperBuilder mapperBuilder;
+
     protected ObjectMapper objectMapper;
-    @LocalServerPort
-    protected int port;
 
     protected String asJsonString(Object object) throws JsonProcessingException {
         return objectMapper.writeValueAsString(object);
     }
 
+    @BeforeAll
+    public void initObjectMapper() {
+        //Initialize mapper as defined in JacksonConfiguration.class
+        objectMapper = mapperBuilder.build();
+    }
 }
