@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Compl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
@@ -95,7 +96,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             serviceAuthorisationApi,
             camundaServiceApi,
             roleAssignmentServiceApi
-            );
+        );
 
         taskManagementService = new TaskManagementService(
             camundaService,
@@ -255,7 +256,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @DisplayName("completeTaskWithPrivilegeAndCompletionOptions()")
     class CompleteTaskWithPrivilegeAndCompletionOptions {
 
-
         @Nested
         @DisplayName("when assignAndComplete completion option is true")
         class AssignAndCompleteIsTrue {
@@ -325,7 +325,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).completeTask(any(), any(), any());
 
-
                 createAndSaveTestTask(taskId);
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
@@ -368,11 +367,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskId,
                         new TerminateInfo(TerminateReason.COMPLETED)
                     )))
-                    .isInstanceOf(TaskCompleteException.class)
-                    .hasNoCause()
-                    .hasMessage(
-                        "Task Complete Error: Task complete partially succeeded. "
-                        + "The Task state was updated to completed, but the Task could not be completed.");
+                    .isInstanceOf(ServerErrorException.class)
+                    .hasCauseInstanceOf(FeignException.class)
+                    .hasMessage("There was a problem when deleting the historic cftTaskState");
 
                 verifyTransactionWasRolledBack(taskId);
 
@@ -387,10 +384,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             @Test
             void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
 
-                doThrow(FeignException.FeignServerException.class)
-                    .when(camundaServiceApi).bpmnEscalation(any(), any(), any());
-
                 createAndSaveTestTask(taskId);
+                doThrow(FeignException.FeignServerException.class)
+                    .when(camundaServiceApi).searchHistory(any(), any());
 
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () ->
@@ -399,9 +395,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                             new TerminateInfo(TerminateReason.CANCELLED)
                         ))
                 )
-                    .isInstanceOf(TaskCancelException.class)
-                    .hasNoCause()
-                    .hasMessage("Task Cancel Error: Unable to cancel the task.");
+                    .isInstanceOf(ServerErrorException.class)
+                    .hasCauseInstanceOf(FeignException.class)
+                    .hasMessage("There was a problem when deleting the historic cftTaskState");
 
                 verifyTransactionWasRolledBack(taskId);
             }
