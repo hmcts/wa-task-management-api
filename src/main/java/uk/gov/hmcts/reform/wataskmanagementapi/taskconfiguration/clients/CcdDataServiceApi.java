@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CamelCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -11,7 +12,8 @@ import static uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi.SERVICE_AUTHORIZATI
 
 @FeignClient(
     name = "ccd-client",
-    url = "${core_case_data.api.url}"
+    url = "${core_case_data.api.url}",
+    configuration = CamelCaseFeignConfiguration.class
 )
 public interface CcdDataServiceApi {
     String EXPERIMENTAL = "experimental=true";
