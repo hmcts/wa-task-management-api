@@ -85,5 +85,6 @@
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id_POST": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id/configuration_POST": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id_POST": "ignore",
-  "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_POST": "ignore"
+  "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_POST": "ignore",
+  "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id/configuration_POST": "ignore"
 }
