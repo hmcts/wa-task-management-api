@@ -20,6 +20,7 @@ class CamundaProcessVariablesTest {
             .withProcessVariable("dueDate", "2020-09-27")
             .withProcessVariableBoolean("unknown", true)
             .withProcessVariable("warningList", (new WarningValues(Collections.emptyList())).toString())
+            .withProcessVariable("caseManagementCategory", "Protection")
             .build();
 
         assertEquals(new CamundaValue<>("0000000", "String"), testObject.getProcessVariablesMap().get("caseId"));
@@ -30,7 +31,9 @@ class CamundaProcessVariablesTest {
 
         String wv = (new WarningValues(Collections.emptyList())).toString();
         assertEquals(new CamundaValue<>(wv, "String"), testObject.getProcessVariablesMap().get("warningList"));
-        assertEquals(6, testObject.getProcessVariablesMap().size());
+        assertEquals(7, testObject.getProcessVariablesMap().size());
+        CamundaValue category = new CamundaValue<>("Protection", "String");
+        assertEquals(category, testObject.getProcessVariablesMap().get("caseManagementCategory"));
     }
 
 }
