@@ -5,13 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
-@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
@@ -19,7 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
     "OPEN_ID_IDAM_URL=https://idam-web-public.aat.platform.hmcts.net",
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
-public abstract class SpringBootIntegrationBaseTest {
+public class SpringBootIntegrationBaseTest {
 
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -27,8 +26,6 @@ public abstract class SpringBootIntegrationBaseTest {
     protected MockMvc mockMvc;
     @Autowired
     protected ObjectMapper objectMapper;
-    @LocalServerPort
-    protected int port;
 
     protected String asJsonString(Object object) throws JsonProcessingException {
         return objectMapper.writeValueAsString(object);
