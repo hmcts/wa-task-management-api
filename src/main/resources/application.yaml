@@ -56,7 +56,7 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   system:
@@ -73,8 +73,6 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
-    properties:
-      charSet: UTF-8
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -82,10 +80,12 @@ spring:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
+        default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
     enabled: true
     baselineOnMigrate: true
+    defaultSchema: ${POSTGRES_NAME:cft_task_db}
     schemas: ${POSTGRES_NAME:cft_task_db}
   security:
     oauth2:
