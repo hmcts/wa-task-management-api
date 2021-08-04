@@ -18,6 +18,7 @@ public enum TaskAttributeDefinition {
     TASK_CASE_ID("task_case_id", new TypeReference<String>() {}),
     TASK_CASE_NAME("task_case_name", new TypeReference<String>() {}),
     TASK_CASE_TYPE_ID("task_case_type_id", new TypeReference<String>() {}),
+    TASK_CASE_CATEGORY("task_case_category", new TypeReference<String>() {}),
     TASK_CREATED("task_created", new TypeReference<String>() {}),
     TASK_DESCRIPTION("task_description", new TypeReference<String>() {}),
     TASK_DUE_DATE("task_due_date", new TypeReference<String>() {}),
