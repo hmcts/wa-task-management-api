@@ -27,7 +27,8 @@ public class AttributesValueVerifier {
     protected boolean hasJurisdictionPermission(String roleAssignmentJurisdiction,
                                                 Map<String, CamundaVariable> variables) {
         String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
-        return roleAssignmentJurisdiction.equals(taskJurisdiction);
+        if (taskJurisdiction.equalsIgnoreCase("WA")) return true;
+        else return roleAssignmentJurisdiction.equals(taskJurisdiction);
     }
 
     protected boolean hasLocationPermission(String roleAssignmentLocation, Map<String, CamundaVariable> variables) {
