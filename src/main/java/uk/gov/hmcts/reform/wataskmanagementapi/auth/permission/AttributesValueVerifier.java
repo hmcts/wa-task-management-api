@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -18,17 +19,22 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class AttributesValueVerifier {
 
     private final CamundaObjectMapper camundaObjectMapper;
+    private final List<String> testJurisdictionList;
 
     @Autowired
-    protected AttributesValueVerifier(CamundaObjectMapper camundaObjectMapper) {
+    protected AttributesValueVerifier(CamundaObjectMapper camundaObjectMapper,
+                                      List<String> testJurisdictionList) {
         this.camundaObjectMapper = camundaObjectMapper;
+        this.testJurisdictionList = testJurisdictionList;
     }
 
     protected boolean hasJurisdictionPermission(String roleAssignmentJurisdiction,
                                                 Map<String, CamundaVariable> variables) {
         String taskJurisdiction = getVariableValue(variables.get(JURISDICTION.value()), String.class);
-        if (taskJurisdiction.equalsIgnoreCase("WA")) return true;
-        else return roleAssignmentJurisdiction.equals(taskJurisdiction);
+        if (testJurisdictionList.contains(taskJurisdiction)) {
+            return true;
+        }
+        return roleAssignmentJurisdiction.equals(taskJurisdiction);
     }
 
     protected boolean hasLocationPermission(String roleAssignmentLocation, Map<String, CamundaVariable> variables) {

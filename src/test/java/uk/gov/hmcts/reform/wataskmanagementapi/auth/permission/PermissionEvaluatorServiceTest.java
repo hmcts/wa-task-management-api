@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +130,7 @@ class PermissionEvaluatorServiceTest {
         CamundaObjectMapper camundaObjectMapper = new CamundaObjectMapper();
         permissionEvaluatorService = new PermissionEvaluatorService(
             camundaObjectMapper,
-            new AttributesValueVerifier(camundaObjectMapper)
+            new AttributesValueVerifier(camundaObjectMapper, Collections.emptyList())
         );
         defaultVariables = getDefaultVariables();
     }
