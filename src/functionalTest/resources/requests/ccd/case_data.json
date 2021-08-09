@@ -40,9 +40,9 @@
       "id": "1",
       "value": {
         "document": {
-          "document_url": "{DOCUMENT_STORE_URL}/documents/c78071ff-a011-42c1-99a2-17b0adb9b906",
-          "document_filename": "some-notice-of-decision-letter.pdf",
-          "document_binary_url": "{DOCUMENT_STORE_URL}/documents/c78071ff-a011-42c1-99a2-17b0adb9b906/binary"
+          "document_url": "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+          "document_filename": "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+          "document_binary_url": "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}"
         },
         "description": "some notice of decision description"
       }

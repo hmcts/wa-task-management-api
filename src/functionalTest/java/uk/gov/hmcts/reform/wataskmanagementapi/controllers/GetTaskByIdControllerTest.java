@@ -121,7 +121,6 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
-
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(

@@ -25,8 +25,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaPr
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,6 +48,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 
 @Slf4j
 public class GivensBuilder {
@@ -54,6 +57,7 @@ public class GivensBuilder {
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
+    private final DocumentManagementFiles documentManagementFiles;
 
     private final CoreCaseDataApi coreCaseDataApi;
 
@@ -61,13 +65,15 @@ public class GivensBuilder {
                          RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider,
-                         CoreCaseDataApi coreCaseDataApi
+                         CoreCaseDataApi coreCaseDataApi,
+                         DocumentManagementFiles documentManagementFiles
     ) {
         this.documentStoreUrl = documentStoreUrl;
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
         this.coreCaseDataApi = coreCaseDataApi;
+        this.documentManagementFiles = documentManagementFiles;
 
     }
 
@@ -222,7 +228,7 @@ public class GivensBuilder {
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(String caseId) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
@@ -282,6 +288,8 @@ public class GivensBuilder {
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
 
+        Document document = documentManagementFiles.getDocument(NOTICE_OF_APPEAL_PDF);
+
         StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
             userToken,
             serviceToken,
@@ -297,7 +305,18 @@ public class GivensBuilder {
         try {
             String caseDataString =
                 FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
-            caseDataString = caseDataString.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+                document.getDocumentUrl()
+            );
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+                document.getDocumentFilename()
+            );
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
+                document.getDocumentBinaryUrl()
+            );
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {
