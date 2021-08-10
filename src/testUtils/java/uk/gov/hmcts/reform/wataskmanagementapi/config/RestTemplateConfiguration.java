@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
@@ -12,27 +11,22 @@ public class RestTemplateConfiguration {
 
     @Bean
     public RestOperations restOperations(
-        ObjectMapper objectMapper
+        MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter
     ) {
-        return restTemplate(objectMapper);
+        return restTemplate(mappingJackson2HttpMessageConverter);
     }
 
     @Bean
     public RestTemplate restTemplate(
-        ObjectMapper objectMapper
+        MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter
     ) {
         RestTemplate restTemplate = new RestTemplate();
+        //Remove default
         restTemplate.getMessageConverters().removeIf(MappingJackson2HttpMessageConverter.class::isInstance);
-        restTemplate.getMessageConverters().add(mappingJackson2HttpMessageConverter(objectMapper));
+        //Add autowired message converters as defined in JacksonConfiguration.java
+        restTemplate.getMessageConverters().add(mappingJackson2HttpMessageConverter);
 
         return restTemplate;
-    }
-
-    @Bean
-    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter(
-        ObjectMapper objectMapper
-    ) {
-        return new MappingJackson2HttpMessageConverter(objectMapper);
     }
 
 }

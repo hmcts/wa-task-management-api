@@ -25,6 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 public class JacksonConfiguration {
 
     @Bean
+    @Primary
     public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
         // Set default date to RFC3339 standards
         SimpleDateFormat df = new SimpleDateFormat(DATE_TIME_FORMAT, Locale.ENGLISH);
@@ -44,6 +45,7 @@ public class JacksonConfiguration {
     }
 
     @Bean
+    @Primary
     public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter() {
         Jackson2ObjectMapperBuilder builder = jackson2ObjectMapperBuilder();
         return new MappingJackson2HttpMessageConverter(builder.build());
