@@ -143,9 +143,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(permissionEvaluatorService.hasAccess(any(), any(), any()))
             .thenReturn(true);
 
-        TaskResource taskResource = spy(TaskResource.class);
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-            .thenReturn(Optional.of(taskResource));
+        initiateATask(taskId);
 
         CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
