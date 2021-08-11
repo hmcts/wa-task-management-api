@@ -85,8 +85,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ClientAccessControlService clientAccessControlService;
     @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
-    @SpyBean
-    private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
@@ -119,6 +117,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         mockServices.mockServiceAPIs();
 
+        initiateATask(taskId);
     }
 
     private void initiateATask(String id) {
@@ -146,8 +145,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_succeed_and_return_204_and_update_cft_task_state() throws Exception {
-
-            initiateATask(taskId);
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
@@ -184,10 +181,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
@@ -217,10 +210,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
-
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
 
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
@@ -258,10 +247,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(permissionEvaluatorService.hasAccess(any(), any(), any()))
                 .thenReturn(true);
 
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
@@ -295,10 +280,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(permissionEvaluatorService.hasAccess(any(), any(), any()))
                 .thenReturn(true);
 
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
@@ -329,9 +310,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             when(permissionEvaluatorService.hasAccess(any(), any(), any()))
                 .thenReturn(true);
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
 
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
@@ -513,10 +491,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
-            TaskResource taskResource = spy(TaskResource.class);
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
-
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
@@ -546,11 +520,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
-
-            TaskResource taskResource = spy(TaskResource.class);
-
-            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-                .thenReturn(Optional.of(taskResource));
 
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
