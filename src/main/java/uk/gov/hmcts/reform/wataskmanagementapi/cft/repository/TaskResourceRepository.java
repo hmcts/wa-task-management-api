@@ -13,5 +13,7 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TaskResource> findById(String id);
 
+    Optional<TaskResource> getByTaskId(String id);
+
     TaskResource saveAndFlush(TaskResource taskResource);
 }
