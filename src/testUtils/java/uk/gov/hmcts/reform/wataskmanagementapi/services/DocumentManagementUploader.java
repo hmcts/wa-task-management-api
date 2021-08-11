@@ -64,8 +64,7 @@ public class DocumentManagementUploader {
                     .links
                     .binary
                     .href,
-                uploadedDocument
-                    .originalDocumentName
+                file.getOriginalFilename()
             );
 
         } catch (IOException e) {
