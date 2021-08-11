@@ -24,7 +24,4 @@ public class CFTTaskDatabaseService {
         return tasksRepository.save(task);
     }
 
-    public Iterable<TaskResource> findAll(TaskResource task) {
-        return tasksRepository.findAll();
-    }
 }
