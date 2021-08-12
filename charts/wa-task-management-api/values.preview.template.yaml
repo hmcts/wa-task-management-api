@@ -4,13 +4,18 @@ java:
   keyVaults:
     wa:
       secrets:
-        - AppInsightsInstrumentationKey
-        - wa-system-username
-        - wa-system-password
-        - wa-idam-client-id
-        - wa-idam-client-secret
-        - s2s-secret-task-management-api
-        - ld-secret
+        - name: AppInsightsInstrumentationKey
+          alias: azure.application-insights.instrumentation-key
+        - name: wa-system-username
+          alias: WA_SYSTEM_USERNAME
+        - name: wa-system-password
+          alias: WA_SYSTEM_PASSWORD
+        - name: wa-idam-client-secret
+          alias: WA_IDAM_CLIENT_SECRET
+        - name: s2s-secret-task-management-api
+          alias: S2S_SECRET_TASK_MANAGEMENT_API
+        - name: ld-secret
+          alias: LAUNCH_DARKLY_SDK_KEY
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
