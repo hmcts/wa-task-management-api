@@ -28,3 +28,7 @@ idam:
 
 role-assignment-service:
   url: http://localhost:8888
+
+logging:
+  level:
+    org.hibernate.type: TRACE
