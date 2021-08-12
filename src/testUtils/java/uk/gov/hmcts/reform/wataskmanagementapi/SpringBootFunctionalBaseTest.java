@@ -90,8 +90,6 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
-    @Value("${targets.documentStoreUrl}")
-    private String documentStoreUrl;
 
     @Before
     public void setUpGivens() throws IOException {
@@ -102,7 +100,6 @@ public abstract class SpringBootFunctionalBaseTest {
         documentManagementFiles.prepare();
 
         given = new GivensBuilder(
-            documentStoreUrl,
             camundaApiActions,
             restApiActions,
             authorizationHeadersProvider,

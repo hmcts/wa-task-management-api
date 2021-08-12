@@ -53,7 +53,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.
 @Slf4j
 public class GivensBuilder {
 
-    private final String documentStoreUrl;
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -61,14 +60,12 @@ public class GivensBuilder {
 
     private final CoreCaseDataApi coreCaseDataApi;
 
-    public GivensBuilder(String documentStoreUrl,
-                         RestApiActions camundaApiActions,
+    public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
                          AuthorizationHeadersProvider authorizationHeadersProvider,
                          CoreCaseDataApi coreCaseDataApi,
                          DocumentManagementFiles documentManagementFiles
     ) {
-        this.documentStoreUrl = documentStoreUrl;
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
