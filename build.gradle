@@ -168,8 +168,8 @@ pitest {
   junit5PluginVersion = '0.12'
   targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
   excludedClasses = [
-      'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
-      'uk.gov.hmcts.reform.wataskmanagementapi.Application'
+    'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
+    'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
   threads = 10
   outputFormats = ['XML', 'HTML']
@@ -266,13 +266,13 @@ def versions = [
 ]
 
 ext.libraries = [
-    junit5: [
-        "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
-        "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
-        "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
-        "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
-        "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
-    ]
+  junit5: [
+    "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
+    "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
+    "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
+    "org.junit.platform:junit-platform-commons:${versions.junitPlatform}",
+    "org.junit.platform:junit-platform-engine:${versions.junitPlatform}"
+  ]
 ]
 
 dependencies {
@@ -330,9 +330,11 @@ dependencies {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
 
-  testImplementation (group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.27.2') {
+  testImplementation(group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.27.2') {
     exclude group: 'com.github.jknack.handlebars.java'
   }
+
+  testCompile group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.0'
 
   testCompile group: 'org.pitest', name: 'pitest', version: versions.pitest
   testCompile 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
@@ -357,9 +359,6 @@ dependencies {
   contractTestCompile('org.junit.jupiter:junit-jupiter-api:5.7.2')
   contractTestRuntime('org.junit.jupiter:junit-jupiter-engine:5.7.2')
   contractTestImplementation('org.junit.jupiter:junit-jupiter-api:5.7.2')
-
-  testUtilsImplementation sourceSets.main.runtimeClasspath
-  testUtilsImplementation sourceSets.test.runtimeClasspath
 
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath
