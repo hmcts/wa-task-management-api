@@ -26,3 +26,9 @@ idam:
 
 role-assignment-service:
   url: http://localhost:8888
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+ccd_gateway:
+  url: ${CCD_GW_URL:http://ccd-api-gateway}
