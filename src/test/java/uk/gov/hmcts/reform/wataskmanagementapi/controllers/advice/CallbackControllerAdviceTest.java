@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
-import org.apache.commons.lang.NotImplementedException;
+import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.NotImplementedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,8 +22,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import javax.servlet.http.HttpServletRequest;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
