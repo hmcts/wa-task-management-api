@@ -68,7 +68,6 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
     }
 
     private TaskResource createAndSaveTask() {
-
         TaskResource taskResource = new TaskResource(
             "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
             "aTaskName",
@@ -79,7 +78,11 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             SecurityClassification.PUBLIC,
             "title",
             "a description",
-            new NoteResource("noteTypeVal", "userVal", OffsetDateTime.now()),
+            new NoteResource("someCode",
+                             "noteTypeVal",
+                             "userVal", OffsetDateTime.now(),
+                             "someContent"
+            ),
             0,
             0,
             "someAssignee",
