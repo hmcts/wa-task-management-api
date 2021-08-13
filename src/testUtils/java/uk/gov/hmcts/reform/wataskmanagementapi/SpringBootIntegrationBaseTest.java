@@ -15,7 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
-@SpringBootTest(classes = Application.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @ActiveProfiles({"integration"})
 @AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = {
