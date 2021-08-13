@@ -11,7 +11,6 @@ import java.util.Set;
 
 @SuppressWarnings("java:S3740")
 public enum TaskAttributeDefinition {
-    TASK_CASE_CATEGORY("task_case_category", new TypeReference<String>() {}),
     TASK_ASSIGNEE("task_assignee", new TypeReference<String>() {}),
     TASK_ASSIGNMENT_EXPIRY("task_assignment_expiry", new TypeReference<String>() {}),
     TASK_AUTO_ASSIGNED("task_auto_assigned", new TypeReference<Boolean>() {}),
