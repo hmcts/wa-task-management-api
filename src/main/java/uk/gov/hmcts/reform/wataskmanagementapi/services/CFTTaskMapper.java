@@ -51,7 +51,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 
 
 @Service
-@SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis"})
 public class CFTTaskMapper {
 
     @Autowired

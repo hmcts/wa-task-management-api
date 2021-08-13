@@ -14,12 +14,14 @@ public enum ExecutionType {
     BUILT_IN(
         "BUILT_IN",
         "Built In",
-        "The application through which the task is presented to the user knows how to launch and complete this task, based on its formKey."
+        "The application through which the task is presented to the user knows "
+        + "how to launch and complete this task, based on its formKey."
     ),
     CASE_EVENT(
         "CASE_EVENT",
         "Case Management Task",
-        "The task requires a case management event to be executed by the user. (Typically this will be in CCD.)"
+        "The task requires a case management event to be "
+        + "executed by the user. (Typically this will be in CCD.)"
     );
     private final String value;
     private final String name;
