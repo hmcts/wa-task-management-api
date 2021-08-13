@@ -18,7 +18,7 @@ public enum ExecutionType {
     ),
     CASE_EVENT(
         "CASE_EVENT",
-        "Case Management Event",
+        "Case Management Task",
         "The task requires a case management event to be executed by the user. (Typically this will be in CCD.)"
     );
     private final String value;
