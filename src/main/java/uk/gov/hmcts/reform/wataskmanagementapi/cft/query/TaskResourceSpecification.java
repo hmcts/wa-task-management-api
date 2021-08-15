@@ -25,34 +25,46 @@ import javax.persistence.criteria.Predicate;
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods", "PMD.LawOfDemeter"})
 public final class TaskResourceSpecification {
 
-    private TaskResourceSpecification(){
+    public static final String TASK_ROLE_RESOURCES = "taskRoleResources";
+    public static final String STATE = "state";
+    public static final String LOCATION = "location";
+    public static final ZoneId ZONE_ID = ZoneId.of("Europe/London");
+    public static final String TASK_ID = "taskId";
+    public static final String TASK_TYPE = "taskType";
+    public static final String ASSIGNEE = "assignee";
+    public static final String CASE_ID = "caseId";
+
+    private TaskResourceSpecification() {
         // avoid creating object
     }
 
     public static Specification<TaskResource> getTasks(
-            SearchTaskRequest searchTaskRequest,
-            AccessControlResponse accessControlResponse,
-            List<PermissionTypes> permissionsRequired
+        SearchTaskRequest searchTaskRequest,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired
     ) {
 
         return searchByRoles(permissionsRequired, accessControlResponse)
             .and(searchByState(searchTaskRequest)
-            .and(searchByLocation(searchTaskRequest)
-            .and(searchByJurisdiction(searchTaskRequest)
-            .and(searchByCaseId(searchTaskRequest)
-            .and(searchByUser(searchTaskRequest)
-            .and(searchByTaskType(searchTaskRequest)
-            .and(searchByTaskId(searchTaskRequest))))))));
+                .and(searchByLocation(searchTaskRequest)
+                    .and(searchByJurisdiction(searchTaskRequest)
+                        .and(searchByCaseId(searchTaskRequest)
+                            .and(searchByUser(searchTaskRequest)
+                                .and(searchByTaskType(searchTaskRequest)
+                                    .and(searchByTaskId(searchTaskRequest))))))));
     }
 
     private static Specification<TaskResource> searchByRoles(List<PermissionTypes> permissionsRequired,
-                                                            AccessControlResponse accessControlResponse) {
+                                                             AccessControlResponse accessControlResponse) {
         return (root, query, builder) -> {
-            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join("taskRoleResources");
+            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
             List<Predicate> rolePredicates = new ArrayList<>();
             for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
                 if (isRoleActive(roleAssignment)) {
-                    rolePredicates.add(RoleAssignmentFilter.checkRoleAssignmentPermissions(root, taskRoleResources, builder, roleAssignment));
+                    rolePredicates.add(RoleAssignmentFilter.checkRoleAssignmentPermissions(
+                        root, taskRoleResources, builder, roleAssignment
+                        )
+                    );
                 }
             }
             List<Predicate> permissionPredicates = new ArrayList<>();
@@ -74,7 +86,7 @@ public final class TaskResourceSpecification {
             final List<CFTTaskState> cftTaskStates = values.stream().map(CFTTaskState::valueOf)
                 .collect(Collectors.toList());
 
-            return (root, query, builder) -> builder.in(root.get("state"))
+            return (root, query, builder) -> builder.in(root.get(STATE))
                 .value(cftTaskStates);
         }
 
@@ -95,7 +107,7 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.LOCATION) != null) {
             final List<String> locationList = keyMap.get(SearchParameterKey.LOCATION).getValues();
-            return (root, query, builder) -> builder.in(root.get("location"))
+            return (root, query, builder) -> builder.in(root.get(LOCATION))
                 .value(locationList);
         }
 
@@ -106,7 +118,7 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.CASE_ID) != null) {
             final List<String> caseIdList = keyMap.get(SearchParameterKey.CASE_ID).getValues();
-            return (root, query, builder) -> builder.in(root.get("caseId"))
+            return (root, query, builder) -> builder.in(root.get(CASE_ID))
                 .value(caseIdList);
         }
 
@@ -117,7 +129,7 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.USER) != null) {
             final List<String> usersList = keyMap.get(SearchParameterKey.USER).getValues();
-            return (root, query, builder) -> builder.in(root.get("assignee"))
+            return (root, query, builder) -> builder.in(root.get(ASSIGNEE))
                 .value(usersList);
         }
 
@@ -128,7 +140,7 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.TASK_TYPE) != null) {
             final List<String> taskTypeList = keyMap.get(SearchParameterKey.TASK_TYPE).getValues();
-            return (root, query, builder) -> builder.in(root.get("taskType"))
+            return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
                 .value(taskTypeList);
         }
 
@@ -139,7 +151,7 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.TASK_ID) != null) {
             final List<String> taskTypeList = keyMap.get(SearchParameterKey.TASK_ID).getValues();
-            return (root, query, builder) -> builder.in(root.get("taskId"))
+            return (root, query, builder) -> builder.in(root.get(TASK_ID))
                 .value(taskTypeList);
         }
 
@@ -157,17 +169,16 @@ public final class TaskResourceSpecification {
     }
 
     private static boolean isRoleActive(RoleAssignment roleAssignment) {
-        return hasBeginTimePermission(roleAssignment) &&
-               hasEndTimePermission(roleAssignment);
+        return hasBeginTimePermission(roleAssignment)
+               && hasEndTimePermission(roleAssignment);
     }
 
     private static boolean hasEndTimePermission(RoleAssignment roleAssignment) {
         LocalDateTime endTime = roleAssignment.getEndTime();
         if (endTime != null) {
 
-            ZoneId zoneId = ZoneId.of("Europe/London");
-            ZonedDateTime endTimeLondonTime = endTime.atZone(zoneId);
-            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+            ZonedDateTime endTimeLondonTime = endTime.atZone(ZONE_ID);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(ZONE_ID);
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
         }
@@ -178,12 +189,12 @@ public final class TaskResourceSpecification {
         LocalDateTime beginTime = roleAssignment.getBeginTime();
         if (beginTime != null) {
 
-            ZoneId zoneId = ZoneId.of("Europe/London");
-            ZonedDateTime beginTimeLondonTime = beginTime.atZone(zoneId);
-            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(zoneId);
+            ZonedDateTime beginTimeLondonTime = beginTime.atZone(ZONE_ID);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(ZONE_ID);
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
         return false;
     }
+
 }

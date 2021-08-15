@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -56,12 +57,12 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource({
-        //"grantTypeBasicScenarioProviderHappyPath"
-        //"grantTypeSpecificScenarioProviderHappyPath"
-       // "grantTypeStandardAndExcludedScenarioProviderHappyPath",
+        "grantTypeBasicScenarioProviderHappyPath",
+        "grantTypeSpecificScenarioProviderHappyPath",
+        "grantTypeStandardAndExcludedScenarioProviderHappyPath",
         "grantTypeChallengedAndExcludedScenarioProviderHappyPath",
-       // "sortByFieldScenario"
-      //  "paginatedResultsScenario"
+        "sortByFieldScenario",
+        "paginatedResultsScenario"
     })
     void shouldRetrieveTasks(TaskQuerycenario scenario) {
         //given
@@ -70,7 +71,8 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         //when
         final List<TaskResource> allTasks = cftQueryService.getAllTasks(
-            scenario.minResults, scenario.maxResults, scenario.searchTaskRequest, accessControlResponse, permissionsRequired
+            scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
+            accessControlResponse, permissionsRequired
         );
 
         //then
@@ -103,7 +105,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     @Builder
     private static class TaskQuerycenario {
         String scenarioName;
-        int minResults;
+        int firstResults;
         int maxResults;
         List<RoleAssignment> roleAssignments;
         SearchTaskRequest searchTaskRequest;
@@ -126,53 +128,47 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
             .scenarioName("basic_grant_type_with_classification_as_public")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PUBLIC))
-            .expectedSize(2)
+            .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007"
                 )
             ).build();
 
         final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
             .scenarioName("basic_grant_type_with_classification_as_private")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
-            .expectedSize(4)
+            .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008"
                 )
             ).build();
 
         final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
             .scenarioName("basic_grant_type_with_classification_as_restricted")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.RESTRICTED))
-            .expectedSize(6)
+            .expectedSize(3)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111009", "1623278362431009"
                 )
             ).build();
 
         return Stream.of(
             publicClassification,
             privateClassification,
-            restrictedClassification
+           restrictedClassification
         );
     }
 
@@ -186,7 +182,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
             .scenarioName("specific_grant_type_with_classification_as_public")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
@@ -198,7 +194,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
             .scenarioName("specific_grant_type_with_classification_as_private")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
@@ -210,7 +206,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
             .scenarioName("specific_grant_type_with_classification_as_restricted")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
@@ -230,41 +226,43 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     private static Stream<TaskQuerycenario> grantTypeStandardAndExcludedScenarioProviderHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
         ));
 
         final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
             .scenarioName("standard_with_excluded_grant_type_with_classification_as_public")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(0)
-            .expectedTaskDetails(Lists.newArrayList()
+            .expectedSize(1)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
+                )
             ).build();
 
         final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
             .scenarioName("standard_with_excluded_grant_type_with_classification_as_private")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
                 )
             ).build();
 
         final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
             .scenarioName("standard_with_excluded_grant_type_with_classification_as_restricted")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(2)
+            .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
                 )
             ).build();
 
@@ -282,53 +280,47 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
             .scenarioName("challenged_with_excluded_grant_type_with_authorizations_and_classification_as_public")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(2)
+            .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
                 )
             ).build();
 
         final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
             .scenarioName("challenged_with_excluded_grant_type_with_authorizations_and_classification_as_private")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(4)
+            .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
                 )
             ).build();
 
         final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
             .scenarioName("challenged_with_excluded_grant_type_with_authorizations_and_classification_as_restricted")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(6)
+            .expectedSize(3)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
                 )
             ).build();
 
         return Stream.of(
-            publicClassification
-            //privateClassification,
-            //restrictedClassification
+            publicClassification,
+            privateClassification,
+            restrictedClassification
         );
     }
 
@@ -340,17 +332,15 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario sortByCaseId = TaskQuerycenario.builder()
             .scenarioName("Sort by caseId")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .roleAssignments(sortByField(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(5)
+            .expectedSize(3)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002"
                 )
             ).build();
 
@@ -365,16 +355,14 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         final TaskQuerycenario sortByMultipleFields = TaskQuerycenario.builder()
             .scenarioName("Sort by caseName and caseId")
-            .minResults(0)
+            .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .roleAssignments(sortByField(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(5)
+            .expectedSize(3)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001"
                 )
             ).build();
@@ -391,27 +379,54 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        final TaskQuerycenario withoutPagination = TaskQuerycenario.builder()
-            .scenarioName("Sort by caseId")
-            .minResults(0)
-            .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+        final TaskQuerycenario allTasks = TaskQuerycenario.builder()
+            .scenarioName("First ten records")
+            .firstResults(0)
+            .maxResults(20)
+            .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(5)
+            .expectedSize(11)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111014", "1623278362431014"
                 )
             ).build();
 
-        final TaskQuerycenario withPagination2Results = TaskQuerycenario.builder()
-            .scenarioName("Sort by caseId")
-            .minResults(0)
+        final TaskQuerycenario firstPage = TaskQuerycenario.builder()
+            .scenarioName("First ten records")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(pagination(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(10)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111010", "1623278362431010",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111011", "1623278362431011",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111012", "1623278362431012",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111013", "1623278362431013"
+                )
+            ).build();
+
+        final TaskQuerycenario firstTwoRecords = TaskQuerycenario.builder()
+            .scenarioName("First two records")
+            .firstResults(0)
             .maxResults(2)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
@@ -420,24 +435,23 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario withPaginationWithMinResults = TaskQuerycenario.builder()
-            .scenarioName("Sort by caseId")
-            .minResults(2)
+        final TaskQuerycenario secondPage = TaskQuerycenario.builder()
+            .scenarioName("Starting with third record")
+            .firstResults(1)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .roleAssignments(pagination(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(3)
+            .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111014", "1623278362431014"
                 )
             ).build();
 
         return Stream.of(
-            withoutPagination,
-            withPagination2Results,
-            withPaginationWithMinResults
+            allTasks,
+            firstPage,
+            firstTwoRecords,
+            secondPage
         );
     }
 
@@ -476,15 +490,17 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeBasic(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
             .classification(classification)
+            .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+        roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
+            .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -504,6 +520,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .classification(classification)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
+            .grantType(GrantType.SPECIFIC)
             .attributes(tcAttributes)
             .build();
         roleAssignments.add(roleAssignment);
@@ -517,6 +534,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .classification(classification)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
+            .grantType(GrantType.SPECIFIC)
             .attributes(stcAttributes)
             .build();
         roleAssignments.add(roleAssignment);
@@ -530,11 +548,12 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             RoleAttributeDefinition.REGION.value(), "1",
             RoleAttributeDefinition.JURISDICTION.value(), "SCSS",
             RoleAttributeDefinition.BASE_LOCATION.value(), "653255",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .attributes(tcAttributes)
+            .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -544,12 +563,12 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             RoleAttributeDefinition.REGION.value(), "1",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003",
-            RoleAttributeDefinition.CASE_TYPE.value(), "Divorce"
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .attributes(stcAttributes)
+            .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -561,26 +580,77 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeChallenged(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431000",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003",
             RoleAttributeDefinition.JURISDICTION.value(), "SCSS"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .attributes(tcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> stcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431000",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003",
             RoleAttributeDefinition.JURISDICTION.value(), "IA"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .attributes(stcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.CHALLENGED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    private static List<RoleAssignment> sortByField(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(classification)
+            .attributes(tcAttributes)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    private static List<RoleAssignment> pagination(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(classification)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        roleAssignment = RoleAssignment.builder().roleName("pagination-role")
+            .classification(classification)
+            .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
