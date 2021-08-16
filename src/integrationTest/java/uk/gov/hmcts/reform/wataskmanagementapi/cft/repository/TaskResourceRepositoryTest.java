@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResourc
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -99,7 +100,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             "someAssignee",
             false,
             new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
-            "workType",
+            new WorkType("routine-work","Routine work"),
             "JUDICIAL",
             false,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
