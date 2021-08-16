@@ -23,8 +23,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
@@ -34,7 +36,6 @@ import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
@@ -45,6 +46,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -71,38 +73,40 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
     @Autowired
-    private IdamTokenGenerator systemUserIdamToken;
-    @Autowired
-    private IdamTokenGenerator waTestLawFirmIdamToken;
-    @Autowired
     protected CoreCaseDataApi coreCaseDataApi;
+    @Autowired
+    protected DocumentManagementFiles documentManagementFiles;
     @Autowired
     protected RoleAssignmentHelper roleAssignmentHelper;
     @Autowired
     protected IdamService idamService;
-
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
-
+    @Autowired
+    private IdamTokenGenerator systemUserIdamToken;
+    @Autowired
+    private IdamTokenGenerator waTestLawFirmIdamToken;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
-    @Value("${targets.documentStoreUrl}")
-    private String documentStoreUrl;
 
     @Before
-    public void setUpGivens() {
+    public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
+
+        documentManagementFiles.prepare();
+
         given = new GivensBuilder(
-            documentStoreUrl,
             camundaApiActions,
             restApiActions,
             authorizationHeadersProvider,
-            coreCaseDataApi
+            coreCaseDataApi,
+            documentManagementFiles
         );
+
         common = new Common(
             given,
             camundaApiActions,
@@ -171,7 +175,9 @@ public abstract class SpringBootFunctionalBaseTest {
         String userToken = waTestLawFirmIdamToken.generate();
         UserInfo userInfo = waTestLawFirmIdamToken.getUserInfo(userToken);
         String serviceToken = authorizationHeadersProvider.getServiceAuthorizationHeader().getValue();
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
+        Document document = documentManagementFiles.getDocument(NOTICE_OF_APPEAL_PDF);
+
+        final StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -179,14 +185,26 @@ public abstract class SpringBootFunctionalBaseTest {
             "Asylum",
             "startAppeal"
         );
+
         String caseData = new String(
             (Objects.requireNonNull(Thread.currentThread().getContextClassLoader()
                                         .getResourceAsStream("requests/ccd/case_data.json"))).readAllBytes()
         );
 
-        caseData = caseData.replace("{DOCUMENT_STORE_URL}", documentStoreUrl);
+        caseData = caseData.replace(
+            "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+            document.getDocumentUrl()
+        );
+        caseData = caseData.replace(
+            "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+            document.getDocumentFilename()
+        );
+        caseData = caseData.replace(
+            "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
+            document.getDocumentBinaryUrl()
+        );
         var data = new ObjectMapper().readValue(caseData, Map.class);
-        CaseDataContent caseDataContent = CaseDataContent.builder()
+        final CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
                        .id(startCase.getEventId())
@@ -196,7 +214,7 @@ public abstract class SpringBootFunctionalBaseTest {
             .data(data)
             .build();
 
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
+        final CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -208,7 +226,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
+        final StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -218,7 +236,7 @@ public abstract class SpringBootFunctionalBaseTest {
             "submitAppeal"
         );
 
-        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
+        final CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
                        .id(submitCase.getEventId())
@@ -227,6 +245,7 @@ public abstract class SpringBootFunctionalBaseTest {
                        .build())
             .data(data)
             .build();
+
         coreCaseDataApi.submitEventForCaseWorker(
             userToken,
             serviceToken,
@@ -238,19 +257,9 @@ public abstract class SpringBootFunctionalBaseTest {
             submitCaseDataContent
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
-        //Added wait as there seems to be a delay while retrieving the case.
-        waitSeconds(2);
+
         return caseDetails.getId().toString();
     }
-
-    private void waitSeconds(int seconds) {
-        try {
-            TimeUnit.SECONDS.sleep(seconds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public String createTask(CreateTaskMessage createTaskMessage) {
 
