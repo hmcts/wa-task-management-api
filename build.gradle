@@ -241,6 +241,7 @@ dependencyManagement {
 
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+
     //CVE-2021-28170
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
   }
