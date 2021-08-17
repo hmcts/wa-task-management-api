@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +16,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
-public class IdamServiceTest {
+public class IdamServiceUserIdCacheTest {
 
     @MockBean
     private IdamWebApi idamWebApi;
@@ -23,18 +24,19 @@ public class IdamServiceTest {
     @Autowired
     private IdamService idamService;
 
-    @Test
-    public void getUserInfo() {
+    @BeforeEach
+    void setUp() {
         when(idamWebApi.userInfo(anyString())).thenReturn(UserInfo.builder()
                                                               .uid("some user id")
                                                               .build());
+    }
 
-        idamService.getUserInfo("some user token");
-        idamService.getUserInfo("some user token");
-        idamService.getUserInfo("some user token");
+    @Test
+    void getUserIdIsCached() {
+        idamService.getUserId("some user token");
+        idamService.getUserId("some user token");
+        idamService.getUserId("some user token");
 
         verify(idamWebApi).userInfo("some user token");
     }
-
-
 }
