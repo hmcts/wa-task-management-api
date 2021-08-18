@@ -49,9 +49,7 @@ public final class TaskResourceSpecification {
                 .and(searchByLocation(searchTaskRequest)
                     .and(searchByJurisdiction(searchTaskRequest)
                         .and(searchByCaseId(searchTaskRequest)
-                            .and(searchByUser(searchTaskRequest)
-                                .and(searchByTaskType(searchTaskRequest)
-                                    .and(searchByTaskId(searchTaskRequest))))))));
+                            .and(searchByUser(searchTaskRequest))))));
     }
 
     private static Specification<TaskResource> searchByRoles(List<PermissionTypes> permissionsRequired,
@@ -61,7 +59,7 @@ public final class TaskResourceSpecification {
             List<Predicate> rolePredicates = new ArrayList<>();
             for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
                 if (isRoleActive(roleAssignment)) {
-                    rolePredicates.add(RoleAssignmentFilter.checkRoleAssignmentPermissions(
+                    rolePredicates.add(RoleAssignmentFilter.buildRoleAssignmentPredicates(
                         root, taskRoleResources, builder, roleAssignment
                         )
                     );
@@ -131,28 +129,6 @@ public final class TaskResourceSpecification {
             final List<String> usersList = keyMap.get(SearchParameterKey.USER).getValues();
             return (root, query, builder) -> builder.in(root.get(ASSIGNEE))
                 .value(usersList);
-        }
-
-        return (root, query, builder) -> builder.conjunction();
-    }
-
-    private static Specification<TaskResource> searchByTaskType(SearchTaskRequest searchTaskRequest) {
-        final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
-        if (keyMap.get(SearchParameterKey.TASK_TYPE) != null) {
-            final List<String> taskTypeList = keyMap.get(SearchParameterKey.TASK_TYPE).getValues();
-            return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
-                .value(taskTypeList);
-        }
-
-        return (root, query, builder) -> builder.conjunction();
-    }
-
-    private static Specification<TaskResource> searchByTaskId(SearchTaskRequest searchTaskRequest) {
-        final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
-        if (keyMap.get(SearchParameterKey.TASK_ID) != null) {
-            final List<String> taskTypeList = keyMap.get(SearchParameterKey.TASK_ID).getValues();
-            return (root, query, builder) -> builder.in(root.get(TASK_ID))
-                .value(taskTypeList);
         }
 
         return (root, query, builder) -> builder.conjunction();

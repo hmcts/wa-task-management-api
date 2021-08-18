@@ -31,7 +31,7 @@ public final class RoleAssignmentFilter {
         // avoid creating object
     }
 
-    public static Predicate checkRoleAssignmentPermissions(
+    public static Predicate buildRoleAssignmentPredicates(
         Root<TaskResource> root,
         Join<TaskResource, TaskRoleResource> taskRoleResources,
         CriteriaBuilder builder,
