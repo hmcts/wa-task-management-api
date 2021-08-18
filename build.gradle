@@ -238,11 +238,12 @@ dependencyManagement {
     //
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
-    // CVE-2021-22112 - Privilege Escalation
-    dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.4.6'
 
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+
+    //CVE-2021-28170
+    dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
   }
 }
 
