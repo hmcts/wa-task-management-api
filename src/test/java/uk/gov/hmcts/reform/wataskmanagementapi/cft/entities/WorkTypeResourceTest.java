@@ -5,11 +5,11 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class WorkTypeTest {
+public class WorkTypeResourceTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = WorkType.class;
+        final Class<?> classUnderTest = WorkTypeResource.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

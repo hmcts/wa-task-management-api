@@ -81,8 +81,8 @@ public class TaskResource implements Serializable {
     private Boolean autoAssigned = false;
 
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JoinColumn(name = "work_type", referencedColumnName = "id")
-    private WorkType workType;
+    @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
+    private WorkTypeResource workTypeResource;
     private String roleCategory;
     private Boolean hasWarnings = false;
 
@@ -145,7 +145,7 @@ public class TaskResource implements Serializable {
                         String assignee,
                         boolean autoAssigned,
                         ExecutionTypeResource executionTypeCode,
-                        WorkType workType,
+                        WorkTypeResource workTypeResource,
                         String roleCategory,
                         boolean hasWarnings,
                         OffsetDateTime assignmentExpiry,
@@ -177,7 +177,7 @@ public class TaskResource implements Serializable {
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;
         this.executionTypeCode = executionTypeCode;
-        this.workType = workType;
+        this.workTypeResource = workTypeResource;
         this.roleCategory = roleCategory;
         this.hasWarnings = hasWarnings;
         this.assignmentExpiry = assignmentExpiry;
@@ -251,8 +251,8 @@ public class TaskResource implements Serializable {
         this.autoAssigned = autoAssigned;
     }
 
-    public void setWorkType(WorkType workType) {
-        this.workType = workType;
+    public void setWorkTypeResource(WorkTypeResource workTypeResource) {
+        this.workTypeResource = workTypeResource;
     }
 
     public void setRoleCategory(String roleCategory) {

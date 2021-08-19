@@ -1,18 +1,18 @@
 DROP TABLE IF EXISTS work_types;
 CREATE TABLE work_types
 (
-    id TEXT,
+    work_type_id TEXT,
     label TEXT,
-    PRIMARY KEY (id)
+    PRIMARY KEY (work_type_id)
 );
 
-INSERT INTO work_types(ID, LABEL) VALUES
-    ('hearing-work','Hearing work'),
-    ('upper-tribunal','Upper Tribunal'),
-    ('routine-work','Routine work'),
-    ('decision-making-work','Decision-making work'),
+INSERT INTO work_types(work_type_id, label) VALUES
+    ('hearing_work','Hearing work'),
+    ('upper_tribunal','Upper Tribunal'),
+    ('routine_work','Routine work'),
+    ('decision_making_work','Decision-making work'),
     ('applications','Applications'),
     ('priority','Priority'),
-    ('access-requests','Access requests'),
-    ('error-management','Error management');
+    ('access_requests','Access requests'),
+    ('error_management','Error management');
 COMMIT;
