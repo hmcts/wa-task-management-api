@@ -246,7 +246,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
 
     //CVE-2020-23171
-    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.5'
+    dependency group: 'com.nimbusds', name: 'oauth2-oidc-sdk', version: '9.12'
   }
 }
 
