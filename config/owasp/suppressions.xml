@@ -7,5 +7,6 @@
     <gav regex="true">^org.springframework.security:spring-security-*.*</gav>
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
+    <cve>CVE-2020-23171</cve>
   </suppress>
 </suppressions>

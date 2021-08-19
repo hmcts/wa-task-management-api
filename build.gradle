@@ -245,8 +245,6 @@ dependencyManagement {
     //CVE-2021-28170
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
 
-    //CVE-2020-23171
-    dependency group: 'com.nimbusds', name: 'oauth2-oidc-sdk', version: '9.12'
   }
 }
 
