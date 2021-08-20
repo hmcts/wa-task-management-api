@@ -77,11 +77,12 @@ public final class RoleAssignmentFilter {
                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(EXCLUDED);
-        final Set<Optional<RoleAssignment>> roleAssignmentsForGrantTypes = roleAssignmentList.stream().filter(
-            ra -> grantTypes.contains(ra.get().getGrantType())).collect(Collectors.toSet());
+
+        final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
+            .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
         List<Predicate> rolePredicates = new ArrayList<>();
-        for (Optional<RoleAssignment> roleAssignment : roleAssignmentsForGrantTypes) {
-            rolePredicates.add(searchByExcludedGrantType(root, builder, roleAssignment.get()));
+        for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
+            rolePredicates.add(searchByExcludedGrantType(root, builder, roleAssignment));
         }
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
@@ -91,15 +92,15 @@ public final class RoleAssignmentFilter {
         TaskRoleResource> taskRoleResources, CriteriaBuilder builder, List<Optional<RoleAssignment>> roleAssignmentList,
                                                    Set<GrantType> grantTypes) {
 
-        final Set<Optional<RoleAssignment>> roleAssignmentsForGrantTypes = roleAssignmentList.stream().filter(
-            ra -> grantTypes.contains(ra.get().getGrantType())).collect(Collectors.toSet());
+        final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
+            .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
 
         List<Predicate> rolePredicates = new ArrayList<>();
-        for (Optional<RoleAssignment> roleAssignment : roleAssignmentsForGrantTypes) {
+        for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
             Predicate roleName = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                roleAssignment.get().getRoleName());
+                roleAssignment.getRoleName());
             final Predicate mandatoryPredicates = buildMandatoryPredicates(root, taskRoleResources,
-                builder, roleAssignment.get());
+                builder, roleAssignment);
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 

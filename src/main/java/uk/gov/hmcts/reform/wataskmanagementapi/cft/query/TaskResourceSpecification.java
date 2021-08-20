@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.Join;
@@ -61,8 +60,6 @@ public final class TaskResourceSpecification {
             // filter roles which are active.
             final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
                 .stream().map(TaskResourceSpecification::filterByActiveRole).collect(Collectors.toList());
-
-            activeRoleAssignments.removeIf(Objects::isNull);
 
             // builds query for grant type BASIC, SPECIFIC
             final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
@@ -167,8 +164,7 @@ public final class TaskResourceSpecification {
     }
 
     private static Optional<RoleAssignment> filterByActiveRole(RoleAssignment roleAssignment) {
-        if (hasBeginTimePermission(roleAssignment)
-            && hasEndTimePermission(roleAssignment)) {
+        if (hasBeginTimePermission(roleAssignment) && hasEndTimePermission(roleAssignment)) {
             return Optional.of(roleAssignment);
         }
         return Optional.empty();

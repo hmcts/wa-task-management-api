@@ -62,9 +62,9 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         "grantTypeChallengedScenarioProviderHappyPath",
         "grantTypeExcludedScenarioProviderHappyPath",
         "withAllGrantTypesHappyPath",
+        "inActiveRole",
         "sortByFieldScenario",
         "paginatedResultsScenario"
-
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         //given
@@ -469,7 +469,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
         final TaskQueryScenario allTasks = TaskQueryScenario.builder()
-            .scenarioName("First ten records")
+            .scenarioName("All records")
             .firstResults(0)
             .maxResults(20)
             .roleAssignments(pagination(Classification.RESTRICTED))
@@ -541,6 +541,36 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             firstPage,
             firstTwoRecords,
             secondPage
+        );
+    }
+
+    private static Stream<TaskQueryScenario> inActiveRole() {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("inActiveRole")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().plusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final TaskQueryScenario inActive = TaskQueryScenario.builder()
+            .scenarioName("inactive_role")
+            .firstResults(0)
+            .maxResults(10)
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .expectedSize(0)
+            .expectedTaskDetails(Lists.newArrayList()
+            ).build();
+
+        return Stream.of(
+            inActive
         );
     }
 
