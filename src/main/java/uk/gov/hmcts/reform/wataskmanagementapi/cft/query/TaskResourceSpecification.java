@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
@@ -33,48 +35,68 @@ public final class TaskResourceSpecification {
     public static final String TASK_TYPE = "taskType";
     public static final String ASSIGNEE = "assignee";
     public static final String CASE_ID = "caseId";
+    public static final String ROLE_NAME = "roleName";
 
     private TaskResourceSpecification() {
         // avoid creating object
     }
 
-    public static Specification<TaskResource> getTasks(
+    public static Specification<TaskResource> buildTaskQuery(
         SearchTaskRequest searchTaskRequest,
         AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired
     ) {
 
-        return searchByRoles(permissionsRequired, accessControlResponse)
-            .and(searchByState(searchTaskRequest)
-                .and(searchByLocation(searchTaskRequest)
-                    .and(searchByJurisdiction(searchTaskRequest)
-                        .and(searchByCaseId(searchTaskRequest)
-                            .and(searchByUser(searchTaskRequest))))));
+        return buildApplicationConstraints(searchTaskRequest)
+            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 
-    private static Specification<TaskResource> searchByRoles(List<PermissionTypes> permissionsRequired,
-                                                             AccessControlResponse accessControlResponse) {
+    private static Specification<TaskResource> buildRoleAssignmentConstraints(
+        List<PermissionTypes> permissionsRequired,
+        AccessControlResponse accessControlResponse) {
+
         return (root, query, builder) -> {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
-            List<Predicate> rolePredicates = new ArrayList<>();
-            for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-                if (isRoleActive(roleAssignment)) {
-                    rolePredicates.add(RoleAssignmentFilter.buildRoleAssignmentPredicates(
-                        root, taskRoleResources, builder, roleAssignment
-                        )
-                    );
-                }
-            }
+
+            // filter roles which are active.
+            final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+                .stream().map(TaskResourceSpecification::filterByActiveRole).collect(Collectors.toList());
+
+            activeRoleAssignments.removeIf(Objects::isNull);
+
+            // builds query for grant type BASIC, SPECIFIC
+            final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            // builds query for grant type STANDARD, CHALLENGED
+            final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            // builds query for grant type EXCLUDED
+            final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
+
+            // permissions check
             List<Predicate> permissionPredicates = new ArrayList<>();
             for (PermissionTypes type : permissionsRequired) {
                 permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
             }
-            final Predicate rolePredicate = builder.or(rolePredicates.toArray(new Predicate[0]));
             final Predicate permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
 
             query.distinct(true);
-            return builder.and(rolePredicate, permissionPredicate);
+
+            return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
         };
+    }
+
+    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
+        return searchByJurisdiction(searchTaskRequest)
+            .and(searchByState(searchTaskRequest))
+            .and(searchByLocation(searchTaskRequest))
+            .and(searchByCaseId(searchTaskRequest))
+            .and(searchByUser(searchTaskRequest));
     }
 
     private static Specification<TaskResource> searchByState(SearchTaskRequest searchTaskRequest) {
@@ -144,9 +166,12 @@ public final class TaskResourceSpecification {
         return map;
     }
 
-    private static boolean isRoleActive(RoleAssignment roleAssignment) {
-        return hasBeginTimePermission(roleAssignment)
-               && hasEndTimePermission(roleAssignment);
+    private static Optional<RoleAssignment> filterByActiveRole(RoleAssignment roleAssignment) {
+        if (hasBeginTimePermission(roleAssignment)
+            && hasEndTimePermission(roleAssignment)) {
+            return Optional.of(roleAssignment);
+        }
+        return Optional.empty();
     }
 
     private static boolean hasEndTimePermission(RoleAssignment roleAssignment) {

@@ -28,16 +28,17 @@ public class CftQueryService {
         int maxResults,
         SearchTaskRequest searchTaskRequest,
         AccessControlResponse accessControlResponse,
-         List<PermissionTypes> permissionsRequired
+        List<PermissionTypes> permissionsRequired
     ) {
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .getTasks(searchTaskRequest, accessControlResponse, permissionsRequired);
+            .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
 
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
 
         Pageable page = PageRequest.of(firstResult, maxResults, sort);
-        final Page<TaskResource> all = taskResourceRepository.findAll(taskResourceSpecification, page);
-        return all.toList();
+        final Page<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification, page);
+
+        return taskResources.toList();
     }
 
 }

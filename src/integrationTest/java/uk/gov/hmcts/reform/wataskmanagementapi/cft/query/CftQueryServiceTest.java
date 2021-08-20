@@ -38,7 +38,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 
-
 @Sql("/scripts/data.sql")
 public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
@@ -59,13 +58,15 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     @MethodSource({
         "grantTypeBasicScenarioProviderHappyPath",
         "grantTypeSpecificScenarioProviderHappyPath",
-        "grantTypeStandardAndExcludedScenarioProviderHappyPath",
-        "grantTypeChallengedAndExcludedScenarioProviderHappyPath",
+        "grantTypeStandardScenarioProviderHappyPath",
+        "grantTypeChallengedScenarioProviderHappyPath",
+        "grantTypeExcludedScenarioProviderHappyPath",
         "withAllGrantTypesHappyPath",
         "sortByFieldScenario",
         "paginatedResultsScenario"
+
     })
-    void shouldRetrieveTasks(TaskQuerycenario scenario) {
+    void shouldRetrieveTasks(TaskQueryScenario scenario) {
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, scenario.roleAssignments);
         permissionsRequired.add(PermissionTypes.READ);
@@ -87,7 +88,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
     @ParameterizedTest
     @MethodSource("invalidExUiSearchQuery")
-    void shouldReturnEmptyTasksWithInvalidExUiSearchQuery(TaskQuerycenario scenario) {
+    void shouldReturnEmptyTasksWithInvalidExUiSearchQuery(TaskQueryScenario scenario) {
         //given
         mapRoleAssignments(Classification.PUBLIC);
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, scenario.roleAssignments);
@@ -104,7 +105,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     }
 
     @Builder
-    private static class TaskQuerycenario {
+    private static class TaskQueryScenario {
         String scenarioName;
         int firstResults;
         int maxResults;
@@ -121,13 +122,13 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         }
     }
 
-    private static Stream<TaskQuerycenario> grantTypeBasicScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeBasicScenarioProviderHappyPath() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
         ));
 
-        final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_classification_as_public")
             .firstResults(0)
             .maxResults(10)
@@ -139,7 +140,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_classification_as_private")
             .firstResults(0)
             .maxResults(10)
@@ -152,7 +153,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
@@ -169,11 +170,11 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         return Stream.of(
             publicClassification,
             privateClassification,
-           restrictedClassification
+            restrictedClassification
         );
     }
 
-    private static Stream<TaskQuerycenario> grantTypeSpecificScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeSpecificScenarioProviderHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(CASE_ID, SearchOperator.IN, asList(
@@ -181,7 +182,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             ))
         ));
 
-        final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_classification_as_public")
             .firstResults(0)
             .maxResults(10)
@@ -193,7 +194,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_classification_as_private")
             .firstResults(0)
             .maxResults(10)
@@ -205,7 +206,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
@@ -224,15 +225,14 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQuerycenario> grantTypeStandardAndExcludedScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeStandardScenarioProviderHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-            new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ));
 
-        final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
-            .scenarioName("standard_with_excluded_grant_type_with_classification_as_public")
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_classification_as_public")
             .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
@@ -243,77 +243,83 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
-            .scenarioName("standard_with_excluded_grant_type_with_classification_as_private")
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_classification_as_private")
             .firstResults(0)
             .maxResults(10)
             .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(1)
-            .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
-                )
-            ).build();
-
-        final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
-            .scenarioName("standard_with_excluded_grant_type_with_classification_as_restricted")
-            .firstResults(0)
-            .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
-            .searchTaskRequest(searchTaskRequest)
-            .expectedSize(1)
-            .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
-                )
-            ).build();
-
-        return Stream.of(
-            publicClassification,
-            privateClassification,
-            restrictedClassification
-        );
-    }
-
-    private static Stream<TaskQuerycenario> grantTypeChallengedAndExcludedScenarioProviderHappyPath() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
-        ));
-
-        final TaskQuerycenario publicClassification = TaskQuerycenario.builder()
-            .scenarioName("challenged_with_excluded_grant_type_with_authorizations_and_classification_as_public")
-            .firstResults(0)
-            .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.PUBLIC))
-            .searchTaskRequest(searchTaskRequest)
-            .expectedSize(1)
-            .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
-                )
-            ).build();
-
-        final TaskQuerycenario privateClassification = TaskQuerycenario.builder()
-            .scenarioName("challenged_with_excluded_grant_type_with_authorizations_and_classification_as_private")
-            .firstResults(0)
-            .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.PRIVATE))
-            .searchTaskRequest(searchTaskRequest)
             .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
                 )
             ).build();
 
-        final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
-            .scenarioName("challenged_with_excluded_grant_type_with_authorizations_and_classification_as_restricted")
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(3)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
+                )
+            ).build();
+
+        return Stream.of(
+            publicClassification,
+            privateClassification,
+            restrictedClassification
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeChallengedScenarioProviderHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_classification_as_public")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(2)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
+                )
+            ).build();
+
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_classification_as_private")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.PRIVATE))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(3)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
+                )
+            ).build();
+
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_classification_as_restricted")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(4)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111006", "1623278362431006"
                 )
             ).build();
@@ -325,12 +331,64 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQuerycenario> withAllGrantTypesHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeExcludedScenarioProviderHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
         ));
 
-        final TaskQuerycenario restrictedClassification = TaskQuerycenario.builder()
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
+            .scenarioName("excluded_grant_type_with_classification_as_public")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeExcluded(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(1)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                )
+            ).build();
+
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
+            .scenarioName("excluded_grant_type_with_classification_as_private")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeExcluded(Classification.PRIVATE))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(2)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                )
+            ).build();
+
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
+            .scenarioName("excluded_grant_type_with_classification_as_restricted")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeExcluded(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(4)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                )
+            ).build();
+
+        return Stream.of(
+            publicClassification,
+            privateClassification,
+            restrictedClassification
+        );
+    }
+
+    private static Stream<TaskQueryScenario> withAllGrantTypesHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("includes_all_grant_types_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
@@ -353,23 +411,24 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQuerycenario> sortByFieldScenario() {
+    private static Stream<TaskQueryScenario> sortByFieldScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        final TaskQuerycenario sortByCaseId = TaskQuerycenario.builder()
+        final TaskQueryScenario sortByCaseId = TaskQueryScenario.builder()
             .scenarioName("Sort by caseId")
             .firstResults(0)
             .maxResults(10)
             .roleAssignments(sortByField(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(3)
+            .expectedSize(4)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002"
+                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005"
                 )
             ).build();
 
@@ -382,16 +441,17 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         )
         );
 
-        final TaskQuerycenario sortByMultipleFields = TaskQuerycenario.builder()
+        final TaskQueryScenario sortByMultipleFields = TaskQueryScenario.builder()
             .scenarioName("Sort by caseName and caseId")
             .firstResults(0)
             .maxResults(10)
             .roleAssignments(sortByField(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(3)
+            .expectedSize(4)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
                 "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001"
                 )
             ).build();
@@ -402,13 +462,13 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQuerycenario> paginatedResultsScenario() {
+    private static Stream<TaskQueryScenario> paginatedResultsScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        final TaskQuerycenario allTasks = TaskQuerycenario.builder()
+        final TaskQueryScenario allTasks = TaskQueryScenario.builder()
             .scenarioName("First ten records")
             .firstResults(0)
             .maxResults(20)
@@ -430,7 +490,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario firstPage = TaskQuerycenario.builder()
+        final TaskQueryScenario firstPage = TaskQueryScenario.builder()
             .scenarioName("First ten records")
             .firstResults(0)
             .maxResults(10)
@@ -451,7 +511,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario firstTwoRecords = TaskQuerycenario.builder()
+        final TaskQueryScenario firstTwoRecords = TaskQueryScenario.builder()
             .scenarioName("First two records")
             .firstResults(0)
             .maxResults(2)
@@ -464,7 +524,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
                 )
             ).build();
 
-        final TaskQuerycenario secondPage = TaskQuerycenario.builder()
+        final TaskQueryScenario secondPage = TaskQueryScenario.builder()
             .scenarioName("Starting with third record")
             .firstResults(1)
             .maxResults(10)
@@ -484,18 +544,21 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQuerycenario> invalidExUiSearchQuery() {
-        final TaskQuerycenario invalidJurisdiction = TaskQuerycenario.builder()
+    private static Stream<TaskQueryScenario> invalidExUiSearchQuery() {
+        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
+            .scenarioName("Invalid jurisdiction")
             .roleAssignments(mapRoleAssignments(Classification.PUBLIC))
             .searchTaskRequest(getSearchTaskRequest("IA1", null, "ASSIGNED", null))
             .build();
 
-        final TaskQuerycenario invalidLocation = TaskQuerycenario.builder()
+        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
+            .scenarioName("Invalid location")
             .roleAssignments(mapRoleAssignments(Classification.PUBLIC))
             .searchTaskRequest(getSearchTaskRequest("IA", "12345", "ASSIGNED", ""))
             .build();
 
-        final TaskQuerycenario invalidUser = TaskQuerycenario.builder()
+        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
+            .scenarioName("Invalid user")
             .roleAssignments(mapRoleAssignments(Classification.PUBLIC))
             .searchTaskRequest(getSearchTaskRequest(null, null, "ASSIGNED", "user1"))
             .build();
@@ -576,8 +639,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
             RoleAttributeDefinition.JURISDICTION.value(), "SCSS",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "653255",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
+            RoleAttributeDefinition.BASE_LOCATION.value(), "653255"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
@@ -591,8 +653,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         final Map<String, String> stcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
@@ -609,7 +670,6 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeChallenged(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003",
             RoleAttributeDefinition.JURISDICTION.value(), "SCSS"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
@@ -623,7 +683,6 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> stcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003",
             RoleAttributeDefinition.JURISDICTION.value(), "IA"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
@@ -631,6 +690,37 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .attributes(stcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    private static List<RoleAssignment> roleAssignmentsWithGrantTypeExcluded(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(classification)
+            .attributes(tcAttributes)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> stcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(stcAttributes)
+            .grantType(GrantType.EXCLUDED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -666,8 +756,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         final Map<String, String> stdAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
@@ -679,7 +768,6 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> challengedAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003",
             RoleAttributeDefinition.JURISDICTION.value(), "IA"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
@@ -687,6 +775,18 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> excludeddAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(excludeddAttributes)
+            .grantType(GrantType.EXCLUDED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -700,8 +800,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431005"
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
@@ -749,6 +848,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         final Map<String, String> attributes = Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum");
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
+            .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .attributes(attributes)
@@ -756,6 +856,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         roleAssignments.add(roleAssignment);
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
+            .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .attributes(attributes)
