@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -73,7 +74,68 @@ class CFTTaskMapperTest {
         assertEquals(false, taskResource.getAutoAssigned());
         assertEquals(null, taskResource.getWorkType());
         assertEquals(null, taskResource.getRoleCategory());
-        assertEquals(true, taskResource.getHasWarnings());
+        assertEquals(false, taskResource.getHasWarnings());
+        assertEquals(null, taskResource.getAssignmentExpiry());
+        assertEquals("00000", taskResource.getCaseId());
+        assertEquals("someCaseType", taskResource.getCaseTypeId());
+        assertEquals("someCaseName", taskResource.getCaseName());
+        assertEquals("someJurisdiction", taskResource.getJurisdiction());
+        assertEquals("someRegion", taskResource.getRegion());
+        assertEquals(null, taskResource.getRegionName());
+        assertEquals("someStaffLocationId", taskResource.getLocation());
+        assertEquals("someStaffLocationName", taskResource.getLocationName());
+        assertEquals(null, taskResource.getBusinessContext());
+        assertEquals(null, taskResource.getTerminationReason());
+        assertEquals(
+            OffsetDateTime.parse(formattedCreatedDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getCreated()
+        );
+        assertEquals(new ExecutionTypeResource(
+            ExecutionType.MANUAL,
+            ExecutionType.MANUAL.getName(),
+            ExecutionType.MANUAL.getDescription()
+        ), taskResource.getExecutionTypeCode());
+        assertEquals(null, taskResource.getTaskRoleResources());
+    }
+
+    @Test
+    void should_map_task_attributes_to_cft_task_with_warnings() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+
+        List<TaskAttribute> attributes = getDefaultAttributesWithWarnings(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskObject(taskId, attributes);
+
+
+        assertEquals("SOME_TASK_ID", taskResource.getTaskId());
+        assertEquals("someCamundaTaskName", taskResource.getTaskName());
+        assertEquals("someTaskType", taskResource.getTaskType());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getDueDateTime()
+        );
+        assertEquals(CFTTaskState.UNCONFIGURED, taskResource.getState());
+        assertEquals(TaskSystem.SELF, taskResource.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification());
+        assertEquals("someTitle", taskResource.getTitle());
+        assertEquals("someCamundaTaskDescription", taskResource.getDescription());
+        assertEquals("Code1", taskResource.getNotes().get(0).getCode());
+        assertEquals("WARNING", taskResource.getNotes().get(0).getNoteType());
+        assertEquals("Text1", taskResource.getNotes().get(0).getContent());
+        assertEquals("Code2", taskResource.getNotes().get(1).getCode());
+        assertEquals("WARNING", taskResource.getNotes().get(1).getNoteType());
+        assertEquals("Text2", taskResource.getNotes().get(1).getContent());
+        assertEquals(null, taskResource.getMajorPriority());
+        assertEquals(null, taskResource.getMinorPriority());
+        assertEquals("someAssignee", taskResource.getAssignee());
+        assertEquals(false, taskResource.getAutoAssigned());
+        assertEquals(null, taskResource.getWorkType());
+        assertEquals(null, taskResource.getRoleCategory());
+        assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());
         assertEquals("00000", taskResource.getCaseId());
         assertEquals("someCaseType", taskResource.getCaseTypeId());
@@ -161,12 +223,11 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_DUE_DATE, dueDate),
             new TaskAttribute(TaskAttributeDefinition.TASK_DESCRIPTION, "someCamundaTaskDescription"),
             new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TaskAttributeDefinition.TASK_HAS_WARNINGS, false),
             new TaskAttribute(TaskAttributeDefinition.TASK_JURISDICTION, "someJurisdiction"),
             new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION, "someStaffLocationId"),
             new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION_NAME, "someStaffLocationName"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "someCamundaTaskName"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, "SomeWarningListValue"),
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION, "someRegion"),
             new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "PUBLIC"),
             new TaskAttribute(TaskAttributeDefinition.TASK_STATE, CFTTaskState.UNCONFIGURED),
@@ -185,6 +246,18 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
         );
+    }
+
+
+    private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
+
+        List<TaskAttribute> defaultAttributes = getDefaultAttributes(createdDate, dueDate);
+        List<TaskAttribute> attributes = new ArrayList<>(defaultAttributes);
+        String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+        attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, values));
+
+        return attributes;
     }
 
 

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -27,7 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -87,7 +90,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_200_with_task() throws Exception {
+    void should_return_200_with_task_unassigned() throws Exception {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -102,15 +105,84 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isCreated(),
-                content().contentType(APPLICATION_JSON_VALUE),
-                jsonPath("$.task_id").value(taskId),
-                jsonPath("$.task_type").value("aTaskType"),
-                jsonPath("$.task_name").value("aTaskName")
-            ));
+        ).andDo(MockMvcResultHandlers.print())
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isCreated(),
+                    content().contentType(APPLICATION_JSON_VALUE),
+                    jsonPath("$.task_id").value(taskId),
+                    jsonPath("$.task_type").value("aTaskType"),
+                    jsonPath("$.task_name").value("aTaskName"),
+                    jsonPath("$.state").value("UNASSIGNED"),
+                    jsonPath("$.auto_assigned").value(false),
+                    jsonPath("$.has_warnings").value("false")
+                ));
     }
 
+
+    @Test
+    void should_return_200_with_task_assigned() throws Exception {
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_NAME, "aTaskName")
+        ));
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req))
+        ).andDo(MockMvcResultHandlers.print())
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isCreated(),
+                    content().contentType(APPLICATION_JSON_VALUE),
+                    jsonPath("$.task_id").value(taskId),
+                    jsonPath("$.task_type").value("aTaskType"),
+                    jsonPath("$.task_name").value("aTaskName"),
+                    jsonPath("$.state").value("ASSIGNED"),
+                    jsonPath("$.assignee").value("someAssignee"),
+                    jsonPath("$.auto_assigned").value(false),
+                    jsonPath("$.has_warnings").value("false")
+                ));
+    }
+
+    @Test
+    void should_return_200_with_task_state_from_attributes() throws Exception {
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_NAME, "aTaskName")
+        ));
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req))
+        ).andDo(MockMvcResultHandlers.print())
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isCreated(),
+                    content().contentType(APPLICATION_JSON_VALUE),
+                    jsonPath("$.task_id").value(taskId),
+                    jsonPath("$.task_type").value("aTaskType"),
+                    jsonPath("$.task_name").value("aTaskName"),
+                    jsonPath("$.state").value("UNCONFIGURED"),
+                    jsonPath("$.assignee").value("someAssignee"),
+                    jsonPath("$.auto_assigned").value(false),
+                    jsonPath("$.has_warnings").value("false")
+                ));
+    }
 }
 
