@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_BUSINESS_CONTEXT;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
@@ -54,8 +55,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis"})
 public class CFTTaskMapper {
 
+    private final ObjectMapper objectMapper;
+
     @Autowired
-    private ObjectMapper objectMapper;
+    public CFTTaskMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public TaskResource mapToTaskObject(String taskId, List<TaskAttribute> taskAttributes) {
 
@@ -82,7 +87,7 @@ public class CFTTaskMapper {
             read(attributes, TASK_MAJOR_PRIORITY, null),
             read(attributes, TASK_MINOR_PRIORITY, null),
             read(attributes, TASK_ASSIGNEE, null),
-            read(attributes, TASK_ASSIGNEE, false),
+            read(attributes, TASK_AUTO_ASSIGNED, false),
             executionTypeResource,
             read(attributes, TASK_WORK_TYPE, null),
             read(attributes, TASK_ROLE_CATEGORY, null),
@@ -116,7 +121,7 @@ public class CFTTaskMapper {
                 );
             } else {
                 throw new IllegalStateException(
-                    "executionTypeName " + executionTypeName + " could not be mapped to ExecutionType enum"
+                    "ExecutionTypeName value: '" + executionTypeName + "' could not be mapped to ExecutionType enum"
                 );
             }
         }

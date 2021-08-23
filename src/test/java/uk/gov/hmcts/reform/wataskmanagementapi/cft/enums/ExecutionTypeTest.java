@@ -8,13 +8,28 @@ class ExecutionTypeTest {
 
     @Test
     void simpleEnumExampleOutsideClassTest() {
-        final String manualEnum = ExecutionType.MANUAL.getValue();
-        final String builtInEnum = ExecutionType.BUILT_IN.getValue();
-        final String caseEventEnum = ExecutionType.CASE_EVENT.getValue();
+        assertEquals("MANUAL", ExecutionType.MANUAL.getValue());
+        assertEquals("Manual", ExecutionType.MANUAL.getName());
+        assertEquals(
+            "The task is carried out manually, and must be completed by the user in the task management UI.",
+            ExecutionType.MANUAL.getDescription()
+        );
 
-        assertEquals("MANUAL", manualEnum);
-        assertEquals("BUILT_IN", builtInEnum);
-        assertEquals("CASE_EVENT", caseEventEnum);
+        assertEquals("BUILT_IN", ExecutionType.BUILT_IN.getValue());
+        assertEquals("Built In", ExecutionType.BUILT_IN.getName());
+        assertEquals(
+            "The application through which the task is presented to the user knows "
+            + "how to launch and complete this task, based on its formKey.",
+            ExecutionType.BUILT_IN.getDescription()
+        );
+
+        assertEquals("CASE_EVENT", ExecutionType.CASE_EVENT.getValue());
+        assertEquals("Case Management Task", ExecutionType.CASE_EVENT.getName());
+        assertEquals(
+            "The task requires a case management event to be "
+            + "executed by the user. (Typically this will be in CCD.)",
+            ExecutionType.CASE_EVENT.getDescription()
+        );
     }
 
     @Test
