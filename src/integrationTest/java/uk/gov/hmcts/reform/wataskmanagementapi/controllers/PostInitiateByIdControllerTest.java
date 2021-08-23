@@ -90,7 +90,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_200_with_task_unassigned() throws Exception {
+    void should_return_201_with_task_unassigned() throws Exception {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -121,7 +121,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
 
     @Test
-    void should_return_200_with_task_assigned() throws Exception {
+    void should_return_201_with_task_assigned() throws Exception {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -153,7 +153,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_200_with_task_state_from_attributes() throws Exception {
+    void should_return_201_with_task_state_from_attributes() throws Exception {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
