@@ -237,7 +237,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             )).thenReturn(true);
 
             doThrow(FeignException.FeignServerException.class)
-                .when(camundaServiceApi).completeTask(any(), any(), any());
+                .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             createAndSaveTestTask(taskId);
 
@@ -246,6 +246,42 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. Unable to update task state to completed.");
+
+            verifyTransactionWasRolledBack(taskId);
+
+        }
+
+        @
+            Test
+        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() throws Exception {
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+            when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
+            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
+            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                IDAM_USER_ID,
+                IDAM_USER_ID,
+                mockedVariables,
+                roleAssignment,
+                asList(OWN, EXECUTE)
+            )).thenReturn(true);
+
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).completeTask(any(), any(), any());
+
+            createAndSaveTestTask(taskId);
+
+            assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                () -> taskManagementService.completeTask(taskId, accessControlResponse)))
+                .isInstanceOf(TaskCompleteException.class)
+                .hasNoCause()
+                .hasMessage("Task Complete Error: Task complete partially succeeded. "
+                            + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId);
 
@@ -358,7 +394,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
                 doThrow(FeignException.FeignServerException.class)
-                    .when(camundaServiceApi).completeTask(any(), any(), any());
+                    .when(camundaServiceApi).searchHistory(any(), any());
 
                 createAndSaveTestTask(taskId);
 
