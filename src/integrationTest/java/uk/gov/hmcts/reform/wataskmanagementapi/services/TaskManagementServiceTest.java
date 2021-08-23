@@ -251,9 +251,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
         }
 
-        @
-            Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() throws Exception {
+        @Test
+        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda_complete() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
