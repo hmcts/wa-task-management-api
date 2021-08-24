@@ -15,9 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +40,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
         final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
         final TaskResource taskResource = tasksIt.iterator().next();
-        final NoteResource notes = taskResource.getNotes();
+        final List<NoteResource> notes = taskResource.getNotes();
 
         assertAll(
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
@@ -49,7 +51,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
             () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),
             () -> assertNotNull(notes),
-            () -> assertEquals("noteTypeVal", notes.getNoteType())
+            () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
 
         final Set<TaskRoleResource> taskRoles = taskResource.getTaskRoleResources();
@@ -68,7 +70,12 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
     }
 
     private TaskResource createAndSaveTask() {
-
+        List<NoteResource> notes = singletonList(
+            new NoteResource("someCode",
+                             "noteTypeVal",
+                             "userVal", OffsetDateTime.now(),
+                             "someContent"
+            ));
         TaskResource taskResource = new TaskResource(
             "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
             "aTaskName",
@@ -79,7 +86,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             SecurityClassification.PUBLIC,
             "title",
             "a description",
-            new NoteResource("noteTypeVal", "userVal", OffsetDateTime.now()),
+            notes,
             0,
             0,
             "someAssignee",
