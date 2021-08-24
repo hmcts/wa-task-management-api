@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -72,7 +73,7 @@ public class TaskResource implements Serializable {
 
     @Type(type = "jsonb")
     @Column(columnDefinition = "jsonb")
-    private NoteResource notes;
+    private List<NoteResource> notes;
 
     private Integer majorPriority;
     private Integer minorPriority;
@@ -135,7 +136,7 @@ public class TaskResource implements Serializable {
                         SecurityClassification securityClassification,
                         String title,
                         String description,
-                        NoteResource notes,
+                        List<NoteResource> notes,
                         Integer majorPriority,
                         Integer minorPriority,
                         String assignee,
@@ -227,7 +228,7 @@ public class TaskResource implements Serializable {
         this.description = description;
     }
 
-    public void setNotes(NoteResource notes) {
+    public void setNotes(List<NoteResource> notes) {
         this.notes = notes;
     }
 
