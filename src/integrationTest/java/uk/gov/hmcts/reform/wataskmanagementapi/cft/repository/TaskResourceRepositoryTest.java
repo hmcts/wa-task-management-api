@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
@@ -30,6 +31,12 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+
+
+    @BeforeEach
+    void setUp() {
+        taskResourceRepository.deleteAll();
+    }
 
     @Test
     void shouldReadTaskData() {

@@ -4,6 +4,8 @@ spring:
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     properties:
       charSet: UTF-8
+    hikari:
+      minimum-idle: 5
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

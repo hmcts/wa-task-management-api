@@ -67,7 +67,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
-            roleAssignmentServiceApi);
+            roleAssignmentServiceApi
+        );
     }
 
     @ParameterizedTest
@@ -130,7 +131,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             ResultMatcher.matchAll(
                 status().isOk(),
                 jsonPath("total_records").value(0),
-                jsonPath("$.tasks").isEmpty())
+                jsonPath("$.tasks").isEmpty()
+            )
         );
     }
 
