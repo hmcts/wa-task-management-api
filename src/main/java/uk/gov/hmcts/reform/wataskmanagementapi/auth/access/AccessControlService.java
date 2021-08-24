@@ -49,4 +49,24 @@ public class AccessControlService {
             roleAssignments
         );
     }
+
+    public String getUser(String authToken) {
+        return idamService.getUserId(authToken);
+    }
+
+    public AccessControlResponse getRolesByActorId(String actorId, String authToken) {
+
+        List<RoleAssignment> roleAssignments = roleAssignmentService.getRolesByActorId(actorId, authToken);
+
+        //Safe-guard
+        if (roleAssignments.isEmpty()) {
+            throw new NoRoleAssignmentsFoundException(
+                "User did not have sufficient permissions to perform this action"
+            );
+        }
+
+        roleAssignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
+        return new AccessControlResponse(idamService.getUserInfo(authToken), roleAssignments);
+    }
+
 }

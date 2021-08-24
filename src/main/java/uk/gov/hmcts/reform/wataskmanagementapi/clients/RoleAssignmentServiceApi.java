@@ -35,6 +35,7 @@ public interface RoleAssignmentServiceApi {
                                            @RequestHeader(AUTHORIZATION) String userToken,
                                            @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
 
+
     @DeleteMapping(
         value = "/am/role-assignments/{role-assignment-id}",
         consumes = MediaType.APPLICATION_JSON_VALUE
@@ -60,4 +61,11 @@ public interface RoleAssignmentServiceApi {
         @RequestHeader(SERVICE_AUTHORIZATION) String s2sToken,
         @RequestBody MultipleQueryRequest queryRequest
     );
+
+    @GetMapping(
+        value = "/am/role-assignments/actors/{actorId}",
+        produces = "application/vnd.uk.gov.hmcts.role-assignment-service.get-assignments+json;charset=UTF-8;version=1.0"
+    )
+    RoleAssignmentResource getRolesByActorId(@PathVariable("actorId") String actorId,
+                                           @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
 }

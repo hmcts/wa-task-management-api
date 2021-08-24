@@ -48,4 +48,12 @@ public class RoleAssignmentService {
         }
     }
 
+    public List<RoleAssignment> getRolesByActorId(String actorId,String authToken) {
+        requireNonNull(actorId, "actorId cannot be null");
+
+        RoleAssignmentResource rar = roleAssignmentServiceApi
+            .getRolesByActorId(actorId, serviceAuthTokenGenerator.generate());
+        return rar.getRoleAssignmentResponse();
+    }
+
 }

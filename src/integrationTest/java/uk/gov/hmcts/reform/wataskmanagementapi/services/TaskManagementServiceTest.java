@@ -70,6 +70,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private PermissionEvaluatorService permissionEvaluatorService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @MockBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired
@@ -104,7 +106,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            cftWorkTypeDatabaseService
         );
 
         mockServices.mockServiceAPIs();
