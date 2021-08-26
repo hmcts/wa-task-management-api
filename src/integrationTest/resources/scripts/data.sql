@@ -12,7 +12,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111000', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431000', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -28,7 +28,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111001', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431001', 'TestCase', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-06-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PRIVATE', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -44,7 +44,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111002', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431002', 'TestCase6', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-07-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -61,7 +61,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111003', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431003', 'TestCase2', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-08-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -77,7 +77,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111004', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431004', 'TestCase2', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-09-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PRIVATE', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -93,7 +93,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111005', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431005', 'TestCase3', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-10-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -114,7 +114,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111006', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431006', 'TestCase', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -136,7 +136,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111007', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431007', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -153,7 +153,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111008', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431008', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'PRIVATE', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -170,7 +170,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111009', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431009', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -188,7 +188,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111010', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431010', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -201,7 +201,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111011', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431011', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -214,7 +214,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111012', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431012', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -228,7 +228,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111013', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431013', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -241,7 +241,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111014', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431014', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
@@ -254,7 +254,7 @@ insert into cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assign
                                termination_reason, title, work_type, execution_type_code)
 values ('8d6cc5cf-c973-11eb-bdba-0242ac111015', 'SELF','2022-05-09T20:15:45.345875+01:00', false, 'CFT_TASK',
         '1623278362431015', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00',
-        false, 'IA', '765324', 'Taylor House', 0, 0, '{"user": "userVal", "noteType": "noteTypeVal"}', '1', 'TestRegion', 'JUDICIAL',
+        false, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL',
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'workType', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)

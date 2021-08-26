@@ -49,9 +49,9 @@ public class JacksonConfigurationTest extends SpringBootIntegrationBaseTest {
     @Builder
     @Getter
     private static class ObjectMapperTestObject {
-        private String id;
-        private ActorIdType actorIdType;
-        private String actorId;
+        private final String id;
+        private final ActorIdType actorIdType;
+        private final String actorId;
 
     }
 

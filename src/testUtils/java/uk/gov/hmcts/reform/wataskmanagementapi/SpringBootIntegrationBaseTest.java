@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TransactionHelper;
 
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
@@ -27,6 +28,8 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 public abstract class SpringBootIntegrationBaseTest {
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
+    @Autowired
+    protected TransactionHelper transactionHelper;
     @Autowired
     protected MockMvc mockMvc;
     @Autowired
