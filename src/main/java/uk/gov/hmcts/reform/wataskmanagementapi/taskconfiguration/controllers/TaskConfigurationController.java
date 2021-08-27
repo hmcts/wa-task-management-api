@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.response.ConfigureTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -79,14 +80,15 @@ public class TaskConfigurationController {
 
         String caseId = (String) variables.get(CASE_ID.value());
         String taskName = (String) variables.get(TASK_NAME.value());
+        String taskTypeId = (String) variables.get(CamundaVariableDefinition.TASK_ID.value());
 
         ConfigureTaskResponse response =
             configureTaskService.getConfiguration(
                 new TaskToConfigure(
                     taskId,
+                    taskTypeId,
                     caseId,
-                    taskName,
-                    configureTaskRequest.getProcessVariables()
+                    taskName
                 )
             );
 

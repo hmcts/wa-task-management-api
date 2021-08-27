@@ -28,11 +28,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entit
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.AssigneeRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 
 import java.util.HashMap;
@@ -45,6 +45,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -325,12 +326,16 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
              )
         ).thenReturn(caseDetails);
 
-        when(camundaServiceApi.evaluateDmnTable(
-            BEARER_SERVICE_TOKEN,
-            WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
-             )
-        ).thenReturn(singletonList(new DecisionTableResult(stringValue("name"), stringValue("value1"))));
+        doReturn(
+            singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1")))
+        ).when(
+            camundaServiceApi.evaluateDmnTable(
+                BEARER_SERVICE_TOKEN,
+                WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
+                "ia",
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
+            )
+        );
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("caseId", stringValue(testCaseId));

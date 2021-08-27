@@ -5,15 +5,16 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.response.ConfigureTaskResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.configurators.TaskConfigurator;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,27 +34,27 @@ class ConfigureTaskServiceTest {
     private TaskConfigurationCamundaService camundaService;
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
-    private TaskAutoAssignmentService service;
+    private TaskAutoAssignmentService autoAssignmentService;
+    private CFTTaskMapper cftTaskMapper;
 
     @BeforeEach
     void setup() {
         camundaService = mock(TaskConfigurationCamundaService.class);
         taskVariableExtractor = mock(TaskConfigurator.class);
-        service = mock(TaskAutoAssignmentService.class);
+        autoAssignmentService = mock(TaskAutoAssignmentService.class);
+        cftTaskMapper = mock(CFTTaskMapper.class);
         configureTaskService = new ConfigureTaskService(
             camundaService,
             Collections.singletonList(taskVariableExtractor),
-            service
+            autoAssignmentService,
+            cftTaskMapper
         );
 
         task = new TaskToConfigure(
             "taskId",
+            "taskTypeId",
             "caseId",
-            "taskName",
-            Map.of(
-                CASE_ID.value(), "caseId",
-                TASK_STATE.value(), "unconfigured"
-            )
+            "taskName"
         );
     }
 
@@ -87,7 +88,7 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
         when(taskVariableExtractor.getConfigurationVariables(task))
-            .thenReturn(mappedValues);
+            .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(task.getId());
 
@@ -131,7 +132,7 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
         when(taskVariableExtractor.getConfigurationVariables(task))
-            .thenReturn(mappedValues);
+            .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(task.getId());
 
@@ -164,8 +165,7 @@ class ConfigureTaskServiceTest {
                 "assignee1"
             );
 
-        when(service
-                 .getAutoAssignmentVariables(task))
+        when(autoAssignmentService.getAutoAssignmentVariables(task))
             .thenReturn(autoAssignmentResult);
 
         final ConfigureTaskResponse configureTaskResponse =
@@ -182,8 +182,7 @@ class ConfigureTaskServiceTest {
 
         final AutoAssignmentResult result = mock(AutoAssignmentResult.class);
 
-        when(service
-                 .getAutoAssignmentVariables(task))
+        when(autoAssignmentService.getAutoAssignmentVariables(task))
             .thenReturn(result);
 
         final ConfigureTaskResponse configureTaskResponse =

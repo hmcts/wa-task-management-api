@@ -89,6 +89,7 @@ public class TaskResource implements Serializable {
     private String caseId;
     private String caseTypeId;
     private String caseName;
+    private String caseCategory;
     private String jurisdiction;
     private String region;
     private String regionName;
@@ -157,8 +158,8 @@ public class TaskResource implements Serializable {
                         BusinessContext businessContext,
                         String terminationReason,
                         OffsetDateTime created,
-                        Set<TaskRoleResource> taskRoleResources) {
-
+                        Set<TaskRoleResource> taskRoleResources,
+                        String caseCategory) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -190,6 +191,7 @@ public class TaskResource implements Serializable {
         this.terminationReason = terminationReason;
         this.created = created;
         this.taskRoleResources = taskRoleResources;
+        this.caseCategory = caseCategory;
     }
 
     public void setTaskId(String taskId) {
@@ -316,4 +318,7 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
     }
 
+    public void setCaseCategory(String caseCategory) {
+        this.caseCategory = caseCategory;
+    }
 }

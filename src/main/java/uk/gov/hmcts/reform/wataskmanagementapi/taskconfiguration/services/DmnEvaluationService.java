@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.EvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 
 import java.util.List;
 
@@ -28,27 +30,38 @@ public class DmnEvaluationService {
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
     }
 
-    public List<DecisionTableResult> evaluateTaskPermissionsDmn(String jurisdiction,
-                                                                String caseType,
-                                                                String caseData) {
+    @SuppressWarnings("unchecked")
+    public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
+                                                                             String caseType,
+                                                                             String caseData) {
         String decisionTableKey = WA_TASK_PERMISSIONS.getTableKey(jurisdiction, caseType);
-        return performEvaluateDmnAction(decisionTableKey, caseData);
+        return (List<PermissionsDmnEvaluationResponse>) performEvaluateDmnAction(
+            decisionTableKey,
+            decisionTableKey,
+            caseData
+        );
     }
 
-
-    public List<DecisionTableResult> evaluateTaskConfigurationDmn(String jurisdiction,
-                                                                  String caseType,
-                                                                  String caseData) {
+    @SuppressWarnings("unchecked")
+    public List<ConfigurationDmnEvaluationResponse> evaluateTaskConfigurationDmn(String jurisdiction,
+                                                                                 String caseType,
+                                                                                 String caseData) {
         String decisionTableKey = WA_TASK_CONFIGURATION.getTableKey(jurisdiction, caseType);
-        return performEvaluateDmnAction(decisionTableKey, caseData);
+        return (List<ConfigurationDmnEvaluationResponse>) performEvaluateDmnAction(
+            decisionTableKey,
+            jurisdiction,
+            caseData
+        );
     }
 
-    private List<DecisionTableResult> performEvaluateDmnAction(String decisionTableKey,
-                                                               String caseData) {
+    private List<? extends EvaluationResponse> performEvaluateDmnAction(String decisionTableKey,
+                                                                        String jurisdiction,
+                                                                        String caseData) {
         try {
             return camundaServiceApi.evaluateDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
+                jurisdiction,
                 new DmnRequest<>(
                     new DecisionTableRequest(jsonValue(caseData))
                 )
