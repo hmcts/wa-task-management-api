@@ -60,7 +60,8 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         "grantTypeSpecificScenarioProviderHappyPath",
         "grantTypeStandardScenarioProviderHappyPath",
         "grantTypeChallengedScenarioProviderHappyPath",
-        "grantTypeExcludedScenarioProviderHappyPath",
+        "grantTypeWithStandardAndExcludedScenarioProviderHappyPath",
+        "grantTypeWithChallengedAndExcludedScenarioProviderHappyPath",
         "withAllGrantTypesHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
@@ -135,6 +136,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PUBLIC))
             .expectedSize(1)
+            // taskId and caseId
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007"
                 )
@@ -331,7 +333,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeExcludedScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedScenarioProviderHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
         ));
@@ -340,7 +342,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .scenarioName("excluded_grant_type_with_classification_as_public")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeExcluded(Classification.PUBLIC))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandardAndExcluded(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
@@ -352,7 +354,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .scenarioName("excluded_grant_type_with_classification_as_private")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeExcluded(Classification.PRIVATE))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandardAndExcluded(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
@@ -365,7 +367,59 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .scenarioName("excluded_grant_type_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeExcluded(Classification.RESTRICTED))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandardAndExcluded(Classification.RESTRICTED))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(4)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                )
+            ).build();
+
+        return Stream.of(
+            publicClassification,
+            privateClassification,
+            restrictedClassification
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeWithChallengedAndExcludedScenarioProviderHappyPath() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
+            .scenarioName("excluded_grant_type_with_classification_as_public")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeChallengedAndExcluded(Classification.PUBLIC))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(1)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                )
+            ).build();
+
+        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
+            .scenarioName("excluded_grant_type_with_classification_as_private")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeChallengedAndExcluded(Classification.PRIVATE))
+            .searchTaskRequest(searchTaskRequest)
+            .expectedSize(2)
+            .expectedTaskDetails(Lists.newArrayList(
+                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
+                )
+            ).build();
+
+        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
+            .scenarioName("excluded_grant_type_with_classification_as_restricted")
+            .firstResults(0)
+            .maxResults(10)
+            .roleAssignments(roleAssignmentsWithGrantTypeStandardAndExcluded(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(4)
             .expectedTaskDetails(Lists.newArrayList(
@@ -728,7 +782,9 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         return roleAssignments;
     }
 
-    private static List<RoleAssignment> roleAssignmentsWithGrantTypeExcluded(Classification classification) {
+    private static List<RoleAssignment> roleAssignmentsWithGrantTypeStandardAndExcluded(
+        Classification classification
+    ) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
@@ -739,6 +795,39 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             .classification(classification)
             .attributes(tcAttributes)
             .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> stcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(stcAttributes)
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
+    private static List<RoleAssignment> roleAssignmentsWithGrantTypeChallengedAndExcluded(
+        Classification classification
+    ) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(classification)
+            .attributes(tcAttributes)
+            .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
