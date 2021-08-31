@@ -286,47 +286,47 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
         asList("case-allocator", "case-manager")
             .forEach(roleName -> {
 
-                         setupRoleAssignmentResponseWithCustomRoleName(roleName, true);
-                         configure3rdPartyResponses();
+                    setupRoleAssignmentResponseWithCustomRoleName(roleName, true);
+                    configure3rdPartyResponses();
 
-                         String expectedResponse = "{\n"
-                                                   + "  \"task_id\": \"" + testTaskId + "\",\n"
-                                                   + "  \"case_id\": \"" + testCaseId + "\",\n"
-                                                   + "  \"assignee\": \"" + testUserId + "\",\n"
-                                                   + "  \"configuration_variables\": {\n"
-                                                   + "    \"taskType\": \"reviewTheAppeal\",\n"
-                                                   + "    \"jurisdiction\": \"IA\",\n"
-                                                   + "    \"caseTypeId\": \"Asylum\",\n"
-                                                   + "    \"taskState\": \"assigned\",\n"
-                                                   + "    \"executionType\": \"Case Management Task\",\n"
-                                                   + "    \"caseId\": \"" + testCaseId + "\",\n"
-                                                   + "    \"securityClassification\": \"PUBLIC\",\n"
-                                                   + "    \"autoAssigned\": true,\n"
-                                                   + "    \"taskSystem\": \"SELF\",\n"
-                                                   + "    \"title\": \"taskName\""
-                                                   + "  }\n"
-                                                   + "}";
+                    String expectedResponse = "{\n"
+                                              + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                              + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                              + "  \"assignee\": \"" + testUserId + "\",\n"
+                                              + "  \"configuration_variables\": {\n"
+                                              + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                              + "    \"jurisdiction\": \"IA\",\n"
+                                              + "    \"caseTypeId\": \"Asylum\",\n"
+                                              + "    \"taskState\": \"assigned\",\n"
+                                              + "    \"executionType\": \"Case Management Task\",\n"
+                                              + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                              + "    \"securityClassification\": \"PUBLIC\",\n"
+                                              + "    \"autoAssigned\": true,\n"
+                                              + "    \"taskSystem\": \"SELF\",\n"
+                                              + "    \"title\": \"taskName\""
+                                              + "  }\n"
+                                              + "}";
 
 
-                         Map<String, Object> requiredProcessVariables = Map.of(
-                             TASK_ID.value(), "reviewTheAppeal",
-                             CASE_ID.value(), testCaseId,
-                             CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
-                         );
+                    Map<String, Object> requiredProcessVariables = Map.of(
+                        TASK_ID.value(), "reviewTheAppeal",
+                        CASE_ID.value(), testCaseId,
+                        CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
+                    );
 
-                         try {
-                             mockMvc.perform(
-                                 post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
-                                     .contentType(APPLICATION_JSON_VALUE)
-                                     .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
-                             )
-                                 .andExpect(status().isOk())
-                                 .andExpect(content().json(expectedResponse))
-                                 .andReturn();
-                         } catch (Exception e) {
-                             e.printStackTrace();
-                         }
-                     }
+                    try {
+                        mockMvc.perform(
+                            post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
+                                .contentType(APPLICATION_JSON_VALUE)
+                                .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
+                        )
+                            .andExpect(status().isOk())
+                            .andExpect(content().json(expectedResponse))
+                            .andReturn();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             );
 
     }
@@ -334,14 +334,14 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
     private List<RoleAssignment> createRoleAssignmentWithCustomRoleName(String roleName) {
 
         return List.of(RoleAssignment.builder()
-                           .id("someId")
-                           .actorIdType(ActorIdType.IDAM)
-                           .actorId(testUserId)
-                           .roleName(roleName)
-                           .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                           .roleType(RoleType.ORGANISATION)
-                           .classification(Classification.PUBLIC)
-                           .build());
+            .id("someId")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId(testUserId)
+            .roleName(roleName)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .build());
 
     }
 
@@ -396,14 +396,14 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             BEARER_USER_TOKEN,
             BEARER_SERVICE_TOKEN,
             testCaseId
-             )
+            )
         ).thenReturn(caseDetails);
 
         when(camundaServiceApi.evaluateDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
-             )
+            )
         ).thenReturn(singletonList(new DecisionTableResult(stringValue("name"), stringValue("value1"))));
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
