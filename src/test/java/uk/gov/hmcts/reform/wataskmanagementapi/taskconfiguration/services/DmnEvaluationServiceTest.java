@@ -21,6 +21,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
@@ -46,7 +48,7 @@ class DmnEvaluationServiceTest {
     @Test
     void should_succeed_and_return_a_list_of_permissions() {
         String ccdData = getCcdData();
-        List<? extends EvaluationResponse> mockedResponse = asList(
+        List<PermissionsDmnEvaluationResponse> mockedResponse = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunalCaseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
@@ -64,12 +66,12 @@ class DmnEvaluationServiceTest {
         );
 
         doReturn(mockedResponse)
-            .when(camundaServiceApi.evaluateDmnTable(
-                BEARER_SERVICE_TOKEN,
-                WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
-                "ia",
-                new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData)))
-            ));
+            .when(camundaServiceApi).evaluateDmnTable(
+            eq(BEARER_SERVICE_TOKEN),
+            eq(WA_TASK_PERMISSIONS.getTableKey("ia", "asylum")),
+            eq("ia"),
+            any()
+        );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
