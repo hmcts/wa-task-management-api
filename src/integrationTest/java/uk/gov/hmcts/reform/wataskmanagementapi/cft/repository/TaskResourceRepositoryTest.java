@@ -41,12 +41,12 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Test
     void shouldReadTaskData() {
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
-        createAndSaveTask(taskId);
+        TaskResource str = createAndSaveTask();
         assertEquals(1, taskResourceRepository.count());
 
-        assertTrue(taskResourceRepository.findById(taskId).isPresent());
-        WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
+        assertTrue(taskResourceRepository.findById(str.getTaskId()).isPresent());
+        WorkTypeResource workTypeResource = taskResourceRepository
+            .findById(str.getTaskId()).get().getWorkTypeResource();
         assertEquals("routine_work", workTypeResource.getId());
         assertEquals("Routine work", workTypeResource.getLabel());
 
@@ -82,7 +82,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
         );
     }
 
-    private TaskResource createAndSaveTask(String taskId) {
+    private TaskResource createAndSaveTask() {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                              "noteTypeVal",
@@ -90,7 +90,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
                              "someContent"
             ));
         TaskResource taskResource = new TaskResource(
-            taskId,
+            "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
             "aTaskName",
             "startAppeal",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),

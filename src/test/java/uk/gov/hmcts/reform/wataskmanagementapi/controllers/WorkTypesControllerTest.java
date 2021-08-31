@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -50,6 +51,7 @@ class WorkTypesControllerTest {
     private AccessControlResponse mockedAccessControlResponse;
 
     private WorkTypesController workTypesController;
+    private String workTypeKey;
 
     @BeforeEach
     void setUp() {
@@ -109,12 +111,16 @@ class WorkTypesControllerTest {
     @Test
     void should_return_a_list_of_work_types_when_user_has_many_work_types() {
 
-        UserInfo userInfo = new UserInfo("", "",
-                                         new ArrayList<>(Arrays.asList("Role1","Role2")),
-                                         "",
-                                         "",
-                                         "");
+        UserInfo userInfo = UserInfo.builder()
+            .email("")
+            .uid("")
+            .roles(new ArrayList<>(Arrays.asList("Role1", "Role2")))
+            .name("")
+            .givenName("")
+            .familyName("")
+            .build();
 
+        workTypeKey = RoleAttributeDefinition.WORK_TYPES.value();
         RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
                                                            "1258555",
                                                            RoleType.CASE,
@@ -123,7 +129,7 @@ class WorkTypesControllerTest {
                                                            GrantType.BASIC,
                                                            RoleCategory.JUDICIAL,
                                                            false,
-                                                           Map.of("workTypes","hearing_work,upper_tribunal"));
+                                                           Map.of(workTypeKey, "hearing_work,upper_tribunal"));
         List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
 

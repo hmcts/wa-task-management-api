@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.slf4j.Logger;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,22 +17,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 @RequestMapping(path = "/work-types", produces = APPLICATION_JSON_VALUE)
 @RestController
 public class WorkTypesController extends BaseController {
-    private static final Logger LOG = getLogger(WorkTypesController.class);
-
     private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
 
@@ -54,15 +50,7 @@ public class WorkTypesController extends BaseController {
         List<WorkType> workTypes = new ArrayList<>();
 
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-
-        LOG.info("Access Control Response  found [{}]", roles);
-
-        if (roles.getRoleAssignments().isEmpty()) {
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(Collections.emptyList());
-        } else {
+        if (!roles.getRoleAssignments().isEmpty()) {
             Set<String> roleWorkTypes = getActorWorkTypes(authToken, roles);
 
             if (!roleWorkTypes.isEmpty()) {
@@ -72,12 +60,13 @@ public class WorkTypesController extends BaseController {
                     optionalWorkType.ifPresent(workTypes::add);
                 }
             }
-
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(workTypes);
         }
+
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(workTypes);
+
     }
 
     private Set<String> getActorWorkTypes(String authToken, AccessControlResponse accessControlResponse) {
@@ -88,13 +77,9 @@ public class WorkTypesController extends BaseController {
         AccessControlResponse actorRoles = accessControlService.getRolesByActorId(actorId, authToken);
 
         for (RoleAssignment roleAssignment : actorRoles.getRoleAssignments()) {
-            String assignedWorkedList = roleAssignment.getAttributes().get("workTypes");
+            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
             if (assignedWorkedList != null && !assignedWorkedList.isEmpty()) {
-                if (assignedWorkedList.indexOf(',') == -1) {
-                    roleWorkTypes.add(assignedWorkedList);
-                } else if (assignedWorkedList.contains(",")) {
-                    roleWorkTypes.addAll(Arrays.asList(assignedWorkedList.split(",")));
-                }
+                roleWorkTypes.addAll(Arrays.asList(assignedWorkedList.split(",")));
             }
         }
         return roleWorkTypes;
