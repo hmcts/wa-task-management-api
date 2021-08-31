@@ -28,6 +28,7 @@ import java.util.Map;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest {
@@ -81,6 +82,51 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
 
         assertThat(roleAssignmentResource.getRoleAssignmentResponse()).isNotEmpty();
         assertThat(roleAssignmentResource.getRoleAssignmentResponse().get(0)).isEqualTo(expectedRoleAssignment);
+    }
+
+
+    @Test
+    void queryRoleAssignmentAndReceiveNewRolesTest() {
+
+        asList("case-manager", "case-allocator").forEach(testRole -> {
+
+            String roleAssignmentsResponseAsJsonString = null;
+            try {
+                roleAssignmentsResponseAsJsonString = loadJsonFileResourceForRoleName(testRole);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            stubRoleAssignmentApiResponse(roleAssignmentsResponseAsJsonString);
+
+            RoleAssignmentResource roleAssignmentResource = roleAssignmentServiceApi.queryRoleAssignments(
+                "user token",
+                "s2s token",
+                MultipleQueryRequest.builder().build()
+            );
+
+            RoleAssignment expectedRoleAssignment = RoleAssignment.builder()
+                .id("428971b1-3954-4783-840f-c2718732b466")
+                .actorIdType(ActorIdType.IDAM)
+                .actorId("122f8de4-2eb6-4dcf-91c9-16c2c8aaa422")
+                .roleType(RoleType.CASE)
+                .roleName(testRole)
+                .classification(Classification.RESTRICTED)
+                .grantType(GrantType.SPECIFIC)
+                .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                .readOnly(false)
+                .created(LocalDateTime.parse("2020-11-09T14:32:23.693195"))
+                .attributes(Map.of(
+                    RoleAttributeDefinition.CASE_ID.value(), "1604929600826893",
+                    RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                    RoleAttributeDefinition.CASE_TYPE.value(), "Asylum"
+                ))
+                .authorisations(Collections.emptyList())
+                .build();
+
+            assertThat(roleAssignmentResource.getRoleAssignmentResponse()).isNotEmpty();
+            assertThat(roleAssignmentResource.getRoleAssignmentResponse().get(0)).isEqualTo(expectedRoleAssignment);
+        });
     }
 
     @Test
@@ -142,6 +188,14 @@ public class RoleAssignmentServiceApiTest extends SpringBootIntegrationBaseTest 
         return FileUtils.readFileToString(ResourceUtils.getFile(
             "classpath:uk/gov/hmcts/reform/wataskmanagementapi/wataskconfigurationapi/variableextractors/"
             + "roleAssignmentsResponseUnknownValues.json"), StandardCharsets.UTF_8);
+    }
+
+    private String loadJsonFileResourceForRoleName(String roleName) throws IOException {
+        String content = FileUtils.readFileToString(ResourceUtils.getFile(
+            "classpath:uk/gov/hmcts/reform/wataskmanagementapi/wataskconfigurationapi/variableextractors/"
+            + "roleAssignmentsResponseNewRoles.json"), StandardCharsets.UTF_8);
+
+        return content.replace("REPLACE_ROLE_NAME", roleName);
     }
 
 }
