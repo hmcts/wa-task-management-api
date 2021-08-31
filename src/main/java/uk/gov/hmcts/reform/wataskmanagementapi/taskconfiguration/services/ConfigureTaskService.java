@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.config
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toMap;
@@ -112,7 +113,7 @@ public class ConfigureTaskService {
     }
 
     private TaskConfigurationResults getConfigurationResults(TaskToConfigure task) {
-        TaskConfigurationResults configurationResults = new TaskConfigurationResults();
+        TaskConfigurationResults configurationResults = new TaskConfigurationResults(new ConcurrentHashMap<>());
 
         //loop through all task configurators in order and add results to configurationResults
         taskConfigurators.stream()
@@ -132,7 +133,7 @@ public class ConfigureTaskService {
     private void combineResults(TaskConfigurationResults result,
                                 TaskConfigurationResults configurationResults) {
 
-        if (result.getProcessVariables() != null && result.getProcessVariables() != null) {
+        if (result.getProcessVariables() != null && configurationResults.getProcessVariables() != null) {
             configurationResults.getProcessVariables().putAll(result.getProcessVariables());
         }
 

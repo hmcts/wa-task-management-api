@@ -20,10 +20,6 @@ public class TaskConfigurationResults {
         this(processVariables, null, null);
     }
 
-    public TaskConfigurationResults() {
-        this(new ConcurrentHashMap<>(), null, null);
-    }
-
     public TaskConfigurationResults(Map<String, Object> processVariables,
                                     List<ConfigurationDmnEvaluationResponse> configurationDmnResponse,
                                     List<PermissionsDmnEvaluationResponse> permissionsDmnResponse) {

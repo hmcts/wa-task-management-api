@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import feign.FeignException;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +22,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
@@ -48,16 +48,16 @@ class DmnEvaluationServiceTest {
     @Test
     void should_succeed_and_return_a_list_of_permissions() {
         String ccdData = getCcdData();
-        List<PermissionsDmnEvaluationResponse> mockedResponse = asList(
+        List<? extends EvaluationResponse> mockedResponse = asList(
             new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
+                stringValue("tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
                 null,
                 null
             ),
             new PermissionsDmnEvaluationResponse(
-                stringValue("seniorTribunalCaseworker"),
+                stringValue("senior-tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
                 null,
@@ -67,10 +67,10 @@ class DmnEvaluationServiceTest {
 
         doReturn(mockedResponse)
             .when(camundaServiceApi).evaluateDmnTable(
-            eq(BEARER_SERVICE_TOKEN),
-            eq(WA_TASK_PERMISSIONS.getTableKey("ia", "asylum")),
-            eq("ia"),
-            any()
+            BEARER_SERVICE_TOKEN,
+            WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
+            "ia",
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData)))
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -82,22 +82,19 @@ class DmnEvaluationServiceTest {
         );
 
         assertThat(response.size(), is(2));
-        assertThat(response, is(asList(
-            new PermissionsDmnEvaluationResponse(
-                stringValue("tribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null
-            ),
-            new PermissionsDmnEvaluationResponse(
-                stringValue("seniorTribunalCaseworker"),
-                stringValue("Read,Refer,Own,Manage,Cancel"),
-                null,
-                null,
-                null
-            )
-        )));
+
+        assertThat(response.get(0).getName(), is(stringValue("tribunal-caseworker")));
+        assertThat(response.get(0).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
+        assertNull(response.get(0).getAutoAssignable());
+        assertNull(response.get(0).getAuthorisations());
+        assertNull(response.get(0).getAssignmentPriority());
+
+        assertThat(response.get(1).getName(), is(stringValue("senior-tribunal-caseworker")));
+        assertThat(response.get(1).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
+        assertNull(response.get(1).getAutoAssignable());
+        assertNull(response.get(1).getAuthorisations());
+        assertNull(response.get(1).getAssignmentPriority());
+
     }
 
 
@@ -136,12 +133,12 @@ class DmnEvaluationServiceTest {
         );
 
         doReturn(mockedResponse)
-            .when(camundaServiceApi.evaluateDmnTable(
-                BEARER_SERVICE_TOKEN,
-                WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
-                "ia",
-                new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData)))
-            ));
+            .when(camundaServiceApi).evaluateDmnTable(
+            BEARER_SERVICE_TOKEN,
+            WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
+            "ia",
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData)))
+        );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
@@ -152,16 +149,11 @@ class DmnEvaluationServiceTest {
         );
 
         assertThat(response.size(), is(2));
-        assertThat(response, is(asList(
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("someConfigName1"),
-                stringValue("someConfigValue1")
-            ),
-            new ConfigurationDmnEvaluationResponse(
-                stringValue("someConfigName2"),
-                stringValue("someConfigValue2")
-            )
-        )));
+
+        assertThat(response.get(0).getName(), is(stringValue("someConfigName1")));
+        assertThat(response.get(0).getValue(), is(stringValue("someConfigValue1")));
+        assertThat(response.get(1).getName(), is(stringValue("someConfigName2")));
+        assertThat(response.get(1).getValue(), is(stringValue("someConfigValue2")));
     }
 
     @Test

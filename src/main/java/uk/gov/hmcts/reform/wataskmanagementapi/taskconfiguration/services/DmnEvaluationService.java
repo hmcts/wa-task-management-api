@@ -37,7 +37,7 @@ public class DmnEvaluationService {
         String decisionTableKey = WA_TASK_PERMISSIONS.getTableKey(jurisdiction, caseType);
         return (List<PermissionsDmnEvaluationResponse>) performEvaluateDmnAction(
             decisionTableKey,
-            decisionTableKey,
+            jurisdiction,
             caseData
         );
     }

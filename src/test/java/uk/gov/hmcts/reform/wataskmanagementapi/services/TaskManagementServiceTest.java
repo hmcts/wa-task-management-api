@@ -434,7 +434,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                 IDAM_USER_ID
-                 )
+                )
             ).thenReturn(true);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -462,7 +462,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                 IDAM_USER_ID
-                 )
+                )
             ).thenReturn(false);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -533,7 +533,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                 IDAM_USER_ID
-                 )
+                )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
@@ -574,7 +574,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                 IDAM_USER_ID
-                 )
+                )
             ).thenReturn(true);
 
             taskManagementService.completeTask(taskId, accessControlResponse);
@@ -605,7 +605,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                 IDAM_USER_ID
-                 )
+                )
             ).thenReturn(false);
 
             taskManagementService.completeTask(taskId, accessControlResponse);
@@ -706,7 +706,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                 IDAM_USER_ID
-                 )
+                )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
@@ -765,7 +765,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                     IDAM_USER_ID
-                     )
+                    )
                 ).thenReturn(true);
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -797,7 +797,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                     IDAM_USER_ID
-                     )
+                    )
                 ).thenReturn(false);
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -857,7 +857,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                     IDAM_USER_ID
-                     )
+                    )
                 ).thenReturn(true);
 
 
@@ -906,7 +906,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                     IDAM_USER_ID
-                     )
+                    )
                 ).thenReturn(true);
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -941,7 +941,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                     IDAM_USER_ID
-                     )
+                    )
                 ).thenReturn(false);
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -1034,7 +1034,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
                     IDAM_USER_ID
-                     )
+                    )
                 ).thenReturn(true);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -1382,7 +1382,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             TaskResource taskResource = mock(TaskResource.class);
             when(cftTaskMapper.mapToTaskResource(taskId, req.getTaskAttributes())).thenReturn(taskResource);
-            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+            when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskResource);
+            when(cftTaskDatabaseService.saveTask(any())).thenReturn(taskResource);
 
             taskManagementService.initiateTask(taskId, req);
 
