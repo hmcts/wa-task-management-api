@@ -29,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -97,7 +98,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -129,7 +131,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -162,7 +165,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)

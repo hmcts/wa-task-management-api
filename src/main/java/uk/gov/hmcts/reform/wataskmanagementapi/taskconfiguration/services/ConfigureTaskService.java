@@ -112,7 +112,7 @@ public class ConfigureTaskService {
     }
 
     private TaskConfigurationResults getConfigurationResults(TaskToConfigure task) {
-        TaskConfigurationResults configurationResults = new TaskConfigurationResults(emptyMap());
+        TaskConfigurationResults configurationResults = new TaskConfigurationResults();
 
         //loop through all task configurators in order and add results to configurationResults
         taskConfigurators.stream()
@@ -132,7 +132,7 @@ public class ConfigureTaskService {
     private void combineResults(TaskConfigurationResults result,
                                 TaskConfigurationResults configurationResults) {
 
-        if (result.getProcessVariables() != null) {
+        if (result.getProcessVariables() != null && result.getProcessVariables() != null) {
             configurationResults.getProcessVariables().putAll(result.getProcessVariables());
         }
 

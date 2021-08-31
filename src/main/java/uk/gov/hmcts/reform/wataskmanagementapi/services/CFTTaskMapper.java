@@ -146,7 +146,7 @@ public class CFTTaskMapper {
             String roleName = permission.getName().getValue();
             String permissionsValue = permission.getValue().getValue();
 
-            Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
+            final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
                 .map(PermissionTypes::valueOf)
                 .collect(Collectors.toSet());
             String[] authorisations = null;

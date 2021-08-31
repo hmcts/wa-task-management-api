@@ -61,8 +61,8 @@ public class TaskAutoAssignmentService {
         //The query above may return multiple role assignments, and we must select the right one for auto-assignment.
         //
         //    Sort the list of role assignments returned by assignment priority (from the task permissions data).
-        //    For each role assignment in this sorted order, if the task role resource permissions data for the role name
-        //    of this role assignment has:
+        //    For each role assignment in this sorted order, if the task role resource permissions data
+        //    for the role name of this role assignment has:
         //    - An empty list of authorisations then ignore the role assignment.
         //    - Contain authorizations then check if role-assignment contains at least one of them.
         //
@@ -92,7 +92,8 @@ public class TaskAutoAssignmentService {
                 .filter(roleAssignment -> {
                     TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
 
-                    if (taskRoleResource.getAuthorizations().length != 0 && !roleAssignment.getAuthorisations().isEmpty()) {
+                    if (taskRoleResource.getAuthorizations().length != 0
+                        && !roleAssignment.getAuthorisations().isEmpty()) {
                         AtomicBoolean hasMatch = new AtomicBoolean(false);
                         stream(taskRoleResource.getAuthorizations())
                             .forEach(auth -> {
@@ -111,11 +112,13 @@ public class TaskAutoAssignmentService {
                 }).findFirst();
 
             if (match.isPresent()) {
-                //The actorId of the role assignment selected in stage above is the IdAM ID of the user who is to be assigned the task.
+                //The actorId of the role assignment selected in stage above is the IdAM ID of the user who is
+                //to be assigned the task.
                 taskResource.setAssignee(match.get().getActorId());
                 taskResource.setState(CFTTaskState.ASSIGNED);
             } else {
-                //If stage above produces an empty result of matching role assignment, then the task is to be left unassigned.
+                //If stage above produces an empty result of matching role assignment, then the task is
+                //to be left unassigned.
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
             }

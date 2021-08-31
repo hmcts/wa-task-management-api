@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @EqualsAndHashCode
 @ToString
@@ -17,6 +18,10 @@ public class TaskConfigurationResults {
 
     public TaskConfigurationResults(Map<String, Object> processVariables) {
         this(processVariables, null, null);
+    }
+
+    public TaskConfigurationResults() {
+        this(new ConcurrentHashMap<>(), null, null);
     }
 
     public TaskConfigurationResults(Map<String, Object> processVariables,

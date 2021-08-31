@@ -282,14 +282,14 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
     private void setupRoleAssignmentResponse(boolean shouldReturnRoleAssignment) {
         Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
             (condition) ? List.of(RoleAssignment.builder()
-                                      .id("someId")
-                                      .actorIdType(ActorIdType.IDAM)
-                                      .actorId(testUserId)
-                                      .roleName("tribunal-caseworker")
-                                      .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                      .roleType(RoleType.ORGANISATION)
-                                      .classification(Classification.PUBLIC)
-                                      .build()) : emptyList();
+                .id("someId")
+                .actorIdType(ActorIdType.IDAM)
+                .actorId(testUserId)
+                .roleName("tribunal-caseworker")
+                .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                .roleType(RoleType.ORGANISATION)
+                .classification(Classification.PUBLIC)
+                .build()) : emptyList();
 
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
@@ -323,18 +323,16 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             BEARER_USER_TOKEN,
             BEARER_SERVICE_TOKEN,
             testCaseId
-             )
+            )
         ).thenReturn(caseDetails);
 
         doReturn(
             singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1")))
-        ).when(
-            camundaServiceApi.evaluateDmnTable(
-                BEARER_SERVICE_TOKEN,
-                WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
-                "ia",
-                new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
-            )
+        ).when(camundaServiceApi).evaluateDmnTable(
+            BEARER_SERVICE_TOKEN,
+            WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
+            "ia",
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
         );
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();

@@ -6,7 +6,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class DmnRequest<T> {
-    private final T variables;
+    private T variables;
 
     public DmnRequest(T variables) {
         this.variables = variables;
