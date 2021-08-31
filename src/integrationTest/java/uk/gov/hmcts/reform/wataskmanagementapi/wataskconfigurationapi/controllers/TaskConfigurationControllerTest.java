@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
@@ -279,56 +278,88 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             .andReturn();
     }
 
-    @DisplayName("Should return 200 and return configuration as body and support new roles in role-assignment")
+    @DisplayName("Should return 200 and return configuration as body and support new roleName case-allocator")
     @Test
-    void should_succeed_and_return_configuration_with_new_role_names() throws Exception {
+    void should_succeed_and_return_configuration_with_new_role_name_case_allocator() throws Exception {
 
-        asList("case-allocator", "case-manager")
-            .forEach(roleName -> {
+        setupRoleAssignmentResponseWithCustomRoleName("case-allocator", true);
+        configure3rdPartyResponses();
 
-                    setupRoleAssignmentResponseWithCustomRoleName(roleName, true);
-                    configure3rdPartyResponses();
-
-                    String expectedResponse = "{\n"
-                                              + "  \"task_id\": \"" + testTaskId + "\",\n"
-                                              + "  \"case_id\": \"" + testCaseId + "\",\n"
-                                              + "  \"assignee\": \"" + testUserId + "\",\n"
-                                              + "  \"configuration_variables\": {\n"
-                                              + "    \"taskType\": \"reviewTheAppeal\",\n"
-                                              + "    \"jurisdiction\": \"IA\",\n"
-                                              + "    \"caseTypeId\": \"Asylum\",\n"
-                                              + "    \"taskState\": \"assigned\",\n"
-                                              + "    \"executionType\": \"Case Management Task\",\n"
-                                              + "    \"caseId\": \"" + testCaseId + "\",\n"
-                                              + "    \"securityClassification\": \"PUBLIC\",\n"
-                                              + "    \"autoAssigned\": true,\n"
-                                              + "    \"taskSystem\": \"SELF\",\n"
-                                              + "    \"title\": \"taskName\""
-                                              + "  }\n"
-                                              + "}";
+        String expectedResponse = "{\n"
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
 
 
-                    Map<String, Object> requiredProcessVariables = Map.of(
-                        TASK_ID.value(), "reviewTheAppeal",
-                        CASE_ID.value(), testCaseId,
-                        CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
-                    );
+        Map<String, Object> requiredProcessVariables = Map.of(
+            TASK_ID.value(), "reviewTheAppeal",
+            CASE_ID.value(), testCaseId,
+            CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
+        );
 
-                    try {
-                        mockMvc.perform(
-                            post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
-                                .contentType(APPLICATION_JSON_VALUE)
-                                .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
-                        )
-                            .andExpect(status().isOk())
-                            .andExpect(content().json(expectedResponse))
-                            .andReturn();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            );
+        mockMvc.perform(
+            post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(expectedResponse))
+            .andReturn();
+    }
 
+    @DisplayName("Should return 200 and return configuration as body and support new roleName case-manager")
+    @Test
+    void should_succeed_and_return_configuration_with_new_role_name_case_manager() throws Exception {
+
+        setupRoleAssignmentResponseWithCustomRoleName("case-manager", true);
+        configure3rdPartyResponses();
+
+        String expectedResponse = "{\n"
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
+
+
+        Map<String, Object> requiredProcessVariables = Map.of(
+            TASK_ID.value(), "reviewTheAppeal",
+            CASE_ID.value(), testCaseId,
+            CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
+        );
+
+        mockMvc.perform(
+            post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(expectedResponse))
+            .andReturn();
     }
 
     private List<RoleAssignment> createRoleAssignmentWithCustomRoleName(String roleName) {

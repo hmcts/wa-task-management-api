@@ -6,7 +6,25 @@
       "actorIdType": "IDAM",
       "actorId": "122f8de4-2eb6-4dcf-91c9-16c2c8aaa422",
       "roleType": "CASE",
-      "roleName": "REPLACE_ROLE_NAME",
+      "roleName": "case-manager",
+      "classification": "RESTRICTED",
+      "grantType": "SPECIFIC",
+      "roleCategory": "LEGAL_OPERATIONS",
+      "readOnly": false,
+      "created": "2020-11-09T14:32:23.693195",
+      "attributes": {
+        "caseId": "1604929600826893",
+        "jurisdiction": "IA",
+        "caseType": "Asylum"
+      },
+      "authorisations": []
+    },
+    {
+      "id": "59eeafe3-6512-48fd-84a2-25b1df1d3c40",
+      "actorIdType": "IDAM",
+      "actorId": "93809631-0674-478d-b14a-5bfd2cb19725",
+      "roleType": "CASE",
+      "roleName": "case-allocator",
       "classification": "RESTRICTED",
       "grantType": "SPECIFIC",
       "roleCategory": "LEGAL_OPERATIONS",
