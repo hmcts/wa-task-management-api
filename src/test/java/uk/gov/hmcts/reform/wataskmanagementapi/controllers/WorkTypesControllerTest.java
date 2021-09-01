@@ -85,9 +85,6 @@ class WorkTypesControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
-        when(accessControlService.getRolesByActorId(roleAssignment.getActorId(),IDAM_AUTH_TOKEN))
-            .thenReturn(accessControlResponse);
-
         WorkType workType = new WorkType("hearing_work","Hearing Work");
 
         when(taskManagementService.getWorkType(
@@ -134,9 +131,6 @@ class WorkTypesControllerTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(accessControlResponse);
-
-        when(accessControlService.getRolesByActorId(roleAssignment.getActorId(),IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
         WorkType workType = new WorkType("hearing_work","Hearing Work");
@@ -190,9 +184,6 @@ class WorkTypesControllerTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(accessControlResponse);
-
-        when(accessControlService.getRolesByActorId(roleAssignment.getActorId(),IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
         ResponseEntity<List<WorkType>> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);

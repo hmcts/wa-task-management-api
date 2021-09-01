@@ -51,7 +51,7 @@ public class WorkTypesController extends BaseController {
 
         AccessControlResponse roles = accessControlService.getRoles(authToken);
         if (!roles.getRoleAssignments().isEmpty()) {
-            Set<String> roleWorkTypes = getActorWorkTypes(authToken, roles);
+            Set<String> roleWorkTypes = getActorWorkTypes(roles);
 
             if (!roleWorkTypes.isEmpty()) {
                 for (String workTypeId : roleWorkTypes) {
@@ -69,14 +69,10 @@ public class WorkTypesController extends BaseController {
 
     }
 
-    private Set<String> getActorWorkTypes(String authToken, AccessControlResponse accessControlResponse) {
+    private Set<String> getActorWorkTypes(AccessControlResponse accessControlResponse) {
         Set<String> roleWorkTypes = new HashSet<>();
 
-        String actorId = accessControlResponse.getRoleAssignments().get(0).getActorId();
-
-        AccessControlResponse actorRoles = accessControlService.getRolesByActorId(actorId, authToken);
-
-        for (RoleAssignment roleAssignment : actorRoles.getRoleAssignments()) {
+        for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
             String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
             if (assignedWorkedList != null && !assignedWorkedList.isEmpty()) {
                 roleWorkTypes.addAll(Arrays.asList(assignedWorkedList.split(",")));

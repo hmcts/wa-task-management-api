@@ -86,10 +86,6 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(accessControlService.getRoles(any()))
             .thenReturn(accessControlResponse);
 
-        when(accessControlService.getRolesByActorId(
-            any(), any()
-        )).thenReturn(accessControlResponse);
-
         MvcResult postResponse = mockMvc.perform(
             get(ENDPOINT_PATH).header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
         ).andReturn();
@@ -123,10 +119,6 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
 
         when(accessControlService.getRoles(any()))
             .thenReturn(accessControlResponse);
-
-        when(accessControlService.getRolesByActorId(
-            any(), any()
-        )).thenReturn(accessControlResponse);
 
         MvcResult postResponse = mockMvc.perform(get(ENDPOINT_PATH)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)).andReturn();
