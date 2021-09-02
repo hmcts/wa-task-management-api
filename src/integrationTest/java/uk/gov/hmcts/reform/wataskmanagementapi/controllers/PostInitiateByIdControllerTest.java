@@ -174,19 +174,18 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(req))
-        ).andDo(MockMvcResultHandlers.print())
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isCreated(),
-                    content().contentType(APPLICATION_JSON_VALUE),
-                    jsonPath("$.task_id").value(taskId),
-                    jsonPath("$.task_type").value("aTaskType"),
-                    jsonPath("$.task_name").value("aTaskName"),
-                    jsonPath("$.state").value("UNCONFIGURED"),
-                    jsonPath("$.assignee").value("someAssignee"),
-                    jsonPath("$.auto_assigned").value(false),
-                    jsonPath("$.has_warnings").value("false")
-                ));
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_type").value("aTaskType"),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.state").value("UNCONFIGURED"),
+                jsonPath("$.assignee").value("someAssignee"),
+                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.has_warnings").value("false")
+            ));
     }
 }
 
