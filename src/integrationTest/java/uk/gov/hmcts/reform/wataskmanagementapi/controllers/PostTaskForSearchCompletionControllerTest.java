@@ -50,7 +50,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             idamWebApi,
             serviceAuthorisationApi,
             camundaServiceApi,
-            roleAssignmentServiceApi);
+            roleAssignmentServiceApi
+        );
     }
 
     @DisplayName("Invalid DMN table")

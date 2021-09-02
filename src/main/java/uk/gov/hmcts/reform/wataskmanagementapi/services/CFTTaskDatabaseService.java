@@ -9,7 +9,6 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis"})
 public class CFTTaskDatabaseService {
     private final TaskResourceRepository tasksRepository;
 
@@ -21,8 +20,8 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findById(taskId);
     }
 
-
     public TaskResource saveTask(TaskResource task) {
         return tasksRepository.save(task);
     }
+
 }

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -22,17 +23,24 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -44,6 +52,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
@@ -72,10 +82,14 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ClientAccessControlService clientAccessControlService;
     @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private RoleAssignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
+    @Autowired
+    private TaskResourceRepository taskResourceRepository;
 
     private ServiceMocks mockServices;
     private String taskId;
@@ -97,6 +111,21 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             camundaServiceApi,
             roleAssignmentServiceApi
         );
+
+        mockServices.mockServiceAPIs();
+
+        initiateATask(taskId);
+    }
+
+    private void initiateATask(String id) {
+
+        TaskResource taskResource = new TaskResource(
+            id,
+            "taskName",
+            "taskType",
+            UNCONFIGURED
+        );
+        taskResourceRepository.saveAndFlush(taskResource);
     }
 
     @Nested
@@ -108,12 +137,43 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             when(clientAccessControlService.hasPrivilegedAccess(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
                 .thenReturn(true);
+
         }
 
         @Test
-        void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
+        void should_succeed_and_return_204_and_update_cft_task_state() throws Exception {
 
-            mockServices.mockServiceAPIs();
+            when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
+                .thenReturn(true);
+
+            CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
+            when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID
+            )).thenReturn(true);
+
+            doNothing().when(camundaServiceApi).assignTask(any(), any(), any());
+            doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
+
+            mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+                .andExpect(status().isNoContent());
+
+            Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
+
+            assertTrue(taskResource.isPresent());
+            assertEquals(COMPLETED, taskResource.get().getState());
+        }
+
+
+        @Test
+        void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
@@ -144,8 +204,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_500_with_application_problem_response_when_complete_call_fails() throws Exception {
-
-            mockServices.mockServiceAPIs();
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
@@ -183,8 +241,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_500_with_application_problem_response_when_task_update_call_fails_with_completion_options()
             throws Exception {
 
-            mockServices.mockServiceAPIs();
-
             when(permissionEvaluatorService.hasAccess(any(), any(), any()))
                 .thenReturn(true);
 
@@ -218,8 +274,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_500_with_application_problem_response_when_assign_call_fails_with_completion_options()
             throws Exception {
 
-            mockServices.mockServiceAPIs();
-
             when(permissionEvaluatorService.hasAccess(any(), any(), any()))
                 .thenReturn(true);
 
@@ -250,8 +304,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         @Test
         void should_return_500_with_application_problem_response_when_complete_call_fails_with_completion_options()
             throws Exception {
-
-            mockServices.mockServiceAPIs();
 
             when(permissionEvaluatorService.hasAccess(any(), any(), any()))
                 .thenReturn(true);
@@ -292,8 +344,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_403_with_application_problem_response_when_completion_options_value_is_null()
             throws Exception {
 
-            mockServices.mockServiceAPIs();
-
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(false);
 
@@ -326,8 +376,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_completion_options_value_is_null()
             throws Exception {
-
-            mockServices.mockServiceAPIs();
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
@@ -362,8 +410,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_400_bad_request_application_problem_when_unknown_property_provided_in_completion_options()
             throws Exception {
 
-            mockServices.mockServiceAPIs();
-
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
@@ -395,8 +441,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_completion_options_invalid_value()
             throws Exception {
-
-            mockServices.mockServiceAPIs();
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
@@ -441,8 +485,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         @Test
         void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
 
-            mockServices.mockServiceAPIs();
-
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
 
@@ -472,8 +514,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         @Test
         void should_return_500_with_application_problem_response_when_complete_call_fails() throws Exception {
-
-            mockServices.mockServiceAPIs();
 
             when(permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(any(), any(), any(), any(), any()))
                 .thenReturn(true);
@@ -511,8 +551,6 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
         void should_return_403_with_application_problem_response_when_client_is_not_privileged_and_completion_options()
             throws Exception {
 
-            mockServices.mockServiceAPIs();
-
             mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -534,6 +572,5 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
                     ));
         }
     }
-
 }
 

@@ -18,19 +18,23 @@ public class NoteResource implements Serializable {
 
     private static final long serialVersionUID = 1928058324454924191L;
 
+    private String code;
     private String noteType;
     private String user;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private OffsetDateTime created;
+    private String content;
 
-    private NoteResource(){
+    private NoteResource() {
 
     }
 
     @JsonCreator
-    public NoteResource(String noteType, String user, OffsetDateTime created) {
+    public NoteResource(String code, String noteType, String user, OffsetDateTime created, String content) {
+        this.code = code;
         this.noteType = noteType;
         this.user = user;
         this.created = created;
+        this.content = content;
     }
 }
