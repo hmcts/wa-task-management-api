@@ -45,7 +45,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -326,14 +325,13 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             )
         ).thenReturn(caseDetails);
 
-        doReturn(
-            singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1")))
-        ).when(camundaServiceApi).evaluateConfigurationDmnTable(
+
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
             new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
-        );
+        )).thenReturn(singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1"))));
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("caseId", stringValue(testCaseId));
