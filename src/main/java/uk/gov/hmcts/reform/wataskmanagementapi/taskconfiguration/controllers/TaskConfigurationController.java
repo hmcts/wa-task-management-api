@@ -27,6 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 @RequestMapping(path = "/task-configuration", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
+@SuppressWarnings("PMD.LawOfDemeter")
 public class TaskConfigurationController {
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String OK = "OK";

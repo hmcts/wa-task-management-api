@@ -28,7 +28,7 @@ import javax.persistence.ManyToOne;
     typeClass = StringArrayType.class
 )
 
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UseVarargs"})
 public class TaskRoleResource implements Serializable {
 
     private static final long serialVersionUID = -4769530559311463016L;
@@ -53,6 +53,7 @@ public class TaskRoleResource implements Serializable {
 
     @Type(type = "string-array")
     @Column(columnDefinition = "text[]")
+    @ToString.Exclude
     private String[] authorizations;
 
     private Integer assignmentPriority;
@@ -85,16 +86,19 @@ public class TaskRoleResource implements Serializable {
                             String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable) {
-        this.roleName = roleName;
-        this.read = read;
-        this.own = own;
-        this.execute = execute;
-        this.manage = manage;
-        this.cancel = cancel;
-        this.refer = refer;
-        this.authorizations = authorizations.clone();
-        this.assignmentPriority = assignmentPriority;
-        this.autoAssignable = autoAssignable;
+        this(roleName,
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            null,
+            null,
+            null);
     }
 
     @SuppressWarnings("squid:S00107")
@@ -159,7 +163,7 @@ public class TaskRoleResource implements Serializable {
     }
 
     public void setAuthorizations(String[] authorizations) {
-        this.authorizations = authorizations;
+        this.authorizations = authorizations.clone();
     }
 
     public void setAssignmentPriority(Integer assignmentPriority) {

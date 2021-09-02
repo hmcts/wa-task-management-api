@@ -64,7 +64,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 
 
 @Service
-@SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis"})
+@SuppressWarnings(
+    {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
+    "PMD.NcssCount", "PMD.CyclomaticComplexity"})
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -127,7 +129,8 @@ public class CFTTaskMapper {
         );
     }
 
-    public TaskResource mapConfigurationAttributes(TaskResource taskResource, TaskConfigurationResults taskConfigurationResults) {
+    public TaskResource mapConfigurationAttributes(TaskResource taskResource,
+                                                   TaskConfigurationResults taskConfigurationResults) {
 
         //Update Task Resource with configuration variables
         taskConfigurationResults.getProcessVariables()
@@ -143,11 +146,11 @@ public class CFTTaskMapper {
 
             Objects.requireNonNull(permission.getName(), "Permissions name cannot be null");
             Objects.requireNonNull(permission.getValue(), "Permissions value cannot be null");
-            String roleName = permission.getName().getValue();
-            String permissionsValue = permission.getValue().getValue();
+            final String roleName = permission.getName().getValue();
+            final String permissionsValue = permission.getValue().getValue();
 
             final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
-                .map(PermissionTypes::valueOf)
+                .map(p -> PermissionTypes.from(p).orElse(null))
                 .collect(Collectors.toSet());
             String[] authorisations = null;
             if (permission.getAuthorisations() != null && permission.getAuthorisations().getValue() != null) {
@@ -180,83 +183,91 @@ public class CFTTaskMapper {
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
 
-        CamundaVariableDefinition enumKey = CamundaVariableDefinition.valueOf(key);
-        switch (enumKey) {
-            case AUTO_ASSIGNED:
-                taskResource.setAutoAssigned((Boolean) value);
-                break;
-            case ASSIGNEE:
-                taskResource.setAssignee((String) value);
-                break;
-            case CASE_ID:
-                taskResource.setCaseId((String) value);
-                break;
-            case CASE_NAME:
-                taskResource.setCaseName((String) value);
-                break;
-            case CASE_TYPE_ID:
-                taskResource.setCaseTypeId((String) value);
-                break;
-            case EXECUTION_TYPE:
-                Optional<ExecutionType> executionType = ExecutionType.from((String) value);
-                if (executionType.isPresent()) {
-                    taskResource.setExecutionTypeCode(new ExecutionTypeResource(
-                        executionType.get(),
-                        executionType.get().getName(),
-                        executionType.get().getDescription()
-                    ));
-                } else {
-                    throw new IllegalStateException("Could not map executionType to ExecutionType enum");
-                }
-                break;
-            case JURISDICTION:
-                taskResource.setJurisdiction((String) value);
-                break;
-            case LOCATION:
-                taskResource.setLocation((String) value);
-                break;
-            case LOCATION_NAME:
-                taskResource.setLocationName((String) value);
-                break;
-            case REGION:
-                taskResource.setRegion((String) value);
-                break;
-            case SECURITY_CLASSIFICATION:
-                SecurityClassification sc = SecurityClassification.valueOf((String) value);
-                taskResource.setSecurityClassification(sc);
-                break;
-            case TASK_ID:
-                taskResource.setTaskId((String) value);
-                break;
-            case TASK_NAME:
-                taskResource.setTaskName((String) value);
-                break;
-            case TASK_STATE:
-                Optional<CFTTaskState> state = CFTTaskState.from((String) value);
-                if (state.isPresent()) {
-                    taskResource.setState(state.get());
-                } else {
-                    throw new IllegalStateException("Could not map state to CFTTaskState enum");
-                }
-                break;
-            case TASK_SYSTEM:
-                TaskSystem taskSystem = TaskSystem.valueOf((String) value);
-                taskResource.setTaskSystem(taskSystem);
-                break;
-            case TASK_TYPE:
-                taskResource.setTaskType((String) value);
-                break;
-            case TITLE:
-                taskResource.setTitle((String) value);
-                break;
-            case HAS_WARNINGS:
-                taskResource.setHasWarnings((Boolean) value);
-                break;
-            case CASE_MANAGEMENT_CATEGORY:
-                taskResource.setCaseCategory((String) value);
-                break;
-            default:
-                break;
+        Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
+        if (enumKey.isPresent()) {
+
+            switch (enumKey.get()) {
+                case AUTO_ASSIGNED:
+                    taskResource.setAutoAssigned((Boolean) value);
+                    break;
+                case ASSIGNEE:
+                    taskResource.setAssignee((String) value);
+                    break;
+                case CASE_ID:
+                    taskResource.setCaseId((String) value);
+                    break;
+                case CASE_NAME:
+                    taskResource.setCaseName((String) value);
+                    break;
+                case CASE_TYPE_ID:
+                    taskResource.setCaseTypeId((String) value);
+                    break;
+                case EXECUTION_TYPE:
+                    Optional<ExecutionType> executionType = ExecutionType.from((String) value);
+                    if (executionType.isPresent()) {
+                        taskResource.setExecutionTypeCode(new ExecutionTypeResource(
+                            executionType.get(),
+                            executionType.get().getName(),
+                            executionType.get().getDescription()
+                        ));
+                    } else {
+                        throw new IllegalStateException("Could not map executionType to ExecutionType enum");
+                    }
+                    break;
+                case JURISDICTION:
+                    taskResource.setJurisdiction((String) value);
+                    break;
+                case LOCATION:
+                    taskResource.setLocation((String) value);
+                    break;
+                case LOCATION_NAME:
+                    taskResource.setLocationName((String) value);
+                    break;
+                case REGION:
+                    taskResource.setRegion((String) value);
+                    break;
+                case SECURITY_CLASSIFICATION:
+                    SecurityClassification sc = SecurityClassification.valueOf((String) value);
+                    taskResource.setSecurityClassification(sc);
+                    break;
+                case TASK_ID:
+                    taskResource.setTaskId((String) value);
+                    break;
+                case TASK_NAME:
+                    taskResource.setTaskName((String) value);
+                    break;
+                case TASK_STATE:
+                    Optional<CFTTaskState> state = CFTTaskState.from((String) value);
+                    if (state.isPresent()) {
+                        //Configured is a state that does not exist in CFT it should map to UNASSIGNED
+                        if (state.get().equals(CFTTaskState.CONFIGURED)) {
+                            taskResource.setState(CFTTaskState.UNASSIGNED);
+                        } else {
+                            taskResource.setState(state.get());
+                        }
+                    } else {
+                        throw new IllegalStateException("Could not map state to CFTTaskState enum");
+                    }
+                    break;
+                case TASK_SYSTEM:
+                    TaskSystem taskSystem = TaskSystem.valueOf((String) value);
+                    taskResource.setTaskSystem(taskSystem);
+                    break;
+                case TASK_TYPE:
+                    taskResource.setTaskType((String) value);
+                    break;
+                case TITLE:
+                    taskResource.setTitle((String) value);
+                    break;
+                case HAS_WARNINGS:
+                    taskResource.setHasWarnings((Boolean) value);
+                    break;
+                case CASE_MANAGEMENT_CATEGORY:
+                    taskResource.setCaseCategory((String) value);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 

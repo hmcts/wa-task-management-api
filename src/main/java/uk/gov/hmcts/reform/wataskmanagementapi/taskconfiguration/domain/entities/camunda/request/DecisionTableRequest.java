@@ -12,6 +12,7 @@ public class DecisionTableRequest {
     private CamundaValue<String> caseData;
 
     private DecisionTableRequest() {
+        //No-op constructor for deserialization
     }
 
     public DecisionTableRequest(CamundaValue<String> caseData) {

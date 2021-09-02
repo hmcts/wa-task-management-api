@@ -47,7 +47,7 @@ class DmnEvaluationServiceTest {
     @Test
     void should_succeed_and_return_a_list_of_permissions() {
         String ccdData = getCcdData();
-        List<? extends EvaluationResponse> mockedResponse = asList(
+        List<PermissionsDmnEvaluationResponse> mockedResponse = asList(
             new PermissionsDmnEvaluationResponse(
                 stringValue("tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
@@ -64,8 +64,7 @@ class DmnEvaluationServiceTest {
             )
         );
 
-        doReturn(mockedResponse)
-            .when(camundaServiceApi).evaluateDmnTable(
+        doReturn(mockedResponse).when(camundaServiceApi).evaluatePermissionsDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
             "ia",
@@ -96,12 +95,11 @@ class DmnEvaluationServiceTest {
 
     }
 
-
     @Test
     void should_throw_illegal_state_exception_when_feign_exception_is_caught() {
         String ccdData = getCcdData();
 
-        when(camundaServiceApi.evaluateDmnTable(
+        when(camundaServiceApi.evaluatePermissionsDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
             "ia",
@@ -131,8 +129,7 @@ class DmnEvaluationServiceTest {
             )
         );
 
-        doReturn(mockedResponse)
-            .when(camundaServiceApi).evaluateDmnTable(
+        doReturn(mockedResponse).when(camundaServiceApi).evaluateConfigurationDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
@@ -159,7 +156,7 @@ class DmnEvaluationServiceTest {
     void should_throw_illegal_state_exception_when_feign_exception_is_caught_when_get_configuration() {
         String ccdData = getCcdData();
 
-        when(camundaServiceApi.evaluateDmnTable(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",

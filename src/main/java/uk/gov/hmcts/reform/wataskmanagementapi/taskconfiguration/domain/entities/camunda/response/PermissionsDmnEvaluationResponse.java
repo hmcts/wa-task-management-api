@@ -9,11 +9,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class PermissionsDmnEvaluationResponse implements EvaluationResponse {
-    private final CamundaValue<String> name;
-    private final CamundaValue<String> value;
-    private final CamundaValue<String> authorisations;
-    private final CamundaValue<Integer> assignmentPriority;
-    private final CamundaValue<Boolean> autoAssignable;
+    private CamundaValue<String> name;
+    private CamundaValue<String> value;
+    private CamundaValue<String> authorisations;
+    private CamundaValue<Integer> assignmentPriority;
+    private CamundaValue<Boolean> autoAssignable;
+
+    public PermissionsDmnEvaluationResponse() {
+        //No-op constructor for deserialization
+    }
 
     public PermissionsDmnEvaluationResponse(CamundaValue<String> name,
                                             CamundaValue<String> value,

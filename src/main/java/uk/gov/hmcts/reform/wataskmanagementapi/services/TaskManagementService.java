@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksComp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -48,7 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "PMD.LawOfDemeter"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -479,6 +480,12 @@ public class TaskManagementService {
         //Auto-assignment
         taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
 
+        //Update CFT Task state
+        if (CFTTaskState.ASSIGNED.equals(taskResource.getState())) {
+            camundaService.updateCftTaskState(taskId, TaskState.ASSIGNED);
+        } else if (CFTTaskState.UNASSIGNED.equals(taskResource.getState())) {
+            camundaService.updateCftTaskState(taskId, TaskState.UNASSIGNED);
+        }
         //Commit transaction
         return cftTaskDatabaseService.saveTask(taskResource);
     }

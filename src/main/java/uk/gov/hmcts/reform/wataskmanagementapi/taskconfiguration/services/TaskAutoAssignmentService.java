@@ -25,6 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 
 @Slf4j
 @Component
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskAutoAssignmentService {
 
     private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
@@ -80,33 +81,15 @@ public class TaskAutoAssignmentService {
                     (a, b) -> b
                 ));
 
-            List<RoleAssignment> orderedRoleAssignments = new ArrayList<>();
-            rolesList.forEach(role -> {
-                List<RoleAssignment> filtered = roleAssignments.stream()
-                    .filter(ra -> role.getRoleName().equals(ra.getRoleName()))
-                    .collect(Collectors.toList());
-                orderedRoleAssignments.addAll(filtered);
-            });
-
+            List<RoleAssignment> orderedRoleAssignments = orderRoleAssignments(rolesList, roleAssignments);
             Optional<RoleAssignment> match = orderedRoleAssignments.stream()
                 .filter(roleAssignment -> {
                     TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
 
-                    if (taskRoleResource.getAuthorizations().length != 0
+                    if (taskRoleResource.getAuthorizations() != null
+                        && taskRoleResource.getAuthorizations().length != 0
                         && !roleAssignment.getAuthorisations().isEmpty()) {
-                        AtomicBoolean hasMatch = new AtomicBoolean(false);
-                        stream(taskRoleResource.getAuthorizations())
-                            .forEach(auth -> {
-                                //Safe-guard
-                                if (!hasMatch.get()) {
-                                    if (roleAssignment.getAuthorisations().contains(auth)) {
-                                        hasMatch.set(true);
-                                    }
-                                }
-                            });
-
-                        return hasMatch.get();
-
+                        return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
                     }
                     return false;
                 }).findFirst();
@@ -125,6 +108,30 @@ public class TaskAutoAssignmentService {
         }
 
         return taskResource;
+    }
+
+    private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {
+        AtomicBoolean hasMatch = new AtomicBoolean(false);
+        stream(taskRoleResource.getAuthorizations())
+            .forEach(auth -> {
+                //Safe-guard
+                if (!hasMatch.get() && roleAssignment.getAuthorisations().contains(auth)) {
+                    hasMatch.set(true);
+                }
+            });
+        return hasMatch.get();
+    }
+
+    private List<RoleAssignment> orderRoleAssignments(List<TaskRoleResource> rolesList,
+                                                      List<RoleAssignment> roleAssignments) {
+        List<RoleAssignment> orderedRoleAssignments = new ArrayList<>();
+        rolesList.forEach(role -> {
+            List<RoleAssignment> filtered = roleAssignments.stream()
+                .filter(ra -> role.getRoleName().equals(ra.getRoleName()))
+                .collect(Collectors.toList());
+            orderedRoleAssignments.addAll(filtered);
+        });
+        return orderedRoleAssignments;
     }
 
     @SuppressWarnings({"PMD.LawOfDemeter"})

@@ -9,8 +9,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ConfigurationDmnEvaluationResponse implements EvaluationResponse {
-    private final CamundaValue<String> name;
-    private final CamundaValue<String> value;
+    private CamundaValue<String> name;
+    private CamundaValue<String> value;
+
+    public ConfigurationDmnEvaluationResponse() {
+        //No-op constructor for deserialization
+    }
 
     public ConfigurationDmnEvaluationResponse(CamundaValue<String> name, CamundaValue<String> value) {
         this.name = name;

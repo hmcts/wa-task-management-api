@@ -8,6 +8,10 @@ import lombok.ToString;
 public class DmnRequest<T> {
     private T variables;
 
+    public DmnRequest() {
+        //No-op constructor for deserialization
+    }
+
     public DmnRequest(T variables) {
         this.variables = variables;
     }

@@ -36,7 +36,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.C
 
 @Slf4j
 @Service
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.AvoidDuplicateLiterals"})
 public class TaskConfigurationRoleAssignmentService {
 
     private final AuthTokenGenerator serviceAuthTokenGenerator;
@@ -92,7 +92,9 @@ public class TaskConfigurationRoleAssignmentService {
         Set<TaskRoleResource> rolesInTask = taskResource.getTaskRoleResources();
 
         String caseId = taskResource.getCaseId();
-        List<Classification> securityClassifications = evaluateEqualOrHigherClassification(taskResource.getSecurityClassification());
+        List<Classification> securityClassifications =
+            evaluateEqualOrHigherClassification(taskResource.getSecurityClassification());
+
         Set<String> roleNamesFound = rolesInTask.stream()
             .map(role -> role.getOwn() && role.getAutoAssignable() ? role.getRoleName() : null)
             .filter(Objects::nonNull)

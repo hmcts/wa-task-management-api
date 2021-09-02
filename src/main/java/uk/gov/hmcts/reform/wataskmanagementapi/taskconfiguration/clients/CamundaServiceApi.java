@@ -14,7 +14,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.EvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,18 @@ public interface CamundaServiceApi {
         value = "/decision-definition/key/{dmn-table-key}/tenant-id/{jurisdiction}/evaluate",
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    List<? extends EvaluationResponse> evaluateDmnTable(
+    List<PermissionsDmnEvaluationResponse> evaluatePermissionsDmnTable(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @PathVariable("dmn-table-key") String dmnTableKey,
+        @PathVariable("jurisdiction") String jurisdiction,
+        DmnRequest<DecisionTableRequest> evaluateDmnRequest
+    );
+
+    @PostMapping(
+        value = "/decision-definition/key/{dmn-table-key}/tenant-id/{jurisdiction}/evaluate",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    List<ConfigurationDmnEvaluationResponse> evaluateConfigurationDmnTable(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
         @PathVariable("dmn-table-key") String dmnTableKey,
         @PathVariable("jurisdiction") String jurisdiction,

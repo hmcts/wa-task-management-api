@@ -10,9 +10,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -65,7 +65,7 @@ public class CaseConfigurationProviderService {
         );
 
         // Enrich case configuration variables with extra variables
-        Map<String, Object> allCaseConfigurationValues = new HashMap<>(caseConfigurationVariables);
+        Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
         allCaseConfigurationValues.put(JURISDICTION.value(), caseDetails.getJurisdiction());
         allCaseConfigurationValues.put(CASE_TYPE_ID.value(), caseDetails.getCaseType());
@@ -82,7 +82,7 @@ public class CaseConfigurationProviderService {
                                                   List<PermissionsDmnEvaluationResponse> permissionsDmnResults) {
 
         // Combine and Collect all dmns results into a single map
-        Map<String, Object> caseConfigurationVariables = new HashMap<>();
+        Map<String, Object> caseConfigurationVariables = new ConcurrentHashMap<>();
 
         Map<String, Object> configDmnValues = taskConfigurationDmnResults.stream()
             .collect(toMap(
