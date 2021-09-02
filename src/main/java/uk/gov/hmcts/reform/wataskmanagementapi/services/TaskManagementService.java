@@ -466,7 +466,7 @@ public class TaskManagementService {
 
         TaskToConfigure taskToConfigure = new TaskToConfigure(
             taskId,
-            taskResource.getTaskId(),
+            taskResource.getTaskType(),
             taskResource.getCaseId(),
             taskResource.getTaskName()
         );

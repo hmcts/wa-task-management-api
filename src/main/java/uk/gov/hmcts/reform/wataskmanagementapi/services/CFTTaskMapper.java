@@ -152,12 +152,12 @@ public class CFTTaskMapper {
             final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
                 .map(p -> PermissionTypes.from(p).orElse(null))
                 .collect(Collectors.toSet());
-            String[] authorisations = null;
+            String[] authorisations = {};
             if (permission.getAuthorisations() != null && permission.getAuthorisations().getValue() != null) {
                 authorisations = permission.getAuthorisations().getValue().split(",");
             }
 
-            Integer assignmentPriority = null;
+            Integer assignmentPriority = 3; //lowest priority as default
             if (permission.getAssignmentPriority() != null && permission.getAssignmentPriority().getValue() != null) {
                 assignmentPriority = permission.getAssignmentPriority().getValue();
             }

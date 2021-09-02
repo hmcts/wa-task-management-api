@@ -325,7 +325,6 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             )
         ).thenReturn(caseDetails);
 
-
         when(camundaServiceApi.evaluateConfigurationDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
