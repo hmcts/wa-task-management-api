@@ -118,7 +118,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", is(false));
 
 
-        //common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
