@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
@@ -73,7 +74,7 @@ public class TaskAutoAssignmentService {
         if (!roleAssignments.isEmpty()) {
             // the lowest assignment priority takes precedence.
             List<TaskRoleResource> rolesList = new ArrayList<>(taskResource.getTaskRoleResources());
-            rolesList.sort(comparing(TaskRoleResource::getAssignmentPriority, Comparator.nullsLast(Comparator.naturalOrder())));
+            rolesList.sort(comparing(TaskRoleResource::getAssignmentPriority, nullsLast(Comparator.naturalOrder())));
 
             Map<String, TaskRoleResource> roleResourceMap = rolesList.stream()
                 .collect(toMap(
