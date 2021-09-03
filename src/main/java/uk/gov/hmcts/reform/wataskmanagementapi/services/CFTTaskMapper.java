@@ -66,7 +66,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-    "PMD.NcssCount", "PMD.CyclomaticComplexity"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity"})
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -157,7 +157,7 @@ public class CFTTaskMapper {
                 authorisations = permission.getAuthorisations().getValue().split(",");
             }
 
-            Integer assignmentPriority = 3; //lowest priority as default
+            Integer assignmentPriority = null;
             if (permission.getAssignmentPriority() != null && permission.getAssignmentPriority().getValue() != null) {
                 assignmentPriority = permission.getAssignmentPriority().getValue();
             }

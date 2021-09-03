@@ -72,7 +72,7 @@ public class TaskAutoAssignmentService {
         if (!roleAssignments.isEmpty()) {
             // the lowest assignment priority takes precedence.
             List<TaskRoleResource> rolesList = new ArrayList<>(taskResource.getTaskRoleResources());
-            rolesList.sort(Comparator.comparing(TaskRoleResource::getAssignmentPriority));
+            rolesList.sort(Comparator.nullsLast(Comparator.comparing(TaskRoleResource::getAssignmentPriority)));
 
             Map<String, TaskRoleResource> roleResourceMap = rolesList.stream()
                 .collect(toMap(
