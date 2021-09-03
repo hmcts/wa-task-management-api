@@ -26,7 +26,7 @@ public class RequiredVariablesConfigurator implements TaskConfigurator {
         ));
 
         requireNonNull(task.getTaskTypeId(), String.format(
-            "Task with id '%s' cannot be configured it has not been setup correctly. No 'taskId' process variable.",
+            "Task with id '%s' cannot be configured it has not been setup correctly. No 'taskTypeId' process variable.",
             task.getId()
         ));
 

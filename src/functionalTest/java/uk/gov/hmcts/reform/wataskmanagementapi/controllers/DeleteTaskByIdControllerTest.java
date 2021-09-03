@@ -22,6 +22,9 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -38,9 +41,10 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
 
-        TestVariables testVariables = createTaskAndCancel();
-        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
+        TestVariables testVariables = common.setupTaskAndRetrieveIds();
         initiateTask(testVariables);
+        claimAndCancelTask(testVariables);
+        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -65,9 +69,10 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_succeed_when_terminate_reason_is_completed() {
 
-        TestVariables testVariables = createTaskAndComplete();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        initiateTask(taskVariables);
+        TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
-        initiateTask(testVariables);
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -123,7 +128,9 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     private void initiateTask(TestVariables testVariables) {
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId())
+            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+            new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
+            new TaskAttribute(TASK_NAME, "Review The Appeal")
         ));
 
         Response result = restApiActions.post(
@@ -142,8 +149,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
 
-    private TestVariables createTaskAndCancel() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+    private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -164,10 +170,8 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     }
 
 
-    private TestVariables createTaskAndComplete() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+    private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
