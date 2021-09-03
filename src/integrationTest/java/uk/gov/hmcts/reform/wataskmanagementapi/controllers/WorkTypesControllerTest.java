@@ -60,14 +60,14 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_a_valid_work_type_list_when_user_has_work_types() throws Exception {
+    void should_return_a_valid_work_type_list_when_user_has_work_types() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
@@ -90,7 +90,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             get(ENDPOINT_PATH).header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
         ).andReturn();
 
-        var expectedResponse = "[{\"id\":\"hearing_work\",\"label\":\"Hearing work\"}]";
+        var expectedResponse = "[{\"id\":\"upper_tribunal\",\"label\":\"Upper Tribunal\"},"
+                               + "{\"id\":\"hearing_work\",\"label\":\"Hearing work\"}]";
         assertEquals(expectedResponse, postResponse.getResponse().getContentAsString());
     }
 
