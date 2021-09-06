@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +20,22 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Slf4j
 class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Autowired
@@ -38,8 +47,45 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
     }
 
     @Test
-    void shouldReadTaskData() {
+    void given_task_is_locked_then_other_transactions_cannot_make_changes() {
+        TaskResource task = createAndSaveTask();
 
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        executorService.execute(() -> requireLockForGivenTask(task));
+
+        Future<?> futureResult = executorService.submit(() -> {
+            await().timeout(3, TimeUnit.SECONDS);
+            requireLockForGivenTask(task);
+            task.setAssignee("changed assignee");
+            taskResourceRepository.save(task);
+        });
+
+        await()
+            .ignoreException(AssertionError.class)
+            .pollInterval(2, TimeUnit.SECONDS)
+            .atMost(7, TimeUnit.SECONDS)
+            .until(() -> {
+                Exception exception = Assertions.assertThrows(Exception.class, futureResult::get);
+                log.info(exception.toString());
+                assertThat(exception).hasMessageContaining("PessimisticLockException");
+
+                return true;
+            });
+
+        assertEquals(
+            "someAssignee",
+            taskResourceRepository.findById(task.getTaskId()).orElseThrow().getAssignee()
+        );
+    }
+
+    private void requireLockForGivenTask(TaskResource task) {
+        taskResourceRepository.findById(task.getTaskId()).orElseThrow();
+    }
+
+
+    @Test
+    void shouldReadTaskData() {
         createAndSaveTask();
         assertEquals(1, taskResourceRepository.count());
 
