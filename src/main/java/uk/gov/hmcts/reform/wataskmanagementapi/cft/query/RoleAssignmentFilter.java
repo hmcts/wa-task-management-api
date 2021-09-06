@@ -126,7 +126,12 @@ public final class RoleAssignmentFilter {
         Predicate securityClassification = mapSecurityClassification(
             root, builder, roleAssignment
         );
-        Predicate authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
+        Predicate authorizations;
+        if (CHALLENGED.equals(roleAssignment.getGrantType())) {
+            authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
+        } else {
+            authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).isNull();
+        }
         Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
         Predicate region = searchByRegion(root, builder, roleAssignment);
         Predicate jurisdiction = searchByRoleJurisdiction(root, builder, roleAssignment);
@@ -170,7 +175,7 @@ public final class RoleAssignmentFilter {
     private static Predicate mapAuthorizations(Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                CriteriaBuilder builder,
                                                RoleAssignment roleAssignment) {
-        Predicate nullAuthorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in((Object) new String[]{});
+        Predicate nullAuthorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).isNull();
         if (roleAssignment.getAuthorisations() != null) {
             Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
                 (Object) roleAssignment.getAuthorisations().toArray()
@@ -180,7 +185,6 @@ public final class RoleAssignmentFilter {
         }
         return nullAuthorizations;
     }
-
 
     private static Predicate searchByCaseTypeId(Root<TaskResource> root,
                                                 CriteriaBuilder builder,

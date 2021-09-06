@@ -5,6 +5,7 @@ import lombok.Builder;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +28,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertThrows;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
@@ -88,7 +91,15 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidExUiSearchQuery")
+    @MethodSource({
+        "grantTypeBasicErrorScenario",
+        "grantTypeBasicSpecificErrorScenario",
+        "grantTypeStandardErrorScenario",
+        "grantTypeChallengedErrorScenario",
+        "grantTypeWithStandardAndExcludedErrorScenario",
+        "grantTypeWithChallengedAndExcludedErrorScenario",
+        "inValidBeginAndEndTime"
+    })
     void shouldReturnEmptyTasksWithInvalidExUiSearchQuery(TaskQueryScenario scenario) {
         //given
         mapRoleAssignments(Classification.PUBLIC);
@@ -97,12 +108,50 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
         //when
         final List<TaskResource> allTasks = cftQueryService.getAllTasks(
-            1, 10, scenario.searchTaskRequest, accessControlResponse, permissionsRequired
+            scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
+            accessControlResponse, permissionsRequired
         );
 
         //then
         Assertions.assertThat(allTasks)
             .isEmpty();
+    }
+
+    @Test
+    void handlePaginationError() {
+        mapRoleAssignments(Classification.PUBLIC);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null,
+            List.of(RoleAssignment.builder().build()));
+        permissionsRequired.add(PermissionTypes.READ);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
+        ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+        assertThrows(IllegalArgumentException.class, () ->
+            cftQueryService.getAllTasks(
+                -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
+            )
+        );
+
+        assertThrows(IllegalArgumentException.class, () ->
+            cftQueryService.getAllTasks(
+                0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
+            )
+        );
+
+        assertThrows(IllegalArgumentException.class, () ->
+            cftQueryService.getAllTasks(
+                1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+            )
+        );
+
+        assertThrows(IllegalArgumentException.class, () ->
+            cftQueryService.getAllTasks(
+                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+            )
+        );
     }
 
     @Builder
@@ -123,7 +172,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         }
     }
 
-    private static Stream<TaskQueryScenario> grantTypeBasicScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeBasicScenarioHappyPath() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
@@ -176,7 +225,77 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeSpecificScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeBasicErrorScenario() {
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
+            .classification(Classification.RESTRICTED)
+            .grantType(GrantType.BASIC)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
+            .scenarioName("basic_grant_type_with_authorizations")
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
+            .scenarioName("basic_grant_type_with_invalid_jurisdiction")
+            .searchTaskRequest(invalidJurisdiction())
+            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
+            .scenarioName("basic_grant_type_with_invalid_location")
+            .searchTaskRequest(invalidLocation())
+            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
+            .scenarioName("basic_grant_type_with_invalid_caseId")
+            .searchTaskRequest(invalidCaseId())
+            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
+            .scenarioName("basic_grant_type_with_invalid_user")
+            .searchTaskRequest(invalidUserId())
+            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        return Stream.of(
+            withAuthorizations,
+            invalidJurisdiction,
+            invalidLocation,
+            invalidCaseId,
+            invalidUser
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeSpecificScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(CASE_ID, SearchOperator.IN, asList(
@@ -227,7 +346,83 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeStandardScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeBasicSpecificErrorScenario() {
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(Classification.RESTRICTED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .grantType(GrantType.SPECIFIC)
+            .attributes(tcAttributes)
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
+            .scenarioName("specific_grant_type_with_authorizations")
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
+            .scenarioName("specific_grant_type_with_invalid_jurisdiction")
+            .searchTaskRequest(invalidJurisdiction())
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
+            .scenarioName("specific_grant_type_with_invalid_location")
+            .searchTaskRequest(invalidLocation())
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
+            .scenarioName("specific_grant_type_with_invalid_caseId")
+            .searchTaskRequest(invalidCaseId())
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
+            .scenarioName("specific_grant_type_with_invalid_user")
+            .searchTaskRequest(invalidUserId())
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        return Stream.of(
+            withAuthorizations,
+            invalidJurisdiction,
+            invalidLocation,
+            invalidCaseId,
+            invalidUser
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeStandardScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
@@ -279,7 +474,83 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeChallengedScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeStandardErrorScenario() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
+        ));
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("standard-caseworker")
+            .classification(Classification.RESTRICTED)
+            .attributes(tcAttributes)
+            .grantType(GrantType.STANDARD)
+            .authorisations(List.of("unknownValue"))
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_authorizations")
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_invalid_jurisdiction")
+            .searchTaskRequest(invalidJurisdiction())
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_invalid_location")
+            .searchTaskRequest(invalidLocation())
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_invalid_caseId")
+            .searchTaskRequest(invalidCaseId())
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
+            .scenarioName("standard_grant_type_with_invalid_user")
+            .searchTaskRequest(invalidUserId())
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        return Stream.of(
+            withAuthorizations,
+            invalidJurisdiction,
+            invalidLocation,
+            invalidCaseId,
+            invalidUser
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeChallengedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
         ));
@@ -333,7 +604,55 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeChallengedErrorScenario() {
+
+        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_invalid_jurisdiction")
+            .searchTaskRequest(invalidJurisdiction())
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+
+        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_invalid_location")
+            .searchTaskRequest(invalidLocation())
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+
+        final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_invalid_caseId")
+            .searchTaskRequest(invalidCaseId())
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
+            .scenarioName("challenged_grant_type_with_invalid_user")
+            .searchTaskRequest(invalidUserId())
+            .roleAssignments(roleAssignmentsWithGrantTypeChallenged(Classification.RESTRICTED))
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        return Stream.of(
+            invalidJurisdiction,
+            invalidLocation,
+            invalidCaseId,
+            invalidUser
+        );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
         ));
@@ -385,7 +704,54 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeWithChallengedAndExcludedScenarioProviderHappyPath() {
+    private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedErrorScenario() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("standard-caseworker")
+            .classification(Classification.RESTRICTED)
+            .attributes(tcAttributes)
+            .grantType(GrantType.STANDARD)
+            .authorisations(List.of("unknownValue"))
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> stcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(Classification.RESTRICTED)
+            .attributes(stcAttributes)
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final TaskQueryScenario invalidAuthorization = TaskQueryScenario.builder()
+            .scenarioName("standard_and_excluded_grant_type_with_invalid_authorization")
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        return Stream.of(
+            invalidAuthorization
+        );
+
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeWithChallengedAndExcludedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
         ));
@@ -435,6 +801,52 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
             privateClassification,
             restrictedClassification
         );
+    }
+
+    private static Stream<TaskQueryScenario> grantTypeWithChallengedAndExcludedErrorScenario() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        final Map<String, String> tcAttributes = Map.of(
+            RoleAttributeDefinition.JURISDICTION.value(), "SCSS"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .attributes(tcAttributes)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.CHALLENGED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> stcAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .attributes(stcAttributes)
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
+            .scenarioName("challenged_and_excluded_grant_type_with_invalid_caseId")
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .firstResults(0)
+            .maxResults(10)
+            .expectedSize(0)
+            .expectedTaskDetails(Collections.emptyList()).build();
+
+        return Stream.of(
+            invalidCaseId
+        );
+
     }
 
     private static Stream<TaskQueryScenario> withAllGrantTypesHappyPath() {
@@ -628,26 +1040,34 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> invalidExUiSearchQuery() {
-        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
-            .scenarioName("Invalid jurisdiction")
-            .roleAssignments(mapRoleAssignments(Classification.PUBLIC))
-            .searchTaskRequest(getSearchTaskRequest("IA1", null, "ASSIGNED", null))
-            .build();
+    private static Stream<TaskQueryScenario> inValidBeginAndEndTime() {
 
-        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
-            .scenarioName("Invalid location")
-            .roleAssignments(mapRoleAssignments(Classification.PUBLIC))
-            .searchTaskRequest(getSearchTaskRequest("IA", "12345", "ASSIGNED", ""))
-            .build();
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
 
-        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
-            .scenarioName("Invalid user")
-            .roleAssignments(mapRoleAssignments(Classification.PUBLIC))
-            .searchTaskRequest(getSearchTaskRequest(null, null, "ASSIGNED", "user1"))
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(Classification.RESTRICTED)
+            .grantType(GrantType.BASIC)
+            .beginTime(null)
+            .endTime(null)
             .build();
+        roleAssignments.add(roleAssignment);
 
-        return Stream.of(invalidJurisdiction, invalidLocation, invalidUser);
+        final TaskQueryScenario invalidBeginAndEndTime = TaskQueryScenario.builder()
+            .scenarioName("invalid-begin-end-time")
+            .firstResults(0)
+            .maxResults(10)
+            .searchTaskRequest(searchTaskRequest)
+            .roleAssignments(roleAssignments)
+            .expectedSize(0)
+            .expectedTaskDetails(Lists.newArrayList()
+            ).build();
+
+        return Stream.of(
+            invalidBeginAndEndTime
+        );
     }
 
     @NotNull
@@ -820,13 +1240,12 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     ) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+            RoleAttributeDefinition.JURISDICTION.value(), "IA"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .attributes(tcAttributes)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -834,7 +1253,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> stcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431006"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
@@ -983,6 +1402,30 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         roleAssignments.add(roleAssignment);
 
         return roleAssignments;
+    }
+
+    private static SearchTaskRequest invalidJurisdiction() {
+        return new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA1", "", null))
+        ));
+    }
+
+    private static SearchTaskRequest invalidLocation() {
+        return new SearchTaskRequest(List.of(
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("000000", "", null))
+        ));
+    }
+
+    private static SearchTaskRequest invalidCaseId() {
+        return new SearchTaskRequest(List.of(
+            new SearchParameter(CASE_ID, SearchOperator.IN, asList("000000", "", null))
+        ));
+    }
+
+    private static SearchTaskRequest invalidUserId() {
+        return new SearchTaskRequest(List.of(
+            new SearchParameter(USER, SearchOperator.IN, asList("unknown", "", null))
+        ));
     }
 
 }
