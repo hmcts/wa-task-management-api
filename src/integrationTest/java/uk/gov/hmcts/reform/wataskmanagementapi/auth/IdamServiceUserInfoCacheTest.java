@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +12,6 @@ import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
-@Disabled("cast exception referring to the UserInfo pojo")
 public class IdamServiceUserInfoCacheTest {
 
     @MockBean
