@@ -13,7 +13,6 @@ import java.util.List;
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @Builder
 @EqualsAndHashCode
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserInfo {
 
@@ -62,4 +61,15 @@ public class UserInfo {
         return familyName;
     }
 
+    @Override
+    public String toString() {
+        return "UserInfo{" +
+               "email='" + email + '\'' +
+               ", uid='" + uid + '\'' +
+               ", roles=" + roles +
+               ", name='" + name + '\'' +
+               ", givenName='" + givenName + '\'' +
+               ", familyName='" + familyName + '\'' +
+               '}';
+    }
 }
