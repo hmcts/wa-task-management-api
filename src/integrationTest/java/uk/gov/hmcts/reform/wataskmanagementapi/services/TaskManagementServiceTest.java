@@ -237,8 +237,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             ExecutorService executorService = Executors.newFixedThreadPool(2);
 
             executorService.execute(() -> {
-                TaskResource retrieveTaskAndLockIt = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
-                    .orElseThrow(() -> new RuntimeException("Task should exist in DB"));
+                TaskResource retrieveTaskAndLockIt =
+                    cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
+                        .orElseThrow(() -> new RuntimeException("Task should exist in DB"));
                 log.info("do in transaction: " + retrieveTaskAndLockIt.getAssignee());
             });
 
