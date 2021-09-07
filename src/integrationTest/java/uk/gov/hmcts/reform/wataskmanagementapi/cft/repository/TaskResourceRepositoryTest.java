@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
-class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
+class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
