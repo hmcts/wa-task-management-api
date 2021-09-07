@@ -5,6 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -52,6 +54,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
@@ -1385,16 +1388,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Mock
         private TaskResource taskResource;
 
-        @Test
-        void given_initiateTask_is_called_then_task_is_mapped_to_cft_task_and_configured() {
-            mockInitiateTaskDependencies();
+        @ParameterizedTest
+        @EnumSource
+        void given_initiateTask_is_called_then_task_is_mapped_to_cft_task_and_configured(CFTTaskState cftTaskState) {
+            mockInitiateTaskDependencies(cftTaskState);
 
             taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
-            verifyExpectations();
+            verifyExpectations(cftTaskState);
         }
 
-        private void verifyExpectations() {
+        private void verifyExpectations(CFTTaskState cftTaskState) {
             verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
             verify(configureTaskService).configureCFTTask(
@@ -1409,19 +1413,26 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
 
-            verify(camundaService).updateCftTaskState(taskId, TaskState.ASSIGNED);
+            if (cftTaskState.equals(CFTTaskState.ASSIGNED) || cftTaskState.equals(CFTTaskState.UNASSIGNED)) {
+                verify(camundaService).updateCftTaskState(
+                    taskId,
+                    cftTaskState.equals(CFTTaskState.ASSIGNED) ? TaskState.ASSIGNED : TaskState.UNASSIGNED
+                );
+            } else {
+                verifyNoInteractions(camundaService);
+            }
 
             verify(cftTaskDatabaseService).saveTask(taskResource);
         }
 
-        private void mockInitiateTaskDependencies() {
+        private void mockInitiateTaskDependencies(CFTTaskState cftTaskState) {
             when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
                 .thenReturn(taskResource);
 
             when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
             when(taskResource.getCaseId()).thenReturn("aCaseId");
             when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
-            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+            when(taskResource.getState()).thenReturn(cftTaskState);
 
             when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
                 .thenReturn(taskResource);
