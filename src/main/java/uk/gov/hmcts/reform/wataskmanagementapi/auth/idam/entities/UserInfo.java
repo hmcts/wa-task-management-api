@@ -62,13 +62,13 @@ public class UserInfo {
 
     @Override
     public String toString() {
-        return "UserInfo{" +
-               "email='" + email + '\'' +
-               ", uid='" + uid + '\'' +
-               ", roles=" + roles +
-               ", name='" + name + '\'' +
-               ", givenName='" + givenName + '\'' +
-               ", familyName='" + familyName + '\'' +
-               '}';
+        return "UserInfo{"
+               + "email='" + email + '\''
+               + ", uid='" + uid + '\''
+               + ", roles=" + roles
+               + ", name='" + name + '\''
+               + ", givenName='" + givenName + '\''
+               + ", familyName='" + familyName + '\''
+               + '}';
     }
 }
