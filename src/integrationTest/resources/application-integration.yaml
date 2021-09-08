@@ -2,6 +2,8 @@ spring:
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    hikari:
+      minimum-idle: 5
 
 idam:
   test:
@@ -16,3 +18,16 @@ document_management:
 
 ccd_gateway:
   url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+logging:
+  level:
+    org.springframework:
+      dao: info
+      transaction: debug
+      jdbc.core.JdbcTemplate: info
+    org.hibernate:
+      SQL: info
+      type.descriptor.sql.BasicBinder: info
+      engine: info
+    uk.gov.hmcts.reform: debug
+
