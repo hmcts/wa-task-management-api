@@ -69,7 +69,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
             UNCONFIGURED
         );
 
-        return taskResourceRepository.saveAndFlush(taskResource);
+        return taskResourceRepository.save(taskResource);
     }
 
 }

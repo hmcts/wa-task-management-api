@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -40,15 +40,22 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+    private final TaskResource task = createTask();
 
-    @BeforeEach
-    void setUp() {
+    @AfterEach
+    void tearDown() {
         taskResourceRepository.deleteAll();
     }
 
     @Test
+    void save() {
+        taskResourceRepository.save(task);
+        assertNotNull(taskResourceRepository.getByTaskId(task.getTaskId()));
+    }
+
+    @Test
     void given_task_is_locked_then_other_transactions_cannot_make_changes() {
-        TaskResource task = createAndSaveTask();
+        taskResourceRepository.save(task);
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -86,7 +93,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void shouldReadTaskData() {
-        createAndSaveTask();
+        createTask();
         assertEquals(1, taskResourceRepository.count());
 
         final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
@@ -121,14 +128,14 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    private TaskResource createAndSaveTask() {
+    private TaskResource createTask() {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                              "noteTypeVal",
                              "userVal", OffsetDateTime.now(),
                              "someContent"
             ));
-        TaskResource taskResource = new TaskResource(
+        return new TaskResource(
             "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
             "aTaskName",
             "startAppeal",
@@ -176,7 +183,5 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             )),
             "caseCategory"
         );
-
-        return taskResourceRepository.save(taskResource);
     }
 }

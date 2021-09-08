@@ -174,7 +174,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             "taskType",
             UNCONFIGURED
         );
-        taskResourceRepository.saveAndFlush(taskResource);
+        taskResourceRepository.save(taskResource);
     }
 
 
