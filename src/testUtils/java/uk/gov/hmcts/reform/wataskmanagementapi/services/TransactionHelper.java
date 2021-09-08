@@ -18,7 +18,6 @@ public class TransactionHelper {
 
     public void doInNewTransaction(Runnable runnable) {
         txTemplate.setPropagationBehavior(PROPAGATION_REQUIRES_NEW);
-        txTemplate.setReadOnly(false);
         txTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
