@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -47,15 +48,18 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         taskResourceRepository.deleteAll();
     }
 
+    @BeforeEach
+    void setUp() {
+        taskResourceRepository.save(task);
+    }
+
     @Test
     void save() {
-        taskResourceRepository.save(task);
         assertNotNull(taskResourceRepository.getByTaskId(task.getTaskId()));
     }
 
     @Test
     void given_task_is_locked_then_other_transactions_cannot_make_changes() {
-        taskResourceRepository.save(task);
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -90,10 +94,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         taskResourceRepository.findById(task.getTaskId()).orElseThrow();
     }
 
-
     @Test
     void shouldReadTaskData() {
-        createTask();
         assertEquals(1, taskResourceRepository.count());
 
         final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
