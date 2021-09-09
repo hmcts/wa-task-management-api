@@ -460,9 +460,9 @@ public class TaskManagementService {
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
         TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
         if (canGetDbLock(taskResource)) {
-            //TaskResource taskResource = configureTask(taskResource.get());
-            //taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-            //updateCftTaskState(taskResource.getTaskId(), taskResource);
+            taskResource = configureTask(taskResource);
+            taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            updateCftTaskState(taskResource.getTaskId(), taskResource);
         }
         return cftTaskDatabaseService.saveTask(taskResource);
     }

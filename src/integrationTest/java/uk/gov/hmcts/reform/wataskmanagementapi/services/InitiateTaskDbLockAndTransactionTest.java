@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -20,9 +23,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,12 +43,16 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
@@ -52,14 +60,16 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
-public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
+public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationBaseTest {
 
     public static final String A_TASK_NAME = "aTaskName";
+    public static final String A_TASK_TYPE = "aTaskType";
+    public static final String SOME_ASSIGNEE = "someAssignee";
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @Autowired
+    @MockBean
     private CamundaService camundaService;
     @MockBean
     private CamundaQueryBuilder camundaQueryBuilder;
@@ -93,21 +103,19 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
         InitiateTaskOperation.INITIATION,
         List.of(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
+            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
             new TaskAttribute(TASK_NAME, A_TASK_NAME)
         )
     );
 
+    @Captor
+    private ArgumentCaptor<TaskResource> taskResourceCaptor;
+    private TaskResource testTaskResource;
+
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
-        ServiceMocks mockServices = new ServiceMocks(
-            idamWebApi,
-            serviceAuthorisationApi,
-            camundaServiceApi,
-            roleAssignmentServiceApi
-        );
 
         taskManagementService = new TaskManagementService(
             camundaService,
@@ -120,14 +128,18 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
             taskAutoAssignmentService
         );
 
-        mockServices.mockServiceAPIs();
-
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID
-            )
+                           RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                           IDAM_USER_ID
+                       )
         ).thenReturn(true);
 
+        testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED);
+        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+            .thenReturn(testTaskResource);
+
+        when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
+            .thenReturn(testTaskResource);
     }
 
     @AfterEach
@@ -152,8 +164,35 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
-        taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        transactionHelper.doInNewTransaction(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest));
 
+        InOrder inOrder = inOrder(
+            cftTaskMapper,
+            cftTaskDatabaseService,
+            configureTaskService,
+            taskAutoAssignmentService,
+            camundaService,
+            cftTaskDatabaseService
+        );
+
+        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+
+        inOrder.verify(cftTaskDatabaseService).saveTask(taskResourceCaptor.capture());
+        assertTrue(expectTaskWithAssignee(taskResourceCaptor.getValue()));
+
+        inOrder.verify(configureTaskService).configureCFTTask(
+            taskResourceCaptor.capture(),
+            eq(new TaskToConfigure(taskId, A_TASK_TYPE, null, A_TASK_NAME))
+        );
+        assertTrue(expectTaskWithAssignee(taskResourceCaptor.getValue()));
+
+        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(testTaskResource);
+
+        inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.ASSIGNED);
+
+        inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
+
+        //verify task is in the DB
         assertEquals(1, taskResourceRepository.count());
         assertEquals(
             A_TASK_NAME,
@@ -161,19 +200,32 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    private boolean expectTaskWithAssignee(TaskResource actualTaskResource) {
+        return actualTaskResource.getTaskId().equals(taskId)
+               && actualTaskResource.getTaskName().equals(A_TASK_NAME)
+               && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
+               && actualTaskResource.getState().equals(ASSIGNED)
+               && actualTaskResource.getTaskType().equals(A_TASK_TYPE);
+    }
+
     @Test
-    //todo: this test requires more realistic testing, probably a FT, to confirm the save op locks the DB row.
     void given_multiple_task_initiate_calls_then_expect_one_to_succeed_and_one_to_fail() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         AtomicReference<Future<TaskResource>> future1 = new AtomicReference<>();
         AtomicReference<Future<TaskResource>> future2 = new AtomicReference<>();
 
-        transactionHelper.doInNewTransaction(() -> future1.set(executorService
-            .submit(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))));
+        transactionHelper.doInNewTransaction(
+            () -> future1.set(executorService.submit(() -> taskManagementService.initiateTask(
+                taskId,
+                initiateTaskRequest
+            ))));
 
-        transactionHelper.doInNewTransaction(() -> future2.set(executorService
-            .submit(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))));
+        transactionHelper.doInNewTransaction(
+            () -> future2.set(executorService.submit(() -> taskManagementService.initiateTask(
+                taskId,
+                initiateTaskRequest
+            ))));
 
         List<Future<TaskResource>> futureResults = List.of(
             future1.get(),
@@ -185,9 +237,11 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
             .ignoreExceptions()
             .pollInterval(2, TimeUnit.SECONDS)
             .atMost(10, TimeUnit.SECONDS)
-            .until(() -> expectedFailureCalls(futureResults,
+            .until(() -> expectedFailureCalls(
+                futureResults,
                 1,
-                "DataIntegrityViolationException")
+                "DataIntegrityViolationException"
+            )
                          && expectedSucceededCalls(futureResults, 1));
     }
 
