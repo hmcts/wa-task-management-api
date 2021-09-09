@@ -373,8 +373,8 @@ public class TaskManagementService {
         //4. Extract if a task is assigned and assignee is idam userId
         String idamUserId = accessControlResponse.getUserInfo().getUid();
 
-        final List<CamundaTask> tasksAssignedToUser = searchResults.stream().filter(
-                task -> idamUserId.equals(task.getAssignee()))
+        final List<CamundaTask> tasksAssignedToUser = searchResults.stream()
+            .filter(task -> idamUserId.equals(task.getAssignee()))
             .collect(Collectors.toList());
 
         if (!tasksAssignedToUser.isEmpty()) {

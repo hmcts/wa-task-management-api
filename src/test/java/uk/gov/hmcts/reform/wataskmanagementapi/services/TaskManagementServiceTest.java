@@ -1422,7 +1422,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 verifyNoInteractions(camundaService);
             }
 
-            verify(cftTaskDatabaseService).saveTask(taskResource);
+            verify(cftTaskDatabaseService, times(2)).saveTask(taskResource);
         }
 
         private void mockInitiateTaskDependencies(CFTTaskState cftTaskState) {
@@ -1430,6 +1430,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(taskResource);
 
             when(taskResource.getTaskType()).thenReturn(A_TASK_TYPE);
+            when(taskResource.getTaskId()).thenReturn(taskId);
             when(taskResource.getCaseId()).thenReturn("aCaseId");
             when(taskResource.getTaskName()).thenReturn(A_TASK_NAME);
             when(taskResource.getState()).thenReturn(cftTaskState);
