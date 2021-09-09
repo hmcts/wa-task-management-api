@@ -112,8 +112,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
-        );
+            taskAutoAssignmentService);
 
         mockServices.mockServiceAPIs();
 

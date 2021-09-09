@@ -70,8 +70,7 @@ public class TaskManagementProviderTestConfiguration {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
-            );
+            taskAutoAssignmentService);
     }
 
     @Bean

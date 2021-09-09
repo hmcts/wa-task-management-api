@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -71,8 +72,7 @@ public class TaskManagementService {
                                  CFTTaskMapper cftTaskMapper,
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
-                                 TaskAutoAssignmentService taskAutoAssignmentService
-    ) {
+                                 TaskAutoAssignmentService taskAutoAssignmentService) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
@@ -109,8 +109,22 @@ public class TaskManagementService {
                           AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
-        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-        roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+
+        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
+            .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                             accessControlResponse.getUserInfo().getUid());
+        if (isFeatureEnabled) {
+            Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
+                .findByIdAndObtainPessimisticWriteLock(taskId);
+            if (optionalTaskResource.isPresent()) {
+                TaskResource taskResource = optionalTaskResource.get();
+                taskResourceVerification(taskResource, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            }
+
+        } else {
+            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
+            roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+        }
         camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
     }
 
@@ -526,6 +540,23 @@ public class TaskManagementService {
                                             List<RoleAssignment> roleAssignments,
                                             List<PermissionTypes> permissionsRequired) {
         boolean hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignments, permissionsRequired);
+        if (!hasAccess) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
+    }
+
+    /**
+     * Helper method to evaluate whether a user should have access to a task.
+     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
+     *
+     * @param taskResource        the task resource obtained from cft db.
+     * @param roleAssignments     the role assignments of the user.
+     * @param permissionsRequired the permissions that are required by the endpoint.
+     */
+    private void taskResourceVerification(TaskResource taskResource,
+                                            List<RoleAssignment> roleAssignments,
+                                            List<PermissionTypes> permissionsRequired) {
+        boolean hasAccess = permissionEvaluatorService.checkAccess(taskResource, roleAssignments, permissionsRequired);
         if (!hasAccess) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }

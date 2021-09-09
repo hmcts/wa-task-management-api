@@ -92,8 +92,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
-        );
+            taskAutoAssignmentService);
 
         taskId = UUID.randomUUID().toString();
     }
