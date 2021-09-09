@@ -50,7 +50,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        taskResourceRepository.save(task);
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
     }
 
     @Test
@@ -78,14 +78,15 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 return true;
             });
 
-        assertEquals(
-            "someAssignee",
-            taskResourceRepository.findById(task.getTaskId()).orElseThrow().getAssignee()
-        );
+        transactionHelper.doInNewTransaction(() -> {
+            TaskResource dbTask = taskResourceRepository.getByTaskId(task.getTaskId()).orElseThrow();
+            assertEquals("someAssignee", dbTask.getAssignee());
+
+        });
     }
 
     private void requireLockForGivenTask(TaskResource task) {
-        taskResourceRepository.findById(task.getTaskId()).orElseThrow();
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
     }
 
     @Test
