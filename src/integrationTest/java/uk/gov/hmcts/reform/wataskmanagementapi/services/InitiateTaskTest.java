@@ -33,12 +33,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
@@ -61,7 +67,7 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     private PermissionEvaluatorService permissionEvaluatorService;
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Autowired
+    @SpyBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired
     private TaskManagementService taskManagementService;
@@ -80,6 +86,9 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
+
+    @Autowired
+    private TransactionHelper transactionHelper;
 
     private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
         InitiateTaskOperation.INITIATION,
@@ -127,6 +136,21 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void given_initiate_task_is_called_when_error_then_rollback_db() {
+        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
+            .thenThrow(new RuntimeException("some error"));
+
+        assertThrows(RuntimeException.class, () -> transactionHelper
+            .doInNewTransaction(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)));
+
+        transactionHelper.doInNewTransaction(() -> assertEquals(0, taskResourceRepository.count()));
+
+        verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        verify(cftTaskDatabaseService).saveTask(argThat((task) -> task.getTaskId().equals(taskId)));
+        verifyNoMoreInteractions(cftTaskDatabaseService);
+    }
+
+    @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -138,15 +162,23 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_multiple_task_initiate_calls_then_expect_one_to_succeed_and_one_to_fail()
-        throws InterruptedException {
+    //todo: this test requires more realistic testing, probably a FT, to confirm the save op locks the DB row.
+    void given_multiple_task_initiate_calls_then_expect_one_to_succeed_and_one_to_fail() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-        // multiple initiate task calls
-        List<Future<Object>> futureResults = executorService.invokeAll(List.of(
-            () -> taskManagementService.initiateTask(taskId, initiateTaskRequest),
-            () -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
-        ));
+        AtomicReference<Future<TaskResource>> future1 = new AtomicReference<>();
+        AtomicReference<Future<TaskResource>> future2 = new AtomicReference<>();
+
+        transactionHelper.doInNewTransaction(() -> future1.set(executorService
+            .submit(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))));
+
+        transactionHelper.doInNewTransaction(() -> future2.set(executorService
+            .submit(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))));
+
+        List<Future<TaskResource>> futureResults = List.of(
+            future1.get(),
+            future2.get()
+        );
 
         //expect one call to succeed and the another to fail
         await()
@@ -160,12 +192,12 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private boolean expectedSucceededCalls(List<Future<Object>> futureResults, int expectedSucceededCalls) {
+    private boolean expectedSucceededCalls(List<Future<TaskResource>> futureResults, int expectedSucceededCalls) {
         Set<TaskResource> oneTaskSucceedCondition = new HashSet<>();
         futureResults.forEach((fr) -> {
             if (fr.isDone()) {
                 try {
-                    TaskResource task = (TaskResource) fr.get();
+                    TaskResource task = fr.get();
                     log.info("result task: " + task);
                     oneTaskSucceedCondition.add(task);
                 } catch (InterruptedException | ExecutionException e) {
@@ -177,7 +209,7 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private boolean expectedFailureCalls(List<Future<Object>> futureResults,
+    private boolean expectedFailureCalls(List<Future<TaskResource>> futureResults,
                                          int expectedFailureCalls,
                                          String expectedFailureException) {
         return futureResults.stream().filter((fr) -> {

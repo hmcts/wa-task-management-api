@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -23,6 +24,7 @@ import javax.persistence.Id;
     name = "pgsql_enum",
     typeClass = PostgreSQLEnumType.class
 )
+@Builder
 public class ExecutionTypeResource implements Serializable {
 
     private static final long serialVersionUID = -5241589570453132436L;

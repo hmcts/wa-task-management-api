@@ -54,13 +54,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void save() {
-        assertNotNull(taskResourceRepository.getByTaskId(task.getTaskId()));
-    }
-
-    @Test
     void given_task_is_locked_then_other_transactions_cannot_make_changes() {
-
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         executorService.execute(() -> requireLockForGivenTask(task));

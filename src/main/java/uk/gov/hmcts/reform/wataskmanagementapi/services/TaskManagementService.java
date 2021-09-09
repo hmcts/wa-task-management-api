@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.RequireDbLockException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -374,7 +376,7 @@ public class TaskManagementService {
         String idamUserId = accessControlResponse.getUserInfo().getUid();
 
         final List<CamundaTask> tasksAssignedToUser = searchResults.stream().filter(
-            task -> idamUserId.equals(task.getAssignee()))
+                task -> idamUserId.equals(task.getAssignee()))
             .collect(Collectors.toList());
 
         if (!tasksAssignedToUser.isEmpty()) {
@@ -456,43 +458,64 @@ public class TaskManagementService {
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
      * @return The updated entity {@link TaskResource}
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        //Create a skeleton task from attributes received in request
-        TaskResource taskResource = cftTaskMapper.mapToTaskResource(
-            taskId,
-            initiateTaskRequest.getTaskAttributes()
-        );
+        Optional<TaskResource> taskSkeleton = requireDbLockToInitiateTask(taskId, initiateTaskRequest);
+        TaskResource taskSkeletonData = taskSkeleton.orElseThrow(() -> new RuntimeException(
+            "taskSkeleton can't be empty"));
+        //TaskResource taskResource = configureTask(taskSkeleton.get());
+        //taskSkeletonData = taskAutoAssignmentService.autoAssignCFTTask(taskSkeletonData);
+        //updateCftTaskState(taskResource.getTaskId(), taskResource);
+        return cftTaskDatabaseService.saveTask(taskSkeletonData);
+    }
 
+    private Optional<TaskResource> requireDbLockToInitiateTask(String taskId,
+                                                               InitiateTaskRequest initiateTaskRequest) {
+        TaskResource taskSkeleton;
+        try {
+            taskSkeleton = createTaskSkeleton(taskId, initiateTaskRequest);
+            cftTaskDatabaseService.saveTask(taskSkeleton);
+        } catch (Exception e) {
+            String message = String.format(
+                "Can't get lock. Possibly because this is a duplicate request for taskId(%s)",
+                taskId
+            );
+            throw new RequireDbLockException(message, e);
+        }
+        return Optional.of(taskSkeleton);
+    }
 
-        // todo insert with no commit:
-        // auto commit prop
-        // entity manager
-
-        TaskToConfigure taskToConfigure = new TaskToConfigure(
-            taskId,
-            taskResource.getTaskType(),
-            taskResource.getCaseId(),
-            taskResource.getTaskName()
-        );
-
-        //Retrieve configuration and update task
-        taskResource = configureTaskService.configureCFTTask(
-            taskResource,
-            taskToConfigure
-        );
-
-        //Auto-assignment
-        taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-
-        //Update CFT Task state
+    private void updateCftTaskState(String taskId, TaskResource taskResource) {
         if (CFTTaskState.ASSIGNED.equals(taskResource.getState())) {
             camundaService.updateCftTaskState(taskId, TaskState.ASSIGNED);
         } else if (CFTTaskState.UNASSIGNED.equals(taskResource.getState())) {
             camundaService.updateCftTaskState(taskId, TaskState.UNASSIGNED);
         }
-        //Commit transaction
-        return cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private TaskResource configureTask(TaskResource taskSkeleton) {
+        TaskToConfigure taskToConfigure = new TaskToConfigure(
+            taskSkeleton.getTaskId(),
+            taskSkeleton.getTaskType(),
+            taskSkeleton.getCaseId(),
+            taskSkeleton.getTaskName()
+        );
+
+        return configureTaskService.configureCFTTask(
+            taskSkeleton,
+            taskToConfigure
+        );
+    }
+
+    private void saveAndRequireDbLock(TaskResource taskSkeleton) {
+        cftTaskDatabaseService.saveTask(taskSkeleton);
+    }
+
+    private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        return cftTaskMapper.mapToTaskResource(
+            taskId,
+            initiateTaskRequest.getTaskAttributes()
+        );
     }
 
     private TaskResource findByIdAndObtainLock(String taskId) {
