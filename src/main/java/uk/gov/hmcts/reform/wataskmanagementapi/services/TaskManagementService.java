@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.RequireDbLockException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -34,7 +33,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -460,29 +458,18 @@ public class TaskManagementService {
      */
     @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        Optional<TaskResource> taskSkeleton = requireDbLockToInitiateTask(taskId, initiateTaskRequest);
-        TaskResource taskSkeletonData = taskSkeleton.orElseThrow(() -> new RuntimeException(
-            "taskSkeleton can't be empty"));
-        //TaskResource taskResource = configureTask(taskSkeleton.get());
-        //taskSkeletonData = taskAutoAssignmentService.autoAssignCFTTask(taskSkeletonData);
-        //updateCftTaskState(taskResource.getTaskId(), taskResource);
-        return cftTaskDatabaseService.saveTask(taskSkeletonData);
+        TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
+        if (canGetDbLock(taskResource)) {
+            //TaskResource taskResource = configureTask(taskResource.get());
+            //taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            //updateCftTaskState(taskResource.getTaskId(), taskResource);
+        }
+        return cftTaskDatabaseService.saveTask(taskResource);
     }
 
-    private Optional<TaskResource> requireDbLockToInitiateTask(String taskId,
-                                                               InitiateTaskRequest initiateTaskRequest) {
-        TaskResource taskSkeleton;
-        try {
-            taskSkeleton = createTaskSkeleton(taskId, initiateTaskRequest);
-            cftTaskDatabaseService.saveTask(taskSkeleton);
-        } catch (Exception e) {
-            String message = String.format(
-                "Can't get lock. Possibly because this is a duplicate request for taskId(%s)",
-                taskId
-            );
-            throw new RequireDbLockException(message, e);
-        }
-        return Optional.of(taskSkeleton);
+    private boolean canGetDbLock(TaskResource taskResource) {
+        return cftTaskDatabaseService.saveTask(taskResource).getTaskId()
+            .equals(taskResource.getTaskId());
     }
 
     private void updateCftTaskState(String taskId, TaskResource taskResource) {
@@ -505,10 +492,6 @@ public class TaskManagementService {
             taskSkeleton,
             taskToConfigure
         );
-    }
-
-    private void saveAndRequireDbLock(TaskResource taskSkeleton) {
-        cftTaskDatabaseService.saveTask(taskSkeleton);
     }
 
     private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequest initiateTaskRequest) {

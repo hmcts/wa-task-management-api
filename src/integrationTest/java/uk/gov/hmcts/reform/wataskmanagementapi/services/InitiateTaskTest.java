@@ -187,7 +187,7 @@ public class InitiateTaskTest extends SpringBootIntegrationBaseTest {
             .atMost(10, TimeUnit.SECONDS)
             .until(() -> expectedFailureCalls(futureResults,
                 1,
-                "RequireDbLockException")
+                "DataIntegrityViolationException")
                          && expectedSucceededCalls(futureResults, 1));
     }
 
