@@ -11,7 +11,7 @@ import java.util.Optional;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
-public interface TaskResourceRepository extends CrudRepository<TaskResource, String> {
+public interface TaskResourceRepository extends CrudRepository<TaskResource, String>, CustomSaveRepo<TaskResource> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})

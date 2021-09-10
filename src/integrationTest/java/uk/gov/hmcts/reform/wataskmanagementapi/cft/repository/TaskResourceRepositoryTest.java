@@ -50,20 +50,20 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.insert(task));
     }
 
     @Test
     void given_task_does_not_exists_then_insert() {
         transactionHelper.doInNewTransaction(() -> {
             TaskResource newId = createTask("new id", ExecutionType.BUILT_IN);
-            taskResourceRepository.save(newId);
+            taskResourceRepository.insert(newId);
         });
     }
 
     @Test
     void given_task_exists_then_fails() {
-        taskResourceRepository.save(task);
+        taskResourceRepository.insert(task);
     }
 
     @Test
@@ -76,7 +76,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             await().timeout(3, TimeUnit.SECONDS);
             requireLockForGivenTask(task);
             task.setAssignee("changed assignee");
-            taskResourceRepository.save(task);
+            taskResourceRepository.insert(task);
         });
 
         await()
