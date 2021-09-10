@@ -41,7 +41,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    private final TaskResource task = createTask();
+    private final TaskResource task = createTask("8d6cc5cf-c973-11eb-bdba-0242ac11001e", ExecutionType.MANUAL);
 
     @AfterEach
     void tearDown() {
@@ -51,6 +51,19 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @BeforeEach
     void setUp() {
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
+    }
+
+    @Test
+    void given_task_does_not_exists_then_insert() {
+        transactionHelper.doInNewTransaction(() -> {
+            TaskResource newId = createTask("new id", ExecutionType.BUILT_IN);
+            taskResourceRepository.save(newId);
+        });
+    }
+
+    @Test
+    void given_task_exists_then_fails() {
+        taskResourceRepository.save(task);
     }
 
     @Test
@@ -125,7 +138,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         );
     }
 
-    private TaskResource createTask() {
+    private TaskResource createTask(String taskId, ExecutionType executionCode) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                              "noteTypeVal",
@@ -133,7 +146,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                              "someContent"
             ));
         return new TaskResource(
-            "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+            taskId,
             "aTaskName",
             "startAppeal",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -147,7 +160,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             0,
             "someAssignee",
             false,
-            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new ExecutionTypeResource(executionCode, "Manual", "Manual Description"),
             "workType",
             "JUDICIAL",
             false,
@@ -175,7 +188,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 0,
                 false,
                 "JUDICIAL",
-                "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+                taskId,
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory"

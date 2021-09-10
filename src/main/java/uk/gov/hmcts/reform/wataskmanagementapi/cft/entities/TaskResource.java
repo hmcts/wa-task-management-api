@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.springframework.data.domain.Persistable;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -24,6 +25,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
@@ -40,7 +42,7 @@ import javax.persistence.OneToOne;
     typeClass = JsonType.class
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
-public class TaskResource implements Serializable {
+public class TaskResource implements Serializable, Persistable<String> {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
@@ -320,5 +322,15 @@ public class TaskResource implements Serializable {
 
     public void setCaseCategory(String caseCategory) {
         this.caseCategory = caseCategory;
+    }
+
+    @Override
+    public String getId() {
+        return this.getTaskId();
+    }
+
+    @Override
+    public boolean isNew() {
+        return true;
     }
 }
