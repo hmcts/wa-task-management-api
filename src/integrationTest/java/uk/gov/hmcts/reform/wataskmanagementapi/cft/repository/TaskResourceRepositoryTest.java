@@ -63,7 +63,20 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void given_task_exists_then_fails() {
-        taskResourceRepository.insert(task);
+        TaskResource task1 = new TaskResource(
+            "some task id",
+            "some task name",
+            "some task type",
+            CFTTaskState.ASSIGNED
+        );
+        TaskResource task2 = new TaskResource(
+            "some task id2",
+            "some task name",
+            "some task type",
+            CFTTaskState.ASSIGNED
+        );
+        taskResourceRepository.insert(task1);
+        taskResourceRepository.insert(task2);
     }
 
     @Test

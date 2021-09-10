@@ -19,6 +19,7 @@ public class CustomSaveRepoImpl implements CustomSaveRepo<TaskResource> {
     @Transactional
     public <S extends TaskResource> S insert(S entity) {
         entityManager.persist(entity);
+        entityManager.flush();
         return entity;
     }
 }

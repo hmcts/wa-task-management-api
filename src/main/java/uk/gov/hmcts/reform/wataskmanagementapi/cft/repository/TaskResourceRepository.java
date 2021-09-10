@@ -22,4 +22,6 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     Optional<TaskResource> getByTaskId(String id);
 
+    <S extends TaskResource> S saveAndFlush(S entity);
+
 }

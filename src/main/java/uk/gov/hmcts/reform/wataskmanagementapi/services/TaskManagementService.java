@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -456,6 +458,7 @@ public class TaskManagementService {
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
      * @return The updated entity {@link TaskResource}
      */
+    @SneakyThrows
     @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
         TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
@@ -463,13 +466,17 @@ public class TaskManagementService {
             //taskResource = configureTask(taskResource);
             //taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
             //updateCftTaskState(taskResource.getTaskId(), taskResource);
+            if (taskResource.getAssignee().equals("David1")) {
+                TimeUnit.SECONDS.sleep(10);
+                taskResource.setAssignee("David1111");
+            }
         }
         return cftTaskDatabaseService.saveTask(taskResource);
     }
 
     private boolean canGetDbLock(TaskResource taskResource) {
-        return cftTaskDatabaseService.saveTask(taskResource).getTaskId()
-            .equals(taskResource.getTaskId());
+        cftTaskDatabaseService.saveTask(taskResource);
+        return cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResource.getTaskId()).isPresent();
     }
 
     private void updateCftTaskState(String taskId, TaskResource taskResource) {
