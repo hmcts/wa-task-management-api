@@ -1,11 +1,20 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
+import javax.persistence.QueryHint;
 
+import static javax.persistence.LockModeType.PESSIMISTIC_WRITE;
+
+@Slf4j
 public class CustomSaveRepoImpl implements CustomSaveRepo<TaskResource> {
 
     @PersistenceContext
@@ -15,11 +24,13 @@ public class CustomSaveRepoImpl implements CustomSaveRepo<TaskResource> {
         this.entityManager = entityManager;
     }
 
-    @Override
+    @Lock(PESSIMISTIC_WRITE)
+    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "0")})
     @Transactional
+    @NonNull
+    @Override
     public <S extends TaskResource> S insert(S entity) {
         entityManager.persist(entity);
-        entityManager.flush();
         return entity;
     }
 }
