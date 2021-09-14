@@ -34,3 +34,8 @@ document_management:
 
 ccd_gateway:
   url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+caffeine:
+  timeout:
+    duration: 5
+    unit: SECONDS
