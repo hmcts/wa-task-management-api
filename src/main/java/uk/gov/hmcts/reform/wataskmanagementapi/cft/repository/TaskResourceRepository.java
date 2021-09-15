@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.NonNull;
@@ -23,5 +24,10 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     Optional<TaskResource> getByTaskId(String id);
 
     <S extends TaskResource> S saveAndFlush(S entity);
+
+    @Query(value = "SELECT * FROM cft_task_db.tasks WHERE task_id = ?1", nativeQuery = true)
+    TaskResource selectTask(String id);
+
+
 
 }

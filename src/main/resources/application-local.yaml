@@ -12,6 +12,11 @@ feign:
 logging:
   level:
     org.springframework:
-      dao: info
+      dao: debug
       transaction: debug
-
+      jdbc.core.JdbcTemplate: debug
+    org.hibernate:
+      SQL: debug
+      type.descriptor.sql.BasicBinder: debug
+      engine: debug
+    uk.gov.hmcts.reform: debug

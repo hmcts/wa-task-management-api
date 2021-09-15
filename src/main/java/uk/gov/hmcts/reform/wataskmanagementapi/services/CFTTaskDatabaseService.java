@@ -25,7 +25,12 @@ public class CFTTaskDatabaseService {
     }
 
     public TaskResource saveTask(TaskResource task) {
-        return tasksRepository.insert(task);
+        return tasksRepository.save(task);
     }
+
+    public void insertWithQuery(TaskResource task) {
+        tasksRepository.insertWithQuery(task);
+    }
+
 
 }

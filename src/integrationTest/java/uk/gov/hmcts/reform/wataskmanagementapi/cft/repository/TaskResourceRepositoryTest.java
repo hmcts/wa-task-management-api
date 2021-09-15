@@ -50,7 +50,20 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.insert(task));
+        //transactionHelper.doInNewTransaction(() -> taskResourceRepository.insert(task));
+    }
+
+    @Test
+    void insertTask() {
+        taskResourceRepository.insertWithQuery(task);
+        TaskResource actual = taskResourceRepository.selectTask(task.getTaskId());
+        System.out.println(actual);
+    }
+
+    @Test
+    void selectTask() {
+        TaskResource actual = taskResourceRepository.selectTask(task.getTaskId());
+        System.out.println(actual);
     }
 
     @Test

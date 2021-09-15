@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import javax.persistence.QueryHint;
 
@@ -32,5 +31,14 @@ public class CustomSaveRepoImpl implements CustomSaveRepo<TaskResource> {
     public <S extends TaskResource> S insert(S entity) {
         entityManager.persist(entity);
         return entity;
+    }
+
+    @Override
+    @Transactional
+    public <S extends TaskResource> void insertWithQuery(S entity) {
+        entityManager.createNativeQuery("INSERT INTO cft_task_db.tasks (task_id, assignee) VALUES (?,?)")
+            .setParameter(1, entity.getTaskId())
+            .setParameter(2, entity.getAssignee())
+            .executeUpdate();
     }
 }

@@ -480,7 +480,7 @@ public class TaskManagementService {
     }
 
     private boolean canGetDbLock(TaskResource taskResource) {
-        cftTaskDatabaseService.saveTask(taskResource);
+        cftTaskDatabaseService.insertWithQuery(taskResource);
         return true;
     }
 
