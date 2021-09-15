@@ -20,8 +20,6 @@ public class IdamServiceUserInfoCacheTest {
 
     private final String bearerAccessToken1 = "some bearer access token1";
     private final String bearerAccessToken2 = "some bearer access token2";
-    private final String bearerAccessToken3 = "some bearer access token3";
-    private final String bearerAccessToken4 = "some bearer access token4";
 
     @MockBean
     private IdamWebApi idamWebApi;
@@ -45,24 +43,6 @@ public class IdamServiceUserInfoCacheTest {
 
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken1);
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken2);
-    }
-
-    @Test
-    void getUserIdIsCached() {
-
-        when(idamWebApi.userInfo(anyString()))
-            .thenReturn(UserInfo.builder()
-                .uid("some user id1")
-                .build());
-
-        idamService.getUserId(bearerAccessToken3);
-        idamService.getUserId(bearerAccessToken3);
-        idamService.getUserId(bearerAccessToken4);
-        idamService.getUserId(bearerAccessToken4);
-
-
-        verify(idamWebApi, times(1)).userInfo(bearerAccessToken3);
-        verify(idamWebApi, times(1)).userInfo(bearerAccessToken4);
     }
 
 }
