@@ -19,6 +19,8 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
@@ -60,6 +62,12 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     @Mock
     private TaskManagementService taskManagementService;
 
+    @Mock
+    private CftQueryService cftQueryService;
+
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -76,7 +84,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new TaskSearchController(
             taskManagementService,
-            accessControlService
+            accessControlService,
+            cftQueryService,
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {

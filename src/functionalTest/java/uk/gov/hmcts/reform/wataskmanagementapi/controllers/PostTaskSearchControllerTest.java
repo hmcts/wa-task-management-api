@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
@@ -68,7 +69,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_empty_list_when_the_user_did_not_have_any_roles() {
-
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -137,6 +137,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
+        launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(),
+            true);
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -160,6 +162,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
+
+        launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(),
+            false);
     }
 
     @Test

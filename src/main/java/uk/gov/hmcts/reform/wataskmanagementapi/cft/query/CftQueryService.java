@@ -11,8 +11,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CftQueryService {
@@ -23,7 +26,7 @@ public class CftQueryService {
         this.taskResourceRepository = taskResourceRepository;
     }
 
-    public List<TaskResource> getAllTasks(
+    public GetTasksResponse<Task> getAllTasks(
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
@@ -36,9 +39,28 @@ public class CftQueryService {
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
 
         Pageable page = PageRequest.of(firstResult, maxResults, sort);
-        final Page<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification, page);
+        final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
-        return taskResources.toList();
+        final List<TaskResource> taskResources = pages.toList();
+
+        return mapToTask(taskResources, pages.getTotalElements());
+    }
+
+    private GetTasksResponse<Task> mapToTask(List<TaskResource> taskResources, long totalNumberOfTasks) {
+        final List<Task> tasks = taskResources.stream().map(taskResource ->
+            new Task(taskResource.getTaskId(), taskResource.getTaskName(), taskResource.getTaskType(),
+                taskResource.getState().getValue(), taskResource.getTaskSystem().getValue(),
+                taskResource.getSecurityClassification().getSecurityClassification(),
+                taskResource.getTitle(), taskResource.getCreated().toZonedDateTime(),
+                taskResource.getDueDateTime().toZonedDateTime(),
+                taskResource.getAssignee(), taskResource.getAutoAssigned(),
+                taskResource.getExecutionTypeCode().getExecutionName(), taskResource.getJurisdiction(),
+                taskResource.getRegion(), taskResource.getLocation(), taskResource.getLocationName(),
+                taskResource.getCaseTypeId(), taskResource.getCaseId(), taskResource.getRoleCategory(),
+                taskResource.getCaseName(), taskResource.getHasWarnings(), null, null)
+        ).collect(Collectors.toList());
+
+        return new GetTasksResponse<>(tasks, totalNumberOfTasks);
     }
 
 }
