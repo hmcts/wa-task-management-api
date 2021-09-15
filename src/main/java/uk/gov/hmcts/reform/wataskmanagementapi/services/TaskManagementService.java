@@ -477,6 +477,7 @@ public class TaskManagementService {
         }
     }
 
+    @Transactional
     private TaskResource runTaskThroughInitiation(String taskId) {
         //First lock the task
         Optional<TaskResource> maybeLockedTaskResource = cftTaskDatabaseService
