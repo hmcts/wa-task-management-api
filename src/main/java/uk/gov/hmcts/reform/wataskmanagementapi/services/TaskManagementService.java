@@ -477,7 +477,6 @@ public class TaskManagementService {
         }
     }
 
-    @Transactional
     private TaskResource runTaskThroughInitiation(String taskId) {
         //First lock the task
         Optional<TaskResource> maybeLockedTaskResource = cftTaskDatabaseService
@@ -496,7 +495,7 @@ public class TaskManagementService {
         //Update State in camunda
         updateCftTaskState(taskResource.getTaskId(), taskResource);
         //Finally commit the record
-        return cftTaskDatabaseService.insertTaskAndFlush(taskResource);
+        return cftTaskDatabaseService.saveTask(taskResource);
 
     }
 

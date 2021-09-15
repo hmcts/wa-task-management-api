@@ -17,8 +17,6 @@ import javax.persistence.PersistenceContext;
 @Service
 public class CFTTaskDatabaseService {
     private final TaskResourceRepository tasksRepository;
-    @PersistenceContext
-    private EntityManager entityManager;
 
     public CFTTaskDatabaseService(TaskResourceRepository tasksRepository) {
         this.tasksRepository = tasksRepository;
@@ -34,17 +32,5 @@ public class CFTTaskDatabaseService {
 
     public TaskResource saveTask(TaskResource task) {
         return tasksRepository.save(task);
-    }
-
-    @Transactional
-    @SuppressWarnings("PMD.PreserveStackTrace")
-    public TaskResource insertTaskAndFlush(TaskResource task) {
-        try {
-            entityManager.persist(task);
-            entityManager.flush();
-        } catch (EntityExistsException ex) {
-            throw new DatabaseConflictException(ErrorMessages.DATABASE_CONFLICT_ERROR);
-        }
-        return task;
     }
 }

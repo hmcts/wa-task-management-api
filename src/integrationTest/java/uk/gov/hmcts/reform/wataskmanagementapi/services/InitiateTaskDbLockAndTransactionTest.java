@@ -175,7 +175,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
-        transactionHelper.doInNewTransaction(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest));
+        taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         InOrder inOrder = inOrder(
             cftTaskMapper,
@@ -186,16 +186,16 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             cftTaskDatabaseService
         );
 
+        inOrder.verify(cftTaskDatabaseService).findByIdOnly(taskId);
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
+        //Skeleton
         inOrder.verify(cftTaskDatabaseService).saveTask(taskResourceCaptor.capture());
-        assertTrue(expectTaskWithAssignee(taskResourceCaptor.getValue()));
-
+        inOrder.verify(cftTaskDatabaseService).findByIdAndObtainPessimisticWriteLock(taskId);
         inOrder.verify(configureTaskService).configureCFTTask(
             taskResourceCaptor.capture(),
-            eq(new TaskToConfigure(taskId, A_TASK_TYPE, null, A_TASK_NAME))
+            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME))
         );
-        assertTrue(expectTaskWithAssignee(taskResourceCaptor.getValue()));
 
         inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(testTaskResource);
 
@@ -245,15 +245,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                 1,
                 "ConstraintViolationException"
             ) && expectedSucceededCalls(futureResults, 1));
-    }
-
-    private boolean expectTaskWithAssignee(TaskResource actualTaskResource) {
-        return actualTaskResource.getTaskId().equals(taskId)
-               && actualTaskResource.getTaskName().equals(A_TASK_NAME)
-               && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
-               && actualTaskResource.getState().equals(ASSIGNED)
-               && actualTaskResource.getTaskType().equals(A_TASK_TYPE)
-               && actualTaskResource.getCaseId().equals(SOME_CASE_ID);
     }
 
     @SuppressWarnings("SameParameterValue")
