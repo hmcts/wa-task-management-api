@@ -42,6 +42,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static org.springframework.transaction.annotation.Isolation.READ_COMMITTED;
+import static org.springframework.transaction.annotation.Isolation.READ_UNCOMMITTED;
+import static org.springframework.transaction.annotation.Isolation.REPEATABLE_READ;
+import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
 import static org.springframework.transaction.annotation.Propagation.REQUIRED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
@@ -468,13 +471,9 @@ public class TaskManagementService {
             //taskResource = configureTask(taskResource);
             //taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
             //updateCftTaskState(taskResource.getTaskId(), taskResource);
-            //if (taskResource.getAssignee().equals("David1")) {
-            //    TimeUnit.SECONDS.sleep(10);
-            //    taskResource.setAssignee("David1111");
-            //}
-            if (taskId.equals("task1")) {
+            if (taskResource.getAssignee().equals("David1")) {
                 TimeUnit.SECONDS.sleep(10);
-                throw new RuntimeException("some error");
+                taskResource.setAssignee("David1111");
             }
         }
         return cftTaskDatabaseService.saveTask(taskResource);
