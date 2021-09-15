@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 import java.util.Optional;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityManager;
-import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 
 @Slf4j
