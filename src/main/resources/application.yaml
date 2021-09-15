@@ -123,5 +123,11 @@ logging:
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
     org.zalando.logbook: TRACE
 
+
+    org:
+      hibernate:
+        SQL: debug
+
 logbook:
   include: /task/**
+

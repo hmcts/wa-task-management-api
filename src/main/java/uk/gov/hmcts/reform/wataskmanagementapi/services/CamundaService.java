@@ -103,7 +103,7 @@ public class CamundaService {
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
-    protected <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
+    public <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
         Optional<T> value = camundaObjectMapper.read(variable, type);
         return value.orElse(null);
     }

@@ -65,6 +65,14 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String A_TASK_NAME = "aTaskName";
     public static final String A_TASK_TYPE = "aTaskType";
     public static final String SOME_ASSIGNEE = "someAssignee";
+    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
+        InitiateTaskOperation.INITIATION,
+        List.of(
+            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
+            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
+            new TaskAttribute(TASK_NAME, A_TASK_NAME)
+        )
+    );
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     @MockBean
@@ -96,19 +104,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-
     @Autowired
     private TransactionHelper transactionHelper;
-
-    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
-        InitiateTaskOperation.INITIATION,
-        List.of(
-            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
-            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
-            new TaskAttribute(TASK_NAME, A_TASK_NAME)
-        )
-    );
-
     @Captor
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
@@ -129,9 +126,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                           RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                           IDAM_USER_ID
-                       )
+            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            IDAM_USER_ID
+            )
         ).thenReturn(true);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED);
@@ -200,14 +197,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
     }
 
-    private boolean expectTaskWithAssignee(TaskResource actualTaskResource) {
-        return actualTaskResource.getTaskId().equals(taskId)
-               && actualTaskResource.getTaskName().equals(A_TASK_NAME)
-               && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
-               && actualTaskResource.getState().equals(ASSIGNED)
-               && actualTaskResource.getTaskType().equals(A_TASK_TYPE);
-    }
-
     @Test
     void given_multiple_task_initiate_calls_then_expect_one_to_succeed_and_one_to_fail() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -245,10 +234,18 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                          && expectedSucceededCalls(futureResults, 1));
     }
 
+    private boolean expectTaskWithAssignee(TaskResource actualTaskResource) {
+        return actualTaskResource.getTaskId().equals(taskId)
+               && actualTaskResource.getTaskName().equals(A_TASK_NAME)
+               && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
+               && actualTaskResource.getState().equals(ASSIGNED)
+               && actualTaskResource.getTaskType().equals(A_TASK_TYPE);
+    }
+
     @SuppressWarnings("SameParameterValue")
     private boolean expectedSucceededCalls(List<Future<TaskResource>> futureResults, int expectedSucceededCalls) {
         Set<TaskResource> oneTaskSucceedCondition = new HashSet<>();
-        futureResults.forEach((fr) -> {
+        futureResults.forEach(fr -> {
             if (fr.isDone()) {
                 try {
                     TaskResource task = fr.get();
@@ -273,6 +270,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                 return false;
             } catch (Exception e) {
                 exception = assertThrows(Exception.class, fr::get);
+
                 assertThat(exception).hasMessageContaining(expectedFailureException);
                 return true;
             }

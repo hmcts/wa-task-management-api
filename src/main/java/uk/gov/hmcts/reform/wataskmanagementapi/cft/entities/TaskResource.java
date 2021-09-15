@@ -24,8 +24,8 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 @ToString
 @Getter
@@ -105,7 +105,7 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
@@ -125,6 +125,19 @@ public class TaskResource implements Serializable {
         this.taskName = taskName;
         this.taskType = taskType;
         this.state = state;
+    }
+
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        String caseId) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
     }
 
     @SuppressWarnings("squid:S00107")
