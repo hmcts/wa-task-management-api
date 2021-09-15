@@ -37,6 +37,7 @@ public class CFTTaskDatabaseService {
     }
 
     @Transactional
+    @SuppressWarnings("PMD.PreserveStackTrace")
     public TaskResource insertTaskAndFlush(TaskResource task) {
         try {
             entityManager.persist(task);
