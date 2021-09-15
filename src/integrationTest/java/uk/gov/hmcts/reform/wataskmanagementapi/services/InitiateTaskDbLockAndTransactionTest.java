@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -55,7 +54,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
@@ -170,12 +168,14 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(cftTaskDatabaseService).saveTask(argThat((task) -> task.getTaskId().equals(taskId)));
+        verify(cftTaskDatabaseService).findByIdOnly(taskId);
+        verify(cftTaskDatabaseService).findByIdAndObtainPessimisticWriteLock(taskId);
         verifyNoMoreInteractions(cftTaskDatabaseService);
     }
 
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
-        taskManagementService.initiateTask(taskId, initiateTaskRequest);
+        transactionHelper.doInNewTransaction(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest));
 
         InOrder inOrder = inOrder(
             cftTaskMapper,
@@ -189,18 +189,17 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
         inOrder.verify(cftTaskDatabaseService).saveTask(taskResourceCaptor.capture());
-        assertTrue(expectTaskWithValues(taskResourceCaptor.getValue(), ASSIGNED));
+        assertTrue(expectTaskWithAssignee(taskResourceCaptor.getValue()));
 
         inOrder.verify(configureTaskService).configureCFTTask(
             taskResourceCaptor.capture(),
             eq(new TaskToConfigure(taskId, A_TASK_TYPE, null, A_TASK_NAME))
         );
-        assertTrue(expectTaskWithValues(taskResourceCaptor.getValue(), ASSIGNED));
+        assertTrue(expectTaskWithAssignee(taskResourceCaptor.getValue()));
 
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(taskResourceCaptor.capture());
-        assertTrue(expectTaskWithValues(taskResourceCaptor.getValue(), UNASSIGNED));
+        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(testTaskResource);
 
-        inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.UNASSIGNED);
+        inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.ASSIGNED);
 
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
@@ -214,20 +213,22 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
     @Test
     void given_multiple_task_initiate_calls_then_expect_one_to_succeed_and_one_to_fail() {
-        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         AtomicReference<Future<TaskResource>> future1 = new AtomicReference<>();
         AtomicReference<Future<TaskResource>> future2 = new AtomicReference<>();
 
-        future1.set(executorService.submit(() -> taskManagementService.initiateTask(
-            taskId,
-            initiateTaskRequest
-        )));
+        transactionHelper.doInNewTransaction(
+            () -> future1.set(executorService.submit(() -> taskManagementService.initiateTask(
+                taskId,
+                initiateTaskRequest
+            ))));
 
-        future2.set(executorService.submit(() -> taskManagementService.initiateTask(
-            taskId,
-            initiateTaskRequest
-        )));
+        transactionHelper.doInNewTransaction(
+            () -> future2.set(executorService.submit(() -> taskManagementService.initiateTask(
+                taskId,
+                initiateTaskRequest
+            ))));
 
         List<Future<TaskResource>> futureResults = List.of(
             future1.get(),
@@ -243,16 +244,16 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                 futureResults,
                 1,
                 "ConstraintViolationException"
-            )
-                         && expectedSucceededCalls(futureResults, 1));
+            ) && expectedSucceededCalls(futureResults, 1));
     }
 
-    private boolean expectTaskWithValues(TaskResource actualTaskResource, CFTTaskState cftTaskState) {
+    private boolean expectTaskWithAssignee(TaskResource actualTaskResource) {
         return actualTaskResource.getTaskId().equals(taskId)
                && actualTaskResource.getTaskName().equals(A_TASK_NAME)
                && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
-               && actualTaskResource.getState().equals(cftTaskState)
-               && actualTaskResource.getTaskType().equals(A_TASK_TYPE);
+               && actualTaskResource.getState().equals(ASSIGNED)
+               && actualTaskResource.getTaskType().equals(A_TASK_TYPE)
+               && actualTaskResource.getCaseId().equals(SOME_CASE_ID);
     }
 
     @SuppressWarnings("SameParameterValue")
