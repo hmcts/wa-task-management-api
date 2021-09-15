@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -28,6 +30,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     @Query(value = "SELECT * FROM cft_task_db.tasks WHERE task_id = ?1", nativeQuery = true)
     TaskResource selectTask(String id);
 
-
-
+    @Modifying
+    @Query(value = "insert into cft_task_db.tasks (task_id, assignee) VALUES (:task_id,:assignee)", nativeQuery = true)
+    @Transactional
+    void insertWithQuery2(@Param("task_id") String taskId, @Param("assignee") String assignee);
 }

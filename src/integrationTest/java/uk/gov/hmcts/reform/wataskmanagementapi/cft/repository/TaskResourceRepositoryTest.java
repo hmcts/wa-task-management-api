@@ -55,7 +55,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void insertTask() {
-        taskResourceRepository.insertWithQuery(task);
+        taskResourceRepository.insertWithQuery2(task.getTaskId(), task.getAssignee());
         TaskResource actual = taskResourceRepository.selectTask(task.getTaskId());
         System.out.println(actual);
     }

@@ -29,7 +29,7 @@ public class CFTTaskDatabaseService {
     }
 
     public void insertWithQuery(TaskResource task) {
-        tasksRepository.insertWithQuery(task);
+        tasksRepository.insertWithQuery2(task.getTaskId(), task.getAssignee());
     }
 
 

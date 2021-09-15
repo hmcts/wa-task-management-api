@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,4 +43,5 @@ public class CustomSaveRepoImpl implements CustomSaveRepo<TaskResource> {
             .setParameter(2, entity.getAssignee())
             .executeUpdate();
     }
+
 }
