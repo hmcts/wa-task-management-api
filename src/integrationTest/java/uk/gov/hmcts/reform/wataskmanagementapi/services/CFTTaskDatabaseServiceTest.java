@@ -2,16 +2,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
 import java.util.Optional;
 import java.util.UUID;
-import javax.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,11 +20,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     TaskResourceRepository taskResourceRepository;
 
-    @InjectMocks
     CFTTaskDatabaseService cftTaskDatabaseService;
-
-    @MockBean
-    EntityManager entityManager;
 
     @BeforeEach
     void setUp() {

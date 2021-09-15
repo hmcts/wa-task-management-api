@@ -185,6 +185,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)

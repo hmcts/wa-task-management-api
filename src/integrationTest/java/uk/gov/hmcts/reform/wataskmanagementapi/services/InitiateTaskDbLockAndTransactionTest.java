@@ -247,14 +247,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                          && expectedSucceededCalls(futureResults, 1));
     }
 
-    private boolean expectTaskWithAssignee(TaskResource actualTaskResource) {
-        return actualTaskResource.getTaskId().equals(taskId)
-               && actualTaskResource.getTaskName().equals(A_TASK_NAME)
-               && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
-               && actualTaskResource.getState().equals(ASSIGNED)
-               && actualTaskResource.getTaskType().equals(A_TASK_TYPE);
-    }
-
     @SuppressWarnings("SameParameterValue")
     private boolean expectedSucceededCalls(List<Future<TaskResource>> futureResults, int expectedSucceededCalls) {
         Set<TaskResource> oneTaskSucceedCondition = new HashSet<>();

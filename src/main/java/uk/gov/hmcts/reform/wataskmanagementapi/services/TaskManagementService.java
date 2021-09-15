@@ -495,7 +495,7 @@ public class TaskManagementService {
         //Update State in camunda
         updateCftTaskState(taskResource.getTaskId(), taskResource);
         //Finally commit the record
-        return cftTaskDatabaseService.saveTask(taskResource);
+        return cftTaskDatabaseService.insertTaskAndFlush(taskResource);
 
     }
 

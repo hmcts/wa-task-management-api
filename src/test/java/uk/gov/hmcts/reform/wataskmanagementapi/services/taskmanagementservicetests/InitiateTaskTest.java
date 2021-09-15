@@ -138,7 +138,8 @@ class InitiateTaskTest extends CamundaHelpers {
         );
 
         //Skeleton + commit
-        verify(cftTaskDatabaseService, times(2)).saveTask(taskResource);
+        verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        verify(cftTaskDatabaseService, times(1)).insertTaskAndFlush(taskResource);
     }
 
     @Test
@@ -179,7 +180,7 @@ class InitiateTaskTest extends CamundaHelpers {
 
         verify(cftTaskMapper, times(0)).mapToTaskResource(eq(taskId), any());
         //Commit only
-        verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+        verify(cftTaskDatabaseService, times(1)).insertTaskAndFlush(taskResource);
     }
 
 
