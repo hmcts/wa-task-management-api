@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
 
@@ -31,6 +32,11 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     TaskResource selectTask(String id);
 
     @Modifying
+    @QueryHints({
+        @QueryHint(name = "javax.persistence.lock.timeout", value = "0"),
+        @QueryHint(name = "javax.persistence.query.timeout", value = "5000"),
+        @QueryHint(name = "org.hibernate.timeout", value = "5")
+    })
     @Query(value = "insert into cft_task_db.tasks (task_id, assignee) VALUES (:task_id,:assignee)", nativeQuery = true)
     @Transactional
     void insertWithQuery2(@Param("task_id") String taskId, @Param("assignee") String assignee);

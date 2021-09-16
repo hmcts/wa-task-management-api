@@ -41,11 +41,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import static org.springframework.transaction.annotation.Isolation.READ_COMMITTED;
-import static org.springframework.transaction.annotation.Isolation.READ_UNCOMMITTED;
-import static org.springframework.transaction.annotation.Isolation.REPEATABLE_READ;
-import static org.springframework.transaction.annotation.Isolation.SERIALIZABLE;
-import static org.springframework.transaction.annotation.Propagation.REQUIRED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
@@ -464,7 +459,7 @@ public class TaskManagementService {
      * @return The updated entity {@link TaskResource}
      */
     @SneakyThrows
-    @Transactional(rollbackFor = Exception.class, isolation = READ_COMMITTED, propagation = REQUIRED)
+    @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
         TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
         if (canGetDbLock(taskResource)) {
@@ -472,7 +467,7 @@ public class TaskManagementService {
             //taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
             //updateCftTaskState(taskResource.getTaskId(), taskResource);
             if (taskResource.getAssignee().equals("David1")) {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(20);
                 taskResource.setAssignee("David1111");
             }
         }
