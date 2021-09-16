@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
@@ -54,7 +56,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SYSTEM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TERMINATION_REASON;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
@@ -136,6 +137,7 @@ public class CFTTaskMapper {
     }
 
     private Set<TaskRoleResource> mapPermissions(List<PermissionsDmnEvaluationResponse> permissions) {
+
         return permissions.stream().map(permission -> {
 
             Objects.requireNonNull(permission.getName(), "Permissions name cannot be null");
@@ -146,9 +148,9 @@ public class CFTTaskMapper {
             final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
                 .map(p -> PermissionTypes.from(p).orElse(null))
                 .collect(Collectors.toSet());
-            String[] authorisations = {};
+            List<String> authorisations = new ArrayList<>();
             if (permission.getAuthorisations() != null && permission.getAuthorisations().getValue() != null) {
-                authorisations = permission.getAuthorisations().getValue().split(",");
+                authorisations.addAll(asList(permission.getAuthorisations().getValue().split(",")));
             }
 
             Integer assignmentPriority = null;
@@ -229,19 +231,6 @@ public class CFTTaskMapper {
                     break;
                 case TASK_NAME:
                     taskResource.setTaskName((String) value);
-                    break;
-                case TASK_STATE:
-                    Optional<CFTTaskState> state = CFTTaskState.from((String) value);
-                    if (state.isPresent()) {
-                        //Configured is a state that does not exist in CFT it should map to UNASSIGNED
-                        if (state.get().equals(CFTTaskState.CONFIGURED)) {
-                            taskResource.setState(CFTTaskState.UNASSIGNED);
-                        } else {
-                            taskResource.setState(state.get());
-                        }
-                    } else {
-                        throw new IllegalStateException("Could not map state to CFTTaskState enum");
-                    }
                     break;
                 case TASK_SYSTEM:
                     TaskSystem taskSystem = TaskSystem.valueOf((String) value);

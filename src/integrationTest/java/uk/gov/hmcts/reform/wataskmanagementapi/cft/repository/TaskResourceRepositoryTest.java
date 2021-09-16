@@ -26,12 +26,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,9 +39,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
+    private final TaskResource task = createTask();
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    private final TaskResource task = createTask();
 
     @AfterEach
     void tearDown() {
@@ -85,10 +85,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         });
     }
 
-    private void requireLockForGivenTask(TaskResource task) {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
-    }
-
     @Test
     void shouldReadTaskData() {
         assertEquals(1, taskResourceRepository.count());
@@ -121,16 +117,20 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskRole.getTaskId()),
             () -> assertTrue(taskRole.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
-            () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
+            () -> assertEquals(expectedAuthorizations, taskRole.getAuthorizations())
         );
+    }
+
+    private void requireLockForGivenTask(TaskResource task) {
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
     }
 
     private TaskResource createTask() {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
-                             "noteTypeVal",
-                             "userVal", OffsetDateTime.now(),
-                             "someContent"
+                "noteTypeVal",
+                "userVal", OffsetDateTime.now(),
+                "someContent"
             ));
         return new TaskResource(
             "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
@@ -171,7 +171,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 false,
                 false,
-                new String[]{"SPECIFIC", "BASIC"},
+                asList("SPECIFIC", "BASIC"),
                 0,
                 false,
                 "JUDICIAL",

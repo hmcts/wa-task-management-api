@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.stream;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toMap;
@@ -89,7 +88,7 @@ public class TaskAutoAssignmentService {
                     TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
 
                     if (taskRoleResource.getAuthorizations() != null
-                        && taskRoleResource.getAuthorizations().length != 0
+                        && !taskRoleResource.getAuthorizations().isEmpty()
                         && !roleAssignment.getAuthorisations().isEmpty()) {
                         return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
                     }
@@ -114,7 +113,7 @@ public class TaskAutoAssignmentService {
 
     private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {
         AtomicBoolean hasMatch = new AtomicBoolean(false);
-        stream(taskRoleResource.getAuthorizations())
+        taskRoleResource.getAuthorizations().stream()
             .forEach(auth -> {
                 //Safe-guard
                 if (!hasMatch.get() && roleAssignment.getAuthorisations().contains(auth)) {

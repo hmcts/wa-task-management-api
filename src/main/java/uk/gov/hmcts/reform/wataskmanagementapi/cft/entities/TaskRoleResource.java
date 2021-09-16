@@ -5,13 +5,14 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -51,10 +52,9 @@ public class TaskRoleResource implements Serializable {
     private Boolean cancel = false;
     private Boolean refer = false;
 
-    @Type(type = "string-array")
-    @Column(columnDefinition = "text[]")
     @ToString.Exclude
-    private String[] authorizations;
+    @ElementCollection
+    private List<String> authorizations;
 
     private Integer assignmentPriority;
     private Boolean autoAssignable = false;
@@ -83,7 +83,7 @@ public class TaskRoleResource implements Serializable {
                             Boolean manage,
                             Boolean cancel,
                             Boolean refer,
-                            String[] authorizations,
+                            List<String> authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable) {
         this(roleName,
@@ -109,7 +109,7 @@ public class TaskRoleResource implements Serializable {
                             Boolean manage,
                             Boolean cancel,
                             Boolean refer,
-                            String[] authorizations,
+                            List<String> authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
                             String roleCategory,
@@ -122,7 +122,7 @@ public class TaskRoleResource implements Serializable {
         this.manage = manage;
         this.cancel = cancel;
         this.refer = refer;
-        this.authorizations = authorizations.clone();
+        this.authorizations = authorizations;
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;
         this.roleCategory = roleCategory;
@@ -162,8 +162,8 @@ public class TaskRoleResource implements Serializable {
         this.refer = refer;
     }
 
-    public void setAuthorizations(String[] authorizations) {
-        this.authorizations = authorizations.clone();
+    public void setAuthorizations(List<String> authorizations) {
+        this.authorizations = authorizations;
     }
 
     public void setAssignmentPriority(Integer assignmentPriority) {
