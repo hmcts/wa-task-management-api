@@ -59,12 +59,12 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource({
-        "grantTypeBasicScenarioProviderHappyPath",
-        "grantTypeSpecificScenarioProviderHappyPath",
-        "grantTypeStandardScenarioProviderHappyPath",
-        "grantTypeChallengedScenarioProviderHappyPath",
-        "grantTypeWithStandardAndExcludedScenarioProviderHappyPath",
-        "grantTypeWithChallengedAndExcludedScenarioProviderHappyPath",
+        "grantTypeBasicScenarioHappyPath",
+        "grantTypeSpecificScenarioHappyPath",
+        "grantTypeStandardScenarioHappyPath",
+        "grantTypeChallengedScenarioHappyPath",
+        "grantTypeWithStandardAndExcludedScenarioHappyPath",
+        "grantTypeWithChallengedAndExcludedScenarioHappyPath",
         "withAllGrantTypesHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
