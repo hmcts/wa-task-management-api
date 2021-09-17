@@ -50,6 +50,7 @@ public class TaskRoleResource implements Serializable {
 
     @Type(type = "string-array")
     @Column(columnDefinition = "text[]")
+    @ToString.Include
     private String[] authorizations;
 
     private Integer assignmentPriority;

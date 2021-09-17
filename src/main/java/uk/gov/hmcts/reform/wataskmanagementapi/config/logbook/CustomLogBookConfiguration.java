@@ -58,7 +58,7 @@ public class CustomLogBookConfiguration {
     @Profile("local")
     public HeaderFilter localRemoveHeaders() {
         return HeaderFilters.removeHeaders(
-            (name) -> !name.equals("serviceauthorization") && !name.equals("authorization"));
+            (name) -> !"serviceauthorization".equals(name) && !"authorization".equals(name));
     }
 
 }

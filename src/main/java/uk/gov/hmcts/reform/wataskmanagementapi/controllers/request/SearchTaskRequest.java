@@ -24,7 +24,6 @@ public class SearchTaskRequest {
 
     private SearchTaskRequest() {
         //Default constructor for deserialization
-        super();
     }
 
     public SearchTaskRequest(List<SearchParameter> searchParameters) {
