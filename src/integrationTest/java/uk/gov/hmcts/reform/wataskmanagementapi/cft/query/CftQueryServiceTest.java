@@ -93,7 +93,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     @ParameterizedTest
     @MethodSource({
         "grantTypeBasicErrorScenario",
-        "grantTypeBasicSpecificErrorScenario",
+        "grantTypeSpecificErrorScenario",
         "grantTypeStandardErrorScenario",
         "grantTypeChallengedErrorScenario",
         "grantTypeWithStandardAndExcludedErrorScenario",
@@ -346,7 +346,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeBasicSpecificErrorScenario() {
+    private static Stream<TaskQueryScenario> grantTypeSpecificErrorScenario() {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
