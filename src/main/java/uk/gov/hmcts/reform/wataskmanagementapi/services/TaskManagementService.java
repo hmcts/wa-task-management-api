@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -23,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -31,7 +29,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerif
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -56,7 +53,6 @@ public class TaskManagementService {
     private final CamundaQueryBuilder camundaQueryBuilder;
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final CFTWorkTypeDatabaseService  cftWorkTypeDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
@@ -66,15 +62,13 @@ public class TaskManagementService {
                                  PermissionEvaluatorService permissionEvaluatorService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
-                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                 CFTWorkTypeDatabaseService  cftWorkTypeDatabaseService) {
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-        this.cftWorkTypeDatabaseService = cftWorkTypeDatabaseService;
     }
 
     /**
@@ -523,20 +517,6 @@ public class TaskManagementService {
         if (!hasAccess) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
-    }
-
-    /**
-     * Retrieves a work type for a user.
-     *
-     * @param workTypeId          the work type id.
-     * @return A mapped optional of work type {@link WorkType}
-     */
-    public Optional<WorkType> getWorkType(String workTypeId) {
-        Optional<WorkTypeResource> workTypeResource = cftWorkTypeDatabaseService.findById(workTypeId);
-        if (!workTypeResource.isPresent()) {
-            return Optional.empty();
-        }
-        return Optional.of(new WorkType(workTypeResource.get().getId(),workTypeResource.get().getLabel()));
     }
 
 }
