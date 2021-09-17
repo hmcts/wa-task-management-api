@@ -1,9 +1,10 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.config;
+package uk.gov.hmcts.reform.wataskmanagementapi.config.logbook;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.zalando.logbook.HeaderFilter;
 import org.zalando.logbook.HeaderFilters;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
@@ -17,6 +18,7 @@ public class CustomLogBookConfiguration {
     }
 
     @Bean
+    @Profile("!local")
     public HeaderFilter removeHeaders() {
         return HeaderFilters.removeHeaders(
             "Cache-Control",
@@ -41,8 +43,22 @@ public class CustomLogBookConfiguration {
     }
 
     @Bean
+    @Profile("!local")
     public LogBookPayloadStrategy withoutResponseBody() {
         return new LogBookPayloadStrategy();
+    }
+
+    @Bean
+    @Profile("local")
+    public LogBookPayloadLocalStrategy withResponseBody() {
+        return new LogBookPayloadLocalStrategy();
+    }
+
+    @Bean
+    @Profile("local")
+    public HeaderFilter localRemoveHeaders() {
+        return HeaderFilters.removeHeaders(
+            (name) -> !name.equals("serviceauthorization") && !name.equals("authorization"));
     }
 
 }
