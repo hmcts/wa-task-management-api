@@ -55,6 +55,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_enable_and_disable_launch_darkly_feature_wa_r2_endpoints_task_query() {
+        launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(), true);
+        launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(), false);
+    }
+
+    @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
         Response result = restApiActions.post(
