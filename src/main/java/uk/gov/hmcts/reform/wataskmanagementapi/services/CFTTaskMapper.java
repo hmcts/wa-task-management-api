@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAtt
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -334,6 +335,33 @@ public class CFTTaskMapper {
         Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return value == null ? Optional.empty() : Optional.of((T) value);
+    }
+
+
+    public Task mapToTask(TaskResource taskResource) {
+        return new Task(taskResource.getTaskId(),
+                     taskResource.getTaskName(),
+                     taskResource.getTaskType(),
+                     taskResource.getState().getValue(),
+                     taskResource.getTaskSystem().getValue(),
+                     taskResource.getSecurityClassification().getSecurityClassification(),
+                     taskResource.getTitle(),
+                     taskResource.getCreated().toZonedDateTime(),
+                     taskResource.getDueDateTime().toZonedDateTime(),
+                     taskResource.getAssignee(),
+                     taskResource.getAutoAssigned(),
+                     taskResource.getExecutionTypeCode().getExecutionName(),
+                     taskResource.getJurisdiction(),
+                     taskResource.getRegion(),
+                     taskResource.getLocation(),
+                     taskResource.getLocationName(),
+                     taskResource.getCaseTypeId(),
+                     taskResource.getCaseId(),
+                     taskResource.getRoleCategory(),
+                     taskResource.getCaseName(),
+                     taskResource.getHasWarnings(),
+                     null,
+                     taskResource.getCaseCategory());
     }
 }
 

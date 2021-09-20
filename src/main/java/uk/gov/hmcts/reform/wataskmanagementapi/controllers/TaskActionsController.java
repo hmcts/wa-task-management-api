@@ -75,7 +75,7 @@ public class TaskActionsController extends BaseController {
 
         Task task = taskManagementService.getTask(
             id,
-            accessControlResponse.getRoleAssignments()
+            accessControlResponse
         );
 
         return ResponseEntity
