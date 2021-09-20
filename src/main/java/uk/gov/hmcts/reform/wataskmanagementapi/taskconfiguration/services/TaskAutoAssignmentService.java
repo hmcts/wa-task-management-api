@@ -70,7 +70,10 @@ public class TaskAutoAssignmentService {
         //
         //The first role assignment which is not ignored is the role assignment to be used for auto-assignment.
 
-        if (!roleAssignments.isEmpty()) {
+        if (roleAssignments.isEmpty() || taskResource.getTaskRoleResources() == null) {
+            taskResource.setAssignee(null);
+            taskResource.setState(CFTTaskState.UNASSIGNED);
+        } else {
             // the lowest assignment priority takes precedence.
             List<TaskRoleResource> rolesList = new ArrayList<>(taskResource.getTaskRoleResources());
             rolesList.sort(comparing(TaskRoleResource::getAssignmentPriority, nullsLast(Comparator.naturalOrder())));

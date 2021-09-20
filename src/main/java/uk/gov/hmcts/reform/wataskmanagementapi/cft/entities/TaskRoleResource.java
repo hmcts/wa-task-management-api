@@ -28,8 +28,7 @@ import javax.persistence.ManyToOne;
     name = "string-array",
     typeClass = StringArrayType.class
 )
-
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UseVarargs"})
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UseVarargs", "PMD.AvoidDuplicateLiterals"})
 public class TaskRoleResource implements Serializable {
 
     private static final long serialVersionUID = -4769530559311463016L;
@@ -45,19 +44,26 @@ public class TaskRoleResource implements Serializable {
 
     @EqualsAndHashCode.Include()
     private String roleName;
-    private Boolean read = false;
-    private Boolean own = false;
-    private Boolean execute = false;
-    private Boolean manage = false;
-    private Boolean cancel = false;
-    private Boolean refer = false;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean read;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean own;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean execute;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean manage;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean cancel;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean refer;
 
     @ToString.Exclude
     @ElementCollection
     private List<String> authorizations;
 
     private Integer assignmentPriority;
-    private Boolean autoAssignable = false;
+    @Column(columnDefinition = "boolean default false")
+    private Boolean autoAssignable;
     private String roleCategory;
 
     @Column(name = "task_id")

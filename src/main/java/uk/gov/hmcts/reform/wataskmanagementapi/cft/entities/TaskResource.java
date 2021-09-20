@@ -140,6 +140,20 @@ public class TaskResource implements Serializable {
         this.caseId = caseId;
     }
 
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        String caseId,
+                        Set<TaskRoleResource> taskRoleResources) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
+        this.taskRoleResources = taskRoleResources;
+    }
+
     @SuppressWarnings("squid:S00107")
     public TaskResource(String taskId,
                         String taskName,
