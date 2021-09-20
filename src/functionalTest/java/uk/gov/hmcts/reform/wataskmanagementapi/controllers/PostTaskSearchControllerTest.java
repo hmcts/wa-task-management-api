@@ -143,8 +143,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
-        launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(),
-            true);
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -169,8 +167,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
 
-        launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(),
-            false);
     }
 
     @Test

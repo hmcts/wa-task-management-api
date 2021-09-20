@@ -129,7 +129,8 @@ public class RestApiActions {
     }
 
     public void updateFeatureFlag(String featureFlag, boolean featureToggled) {
-        String accessToken = "api-0ba8bb5e-0b11-4f84-9655-93f9f8ccca94";
+
+        String accessToken = System.getenv("launch_darkly.accessToken");
 
         final Response response = given()
             .log()

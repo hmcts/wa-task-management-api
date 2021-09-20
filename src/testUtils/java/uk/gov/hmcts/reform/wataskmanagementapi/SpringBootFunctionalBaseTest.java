@@ -91,7 +91,7 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
-    @Value("${targets.launchDarkly}")
+    @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
 
     @Before
