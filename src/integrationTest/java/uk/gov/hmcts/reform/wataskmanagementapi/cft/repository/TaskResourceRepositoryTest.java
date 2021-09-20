@@ -110,7 +110,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals(1, taskRoles.size());
 
         final TaskRoleResource taskRole = taskRoles.iterator().next();
-        String[] expectedAuthorizations = {"SPECIFIC", "BASIC"};
+        List<String> expectedAuthorizations = asList("SPECIFIC", "BASIC");
 
         assertAll(
             () -> assertNotNull(taskRole.getTaskRoleId()),
