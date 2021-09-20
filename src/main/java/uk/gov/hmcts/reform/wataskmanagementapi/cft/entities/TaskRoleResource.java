@@ -58,8 +58,8 @@ public class TaskRoleResource implements Serializable {
     private Boolean refer;
 
     @ToString.Exclude
-    @Column(name="authorizations")
-    @ElementCollection(targetClass=String.class)
+    @Column(name = "authorizations")
+    @ElementCollection(targetClass = String.class)
     private List<String> authorizations;
 
     private Integer assignmentPriority;
