@@ -19,8 +19,10 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
@@ -53,7 +55,6 @@ import static org.mockito.Mockito.when;
 //@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @Mock
@@ -66,7 +67,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private CftQueryService cftQueryService;
 
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -176,14 +177,29 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     private void setInitMockForSearchTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid())
+        ).thenReturn(false);
+
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid())
+        ).thenReturn(false);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithWarnings()));
     }
@@ -191,7 +207,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     private void setInitMockForSearchTaskWithNoWarnings() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid())
+        ).thenReturn(false);
+
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithNoWarnings()));
     }
