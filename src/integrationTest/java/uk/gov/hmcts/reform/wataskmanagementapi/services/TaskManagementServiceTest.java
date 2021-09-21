@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.transaction.PlatformTransactionManager;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -121,9 +120,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                           RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                           IDAM_USER_ID
-                       )
+            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            IDAM_USER_ID
+            )
         ).thenReturn(true);
 
     }

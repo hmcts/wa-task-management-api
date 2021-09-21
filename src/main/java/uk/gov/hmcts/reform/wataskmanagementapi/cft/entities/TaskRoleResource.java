@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.TypeDef;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.converters.StringListConverter;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.UUID;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.Convert;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
