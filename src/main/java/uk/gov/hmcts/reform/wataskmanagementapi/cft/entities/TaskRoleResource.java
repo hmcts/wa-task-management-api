@@ -12,8 +12,10 @@ import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.Convert;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -59,7 +61,9 @@ public class TaskRoleResource implements Serializable {
     private Boolean refer;
 
     @ToString.Exclude
-    @Convert(converter = StringListConverter.class)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "task_role_authorizations", joinColumns = @JoinColumn(name = "task_role_id"))
+    @Column(name = "authorizations")
     private List<String> authorizations;
 
     private Integer assignmentPriority;

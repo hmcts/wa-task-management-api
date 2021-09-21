@@ -97,9 +97,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     private ServiceMocks mockServices;
 
-    @Autowired
-    private PlatformTransactionManager platformTransactionManager;
-
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
