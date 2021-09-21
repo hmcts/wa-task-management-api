@@ -40,9 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
+    private final TaskResource task = createTask();
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-    private final TaskResource task = createTask();
 
     @AfterEach
     void tearDown() {
@@ -86,12 +86,10 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         });
     }
 
-    private void requireLockForGivenTask(TaskResource task) {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
-    }
-
     @Test
     void shouldReadTaskData() {
+        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
+
         assertEquals(1, taskResourceRepository.count());
 
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
@@ -131,12 +129,16 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    private void requireLockForGivenTask(TaskResource task) {
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
+    }
+
     private TaskResource createTask() {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
-                             "noteTypeVal",
-                             "userVal", OffsetDateTime.now(),
-                             "someContent"
+                "noteTypeVal",
+                "userVal", OffsetDateTime.now(),
+                "someContent"
             ));
         return new TaskResource(
             "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
