@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResourc
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -39,9 +40,14 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
 
     @Test
     void shouldReadTaskData() {
-
-        createAndSaveTask();
+        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
+        createAndSaveTask(taskId);
         assertEquals(1, taskResourceRepository.count());
+
+        assertTrue(taskResourceRepository.findById(taskId).isPresent());
+        WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
+        assertEquals("routine_work", workTypeResource.getId());
+        assertEquals("Routine work", workTypeResource.getLabel());
 
         final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
@@ -75,7 +81,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
         );
     }
 
-    private TaskResource createAndSaveTask() {
+    private TaskResource createAndSaveTask(String taskId) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                              "noteTypeVal",
@@ -83,7 +89,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
                              "someContent"
             ));
         TaskResource taskResource = new TaskResource(
-            "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+            taskId,
             "aTaskName",
             "startAppeal",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -98,7 +104,7 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
             "someAssignee",
             false,
             new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
-            "workType",
+            new WorkTypeResource("routine_work", "Routine work"),
             "JUDICIAL",
             false,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -132,5 +138,6 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
         );
 
         return taskResourceRepository.save(taskResource);
+
     }
 }
