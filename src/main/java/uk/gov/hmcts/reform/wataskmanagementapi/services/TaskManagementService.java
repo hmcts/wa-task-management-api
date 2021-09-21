@@ -21,10 +21,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksComp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "PMD.LawOfDemeter"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -55,6 +59,9 @@ public class TaskManagementService {
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final ConfigureTaskService configureTaskService;
+    private final TaskAutoAssignmentService taskAutoAssignmentService;
+
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
@@ -62,13 +69,18 @@ public class TaskManagementService {
                                  PermissionEvaluatorService permissionEvaluatorService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
-                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                 ConfigureTaskService configureTaskService,
+                                 TaskAutoAssignmentService taskAutoAssignmentService
+    ) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.configureTaskService = configureTaskService;
+        this.taskAutoAssignmentService = taskAutoAssignmentService;
     }
 
     /**
@@ -438,7 +450,7 @@ public class TaskManagementService {
 
     /**
      * Exclusive client access only.
-     * This method initiates a task and orchestrates the logic between CFT Task db and camunda.
+     * This method initiates a task and orchestrates the logic between CFT Task db, camunda and role assignment.
      *
      * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
@@ -446,8 +458,36 @@ public class TaskManagementService {
      */
     @Transactional
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        TaskResource mappedTask = cftTaskMapper.mapToTaskObject(taskId, initiateTaskRequest.getTaskAttributes());
-        return cftTaskDatabaseService.saveTask(mappedTask);
+        //Create a skeleton task from attributes received in request
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(
+            taskId,
+            initiateTaskRequest.getTaskAttributes()
+        );
+
+        TaskToConfigure taskToConfigure = new TaskToConfigure(
+            taskId,
+            taskResource.getTaskType(),
+            taskResource.getCaseId(),
+            taskResource.getTaskName()
+        );
+
+        //Retrieve configuration and update task
+        taskResource = configureTaskService.configureCFTTask(
+            taskResource,
+            taskToConfigure
+        );
+
+        //Auto-assignment
+        taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        //Update CFT Task state
+        if (CFTTaskState.ASSIGNED.equals(taskResource.getState())) {
+            camundaService.updateCftTaskState(taskId, TaskState.ASSIGNED);
+        } else if (CFTTaskState.UNASSIGNED.equals(taskResource.getState())) {
+            camundaService.updateCftTaskState(taskId, TaskState.UNASSIGNED);
+        }
+        //Commit transaction
+        return cftTaskDatabaseService.saveTask(taskResource);
     }
 
     private TaskResource findByIdAndObtainLock(String taskId) {

@@ -29,6 +29,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -85,6 +87,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @MockBean
+    private ConfigureTaskService configureTaskService;
+    @MockBean
+    private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private ServiceMocks mockServices;
 
@@ -104,7 +110,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            configureTaskService,
+            taskAutoAssignmentService
         );
 
         mockServices.mockServiceAPIs();

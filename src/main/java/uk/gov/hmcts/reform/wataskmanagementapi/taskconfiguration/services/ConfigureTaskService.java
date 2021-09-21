@@ -2,17 +2,20 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.response.ConfigureTaskResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.configurators.TaskConfigurator;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
@@ -26,13 +29,16 @@ public class ConfigureTaskService {
     private final TaskConfigurationCamundaService taskConfigurationCamundaService;
     private final List<TaskConfigurator> taskConfigurators;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final CFTTaskMapper cftTaskMapper;
 
     public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
                                 List<TaskConfigurator> taskConfigurators,
-                                TaskAutoAssignmentService taskAutoAssignmentService) {
+                                TaskAutoAssignmentService taskAutoAssignmentService,
+                                CFTTaskMapper cftTaskMapper) {
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.cftTaskMapper = cftTaskMapper;
     }
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
@@ -43,25 +49,21 @@ public class ConfigureTaskService {
 
         Map<String, CamundaValue<Object>> processVariables = taskConfigurationCamundaService.getVariables(taskId);
         CamundaValue<Object> caseIdValue = processVariables.get(CamundaVariableDefinition.CASE_ID.value());
+        CamundaValue<Object> taskTypeIdValue = processVariables.get(CamundaVariableDefinition.TASK_ID.value());
         String caseId = (String) caseIdValue.getValue();
-
-        HashMap<String, Object> variables = new HashMap<>();
-        processVariables.forEach((key, value) -> variables.put(key, value.getValue()));
+        String taskTypeId = (String) taskTypeIdValue.getValue();
 
         TaskToConfigure taskToConfigure = new TaskToConfigure(
             taskId,
+            taskTypeId,
             caseId,
-            task.getName(),
-            variables
+            task.getName()
         );
 
-        Map<String, Object> configurationVariables = getConfigurationVariables(taskToConfigure);
+        TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
-        Map<String, CamundaValue<String>> processVariablesToAdd = configurationVariables.entrySet().stream()
-            .collect(toMap(
-                Map.Entry::getKey,
-                mappedDetail -> stringValue(mappedDetail.getValue().toString())
-            ));
+        Map<String, CamundaValue<String>> processVariablesToAdd =
+            convertToCamundaFormat(configurationResults.getProcessVariables());
 
         //Update Variables
         taskConfigurationCamundaService.addProcessVariables(taskId, processVariablesToAdd);
@@ -76,34 +78,72 @@ public class ConfigureTaskService {
 
     public ConfigureTaskResponse getConfiguration(TaskToConfigure taskToConfigure) {
 
-        Map<String, Object> configurationVariables = getConfigurationVariables(taskToConfigure);
+        TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
         AutoAssignmentResult autoAssignmentResult = taskAutoAssignmentService
             .getAutoAssignmentVariables(taskToConfigure);
 
-        configurationVariables.put(TASK_STATE.value(), autoAssignmentResult.getTaskState());
+        configurationResults.getProcessVariables().put(TASK_STATE.value(), autoAssignmentResult.getTaskState());
 
         if (autoAssignmentResult.getAssignee() != null) {
-            configurationVariables.put(AUTO_ASSIGNED.value(), true);
+            configurationResults.getProcessVariables().put(AUTO_ASSIGNED.value(), true);
         }
 
         return new ConfigureTaskResponse(
             taskToConfigure.getId(),
             taskToConfigure.getCaseId(),
             autoAssignmentResult.getAssignee(),
-            configurationVariables
+            configurationResults.getProcessVariables()
         );
     }
 
-    private Map<String, Object> getConfigurationVariables(TaskToConfigure task) {
-        HashMap<String, Object> configurationVariables = new HashMap<>();
+    public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
+        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigure);
 
-        //loop through all task configurators in order
+        return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
+    }
+
+    private Map<String, CamundaValue<String>> convertToCamundaFormat(Map<String, Object> configurationVariables) {
+        return configurationVariables.entrySet().stream()
+            .collect(toMap(
+                Map.Entry::getKey,
+                mappedDetail -> stringValue(mappedDetail.getValue().toString())
+            ));
+    }
+
+    private TaskConfigurationResults getConfigurationResults(TaskToConfigure task) {
+        TaskConfigurationResults configurationResults = new TaskConfigurationResults(new ConcurrentHashMap<>());
+
+        //loop through all task configurators in order and add results to configurationResults
         taskConfigurators.stream()
             .map(configurator -> configurator.getConfigurationVariables(task))
-            .forEach(configurationVariables::putAll);
+            .forEach(result -> combineResults(result, configurationResults));
 
-        return configurationVariables;
+        return configurationResults;
+    }
+
+    /**
+     * Helper method to combine a task configuration result into one final object
+     * containing all process variables and evaluations.
+     *
+     * @param result               the task configuration result returned by the configurator
+     * @param configurationResults the final object where values get added
+     */
+    private void combineResults(TaskConfigurationResults result,
+                                TaskConfigurationResults configurationResults) {
+
+        if (result.getProcessVariables() != null && configurationResults.getProcessVariables() != null) {
+            configurationResults.getProcessVariables().putAll(result.getProcessVariables());
+        }
+
+        if (result.getConfigurationDmnResponse() != null) {
+            configurationResults.setConfigurationDmnResponse(result.getConfigurationDmnResponse());
+        }
+
+        if (result.getPermissionsDmnResponse() != null) {
+            configurationResults.setPermissionsDmnResponse(result.getPermissionsDmnResponse());
+
+        }
     }
 
 }

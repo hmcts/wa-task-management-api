@@ -4,20 +4,41 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
+import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.util.Collections;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -29,10 +50,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -43,7 +66,23 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ClientAccessControlService clientAccessControlService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-
+    private ServiceMocks mockServices;
+    @MockBean
+    private IdamWebApi idamWebApi;
+    @MockBean
+    private CamundaServiceApi camundaServiceApi;
+    @MockBean
+    private uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi camundaTaskConfig;
+    @MockBean
+    private CcdDataServiceApi ccdDataServiceApi;
+    @MockBean
+    private AuthTokenGenerator authTokenGenerator;
+    @MockBean
+    private RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @MockBean
+    private ServiceAuthorisationApi serviceAuthorisationApi;
+    @Mock
+    private CaseDetails caseDetails;
     private String taskId;
 
     @BeforeEach
@@ -51,6 +90,14 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskId = UUID.randomUUID().toString();
         ENDPOINT_BEING_TESTED = String.format(ENDPOINT_PATH, taskId);
 
+        mockServices = new ServiceMocks(
+            idamWebApi,
+            serviceAuthorisationApi,
+            camundaServiceApi,
+            roleAssignmentServiceApi
+        );
+
+        mockServices.mockServiceAPIs();
     }
 
     @AfterAll
@@ -95,9 +142,48 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+            ));
+
+        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("IA,WA"),
+                    null,
+                    null
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null
+                )
+            ));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -105,18 +191,50 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(req))
-        ).andDo(MockMvcResultHandlers.print())
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isCreated(),
-                    content().contentType(APPLICATION_JSON_VALUE),
-                    jsonPath("$.task_id").value(taskId),
-                    jsonPath("$.task_type").value("aTaskType"),
-                    jsonPath("$.task_name").value("aTaskName"),
-                    jsonPath("$.state").value("UNASSIGNED"),
-                    jsonPath("$.auto_assigned").value(false),
-                    jsonPath("$.has_warnings").value("false")
-                ));
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.task_type").value("aTaskType"),
+                jsonPath("$.state").value("UNASSIGNED"),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.has_warnings").value("false"),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                    + "(Typically this will be in CCD.)"),
+                jsonPath("$.task_role_resources.[0].role_name").value("senior-tribunal-caseworker"),
+                jsonPath("$.task_role_resources.[0].read").value(true),
+                jsonPath("$.task_role_resources.[0].own").value(true),
+                jsonPath("$.task_role_resources.[0].execute").value(false),
+                jsonPath("$.task_role_resources.[0].manage").value(true),
+                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].refer").value(true),
+                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                jsonPath("$.task_role_resources.[1].role_name").value("tribunal-caseworker"),
+                jsonPath("$.task_role_resources.[1].read").value(true),
+                jsonPath("$.task_role_resources.[1].own").value(true),
+                jsonPath("$.task_role_resources.[1].execute").value(false),
+                jsonPath("$.task_role_resources.[1].manage").value(true),
+                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].refer").value(true),
+                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            ));
+
     }
 
 
@@ -126,10 +244,60 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+            ));
+
+        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("IA,WA"),
+                    null,
+                    null
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null
+                )
+            ));
+
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(Collections.singletonList(RoleAssignment.builder()
+                .id("someId")
+                .actorIdType(ActorIdType.IDAM)
+                .actorId(IDAM_USER_ID)
+                .roleName("tribunal-caseworker")
+                .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                .grantType(GrantType.SPECIFIC)
+                .roleType(RoleType.ORGANISATION)
+                .classification(Classification.PUBLIC)
+                .authorisations(asList("IA"))
+                .build())));
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
@@ -143,45 +311,43 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     status().isCreated(),
                     content().contentType(APPLICATION_JSON_VALUE),
                     jsonPath("$.task_id").value(taskId),
-                    jsonPath("$.task_type").value("aTaskType"),
                     jsonPath("$.task_name").value("aTaskName"),
+                    jsonPath("$.task_type").value("aTaskType"),
                     jsonPath("$.state").value("ASSIGNED"),
-                    jsonPath("$.assignee").value("someAssignee"),
+                    jsonPath("$.task_system").value("SELF"),
+                    jsonPath("$.security_classification").value("PUBLIC"),
+                    jsonPath("$.title").value("aTaskName"),
                     jsonPath("$.auto_assigned").value(false),
-                    jsonPath("$.has_warnings").value("false")
-                ));
-    }
-
-    @Test
-    void should_return_201_with_task_state_from_attributes() throws Exception {
-
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-            .thenReturn(true);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
-            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
-        ));
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andDo(MockMvcResultHandlers.print())
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isCreated(),
-                    content().contentType(APPLICATION_JSON_VALUE),
-                    jsonPath("$.task_id").value(taskId),
-                    jsonPath("$.task_type").value("aTaskType"),
-                    jsonPath("$.task_name").value("aTaskName"),
-                    jsonPath("$.state").value("UNCONFIGURED"),
-                    jsonPath("$.assignee").value("someAssignee"),
-                    jsonPath("$.auto_assigned").value(false),
-                    jsonPath("$.has_warnings").value("false")
+                    jsonPath("$.has_warnings").value("false"),
+                    jsonPath("$.case_id").value("someCaseId"),
+                    jsonPath("$.case_type_id").value("Asylum"),
+                    jsonPath("$.case_name").value("someName"),
+                    jsonPath("$.case_category").value("Protection"),
+                    jsonPath("$.jurisdiction").value("IA"),
+                    jsonPath("$.region").value("1"),
+                    jsonPath("$.location").value("765324"),
+                    jsonPath("$.location_name").value("Taylor House"),
+                    jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                    jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
+                    jsonPath("$.execution_type_code.description").value(
+                        "The task requires a case management event to be executed by the user. "
+                        + "(Typically this will be in CCD.)"),
+                    jsonPath("$.task_role_resources.[0].role_name").value("senior-tribunal-caseworker"),
+                    jsonPath("$.task_role_resources.[0].read").value(true),
+                    jsonPath("$.task_role_resources.[0].own").value(true),
+                    jsonPath("$.task_role_resources.[0].execute").value(false),
+                    jsonPath("$.task_role_resources.[0].manage").value(true),
+                    jsonPath("$.task_role_resources.[0].cancel").value(true),
+                    jsonPath("$.task_role_resources.[0].refer").value(true),
+                    jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                    jsonPath("$.task_role_resources.[1].role_name").value("tribunal-caseworker"),
+                    jsonPath("$.task_role_resources.[1].read").value(true),
+                    jsonPath("$.task_role_resources.[1].own").value(true),
+                    jsonPath("$.task_role_resources.[1].execute").value(false),
+                    jsonPath("$.task_role_resources.[1].manage").value(true),
+                    jsonPath("$.task_role_resources.[1].cancel").value(true),
+                    jsonPath("$.task_role_resources.[1].refer").value(true),
+                    jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
                 ));
     }
 }
