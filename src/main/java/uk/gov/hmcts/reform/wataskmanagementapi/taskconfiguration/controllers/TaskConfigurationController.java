@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.response.ConfigureTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -26,6 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Slf4j
 @RequestMapping(path = "/task-configuration", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
+@SuppressWarnings("PMD.LawOfDemeter")
 public class TaskConfigurationController {
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String OK = "OK";
@@ -79,14 +81,15 @@ public class TaskConfigurationController {
 
         String caseId = (String) variables.get(CASE_ID.value());
         String taskName = (String) variables.get(TASK_NAME.value());
+        String taskTypeId = (String) variables.get(CamundaVariableDefinition.TASK_ID.value());
 
         ConfigureTaskResponse response =
             configureTaskService.getConfiguration(
                 new TaskToConfigure(
                     taskId,
+                    taskTypeId,
                     caseId,
-                    taskName,
-                    configureTaskRequest.getProcessVariables()
+                    taskName
                 )
             );
 

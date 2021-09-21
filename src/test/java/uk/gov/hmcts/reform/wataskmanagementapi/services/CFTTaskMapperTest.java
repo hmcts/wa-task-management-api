@@ -52,7 +52,7 @@ class CFTTaskMapperTest {
 
         List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
 
-        TaskResource taskResource = cftTaskMapper.mapToTaskObject(taskId, attributes);
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
 
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
@@ -108,7 +108,7 @@ class CFTTaskMapperTest {
 
         List<TaskAttribute> attributes = getDefaultAttributesWithWarnings(formattedCreatedDate, formattedDueDate);
 
-        TaskResource taskResource = cftTaskMapper.mapToTaskObject(taskId, attributes);
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
 
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
@@ -166,7 +166,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "someExecutionType")
         );
 
-        assertThatThrownBy(() -> cftTaskMapper.mapToTaskObject(taskId, attributes))
+        assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("ExecutionTypeName value: 'someExecutionType' could not be mapped to ExecutionType enum")
             .hasNoCause();
@@ -181,7 +181,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "someTaskSystem")
         );
 
-        assertThatThrownBy(() -> cftTaskMapper.mapToTaskObject(taskId, attributes))
+        assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
@@ -200,7 +200,7 @@ class CFTTaskMapperTest {
 
         );
 
-        assertThatThrownBy(() -> cftTaskMapper.mapToTaskObject(taskId, attributes))
+        assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "

@@ -33,7 +33,6 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
     @Autowired
     private TaskResourceRepository taskResourceRepository;
 
-
     @BeforeEach
     void setUp() {
         taskResourceRepository.deleteAll();
@@ -134,7 +133,8 @@ class TaskResourceRepositoryTest extends CftRepositoryBaseTest {
                 "JUDICIAL",
                 "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
-            ))
+            )),
+            "caseCategory"
         );
 
         return taskResourceRepository.save(taskResource);

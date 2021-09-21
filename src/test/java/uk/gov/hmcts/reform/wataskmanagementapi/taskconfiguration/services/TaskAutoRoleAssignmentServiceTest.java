@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -42,9 +41,9 @@ class TaskAutoRoleAssignmentServiceTest {
         taskAutoAssignmentService = new TaskAutoAssignmentService(roleAssignmentService, camundaService);
         testTaskToConfigure = new TaskToConfigure(
             "taskId",
+            "taskType",
             "someCaseId",
-            "taskName",
-            emptyMap()
+            "taskName"
         );
 
     }
