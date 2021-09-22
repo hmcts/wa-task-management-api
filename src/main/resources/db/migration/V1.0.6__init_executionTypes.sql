@@ -6,6 +6,7 @@ CREATE TABLE execution_types
     description    TEXT,
     PRIMARY KEY (execution_code)
 );
+
 INSERT INTO execution_types(execution_code, execution_name, description)
 VALUES ('MANUAL',
         'Manual',
