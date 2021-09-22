@@ -378,15 +378,22 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
     private void setupRoleAssignmentResponse(boolean shouldReturnRoleAssignment) {
         Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
-            (condition) ? List.of(RoleAssignment.builder()
-                .id("someId")
-                .actorIdType(ActorIdType.IDAM)
-                .actorId(testUserId)
-                .roleName("tribunal-caseworker")
-                .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                .roleType(RoleType.ORGANISATION)
-                .classification(Classification.PUBLIC)
-                .build()) : emptyList();
+            (condition) ? createRoleAssignmentWithCustomRoleName("tribunal-caseworker") : emptyList();
+
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(BEARER_USER_TOKEN),
+            eq(BEARER_SERVICE_TOKEN),
+            any(MultipleQueryRequest.class)
+        )).thenReturn(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment)));
+
+    }
+
+
+    private void setupRoleAssignmentResponseWithCustomRoleName(String roleName, boolean shouldReturnRoleAssignment) {
+        Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
+            (condition) ? createRoleAssignmentWithCustomRoleName(roleName) : emptyList();
+
 
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
