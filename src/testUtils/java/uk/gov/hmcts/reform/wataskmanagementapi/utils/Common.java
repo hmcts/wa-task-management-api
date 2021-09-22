@@ -184,15 +184,6 @@ public class Common {
         log.info("Cleaning task {}", taskId);
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
-
-        Response result = camundaApiActions.get(
-            ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("[0].deleteReason", is(reason));
     }
 
     public void clearAllRoleAssignments(Headers headers) {

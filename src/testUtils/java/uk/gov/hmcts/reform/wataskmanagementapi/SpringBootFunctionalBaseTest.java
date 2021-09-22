@@ -124,23 +124,6 @@ public abstract class SpringBootFunctionalBaseTest {
                 taskId,
                 new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
             );
-
-            await().ignoreException(AssertionError.class)
-                .pollInterval(500, MILLISECONDS)
-                .atMost(20, SECONDS)
-                .until(
-                    () -> {
-
-                        Response result = camundaApiActions.get(
-                            ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
-                            authorizationHeadersProvider.getServiceAuthorizationHeader()
-                        );
-
-                        result.then().assertThat()
-                            .statusCode(HttpStatus.OK.value())
-                            .body("[0].deleteReason", is("completed"));
-                        return true;
-                    });
         }
     }
 
