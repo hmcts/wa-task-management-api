@@ -1,3 +1,11 @@
+DROP TABLE IF EXISTS execution_types;
+CREATE TABLE execution_types
+(
+    execution_code execution_type_enum,
+    execution_name TEXT,
+    description    TEXT,
+    PRIMARY KEY (execution_code)
+);
 INSERT INTO execution_types(execution_code, execution_name, description)
 VALUES ('MANUAL',
         'Manual',
