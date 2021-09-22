@@ -41,7 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
-    private final TaskResource task = createTask();
+    private String taskId;
+    private TaskResource task;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
 
@@ -91,8 +92,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void shouldReadTaskData() {
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
-
         assertEquals(1, taskResourceRepository.count());
 
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
@@ -112,7 +111,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
-            () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),
+            () -> assertEquals(LocalDate.of(2022, 05, 9),
+                taskResource.getAssignmentExpiry().toLocalDate()),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
@@ -136,7 +136,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
     }
 
-    private TaskResource createTask() {
+    private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                 "noteTypeVal",
