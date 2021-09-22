@@ -111,7 +111,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
-            () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),
+            () -> assertEquals(LocalDate.of(2022, 05, 9),
+                taskResource.getAssignmentExpiry().toLocalDate()),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
