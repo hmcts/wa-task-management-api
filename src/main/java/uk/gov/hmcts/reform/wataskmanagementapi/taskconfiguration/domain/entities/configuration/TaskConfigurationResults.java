@@ -8,6 +8,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.emptyList;
+
 @EqualsAndHashCode
 @ToString
 public class TaskConfigurationResults {
@@ -16,7 +18,7 @@ public class TaskConfigurationResults {
     private Map<String, Object> processVariables;
 
     public TaskConfigurationResults(Map<String, Object> processVariables) {
-        this(processVariables, null, null);
+        this(processVariables, emptyList(), emptyList());
     }
 
     public TaskConfigurationResults(Map<String, Object> processVariables,
