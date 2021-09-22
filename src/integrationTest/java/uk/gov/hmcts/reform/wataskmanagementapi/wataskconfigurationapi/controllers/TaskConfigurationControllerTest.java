@@ -403,20 +403,6 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
     }
 
-
-    private void setupRoleAssignmentResponseWithCustomRoleName(String roleName, boolean shouldReturnRoleAssignment) {
-        Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
-            (condition) ? createRoleAssignmentWithCustomRoleName(roleName) : emptyList();
-
-
-        when(roleAssignmentServiceApi.queryRoleAssignments(
-            eq(BEARER_USER_TOKEN),
-            eq(BEARER_SERVICE_TOKEN),
-            any(MultipleQueryRequest.class)
-        )).thenReturn(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment)));
-
-    }
-
     private HashMap<String, CamundaValue<String>> configure3rdPartyResponses() {
 
         when(camundaServiceApi.getTask(BEARER_SERVICE_TOKEN, testTaskId))
