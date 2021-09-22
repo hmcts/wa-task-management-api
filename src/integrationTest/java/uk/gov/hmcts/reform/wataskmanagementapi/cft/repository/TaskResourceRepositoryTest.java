@@ -92,8 +92,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void shouldReadTaskData() {
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
-
         assertEquals(1, taskResourceRepository.count());
 
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
