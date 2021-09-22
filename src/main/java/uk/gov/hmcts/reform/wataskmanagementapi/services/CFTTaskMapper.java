@@ -86,19 +86,13 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
-        String assignee = read(attributes, TASK_ASSIGNEE, null);
-        CFTTaskState taskState = read(attributes, TASK_STATE, null);
-
-        if (taskState == null) {
-            taskState = (assignee == null) ? CFTTaskState.UNASSIGNED : CFTTaskState.ASSIGNED;
-        }
 
         return new TaskResource(
             taskId,
             read(attributes, TASK_NAME, null),
             read(attributes, TASK_TYPE, null),
             dueDate,
-            taskState,
+            CFTTaskState.UNCONFIGURED,
             read(attributes, TASK_SYSTEM, null),
             read(attributes, TASK_SECURITY_CLASSIFICATION, null),
             read(attributes, TASK_TITLE, null),

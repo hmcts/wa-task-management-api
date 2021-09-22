@@ -14,4 +14,3 @@ logging:
     org.springframework:
       dao: info
       transaction: debug
-

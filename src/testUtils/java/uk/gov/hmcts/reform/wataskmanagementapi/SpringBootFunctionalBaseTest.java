@@ -124,23 +124,6 @@ public abstract class SpringBootFunctionalBaseTest {
                 taskId,
                 new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
             );
-
-            await().ignoreException(AssertionError.class)
-                .pollInterval(500, MILLISECONDS)
-                .atMost(20, SECONDS)
-                .until(
-                    () -> {
-
-                        Response result = camundaApiActions.get(
-                            ENDPOINT_HISTORY_TASK + "?taskId=" + taskId,
-                            authorizationHeadersProvider.getServiceAuthorizationHeader()
-                        );
-
-                        result.then().assertThat()
-                            .statusCode(HttpStatus.OK.value())
-                            .body("[0].deleteReason", is("completed"));
-                        return true;
-                    });
         }
     }
 
@@ -162,9 +145,9 @@ public abstract class SpringBootFunctionalBaseTest {
                         .body("[0].name", is(taskName));
 
                     response.set(camundaGetTaskResult
-                                     .then()
-                                     .extract()
-                                     .path("[0].id"));
+                        .then()
+                        .extract()
+                        .path("[0].id"));
                     return true;
                 });
         return response;
@@ -188,7 +171,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         String caseData = new String(
             (Objects.requireNonNull(Thread.currentThread().getContextClassLoader()
-                                        .getResourceAsStream("requests/ccd/case_data.json"))).readAllBytes()
+                .getResourceAsStream("requests/ccd/case_data.json"))).readAllBytes()
         );
 
         caseData = caseData.replace(
@@ -207,10 +190,10 @@ public abstract class SpringBootFunctionalBaseTest {
         final CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                       .id(startCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(startCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 
@@ -239,10 +222,10 @@ public abstract class SpringBootFunctionalBaseTest {
         final CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                       .id(submitCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(submitCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 

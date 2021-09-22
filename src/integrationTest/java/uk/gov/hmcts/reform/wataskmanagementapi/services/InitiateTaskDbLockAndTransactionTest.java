@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -31,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -54,9 +54,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
@@ -67,6 +68,17 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String A_TASK_NAME = "aTaskName";
     public static final String A_TASK_TYPE = "aTaskType";
     public static final String SOME_ASSIGNEE = "someAssignee";
+    public static final String SOME_CASE_ID = "someCaseId";
+
+    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
+        InitiateTaskOperation.INITIATION,
+        List.of(
+            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
+            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
+            new TaskAttribute(TASK_CASE_ID, SOME_CASE_ID),
+            new TaskAttribute(TASK_NAME, A_TASK_NAME)
+        )
+    );
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     @MockBean
@@ -98,22 +110,12 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-
     @Autowired
     private TransactionHelper transactionHelper;
-
-    private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
-        InitiateTaskOperation.INITIATION,
-        List.of(
-            new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
-            new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
-            new TaskAttribute(TASK_NAME, A_TASK_NAME)
-        )
-    );
-
     @Captor
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
+    private TaskResource assignedTask;
 
     @BeforeEach
     void setUp() {
@@ -131,16 +133,16 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                           RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                           IDAM_USER_ID
-                       )
+            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            IDAM_USER_ID
+            )
         ).thenReturn(true);
 
-        testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED);
-        testTaskResource.setState(CFTTaskState.UNASSIGNED);
-        testTaskResource.setAssignee(SOME_ASSIGNEE);
+        testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID);
+        assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID);
+
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
-            .thenReturn(testTaskResource);
+            .thenReturn(assignedTask);
 
         when(configureTaskService.configureCFTTask(any(TaskResource.class), any(TaskToConfigure.class)))
             .thenReturn(testTaskResource);
@@ -152,23 +154,29 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     }
 
     @Test
-    void given_initiate_task_is_called_when_error_then_rollback_db() {
+    void given_initiate_task_is_called_when_error_then_only_skeleton_is_persisted_in_db() {
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
             .thenThrow(new RuntimeException("some error"));
 
-        assertThrows(RuntimeException.class, () -> transactionHelper
-            .doInNewTransaction(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)));
+        assertThrows(RuntimeException.class,
+            () -> taskManagementService.initiateTask(taskId, initiateTaskRequest));
 
-        transactionHelper.doInNewTransaction(() -> assertEquals(0, taskResourceRepository.count()));
+        assertEquals(1, taskResourceRepository.count());
+
+        Optional<TaskResource> find = taskResourceRepository.findById(taskId);
+        assertTrue(find.isPresent());
+        assertEquals(UNCONFIGURED, find.get().getState());
 
         verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
         verify(cftTaskDatabaseService).saveTask(argThat((task) -> task.getTaskId().equals(taskId)));
+        verify(cftTaskDatabaseService).findByIdOnly(taskId);
+        verify(cftTaskDatabaseService).findByIdAndObtainPessimisticWriteLock(taskId);
         verifyNoMoreInteractions(cftTaskDatabaseService);
     }
 
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
-        transactionHelper.doInNewTransaction(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest));
+        taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
         InOrder inOrder = inOrder(
             cftTaskMapper,
@@ -179,21 +187,20 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             cftTaskDatabaseService
         );
 
+        inOrder.verify(cftTaskDatabaseService).findByIdOnly(taskId);
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
+        //Skeleton
         inOrder.verify(cftTaskDatabaseService).saveTask(taskResourceCaptor.capture());
-        assertTrue(expectTaskWithValues(taskResourceCaptor.getValue(), ASSIGNED));
-
+        inOrder.verify(cftTaskDatabaseService).findByIdAndObtainPessimisticWriteLock(taskId);
         inOrder.verify(configureTaskService).configureCFTTask(
             taskResourceCaptor.capture(),
-            eq(new TaskToConfigure(taskId, A_TASK_TYPE, null, A_TASK_NAME))
+            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME))
         );
-        assertTrue(expectTaskWithValues(taskResourceCaptor.getValue(), ASSIGNED));
 
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(taskResourceCaptor.capture());
-        assertTrue(expectTaskWithValues(taskResourceCaptor.getValue(), UNASSIGNED));
+        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(testTaskResource);
 
-        inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.UNASSIGNED);
+        inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.ASSIGNED);
 
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
@@ -203,14 +210,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             A_TASK_NAME,
             taskResourceRepository.getByTaskId(taskId).orElseThrow().getTaskName()
         );
-    }
-
-    private boolean expectTaskWithValues(TaskResource actualTaskResource, CFTTaskState cftTaskState) {
-        return actualTaskResource.getTaskId().equals(taskId)
-               && actualTaskResource.getTaskName().equals(A_TASK_NAME)
-               && actualTaskResource.getAssignee().equals(SOME_ASSIGNEE)
-               && actualTaskResource.getState().equals(cftTaskState)
-               && actualTaskResource.getTaskType().equals(A_TASK_TYPE);
     }
 
     @Test
@@ -245,15 +244,14 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             .until(() -> expectedFailureCalls(
                 futureResults,
                 1,
-                "DataIntegrityViolationException"
-            )
-                         && expectedSucceededCalls(futureResults, 1));
+                "ConstraintViolationException"
+            ) && expectedSucceededCalls(futureResults, 1));
     }
 
     @SuppressWarnings("SameParameterValue")
     private boolean expectedSucceededCalls(List<Future<TaskResource>> futureResults, int expectedSucceededCalls) {
         Set<TaskResource> oneTaskSucceedCondition = new HashSet<>();
-        futureResults.forEach((fr) -> {
+        futureResults.forEach(fr -> {
             if (fr.isDone()) {
                 try {
                     TaskResource task = fr.get();
@@ -278,6 +276,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
                 return false;
             } catch (Exception e) {
                 exception = assertThrows(Exception.class, fr::get);
+
                 assertThat(exception).hasMessageContaining(expectedFailureException);
                 return true;
             }

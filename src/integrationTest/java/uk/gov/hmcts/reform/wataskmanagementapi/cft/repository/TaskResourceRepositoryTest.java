@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,7 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
-    private final TaskResource task = createTask();
+    private String taskId;
+    private TaskResource task;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
 
@@ -51,6 +53,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
+        taskId = UUID.randomUUID().toString();
+        task = createTask(taskId);
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
     }
 
@@ -88,8 +92,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void shouldReadTaskData() {
-        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
-
         assertEquals(1, taskResourceRepository.count());
 
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
@@ -103,13 +105,14 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         final List<NoteResource> notes = taskResource.getNotes();
 
         assertAll(
-            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
+            () -> assertEquals(taskId, taskResource.getTaskId()),
             () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode()),
             () -> assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification()),
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
-            () -> assertEquals(LocalDate.of(2022, 05, 9), taskResource.getAssignmentExpiry().toLocalDate()),
+            () -> assertEquals(LocalDate.of(2022, 05, 9),
+                taskResource.getAssignmentExpiry().toLocalDate()),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
@@ -122,7 +125,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         assertAll(
             () -> assertNotNull(taskRole.getTaskRoleId()),
-            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskRole.getTaskId()),
+            () -> assertEquals(taskId, taskRole.getTaskId()),
             () -> assertTrue(taskRole.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
             () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
@@ -133,7 +136,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
     }
 
-    private TaskResource createTask() {
+    private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                 "noteTypeVal",
@@ -141,7 +144,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 "someContent"
             ));
         return new TaskResource(
-            "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+            taskId,
             "aTaskName",
             "startAppeal",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -183,7 +186,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 0,
                 false,
                 "JUDICIAL",
-                "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+                taskId,
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory"
