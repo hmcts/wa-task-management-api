@@ -20,9 +20,9 @@ public class NoteResource implements Serializable {
 
     private String code;
     private String noteType;
-    private String user;
+    private String userId;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private OffsetDateTime created;
+    private OffsetDateTime noteCreationDateTime;
     private String content;
 
     private NoteResource() {
@@ -30,11 +30,12 @@ public class NoteResource implements Serializable {
     }
 
     @JsonCreator
-    public NoteResource(String code, String noteType, String user, OffsetDateTime created, String content) {
+    public NoteResource(String code, String noteType, String userId,
+                        OffsetDateTime noteCreationDateTime, String content) {
         this.code = code;
         this.noteType = noteType;
-        this.user = user;
-        this.created = created;
+        this.userId = userId;
+        this.noteCreationDateTime = noteCreationDateTime;
         this.content = content;
     }
 }

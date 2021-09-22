@@ -9,11 +9,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
@@ -448,6 +450,17 @@ public class TaskManagementService {
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
         TaskResource mappedTask = cftTaskMapper.mapToTaskObject(taskId, initiateTaskRequest.getTaskAttributes());
         return cftTaskDatabaseService.saveTask(mappedTask);
+    }
+
+    @Transactional
+    public TaskResource updateNotes(String taskId, NotesRequest notesRequest) {
+        final TaskResource taskResource = findByIdAndObtainLock(taskId);
+
+        final List<NoteResource> noteResources = notesRequest.getNoteResource();
+
+        noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+
+        return cftTaskDatabaseService.saveTask(taskResource);
     }
 
     private TaskResource findByIdAndObtainLock(String taskId) {
