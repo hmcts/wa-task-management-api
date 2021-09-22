@@ -92,8 +92,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void shouldReadTaskData() {
-        assertEquals(1, taskResourceRepository.count());
-
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
         WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
         assertEquals("routine_work", workTypeResource.getId());
