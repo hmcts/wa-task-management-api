@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResourc
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -50,6 +52,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @BeforeEach
     void setUp() {
+        taskId = UUID.randomUUID().toString();
+        task = createTask(taskId);
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
     }
 
@@ -87,7 +91,14 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void shouldReadTaskData() {
+        String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac11001e";
+
         assertEquals(1, taskResourceRepository.count());
+
+        assertTrue(taskResourceRepository.findById(taskId).isPresent());
+        WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
+        assertEquals("routine_work", workTypeResource.getId());
+        assertEquals("Routine work", workTypeResource.getLabel());
 
         final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
@@ -95,7 +106,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         final List<NoteResource> notes = taskResource.getNotes();
 
         assertAll(
-            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskResource.getTaskId()),
+            () -> assertEquals(taskId, taskResource.getTaskId()),
             () -> assertEquals(ExecutionType.MANUAL, taskResource.getExecutionTypeCode().getExecutionCode()),
             () -> assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification()),
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
@@ -114,7 +125,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         assertAll(
             () -> assertNotNull(taskRole.getTaskRoleId()),
-            () -> assertEquals("8d6cc5cf-c973-11eb-bdba-0242ac11001e", taskRole.getTaskId()),
+            () -> assertEquals(taskId, taskRole.getTaskId()),
             () -> assertTrue(taskRole.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
             () -> assertEquals(expectedAuthorizations, taskRole.getAuthorizations())
@@ -133,7 +144,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 "someContent"
             ));
         return new TaskResource(
-            "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+            taskId,
             "aTaskName",
             "startAppeal",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -148,7 +159,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "someAssignee",
             false,
             new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
-            "workType",
+            new WorkTypeResource("routine_work", "Routine work"),
             "JUDICIAL",
             false,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
@@ -175,7 +186,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 0,
                 false,
                 "JUDICIAL",
-                "8d6cc5cf-c973-11eb-bdba-0242ac11001e",
+                taskId,
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory"

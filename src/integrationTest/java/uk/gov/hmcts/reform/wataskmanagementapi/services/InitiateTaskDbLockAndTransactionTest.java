@@ -69,6 +69,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String A_TASK_TYPE = "aTaskType";
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
+
     private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
         InitiateTaskOperation.INITIATION,
         List.of(
