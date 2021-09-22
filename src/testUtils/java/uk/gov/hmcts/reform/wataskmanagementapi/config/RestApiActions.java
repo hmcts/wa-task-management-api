@@ -141,7 +141,9 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
+                .log().all()
                 .post(path, resourceId);
+
         } else {
             log.info("Calling POST {}", path);
             return given()
@@ -150,6 +152,7 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
+                .log().all()
                 .post(path);
         }
     }
@@ -167,6 +170,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
+                .log().all()
                 .post(path, resourceId);
         } else {
             log.info("Calling POST {}", path);
@@ -175,6 +179,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
+                .log().all()
                 .post(path);
         }
     }
