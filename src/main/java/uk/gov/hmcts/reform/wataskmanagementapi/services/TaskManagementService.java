@@ -373,8 +373,8 @@ public class TaskManagementService {
         //4. Extract if a task is assigned and assignee is idam userId
         String idamUserId = accessControlResponse.getUserInfo().getUid();
 
-        final List<CamundaTask> tasksAssignedToUser = searchResults.stream().filter(
-            task -> idamUserId.equals(task.getAssignee()))
+        final List<CamundaTask> tasksAssignedToUser = searchResults.stream()
+            .filter(task -> idamUserId.equals(task.getAssignee()))
             .collect(Collectors.toList());
 
         if (!tasksAssignedToUser.isEmpty()) {
@@ -456,38 +456,49 @@ public class TaskManagementService {
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
      * @return The updated entity {@link TaskResource}
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        //Create a skeleton task from attributes received in request
-        TaskResource taskResource = cftTaskMapper.mapToTaskResource(
-            taskId,
-            initiateTaskRequest.getTaskAttributes()
-        );
+        TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
+        if (canGetDbLock(taskResource)) {
+            taskResource = configureTask(taskResource);
+            taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            updateCftTaskState(taskResource.getTaskId(), taskResource);
+        }
+        return cftTaskDatabaseService.saveTask(taskResource);
+    }
 
-        TaskToConfigure taskToConfigure = new TaskToConfigure(
-            taskId,
-            taskResource.getTaskType(),
-            taskResource.getCaseId(),
-            taskResource.getTaskName()
-        );
+    private boolean canGetDbLock(TaskResource taskResource) {
+        return cftTaskDatabaseService.saveTask(taskResource).getTaskId()
+            .equals(taskResource.getTaskId());
+    }
 
-        //Retrieve configuration and update task
-        taskResource = configureTaskService.configureCFTTask(
-            taskResource,
-            taskToConfigure
-        );
-
-        //Auto-assignment
-        taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
-
-        //Update CFT Task state
+    private void updateCftTaskState(String taskId, TaskResource taskResource) {
         if (CFTTaskState.ASSIGNED.equals(taskResource.getState())) {
             camundaService.updateCftTaskState(taskId, TaskState.ASSIGNED);
         } else if (CFTTaskState.UNASSIGNED.equals(taskResource.getState())) {
             camundaService.updateCftTaskState(taskId, TaskState.UNASSIGNED);
         }
-        //Commit transaction
-        return cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    private TaskResource configureTask(TaskResource taskSkeleton) {
+        TaskToConfigure taskToConfigure = new TaskToConfigure(
+            taskSkeleton.getTaskId(),
+            taskSkeleton.getTaskType(),
+            taskSkeleton.getCaseId(),
+            taskSkeleton.getTaskName()
+        );
+
+        return configureTaskService.configureCFTTask(
+            taskSkeleton,
+            taskToConfigure
+        );
+    }
+
+    private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        return cftTaskMapper.mapToTaskResource(
+            taskId,
+            initiateTaskRequest.getTaskAttributes()
+        );
     }
 
     private TaskResource findByIdAndObtainLock(String taskId) {

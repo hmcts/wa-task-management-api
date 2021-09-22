@@ -435,8 +435,9 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
             new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
-            )
-        ).thenReturn(singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1"))));
+        )).thenReturn(
+            singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1")))
+        );
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("caseId", stringValue(testCaseId));
