@@ -44,7 +44,6 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 withPipeline(type, product, component) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
-    enableDbMigration('cft_task_db')
 
     env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
