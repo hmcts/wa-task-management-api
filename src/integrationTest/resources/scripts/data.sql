@@ -3,6 +3,9 @@ values  ('MANUAL', 'MANUAL', 'Manual Description'),
         ('BUILT_IN', 'BUILT_IN', 'BUILT_IN'),
         ('CASE_EVENT', 'CASE_EVENT', 'CASE_EVENT');
 
+insert into cft_task_db.work_types (work_type_id, label)
+values  ('workType', 'Routine Work');
+
 /*
  roleName: tribunal-caseworker, securityClassification: PUBLIC,
  */
