@@ -22,12 +22,12 @@ ccd_gateway:
 logging:
   level:
     org.springframework:
-      dao: info
+      dao: debug
       transaction: debug
       jdbc.core.JdbcTemplate: info
     org.hibernate:
-      SQL: info
-      type.descriptor.sql.BasicBinder: info
-      engine: info
+      SQL: debug
+      type.descriptor.sql.BasicBinder: debug
+      engine: debug
     uk.gov.hmcts.reform: debug
 

@@ -62,7 +62,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_should_fail() {
+    void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_then_fail() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         TaskResource taskResource = new TaskResource(
@@ -78,6 +78,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             taskResourceRepository.save(taskResource);
         });
 
+        await().timeout(3, TimeUnit.SECONDS); // to ensure the first call is processed first
         assertThrows(
             DataIntegrityViolationException.class,
             () -> taskResourceRepository.insertAndLock(taskResource.getTaskId())
@@ -87,7 +88,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_should_succeed() {
+    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         TaskResource taskResource = new TaskResource(
@@ -123,7 +124,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_locked_then_other_transactions_cannot_make_changes() {
+    void given_task_is_locked_when_other_transactions_then_cannot_make_changes() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         executorService.execute(() -> requireLockForGivenTask(task));
@@ -155,7 +156,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void shouldReadTaskData() {
+    void given_task_is_saved_when_findById_then_task_has_expected_fields() {
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
         WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
         assertEquals("routine_work", workTypeResource.getId());
