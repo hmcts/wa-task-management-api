@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -34,8 +35,10 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -56,6 +59,67 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         taskId = UUID.randomUUID().toString();
         task = createTask(taskId);
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
+    }
+
+    @Test
+    void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_should_fail() {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        TaskResource taskResource = new TaskResource(
+            "some task id",
+            "some task name",
+            "some task type",
+            CFTTaskState.ASSIGNED
+        );
+
+        executorService.execute(() -> {
+            taskResourceRepository.insertAndLock(taskResource.getTaskId());
+            await().timeout(10, TimeUnit.SECONDS);
+            taskResourceRepository.save(taskResource);
+        });
+
+        assertThrows(
+            DataIntegrityViolationException.class,
+            () -> taskResourceRepository.insertAndLock(taskResource.getTaskId())
+        );
+
+        checkTaskWasSaved(taskResource.getTaskId());
+    }
+
+    @Test
+    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_should_succeed() {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        TaskResource taskResource = new TaskResource(
+            "some task id",
+            "some task name",
+            "some task type",
+            CFTTaskState.ASSIGNED
+        );
+
+        executorService.execute(() -> {
+            taskResourceRepository.insertAndLock(taskResource.getTaskId());
+            await().timeout(10, TimeUnit.SECONDS);
+            taskResourceRepository.save(taskResource);
+        });
+
+        TaskResource otherTaskResource = new TaskResource(
+            "other task id",
+            "other task name",
+            "other task type",
+            CFTTaskState.ASSIGNED
+        );
+
+        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId()));
+        checkTaskWasSaved(taskResource.getTaskId());
+        checkTaskWasSaved(otherTaskResource.getTaskId());
+    }
+
+    private void checkTaskWasSaved(String taskId) {
+        assertEquals(
+            taskId,
+            taskResourceRepository.getByTaskId(taskId).orElseThrow().getTaskId()
+        );
     }
 
     @Test
@@ -109,8 +173,10 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
-            () -> assertEquals(LocalDate.of(2022, 05, 9),
-                taskResource.getAssignmentExpiry().toLocalDate()),
+            () -> assertEquals(
+                LocalDate.of(2022, 5, 9),
+                taskResource.getAssignmentExpiry().toLocalDate()
+            ),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
@@ -137,9 +203,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
-                "noteTypeVal",
-                "userVal", OffsetDateTime.now(),
-                "someContent"
+                             "noteTypeVal",
+                             "userVal", OffsetDateTime.now(),
+                             "someContent"
             ));
         return new TaskResource(
             taskId,
