@@ -26,7 +26,7 @@ public class NoteResource implements Serializable {
     private String content;
 
     private NoteResource() {
-
+        // required for runtime proxy generation in Hibernate
     }
 
     @JsonCreator
