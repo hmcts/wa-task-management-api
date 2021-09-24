@@ -5,7 +5,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -35,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
@@ -56,37 +54,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         taskId = UUID.randomUUID().toString();
         task = createTask(taskId);
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
-    }
-
-    @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_then_fail() throws InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-        TaskResource taskResource = new TaskResource(
-            "some task id",
-            "some task name",
-            "some task type",
-            CFTTaskState.ASSIGNED
-        );
-
-        executorService.execute(() -> {
-            transactionHelper
-                .doInNewTransaction(() -> taskResourceRepository.insertAndLock(taskResource.getTaskId()));
-            await().timeout(10, TimeUnit.SECONDS);
-            transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(taskResource));
-        });
-
-        await().timeout(3, TimeUnit.SECONDS); // to ensure the first call is processed first
-        assertThrows(
-            DataIntegrityViolationException.class,
-            () -> transactionHelper
-                .doInNewTransaction(() -> taskResourceRepository.insertAndLock(taskResource.getTaskId()))
-        );
-        checkTaskWasSaved(taskResource.getTaskId());
-
-        executorService.shutdown();
-        //noinspection ResultOfMethodCallIgnored
-        executorService.awaitTermination(13, TimeUnit.SECONDS);
     }
 
     @Test
