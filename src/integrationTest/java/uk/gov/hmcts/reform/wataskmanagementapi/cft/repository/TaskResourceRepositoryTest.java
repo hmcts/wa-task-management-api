@@ -73,17 +73,18 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         );
 
         executorService.execute(() -> {
-            taskResourceRepository.insertAndLock(taskResource.getTaskId());
+            transactionHelper
+                .doInNewTransaction(() -> taskResourceRepository.insertAndLock(taskResource.getTaskId()));
             await().timeout(10, TimeUnit.SECONDS);
-            taskResourceRepository.save(taskResource);
+            transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(taskResource));
         });
 
         await().timeout(3, TimeUnit.SECONDS); // to ensure the first call is processed first
         assertThrows(
             DataIntegrityViolationException.class,
-            () -> taskResourceRepository.insertAndLock(taskResource.getTaskId())
+            () -> transactionHelper
+                .doInNewTransaction(() -> taskResourceRepository.insertAndLock(taskResource.getTaskId()))
         );
-
         checkTaskWasSaved(taskResource.getTaskId());
     }
 
@@ -133,7 +134,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             await().timeout(3, TimeUnit.SECONDS);
             requireLockForGivenTask(task);
             task.setAssignee("changed assignee");
-            taskResourceRepository.save(task);
+            transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
         });
 
         await()

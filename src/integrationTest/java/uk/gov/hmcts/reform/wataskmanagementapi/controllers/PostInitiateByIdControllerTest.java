@@ -217,7 +217,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
-                    + "(Typically this will be in CCD.)"),
+                    + "(Typically this will be in CCD."),
                 jsonPath("$.task_role_resources.[0].role_name").value("senior-tribunal-caseworker"),
                 jsonPath("$.task_role_resources.[0].read").value(true),
                 jsonPath("$.task_role_resources.[0].own").value(true),
@@ -332,7 +332,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
                     jsonPath("$.execution_type_code.description").value(
                         "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
+                        + "(Typically this will be in CCD."),
                     jsonPath("$.task_role_resources.[0].role_name").value("senior-tribunal-caseworker"),
                     jsonPath("$.task_role_resources.[0].read").value(true),
                     jsonPath("$.task_role_resources.[0].own").value(true),
