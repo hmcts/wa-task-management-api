@@ -27,4 +27,8 @@ public class CFTTaskDatabaseService {
     public TaskResource saveTask(TaskResource task) {
         return tasksRepository.save(task);
     }
+
+    public void insertAndLock(String taskId) {
+        tasksRepository.insertAndLock(taskId);
+    }
 }
