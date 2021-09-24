@@ -81,7 +81,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -102,7 +102,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -193,7 +193,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 taskId
             )));
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -222,7 +222,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -248,7 +248,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -282,7 +282,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -316,7 +316,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId)
+        common.cleanUpTask(taskId);
     }
 
 }
