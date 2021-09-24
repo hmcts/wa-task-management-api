@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.RequireDbLockException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
@@ -41,112 +42,51 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<ErrorMessage> handleResourceNotFoundException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.NOT_FOUND,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleResourceNotFoundException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ConflictException.class)
-    protected ResponseEntity<ErrorMessage> handleConflictException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.CONFLICT,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleConflictException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(NotImplementedException.class)
-    protected ResponseEntity<ErrorMessage> handleNotImplementedException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.SERVICE_UNAVAILABLE,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleNotImplementedException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(UnsupportedOperationException.class)
-    protected ResponseEntity<ErrorMessage> handleUnsupportedOperationException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.BAD_REQUEST,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleUnsupportedOperationException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnAuthorizedException.class)
-    protected ResponseEntity<ErrorMessage> handleUnAuthorizedException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.UNAUTHORIZED,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleUnAuthorizedException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(BadRequestException.class)
-    protected ResponseEntity<ErrorMessage> handleBadRequestsException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.BAD_REQUEST,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleBadRequestsException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(TaskStateIncorrectException.class)
-    protected ResponseEntity<ErrorMessage> handleTaskStateIncorrectExceptionException(
-        Exception ex
-    ) {
-        LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body(new ErrorMessage(
-                      ex,
-                      HttpStatus.FORBIDDEN,
-                      systemDateProvider.nowWithTime()
-                  )
-            );
+    protected ResponseEntity<ErrorMessage> handleTaskStateIncorrectExceptionException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler({NullPointerException.class, ServerErrorException.class})
-    protected ResponseEntity<ErrorMessage> handleGenericException(
-        Exception ex
-    ) {
+    @ExceptionHandler({NullPointerException.class, ServerErrorException.class, RequireDbLockException.class})
+    protected ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
+        return getErrorMessageResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<ErrorMessage> getErrorMessageResponseEntity(Exception ex, HttpStatus httpStatus) {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        return ResponseEntity.status(httpStatus)
             .body(new ErrorMessage(
                       ex,
-                      HttpStatus.INTERNAL_SERVER_ERROR,
+                      httpStatus,
                       systemDateProvider.nowWithTime()
                   )
             );

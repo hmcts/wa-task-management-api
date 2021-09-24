@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskClaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaCftTaskStateUpdateException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskAssignException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskClaimException;
@@ -102,7 +103,7 @@ public class CamundaService {
         this.camundaObjectMapper = camundaObjectMapper;
     }
 
-    protected <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
+    public <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
         Optional<T> value = camundaObjectMapper.read(variable, type);
         return value.orElse(null);
     }
@@ -347,6 +348,20 @@ public class CamundaService {
     }
 
     /**
+     * Updates the cftTaskState in camunda.
+     *
+     * @param taskId    the task id
+     * @param taskState the new task state
+     */
+    public void updateCftTaskState(String taskId, TaskState taskState) {
+        try {
+            updateCftTaskStateTo(taskId, taskState);
+        } catch (FeignException ex) {
+            throw new ServerErrorException("There was a problem when updating the cftTaskState", ex);
+        }
+    }
+
+    /**
      * Removes 'cft_task_state' process variable from the history.
      * Since the delete method only offers deletion via variable instance id the history must be retrieved.
      *
@@ -551,6 +566,30 @@ public class CamundaService {
             log.error("There was a problem while claiming task id '{}'", taskId);
             throw new CamundaTaskUnclaimException(ex);
         }
+    }
+
+    /**
+     * Performs cft task state update orchestration in camunda.
+     *
+     * @throws CamundaTaskStateUpdateException if call fails when updating the cft task state.
+     */
+    private void updateCftTaskStateTo(String taskId, TaskState newState) {
+        Map<String, CamundaValue<String>> variable = Map.of(
+            CFT_TASK_STATE.value(), CamundaValue.stringValue(newState.value())
+        );
+        AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
+
+        try {
+            camundaServiceApi.addLocalVariablesToTask(authTokenGenerator.generate(), taskId, camundaLocalVariables);
+        } catch (FeignException ex) {
+            log.error(
+                "There was a problem updating task '{}', cft task state could not be updated to '{}'",
+                taskId, newState
+            );
+            throw new CamundaCftTaskStateUpdateException(ex);
+        }
+
+        log.debug("Updated task '{}' with cft task state '{}'", taskId, newState.value());
     }
 
     /**
