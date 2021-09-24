@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -37,12 +36,14 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,7 +59,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AU
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/task/%s";
     private static String ENDPOINT_BEING_TESTED;
@@ -134,6 +134,37 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     "Forbidden: The action could not be completed because the client/user "
                     + "had insufficient rights to a resource.")
             ));
+    }
+
+    @Test
+    void give_initiate_request_when_there_is_error_then_do_rollback() throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenThrow(new RuntimeException("some error"));
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+        ));
+
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            )
+            .andDo(print())
+            .andExpect(ResultMatcher.matchAll(status().isInternalServerError()));
+
+        assertFalse(taskResourceRepository.getByTaskId(taskId).isPresent());
     }
 
     @Test

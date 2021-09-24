@@ -474,8 +474,7 @@ public class TaskManagementService {
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
-            throw (GenericServerErrorException) new GenericServerErrorException(
-                ErrorMessages.INITIATE_TASK_PROCESS_ERROR).initCause(e);
+            throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
         }
     }
 
