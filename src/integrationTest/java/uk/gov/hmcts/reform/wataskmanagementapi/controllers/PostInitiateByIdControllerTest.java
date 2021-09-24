@@ -334,7 +334,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.execution_type_code.description").value(
                     "The task requires a case management event to be executed by the user. "
                     + "(Typically this will be in CCD.)"),
-                jsonPath("$.task_role_resources.[0].role_name").value("senior-tribunal-caseworker"),
+                jsonPath("$.task_role_resources.[0].role_name")
+                    .value("senior-tribunal-caseworker"),
                 jsonPath("$.task_role_resources.[0].read").value(true),
                 jsonPath("$.task_role_resources.[0].own").value(true),
                 jsonPath("$.task_role_resources.[0].execute").value(false),
@@ -398,17 +399,18 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(Collections.singletonList(RoleAssignment.builder()
-                                                                                 .id("someId")
-                                                                                 .actorIdType(ActorIdType.IDAM)
-                                                                                 .actorId(IDAM_USER_ID)
-                                                                                 .roleName("tribunal-caseworker")
-                                                                                 .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                                                                 .grantType(GrantType.SPECIFIC)
-                                                                                 .roleType(RoleType.ORGANISATION)
-                                                                                 .classification(Classification.PUBLIC)
-                                                                                 .authorisations(asList("IA"))
-                                                                                 .build())));
+            .thenReturn(new RoleAssignmentResource(
+                Collections.singletonList(RoleAssignment.builder()
+                                              .id("someId")
+                                              .actorIdType(ActorIdType.IDAM)
+                                              .actorId(IDAM_USER_ID)
+                                              .roleName("tribunal-caseworker")
+                                              .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                                              .grantType(GrantType.SPECIFIC)
+                                              .roleType(RoleType.ORGANISATION)
+                                              .classification(Classification.PUBLIC)
+                                              .authorisations(asList("IA"))
+                                              .build())));
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
@@ -445,11 +447,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.location").value("765324"),
                     jsonPath("$.location_name").value("Taylor House"),
                     jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
-                    jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
+                    jsonPath("$.execution_type_code.execution_name")
+                        .value("Case Management Task"),
                     jsonPath("$.execution_type_code.description").value(
                         "The task requires a case management event to be executed by the user. "
                         + "(Typically this will be in CCD.)"),
-                    jsonPath("$.task_role_resources.[0].role_name").value("senior-tribunal-caseworker"),
+                    jsonPath("$.task_role_resources.[0].role_name")
+                        .value("senior-tribunal-caseworker"),
                     jsonPath("$.task_role_resources.[0].read").value(true),
                     jsonPath("$.task_role_resources.[0].own").value(true),
                     jsonPath("$.task_role_resources.[0].execute").value(false),
@@ -457,7 +461,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.task_role_resources.[0].cancel").value(true),
                     jsonPath("$.task_role_resources.[0].refer").value(true),
                     jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
-                    jsonPath("$.task_role_resources.[1].role_name").value("tribunal-caseworker"),
+                    jsonPath("$.task_role_resources.[1].role_name")
+                        .value("tribunal-caseworker"),
                     jsonPath("$.task_role_resources.[1].read").value(true),
                     jsonPath("$.task_role_resources.[1].own").value(true),
                     jsonPath("$.task_role_resources.[1].execute").value(false),
