@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -33,10 +34,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -137,7 +141,89 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void give_initiate_request_when_there_is_error_then_do_rollback() throws Exception {
+    void given_task_is_locked_when_other_transactions_then_cannot_make_changes() throws Exception {
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+            ));
+
+        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("IA,WA"),
+                    null,
+                    null
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null
+                )
+            ));
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+        ));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req))
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isCreated()
+            ));
+
+        InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "some other task type"),
+            new TaskAttribute(TASK_NAME, "soe other task name"),
+            new TaskAttribute(TASK_CASE_ID, "some other task case id")
+        ));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(someOtherReq))
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isConflict()
+            ));
+
+        Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);
+        assertTrue(actualTask.isPresent());
+        assertEquals("aTaskType", actualTask.get().getTaskType());
+    }
+
+    @Test
+    void given_initiate_request_when_there_is_error_then_do_rollback() throws Exception {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
@@ -169,7 +255,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_201_with_task_unassigned() throws Exception {
-
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
@@ -314,16 +399,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(Collections.singletonList(RoleAssignment.builder()
-                .id("someId")
-                .actorIdType(ActorIdType.IDAM)
-                .actorId(IDAM_USER_ID)
-                .roleName("tribunal-caseworker")
-                .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                .grantType(GrantType.SPECIFIC)
-                .roleType(RoleType.ORGANISATION)
-                .classification(Classification.PUBLIC)
-                .authorisations(asList("IA"))
-                .build())));
+                                                                                 .id("someId")
+                                                                                 .actorIdType(ActorIdType.IDAM)
+                                                                                 .actorId(IDAM_USER_ID)
+                                                                                 .roleName("tribunal-caseworker")
+                                                                                 .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                                                                                 .grantType(GrantType.SPECIFIC)
+                                                                                 .roleType(RoleType.ORGANISATION)
+                                                                                 .classification(Classification.PUBLIC)
+                                                                                 .authorisations(asList("IA"))
+                                                                                 .build())));
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
@@ -332,12 +417,12 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_CASE_ID, "someCaseId")
         ));
         mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andDo(MockMvcResultHandlers.print())
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andDo(MockMvcResultHandlers.print())
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isCreated(),

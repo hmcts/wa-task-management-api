@@ -62,43 +62,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_locked_when_other_transactions_then_cannot_make_changes() {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-        executorService.execute(() -> requireLockForGivenTask(task));
-
-        await().timeout(3, TimeUnit.SECONDS);
-        Future<?> futureResult = executorService.submit(() -> {
-            requireLockForGivenTask(task);
-            task.setAssignee("changed assignee");
-            transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
-        });
-
-        await()
-            .ignoreException(AssertionError.class)
-            .pollInterval(2, TimeUnit.SECONDS)
-            .atMost(7, TimeUnit.SECONDS)
-            .until(() -> {
-                Exception exception = Assertions.assertThrows(Exception.class, futureResult::get);
-                log.info(exception.toString());
-                assertThat(exception).hasMessageContaining("PessimisticLockException");
-
-                return true;
-            });
-
-        transactionHelper.doInNewTransaction(() -> {
-            TaskResource dbTask = taskResourceRepository.getByTaskId(task.getTaskId()).orElseThrow();
-            assertEquals("someAssignee", dbTask.getAssignee());
-
-        });
-    }
-
-    private void requireLockForGivenTask(TaskResource task) {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
-    }
-
-    @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_then_fail() {
+    void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_then_fail() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         TaskResource taskResource = new TaskResource(
@@ -122,10 +86,14 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 .doInNewTransaction(() -> taskResourceRepository.insertAndLock(taskResource.getTaskId()))
         );
         checkTaskWasSaved(taskResource.getTaskId());
+
+        executorService.shutdown();
+        //noinspection ResultOfMethodCallIgnored
+        executorService.awaitTermination(13, TimeUnit.SECONDS);
     }
 
     @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed() {
+    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed() throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         TaskResource taskResource = new TaskResource(
@@ -151,6 +119,10 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId()));
         checkTaskWasSaved(taskResource.getTaskId());
         checkTaskWasSaved(otherTaskResource.getTaskId());
+
+        executorService.shutdown();
+        //noinspection ResultOfMethodCallIgnored
+        executorService.awaitTermination(13, TimeUnit.SECONDS);
     }
 
     private void checkTaskWasSaved(String taskId) {
