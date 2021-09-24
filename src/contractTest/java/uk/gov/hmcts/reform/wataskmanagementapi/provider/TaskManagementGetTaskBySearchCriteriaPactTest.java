@@ -20,9 +20,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
+import uk.gov.hmcts.reform.wataskmanagementapi.provider.model.TaskWithWorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -38,7 +39,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 @PactBroker(
@@ -51,7 +51,6 @@ import static org.mockito.Mockito.when;
 //@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
-
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @Mock
@@ -95,9 +94,19 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         setInitMockForSearchTask();
     }
 
+    @State({"appropriate tasks are returned by criteria with work-type"})
+    public void getTasksBySearchCriteriaWithWorkType() {
+        setInitMockForSearchTaskWithWorkType();
+    }
+
     @State({"appropriate tasks are returned by criteria with no warnings"})
     public void getTasksBySearchCriteriaWithNoWarnings() {
         setInitMockForSearchTaskWithNoWarnings();
+    }
+
+    @State({"appropriate tasks are returned by criteria with work-type with no warnings"})
+    public void getTasksBySearchCriteriaWithWorkTypeWithNoWarnings() {
+        setInitMockForSearchTaskWithWorkTypeWithNoWarnings();
     }
 
     @State({"appropriate tasks are returned by criteria with warnings only"})
@@ -105,8 +114,13 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         setInitMockForSearchTaskWithWarningsOnly();
     }
 
-    public Task createTaskWithNoWarnings() {
-        return new Task(
+    @State({"appropriate tasks are returned by criteria with work-type with warnings only"})
+    public void getTasksBySearchCriteriaWithWorkTypeWithWarningsOnly() {
+        setInitMockForSearchTaskWithWorkTypeWithWarningsOnly();
+    }
+
+    public uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task createTaskWithNoWarnings() {
+        return new uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -133,12 +147,41 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         );
     }
 
-    public Task createTaskWithWarnings() {
+    public TaskWithWorkType createTaskWithWorkTypeNoWarnings() {
+        return new TaskWithWorkType(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            false,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            false,
+            new WarningValues(emptyList()),
+            "Some Case Management Category",
+            new WorkType("hearing_work", "Hearing work")
+        );
+    }
+
+    public uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task createTaskWithWarnings() {
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
 
-        return new Task(
+        return new uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task(
             "fda422de-b381-43ff-94ea-eea5790188a3",
             "Review the appeal",
             "reviewTheAppeal",
@@ -164,6 +207,39 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "Some Case Management Category");
     }
 
+    public TaskWithWorkType createTaskWithWorkTypeWithWarnings() {
+        final List<Warning> warnings = List.of(
+            new Warning("Code1", "Text1")
+        );
+
+        return new TaskWithWorkType(
+            "fda422de-b381-43ff-94ea-eea5790188a3",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            null,
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245308495",
+            "refusalOfHumanRights",
+            "John Doe",
+            true,
+            new WarningValues(warnings),
+            "Some Case Management Category",
+            new WorkType("upper_tribunal", "Upper Tribunal")
+        );
+    }
+
     private void setInitMockForSearchTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
@@ -171,11 +247,25 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
     }
 
+    private void setInitMockForSearchTaskWithWorkType() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(asList(createTaskWithWorkTypeNoWarnings(), createTaskWithWorkTypeNoWarnings()));
+    }
+
     private void setInitMockForSearchTaskWithWarningsOnly() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithWarnings()));
+    }
+
+    private void setInitMockForSearchTaskWithWorkTypeWithWarningsOnly() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(singletonList(createTaskWithWorkTypeWithWarnings()));
     }
 
 
@@ -186,5 +276,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(singletonList(createTaskWithNoWarnings()));
     }
 
-}
+    private void setInitMockForSearchTaskWithWorkTypeWithNoWarnings() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(singletonList(createTaskWithWorkTypeNoWarnings()));
+    }
 
+}

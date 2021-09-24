@@ -48,6 +48,19 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
+    void testSearchQueryWithWorkType200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithWorkTypeRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
     @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
     void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
         SerenityRest
@@ -55,6 +68,19 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
+    void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithWorkTypeRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -78,6 +104,24 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder)
+        throws JsonProcessingException {
+        return builder
+            .given("appropriate tasks are returned by criteria with work-type")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseWithWorkTypeForGetTask())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithWarnings200(PactDslWithProvider builder)
         throws JsonProcessingException {
         return builder
@@ -92,6 +136,24 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithWorkTypeWithWarnings200(PactDslWithProvider builder)
+        throws JsonProcessingException {
+        return builder
+            .given("appropriate tasks are returned by criteria with work-type with warnings only")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseWithWorkTypeForGetTaskWithWarnings())
             .toPact();
     }
 
@@ -120,6 +182,36 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_id", "1617708245335311")
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
+                        .booleanType("warnings", false)
+                )).build();
+    }
+
+    private DslPart createResponseWithWorkTypeForGetTask() throws JsonProcessingException {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1,
+                    task -> task
+                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("name", "Review the appeal")
+                        .stringType("type", "ReviewTheAppeal")
+                        .stringType("task_state", "assigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "Review the appeal")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
+                        .booleanType("auto_assigned", true)
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "IA")
+                        .stringType("region", "1")
+                        .stringType("location", "765324")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("case_type_id", "Asylum")
+                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_category", "refusalOfHumanRights")
+                        .stringType("case_name", "Bob Smith")
+                        .stringType("work_type", "routine-work")
                         .booleanType("warnings", false)
                 )).build();
     }
@@ -158,6 +250,41 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                 )).build();
     }
 
+    private DslPart createResponseWithWorkTypeForGetTaskWithWarnings() throws JsonProcessingException {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1,
+                    task -> task
+                        .stringType("id", "fda422de-b381-43ff-94ea-eea5790188a3")
+                        .stringType("name", "Review the appeal")
+                        .stringType("type", "ReviewTheAppeal")
+                        .stringType("task_state", "assigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "Review the appeal")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .booleanType("auto_assigned", true)
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "IA")
+                        .stringType("region", "1")
+                        .stringType("location", "765324")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("case_type_id", "Asylum")
+                        .stringType("case_id", "1617708245308495")
+                        .stringType("case_category", "refusalOfHumanRights")
+                        .stringType("case_name", "Bob Smith")
+                        .stringType("work_type", "routine-work")
+                        .booleanType("warnings", true)
+                        .object("warning_list", values -> values
+                            .minArrayLike("values", 1, value -> value
+                                .stringType("warningCode", "Code1")
+                                .stringType("warningText", "Text1")
+                            )
+                        )
+                )).build();
+    }
+
     private Map<String, String> getTaskManagementServiceResponseHeaders() {
 
         return ImmutableMap.<String, String>builder()
@@ -182,5 +309,34 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                   + "      ]\n"
                   + "  }\n";
         return request;
+    }
+
+    private String createSearchEventCaseWithWorkTypeRequest() {
+
+        return "{\n"
+               + "    \"search_parameters\": [\n"
+               + "        {\n"
+               + "            \"key\": \"jurisdiction\",\n"
+               + "            \"operator\": \"IN\",\n"
+               + "            \"values\": [\n"
+               + "                \"IA\"\n"
+               + "            ]\n"
+               + "        },\n"
+               + "        {\n"
+               + "            \"key\": \"work_type\",\n"
+               + "            \"operator\": \"IN\",\n"
+               + "            \"values\": [\n"
+               + "                \"hearing-work\",\n"
+               + "                \"upper-tribunal\",\n"
+               + "                \"routine-work\",\n"
+               + "                \"decision-making-work\",\n"
+               + "                \"applications\",\n"
+               + "                \"priority\",\n"
+               + "                \"error-management\",\n"
+               + "                \"access-requests\"\n"
+               + "            ]\n"
+               + "        }\n"
+               + "    ]\n"
+               + "}";
     }
 }
