@@ -17,8 +17,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_DELETED;
 
 public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -50,7 +48,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -75,12 +73,12 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -108,7 +106,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("detail", equalTo(
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -127,7 +125,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId, REASON_DELETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -148,7 +146,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId, REASON_DELETED);
+        common.cleanUpTask(taskId);
     }
 
 }

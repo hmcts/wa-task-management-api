@@ -178,7 +178,7 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public void cleanUpTask(String taskId, String reason) {
+    public void cleanUpTask(String taskId) {
         log.info("Cleaning task {}", taskId);
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());

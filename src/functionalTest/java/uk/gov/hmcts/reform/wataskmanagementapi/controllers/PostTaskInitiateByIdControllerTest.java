@@ -23,7 +23,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -108,7 +107,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "cftTaskState",
             "unassigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -155,7 +154,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "Database Conflict Error: The action could not be completed because "
                 + "there was a conflict in the database."));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test

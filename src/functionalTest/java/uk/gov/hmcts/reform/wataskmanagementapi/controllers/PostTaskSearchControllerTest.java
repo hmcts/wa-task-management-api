@@ -39,7 +39,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
@@ -131,8 +130,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         assertThat(actualCaseIdList).asList()
             .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
-        common.cleanUpTask(taskVariablesForTask1.getTaskId(), REASON_COMPLETED);
-        common.cleanUpTask(taskVariablesForTask2.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(taskVariablesForTask1.getTaskId());
+        common.cleanUpTask(taskVariablesForTask2.getTaskId());
     }
 
     @Test
@@ -159,7 +158,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -187,7 +186,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.warnings", everyItem(notNullValue()))
             .body("tasks.warning_list.values", everyItem(notNullValue()));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -222,7 +221,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -256,7 +255,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -290,7 +289,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(0));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -324,7 +323,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(0));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -358,7 +357,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", equalTo(0));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -385,7 +384,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -421,7 +420,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.task_state", everyItem(is("assigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -456,7 +455,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -487,7 +486,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.size()", equalTo(0))
             .body("total_records", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -521,7 +520,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -559,7 +558,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -602,7 +601,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -638,7 +637,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.size()", equalTo(0))
             .body("total_records", equalTo(0));
 
-        tasksCreated.forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+        tasksCreated.forEach(task -> common.cleanUpTask(task.getTaskId()));
 
     }
 
@@ -696,7 +695,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     private List<TestVariables> createMultipleTasks(String[] states) {
