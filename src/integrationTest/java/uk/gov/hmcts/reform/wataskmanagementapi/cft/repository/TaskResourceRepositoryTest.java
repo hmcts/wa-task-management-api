@@ -62,6 +62,42 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void given_task_is_locked_when_other_transactions_then_cannot_make_changes() {
+        ExecutorService executorService = Executors.newFixedThreadPool(2);
+
+        executorService.execute(() -> requireLockForGivenTask(task));
+
+        await().timeout(3, TimeUnit.SECONDS);
+        Future<?> futureResult = executorService.submit(() -> {
+            requireLockForGivenTask(task);
+            task.setAssignee("changed assignee");
+            transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
+        });
+
+        await()
+            .ignoreException(AssertionError.class)
+            .pollInterval(2, TimeUnit.SECONDS)
+            .atMost(7, TimeUnit.SECONDS)
+            .until(() -> {
+                Exception exception = Assertions.assertThrows(Exception.class, futureResult::get);
+                log.info(exception.toString());
+                assertThat(exception).hasMessageContaining("PessimisticLockException");
+
+                return true;
+            });
+
+        transactionHelper.doInNewTransaction(() -> {
+            TaskResource dbTask = taskResourceRepository.getByTaskId(task.getTaskId()).orElseThrow();
+            assertEquals("someAssignee", dbTask.getAssignee());
+
+        });
+    }
+
+    private void requireLockForGivenTask(TaskResource task) {
+        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
+    }
+
+    @Test
     void given_insertAndLock_call_when_concurrent_calls_for_same_task_id_then_fail() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -125,38 +161,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_locked_when_other_transactions_then_cannot_make_changes() {
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-        executorService.execute(() -> requireLockForGivenTask(task));
-
-        Future<?> futureResult = executorService.submit(() -> {
-            await().timeout(3, TimeUnit.SECONDS);
-            requireLockForGivenTask(task);
-            task.setAssignee("changed assignee");
-            transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
-        });
-
-        await()
-            .ignoreException(AssertionError.class)
-            .pollInterval(2, TimeUnit.SECONDS)
-            .atMost(7, TimeUnit.SECONDS)
-            .until(() -> {
-                Exception exception = Assertions.assertThrows(Exception.class, futureResult::get);
-                log.info(exception.toString());
-                assertThat(exception).hasMessageContaining("PessimisticLockException");
-
-                return true;
-            });
-
-        transactionHelper.doInNewTransaction(() -> {
-            TaskResource dbTask = taskResourceRepository.getByTaskId(task.getTaskId()).orElseThrow();
-            assertEquals("someAssignee", dbTask.getAssignee());
-
-        });
-    }
-
-    @Test
     void given_task_is_saved_when_findById_then_task_has_expected_fields() {
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
         WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
@@ -196,10 +200,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
             () -> assertEquals(expectedAuthorizations, taskRole.getAuthorizations())
         );
-    }
-
-    private void requireLockForGivenTask(TaskResource task) {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
     }
 
     private TaskResource createTask(String taskId) {
