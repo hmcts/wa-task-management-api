@@ -2,10 +2,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.confi
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
 
-import java.util.Map;
 import java.util.Objects;
 
 @Component
@@ -19,7 +19,7 @@ public class CaseRelatedVariablesConfigurator implements TaskConfigurator {
     }
 
     @Override
-    public Map<String, Object> getConfigurationVariables(TaskToConfigure task) {
+    public TaskConfigurationResults getConfigurationVariables(TaskToConfigure task) {
 
         Objects.requireNonNull(task.getCaseId(), String.format(
             "Task with id '%s' cannot be configured it has not been setup correctly. No caseId process variable.",

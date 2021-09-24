@@ -5,11 +5,11 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class DecisionTableResultTest {
+class GenericDmnTableResultTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = DecisionTableResult.class;
+        final Class<?> classUnderTest = GenericDmnTableResult.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

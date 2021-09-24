@@ -16,8 +16,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.AssigneeRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
 import java.util.HashMap;
@@ -50,25 +50,6 @@ class TaskConfigurationCamundaServiceTest {
     private AuthTokenGenerator authTokenGenerator;
 
     private TaskConfigurationCamundaService taskConfigurationCamundaService;
-
-    @BeforeEach
-    public void setUp() {
-        taskConfigurationCamundaService = new TaskConfigurationCamundaService(camundaServiceApi, authTokenGenerator);
-
-        taskId = randomUUID().toString();
-
-        serviceTokenId = randomUUID().toString();
-
-        testTaskToConfigure = new TaskToConfigure(
-            "taskId",
-            "caseId",
-            "taskName",
-            Map.of(
-                CASE_ID.value(), "caseId",
-                TASK_STATE.value(), "unconfigured"
-            )
-        );
-    }
 
     @Test
     void should_get_task() {
@@ -224,6 +205,22 @@ class TaskConfigurationCamundaServiceTest {
             serviceTokenId,
             taskId,
             addLocalVariableRequest
+        );
+    }
+
+    @BeforeEach
+    public void setUp() {
+        taskConfigurationCamundaService = new TaskConfigurationCamundaService(camundaServiceApi, authTokenGenerator);
+
+        taskId = randomUUID().toString();
+
+        serviceTokenId = randomUUID().toString();
+
+        testTaskToConfigure = new TaskToConfigure(
+            "taskId",
+            "taskType",
+            "caseId",
+            "taskName"
         );
     }
 
