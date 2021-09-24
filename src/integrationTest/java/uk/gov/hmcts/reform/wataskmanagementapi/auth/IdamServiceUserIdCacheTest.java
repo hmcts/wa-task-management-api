@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,25 +17,30 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles({"integration"})
 public class IdamServiceUserIdCacheTest {
 
+    private final String bearerAccessToken1 = "some bearer access token3";
+    private final String bearerAccessToken2 = "some bearer access token4";
+
     @MockBean
     private IdamWebApi idamWebApi;
 
     @Autowired
     private IdamService idamService;
 
-    @BeforeEach
-    void setUp() {
-        when(idamWebApi.userInfo(anyString())).thenReturn(UserInfo.builder()
-                                                              .uid("some user id")
-                                                              .build());
-    }
-
     @Test
     void getUserIdIsCached() {
-        idamService.getUserId("some user token");
-        idamService.getUserId("some user token");
-        idamService.getUserId("some user token");
 
-        verify(idamWebApi).userInfo("some user token");
+        when(idamWebApi.userInfo(anyString()))
+            .thenReturn(UserInfo.builder()
+                            .uid("some user id1")
+                            .build());
+
+        idamService.getUserId(bearerAccessToken1);
+        idamService.getUserId(bearerAccessToken1);
+        idamService.getUserId(bearerAccessToken2);
+        idamService.getUserId(bearerAccessToken2);
+
+
+        verify(idamWebApi).userInfo(bearerAccessToken1);
+        verify(idamWebApi).userInfo(bearerAccessToken2);
     }
 }
