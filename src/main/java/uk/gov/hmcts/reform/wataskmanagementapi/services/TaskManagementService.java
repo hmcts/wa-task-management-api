@@ -465,6 +465,7 @@ public class TaskManagementService {
         return initiateTaskProcess(taskId, initiateTaskRequest);
     }
 
+    @SuppressWarnings("PMD.PreserveStackTrace")
     private TaskResource initiateTaskProcess(String taskId, InitiateTaskRequest initiateTaskRequest) {
         try {
             TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
@@ -473,10 +474,12 @@ public class TaskManagementService {
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
-            throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
+            throw (GenericServerErrorException) new GenericServerErrorException(
+                ErrorMessages.INITIATE_TASK_PROCESS_ERROR).initCause(e);
         }
     }
 
+    @SuppressWarnings("PMD.PreserveStackTrace")
     private void lockTaskId(String taskId) {
         try {
             cftTaskDatabaseService.insertAndLock(taskId);

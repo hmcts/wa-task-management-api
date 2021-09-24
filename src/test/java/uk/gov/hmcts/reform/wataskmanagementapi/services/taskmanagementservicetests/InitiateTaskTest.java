@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
@@ -24,15 +23,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
@@ -99,13 +98,8 @@ class InitiateTaskTest extends CamundaHelpers {
     }
 
     @Test
-    void given_initiateTask_and_no_skeleton_in_db_task_is_initiated_and_a_skeleton_saved() {
+    void given_initiateTask_then_task_is_saved() {
         mockInitiateTaskDependencies();
-
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
-
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-            .thenReturn(Optional.of(taskResource));
 
         TaskResource unassignedTaskResource = new TaskResource(
             taskId,
@@ -137,86 +131,20 @@ class InitiateTaskTest extends CamundaHelpers {
             TaskState.UNASSIGNED
         );
 
-        //Skeleton + commit
-        verify(cftTaskDatabaseService, times(2)).saveTask(taskResource);
-        //verify(cftTaskDatabaseService, times(1)).insertTaskAndFlush(taskResource);
+        verify(cftTaskDatabaseService).saveTask(taskResource);
     }
 
     @Test
-    void given_initiateTask_and_skeleton_in_db_task_is_initiated_and_no_skeleton_save() {
-        mockInitiateTaskDependencies();
+    void given_initiateTask_should_throw_exception_when_cannot_obtain_lock() {
+        doThrow(new RuntimeException("some exception"))
+            .when(cftTaskDatabaseService).insertAndLock(anyString());
 
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
-            .thenReturn(Optional.of(taskResource));
-
-        TaskResource configuredTaskResource = new TaskResource(
-            taskId,
-            A_TASK_NAME,
-            A_TASK_TYPE,
-            UNASSIGNED,
-            CASE_ID
-        );
-
-        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(configuredTaskResource);
-
-        taskManagementService.initiateTask(taskId, initiateTaskRequest);
-
-        verify(configureTaskService).configureCFTTask(
-            eq(taskResource),
-            ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
-                taskId,
-                A_TASK_TYPE,
-                CASE_ID,
-                A_TASK_NAME
-            )))
-        );
-
-        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
-        verify(camundaService).updateCftTaskState(
-            taskId,
-            TaskState.UNASSIGNED
-        );
-
-        verify(cftTaskMapper, times(0)).mapToTaskResource(eq(taskId), any());
-        //Commit only
-        verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
-    }
-
-
-    @Test
-    void given_initiateTask_and_skeleton_in_db_with_assigned_state_throw_conflict_exception() {
-        mockInitiateTaskDependencies();
-        taskResource = new TaskResource(
-            taskId,
-            A_TASK_NAME,
-            A_TASK_TYPE,
-            UNASSIGNED,
-            CASE_ID
-        );
-
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
         assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
         )
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
-            .hasMessage("Database Conflict Error: The action could not be completed "
-                        + "because there was a conflict in the database.");
-    }
-
-
-    @Test
-    void given_initiateTask_should_throw_exception_when_cannot_obtain_lock() {
-        mockInitiateTaskDependencies();
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
-        )
-            .isInstanceOf(GenericServerErrorException.class)
-            .hasNoCause()
-            .hasMessage("Generic Server Error: The action could not be completed because "
-                        + "there was a problem when obtaining a lock on a record.");
+            .hasMessage("Database Conflict Error: "
+                        + "The action could not be completed because there was a conflict in the database.");
     }
 
     private void mockInitiateTaskDependencies() {
