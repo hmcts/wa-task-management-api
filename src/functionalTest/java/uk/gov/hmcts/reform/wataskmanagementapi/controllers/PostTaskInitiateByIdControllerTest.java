@@ -111,7 +111,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_409_if_task_already_initiated() {
+    public void should_return_a_503_if_task_already_initiated() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -149,7 +149,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("type", equalTo(
                 "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
             .body("title", equalTo("Database Conflict Error"))
-            .body("status", equalTo(409))
+            .body("status", equalTo(503))
             .body("detail", equalTo(
                 "Database Conflict Error: The action could not be completed because "
                 + "there was a conflict in the database."));
