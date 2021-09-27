@@ -88,7 +88,6 @@ class CaseConfigurationProviderServiceTest {
             someCaseId,
             "some task type id"
         );
-
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
     }
 

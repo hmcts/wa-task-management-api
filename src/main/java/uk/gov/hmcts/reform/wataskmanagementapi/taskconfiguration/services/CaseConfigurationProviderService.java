@@ -40,7 +40,7 @@ public class CaseConfigurationProviderService {
     /**
      * Obtains a list of process variables that are related to the ccd case data.
      *
-     * @param caseId the ccd case id
+     * @param caseId     the ccd case id
      * @param taskTypeId some task type
      * @return a map with the process variables configuration
      */

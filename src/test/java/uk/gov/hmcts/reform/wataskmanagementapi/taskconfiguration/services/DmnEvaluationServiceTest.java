@@ -109,7 +109,8 @@ class DmnEvaluationServiceTest {
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
-        assertThatThrownBy(() -> dmnEvaluationService.evaluateTaskPermissionsDmn("ia", "Asylum", ccdData))
+        assertThatThrownBy(() -> dmnEvaluationService
+            .evaluateTaskPermissionsDmn("ia", "Asylum", ccdData))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Could not evaluate from decision table wa-task-permissions-ia-asylum")
             .hasCauseInstanceOf(FeignException.class);
