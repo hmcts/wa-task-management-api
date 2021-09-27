@@ -39,9 +39,9 @@ public class TaskRoleResource implements Serializable {
         strategy = "org.hibernate.id.UUIDGenerator"
     )
     @Column(insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Include()
     private UUID taskRoleId;
 
-    @EqualsAndHashCode.Include()
     private String roleName;
     @Column(columnDefinition = "boolean default false")
     private Boolean read;
