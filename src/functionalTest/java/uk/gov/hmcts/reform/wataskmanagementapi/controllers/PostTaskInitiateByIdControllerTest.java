@@ -16,7 +16,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -179,7 +178,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 
     @Test
@@ -204,7 +203,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 
     @Test
@@ -228,7 +227,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 }
 

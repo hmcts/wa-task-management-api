@@ -41,6 +41,14 @@ public abstract class SpringBootIntegrationBaseTest {
         return objectMapper.writeValueAsString(object);
     }
 
+    protected String asJsonStringHandled(Object object) {
+        try {
+            return objectMapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error writing value to string");
+        }
+    }
+
     @BeforeAll
     public void initObjectMapper() {
         //Initialize mapper as defined in JacksonConfiguration.class

@@ -36,11 +36,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -183,22 +187,31 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, "someCaseId")
-        ));
+        ExecutorService executorService = new ScheduledThreadPoolExecutor(2);
+        executorService.execute(() -> {
+            try {
+                InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+                    new TaskAttribute(TASK_TYPE, "aTaskType"),
+                    new TaskAttribute(TASK_NAME, "aTaskName"),
+                    new TaskAttribute(TASK_CASE_ID, "someCaseId")
+                ));
+                mockMvc.perform(
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(asJsonString(req))
+                ).andExpect(
+                    ResultMatcher.matchAll(
+                        status().isCreated(),
+                        content().contentType(APPLICATION_JSON_VALUE)
+                    ));
+            } catch (Exception e) {
+                fail();
+            }
+        });
 
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isCreated()
-            ));
+        TimeUnit.SECONDS.sleep(1); // to ensure second call does not start before first call above
 
         InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "some other task type"),
@@ -214,7 +227,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .content(asJsonString(someOtherReq))
         ).andExpect(
             ResultMatcher.matchAll(
-                status().isConflict()
+                status().isServiceUnavailable(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
             ));
 
         Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);

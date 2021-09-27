@@ -210,7 +210,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             .until(() -> expectedFailureCalls(
                 futureResults,
                 1,
-                "409, Database Conflict Error"
+                "503, Database Conflict Error"
             ) && expectedSucceededCalls(futureResults, 1));
     }
 

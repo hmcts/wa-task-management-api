@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -30,11 +32,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +52,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -65,6 +73,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
+@Slf4j
 class TaskManagementServiceTest extends CamundaHelpers {
 
 
@@ -1385,6 +1394,40 @@ class TaskManagementServiceTest extends CamundaHelpers {
         );
         @Mock
         private TaskResource taskResource;
+
+        @Test
+        void given_some_error_other_than_DataAccessException_when_requiring_lock_then_throw_500_error()
+            throws SQLException {
+            doThrow(new RuntimeException("some unexpected error"))
+                .when(cftTaskDatabaseService).insertAndLock(anyString());
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(RuntimeException.class);
+        }
+
+        @Test
+        void given_some_error_when_initiateTaskProcess_then_throw_500_error() {
+            when(cftTaskMapper.mapToTaskResource(anyString(), anyList()))
+                .thenThrow(new RuntimeException("some unexpected error"));
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(GenericServerErrorException.class)
+                .hasMessage("Generic Server Error: The action could not be completed "
+                            + "because there was a problem when initiating the task.");
+
+        }
+
+        @Test
+        void given_DataAccessException_when_initiate_task_then_throw_503_error() throws SQLException {
+            String msg = "duplicate key value violates unique constraint \"tasks_pkey\"";
+            doThrow(new DataIntegrityViolationException(msg))
+                .when(cftTaskDatabaseService).insertAndLock(anyString());
+
+            assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
+                .isInstanceOf(DatabaseConflictException.class)
+                .hasMessage("Database Conflict Error: "
+                            + "The action could not be completed because there was a conflict in the database.");
+        }
 
         @Test
         void given_initiateTask_task_is_initiated() {

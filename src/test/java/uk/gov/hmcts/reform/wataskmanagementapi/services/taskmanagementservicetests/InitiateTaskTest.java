@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
+import java.sql.SQLException;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -135,8 +136,8 @@ class InitiateTaskTest extends CamundaHelpers {
     }
 
     @Test
-    void given_initiateTask_should_throw_exception_when_cannot_obtain_lock() {
-        doThrow(new RuntimeException("some exception"))
+    void given_initiateTask_when_cannot_get_lock_should_throw_exception() throws SQLException {
+        doThrow(new SQLException("some sql exception"))
             .when(cftTaskDatabaseService).insertAndLock(anyString());
 
         assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest)
