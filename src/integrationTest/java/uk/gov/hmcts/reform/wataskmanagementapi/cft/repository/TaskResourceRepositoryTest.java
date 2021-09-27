@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
@@ -40,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     private String taskId;
@@ -60,6 +64,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    @Order(1)
     void given_task_is_locked_then_other_transactions_cannot_make_changes() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -92,6 +97,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    @Order(2)
     void shouldReadTaskData() {
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
         WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
@@ -131,7 +137,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void shouldUpdateTaskData() {
+    @Order(3)
+    void shouldReadAndUpdateTaskData() {
         final Optional<TaskResource> taskResourceById = taskResourceRepository.findById(taskId);
 
         final Set<TaskRoleResource> taskRoleResources = taskResourceById.get().getTaskRoleResources();
