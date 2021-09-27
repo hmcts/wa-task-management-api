@@ -144,7 +144,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         // If the first call succeeded the second call should throw a conflict
         // taskId unique constraint is violated
         resultSecondCall.then().assertThat()
-            .statusCode(HttpStatus.CONFLICT.value())
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
             .body("type", equalTo(
                 "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
