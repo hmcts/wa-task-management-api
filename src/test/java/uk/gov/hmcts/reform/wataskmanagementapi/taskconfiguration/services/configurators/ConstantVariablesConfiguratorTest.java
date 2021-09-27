@@ -2,11 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.confi
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
@@ -29,9 +29,9 @@ class ConstantVariablesConfiguratorTest {
 
         TaskToConfigure testTaskToConfigure = new TaskToConfigure(
             "taskId",
+            "taskType",
             "caseId",
-            "taskName",
-            emptyMap()
+            "taskName"
         );
 
         Map<String, Object> expectedValues = Map.of(
@@ -41,9 +41,9 @@ class ConstantVariablesConfiguratorTest {
             TASK_SYSTEM.value(), "SELF"
         );
 
-        Map<String, Object> values = constantVariablesConfigurator.getConfigurationVariables(testTaskToConfigure);
+        TaskConfigurationResults actual = constantVariablesConfigurator.getConfigurationVariables(testTaskToConfigure);
 
-        assertThat(values, is(expectedValues));
+        assertThat(actual.getProcessVariables(), is(expectedValues));
     }
 
 }

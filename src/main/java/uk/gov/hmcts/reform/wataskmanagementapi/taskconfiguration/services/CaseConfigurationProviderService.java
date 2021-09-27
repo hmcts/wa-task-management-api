@@ -5,13 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -42,7 +43,7 @@ public class CaseConfigurationProviderService {
      * @param caseId the ccd case id
      * @return a map with the process variables configuration
      */
-    public Map<String, Object> getCaseRelatedConfiguration(String caseId) {
+    public TaskConfigurationResults getCaseRelatedConfiguration(String caseId) {
         // Obtain case from ccd
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
@@ -52,27 +53,53 @@ public class CaseConfigurationProviderService {
         String caseDataString = extractCaseDataAsString(caseDetails.getData());
 
         // Evaluate Dmns
-        List<DecisionTableResult> taskConfigurationDmnResults =
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString);
 
-        List<DecisionTableResult> permissionsDmnResults =
+        List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString);
 
-        // Combine and Collect all dmns results into process variables map
-        Map<String, Object> caseConfigurationVariables =
-            Stream.concat(taskConfigurationDmnResults.stream(), permissionsDmnResults.stream())
-                .collect(toMap(
-                    dmnResult -> dmnResult.getName().getValue(),
-                    dmnResult -> dmnResult.getValue().getValue()
-                ));
+        Map<String, Object> caseConfigurationVariables = extractDmnResults(
+            taskConfigurationDmnResults,
+            permissionsDmnResults
+        );
 
         // Enrich case configuration variables with extra variables
-        HashMap<String, Object> allCaseConfigurationValues = new HashMap<>(caseConfigurationVariables);
+        Map<String, Object> allCaseConfigurationValues = new ConcurrentHashMap<>(caseConfigurationVariables);
         allCaseConfigurationValues.put(SECURITY_CLASSIFICATION.value(), caseDetails.getSecurityClassification());
         allCaseConfigurationValues.put(JURISDICTION.value(), caseDetails.getJurisdiction());
         allCaseConfigurationValues.put(CASE_TYPE_ID.value(), caseDetails.getCaseType());
-        return allCaseConfigurationValues;
 
+        return new TaskConfigurationResults(
+            allCaseConfigurationValues,
+            taskConfigurationDmnResults,
+            permissionsDmnResults
+        );
+
+    }
+
+    private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
+                                                  List<PermissionsDmnEvaluationResponse> permissionsDmnResults) {
+
+        // Combine and Collect all dmns results into a single map
+        Map<String, Object> caseConfigurationVariables = new ConcurrentHashMap<>();
+
+        Map<String, Object> configDmnValues = taskConfigurationDmnResults.stream()
+            .collect(toMap(
+                dmnResult -> dmnResult.getName().getValue(),
+                dmnResult -> dmnResult.getValue().getValue()
+            ));
+
+        Map<String, Object> permissionsDmnValues = permissionsDmnResults.stream()
+            .collect(toMap(
+                dmnResult -> dmnResult.getName().getValue(),
+                dmnResult -> dmnResult.getValue().getValue()
+            ));
+
+        caseConfigurationVariables.putAll(configDmnValues);
+        caseConfigurationVariables.putAll(permissionsDmnValues);
+
+        return caseConfigurationVariables;
     }
 
     private String extractCaseDataAsString(Map<String, Object> data) {

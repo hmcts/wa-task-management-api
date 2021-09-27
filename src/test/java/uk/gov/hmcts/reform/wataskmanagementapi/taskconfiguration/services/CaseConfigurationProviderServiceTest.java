@@ -9,8 +9,10 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +47,8 @@ class CaseConfigurationProviderServiceTest {
         caseConfigurationProviderService = new CaseConfigurationProviderService(
             ccdDataService,
             dmnEvaluationService,
-            objectMapper);
+            objectMapper
+        );
 
         when(caseDetails.getCaseType()).thenReturn("Asylum");
         when(caseDetails.getJurisdiction()).thenReturn("IA");
@@ -59,10 +62,20 @@ class CaseConfigurationProviderServiceTest {
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}"))
             .thenReturn(asList(
-                new DecisionTableResult(
-                    stringValue("tribunalCaseworker"), stringValue("Read,Refer,Own,Manage,Cancel")),
-                new DecisionTableResult(
-                    stringValue("seniorTribunalCaseworker"), stringValue("Read,Refer,Own,Manage,Cancel"))
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunalCaseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("seniorTribunalCaseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null
+                )
             ));
 
         Map<String, Object> expectedMappedData = new HashMap<>();
@@ -71,9 +84,9 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
-        Map<String, Object> mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
+        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
 
-        assertThat(mappedData, is(expectedMappedData));
+        assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
     }
 
     @Test
@@ -83,8 +96,8 @@ class CaseConfigurationProviderServiceTest {
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}"))
             .thenReturn(asList(
-                new DecisionTableResult(stringValue("name1"), stringValue("value1")),
-                new DecisionTableResult(stringValue("name2"), stringValue("value2"))
+                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2"))
             ));
 
         Map<String, Object> expectedMappedData = Map.of(
@@ -92,11 +105,12 @@ class CaseConfigurationProviderServiceTest {
             "name2", "value2",
             "securityClassification", "PUBLIC",
             "jurisdiction", "IA",
-            "caseTypeId", "Asylum");
+            "caseTypeId", "Asylum"
+        );
 
-        Map<String, Object> mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
+        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
 
-        assertThat(mappedData, is(expectedMappedData));
+        assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 
     }
 }

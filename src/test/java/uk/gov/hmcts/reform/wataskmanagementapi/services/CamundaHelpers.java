@@ -19,9 +19,9 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 
 public class CamundaHelpers {
-    static final String BEARER_SERVICE_TOKEN = "Bearer service token";
-    static final String IDAM_USER_ID = "IDAM_USER_ID";
-    static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
+    public static final String BEARER_SERVICE_TOKEN = "Bearer service token";
+    public static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
 
     protected Task createMockedMappedTask() {
         return new Task(

@@ -226,9 +226,9 @@ public final class RoleAssignmentFilter {
                                                       CriteriaBuilder builder,
                                                       RoleAssignment roleAssignment) {
         if (roleAssignment.getAttributes() != null) {
-            String regionVal = roleAssignment.getAttributes().get(JURISDICTION.value());
-            if (StringUtils.hasText(regionVal)) {
-                return builder.equal(root.get(JURISDICTION_COLUMN), regionVal);
+            String jurisdictionVal = roleAssignment.getAttributes().get(JURISDICTION.value());
+            if (StringUtils.hasText(jurisdictionVal)) {
+                return builder.equal(root.get(JURISDICTION_COLUMN), jurisdictionVal);
             }
         }
         return builder.conjunction();
@@ -238,9 +238,9 @@ public final class RoleAssignmentFilter {
                                                   CriteriaBuilder builder,
                                                   RoleAssignment roleAssignment) {
         if (roleAssignment.getAttributes() != null) {
-            String regionVal = roleAssignment.getAttributes().get(BASE_LOCATION.value());
-            if (StringUtils.hasText(regionVal)) {
-                return builder.equal(root.get(LOCATION_COLUMN), regionVal);
+            String locationVal = roleAssignment.getAttributes().get(BASE_LOCATION.value());
+            if (StringUtils.hasText(locationVal)) {
+                return builder.equal(root.get(LOCATION_COLUMN), locationVal);
             }
         }
         return builder.conjunction();

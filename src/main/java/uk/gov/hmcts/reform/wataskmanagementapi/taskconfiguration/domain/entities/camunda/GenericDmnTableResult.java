@@ -6,14 +6,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 
 @EqualsAndHashCode
 @ToString
-public class DecisionTableResult {
+public class GenericDmnTableResult {
     private CamundaValue<String> name;
     private CamundaValue<String> value;
 
-    private DecisionTableResult() {
+    private GenericDmnTableResult() {
     }
 
-    public DecisionTableResult(CamundaValue<String> name, CamundaValue<String> value) {
+    public GenericDmnTableResult(CamundaValue<String> name, CamundaValue<String> value) {
         this.name = name;
         this.value = value;
     }
