@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
@@ -21,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -28,17 +32,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     private String taskId;
@@ -59,6 +64,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    @Order(1)
     void given_task_is_locked_then_other_transactions_cannot_make_changes() {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -91,6 +97,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    @Order(2)
     void shouldReadTaskData() {
         assertTrue(taskResourceRepository.findById(taskId).isPresent());
         WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
@@ -119,15 +126,45 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals(1, taskRoles.size());
 
         final TaskRoleResource taskRole = taskRoles.iterator().next();
-        List<String> expectedAuthorizations = asList("SPECIFIC", "BASIC");
-
+        String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
         assertAll(
             () -> assertNotNull(taskRole.getTaskRoleId()),
             () -> assertEquals(taskId, taskRole.getTaskId()),
             () -> assertTrue(taskRole.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
-            () -> assertEquals(expectedAuthorizations, taskRole.getAuthorizations())
+            () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
         );
+    }
+
+    @Test
+    @Order(3)
+    void shouldReadAndUpdateTaskData() {
+        final Optional<TaskResource> taskResourceById = taskResourceRepository.findById(taskId);
+
+        final Set<TaskRoleResource> taskRoleResources = taskResourceById.get().getTaskRoleResources();
+
+        String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
+        assertArrayEquals(expectedAuthorizations, taskRoleResources.iterator().next().getAuthorizations());
+        taskRoleResources.iterator().next().setAuthorizations(new String[]{});
+
+        transactionHelper.doInNewTransaction(() -> {
+            final TaskResource updatedTaskResource = taskResourceRepository.save(taskResourceById.get());
+
+            assertArrayEquals(new String[]{}, updatedTaskResource.getTaskRoleResources()
+                .iterator().next().getAuthorizations());
+        });
+
+        final Optional<TaskResource> updateTaskResource = taskResourceRepository.findById(taskId);
+        final Set<TaskRoleResource> updateTaskRoles = updateTaskResource.get().getTaskRoleResources();
+
+        updateTaskRoles.iterator().next().setAuthorizations(new String[]{"DIVORCE", "PROBATE"});
+
+        transactionHelper.doInNewTransaction(() -> {
+            final TaskResource updatedTaskResource = taskResourceRepository.save(updateTaskResource.get());
+
+            assertArrayEquals(new String[]{"DIVORCE", "PROBATE"}, updatedTaskResource.getTaskRoleResources()
+                .iterator().next().getAuthorizations());
+        });
     }
 
     private void requireLockForGivenTask(TaskResource task) {
@@ -180,7 +217,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 false,
                 false,
-                asList("SPECIFIC", "BASIC"),
+                new String[]{"SPECIFIC", "BASIC"},
                 0,
                 false,
                 "JUDICIAL",
