@@ -11,6 +11,5 @@ public class CustomPostgreSQL94Dialect extends PostgreSQL10Dialect {
     public CustomPostgreSQL94Dialect() {
         super();
         this.registerHibernateType(Types.JAVA_OBJECT, NoteResource.class.getName());
-        this.registerColumnType(Types.ARRAY, "array");
     }
 }
