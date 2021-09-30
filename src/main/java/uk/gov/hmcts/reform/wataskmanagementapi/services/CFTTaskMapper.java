@@ -170,7 +170,7 @@ public class CFTTaskMapper {
                 permissionsFound.contains(PermissionTypes.MANAGE),
                 permissionsFound.contains(PermissionTypes.CANCEL),
                 permissionsFound.contains(PermissionTypes.REFER),
-                authorisations,
+                authorisations.toArray(new String[0]),
                 assignmentPriority,
                 autoAssignable
             );

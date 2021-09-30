@@ -206,7 +206,7 @@ class TaskAutoRoleAssignmentServiceTest {
             true,
             true,
             true,
-            emptyList(),
+            new String[]{},
             0,
             false
         );
@@ -243,7 +243,7 @@ class TaskAutoRoleAssignmentServiceTest {
             true,
             true,
             true,
-            emptyList(),
+            new String[]{},
             0,
             true
         );
@@ -281,7 +281,7 @@ class TaskAutoRoleAssignmentServiceTest {
             true,
             true,
             true,
-            singletonList("IA"),
+            new String[]{"IA"},
             0,
             true
         );
