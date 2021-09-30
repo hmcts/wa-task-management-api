@@ -26,11 +26,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -128,14 +128,14 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals(1, taskRoles.size());
 
         final TaskRoleResource taskRole = taskRoles.iterator().next();
-        List<String> expectedAuthorizations = asList("SPECIFIC", "BASIC");
+        String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
 
         assertAll(
             () -> assertNotNull(taskRole.getTaskRoleId()),
             () -> assertEquals(taskId, taskRole.getTaskId()),
             () -> assertTrue(taskRole.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
-            () -> assertEquals(expectedAuthorizations, taskRole.getAuthorizations())
+            () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
         );
     }
 
@@ -185,7 +185,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 false,
                 false,
-                asList("SPECIFIC", "BASIC"),
+                new String[]{"SPECIFIC", "BASIC"},
                 0,
                 false,
                 "JUDICIAL",

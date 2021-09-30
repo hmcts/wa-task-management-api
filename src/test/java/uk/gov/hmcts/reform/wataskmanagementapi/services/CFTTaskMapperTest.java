@@ -30,6 +30,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -348,7 +349,7 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(0).getManage());
         assertEquals(true, roleResourcesList.get(0).getCancel());
         assertEquals(true, roleResourcesList.get(0).getRefer());
-        assertEquals(emptyList(), roleResourcesList.get(0).getAuthorizations());
+        assertArrayEquals(new String[]{}, roleResourcesList.get(0).getAuthorizations());
         assertEquals("tribunal-caseworker", roleResourcesList.get(1).getRoleName());
         assertEquals(true, roleResourcesList.get(1).getRead());
         assertEquals(true, roleResourcesList.get(1).getOwn());
@@ -356,7 +357,7 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getManage());
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
-        assertEquals(asList("IA", "WA"), roleResourcesList.get(1).getAuthorizations());
+        assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
     }
 
     @Test

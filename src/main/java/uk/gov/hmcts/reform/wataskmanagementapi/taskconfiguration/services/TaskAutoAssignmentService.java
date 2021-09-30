@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsLast;
@@ -90,12 +91,12 @@ public class TaskAutoAssignmentService {
                 .filter(roleAssignment -> {
                     TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
 
-                    if (taskRoleResource.getAuthorizations() != null
-                        && !taskRoleResource.getAuthorizations().isEmpty()
-                        && !roleAssignment.getAuthorisations().isEmpty()) {
-                        return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
+                    if (taskRoleResource.getAuthorizations() == null
+                        || taskRoleResource.getAuthorizations().length == 0
+                        || roleAssignment.getAuthorisations().isEmpty()) {
+                        return false;
                     }
-                    return false;
+                    return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
                 }).findFirst();
 
             if (match.isPresent()) {
@@ -116,7 +117,7 @@ public class TaskAutoAssignmentService {
 
     private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {
         AtomicBoolean hasMatch = new AtomicBoolean(false);
-        taskRoleResource.getAuthorizations().stream()
+        Stream.of(taskRoleResource.getAuthorizations())
             .forEach(auth -> {
                 //Safe-guard
                 if (!hasMatch.get() && roleAssignment.getAuthorisations().contains(auth)) {
