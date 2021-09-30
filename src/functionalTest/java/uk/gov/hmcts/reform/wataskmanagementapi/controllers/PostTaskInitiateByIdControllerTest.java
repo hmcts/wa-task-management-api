@@ -16,7 +16,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -112,7 +111,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_409_if_task_already_initiated() {
+    public void should_return_a_503_if_task_already_initiated() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -145,12 +144,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         // If the first call succeeded the second call should throw a conflict
         // taskId unique constraint is violated
         resultSecondCall.then().assertThat()
-            .statusCode(HttpStatus.CONFLICT.value())
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
             .body("type", equalTo(
                 "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
             .body("title", equalTo("Database Conflict Error"))
-            .body("status", equalTo(409))
+            .body("status", equalTo(503))
             .body("detail", equalTo(
                 "Database Conflict Error: The action could not be completed because "
                 + "there was a conflict in the database."));
@@ -179,7 +178,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 
     @Test
@@ -204,7 +203,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 
     @Test
@@ -228,7 +227,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 }
 
