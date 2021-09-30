@@ -28,11 +28,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entit
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.AssigneeRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DecisionTableResult;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.AssigneeRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 
 import java.util.HashMap;
@@ -278,17 +278,122 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             .andReturn();
     }
 
+    @DisplayName("Should return 200 and return configuration as body and support new roleName case-allocator")
+    @Test
+    void should_succeed_and_return_configuration_with_new_role_name_case_allocator() throws Exception {
+
+        setupRoleAssignmentResponseWithCustomRoleName("case-allocator", true);
+        configure3rdPartyResponses();
+
+        String expectedResponse = "{\n"
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
+
+
+        Map<String, Object> requiredProcessVariables = Map.of(
+            TASK_ID.value(), "reviewTheAppeal",
+            CASE_ID.value(), testCaseId,
+            CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
+        );
+
+        mockMvc.perform(
+            post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(expectedResponse))
+            .andReturn();
+    }
+
+    @DisplayName("Should return 200 and return configuration as body and support new roleName case-manager")
+    @Test
+    void should_succeed_and_return_configuration_with_new_role_name_case_manager() throws Exception {
+
+        setupRoleAssignmentResponseWithCustomRoleName("case-manager", true);
+        configure3rdPartyResponses();
+
+        String expectedResponse = "{\n"
+                                  + "  \"task_id\": \"" + testTaskId + "\",\n"
+                                  + "  \"case_id\": \"" + testCaseId + "\",\n"
+                                  + "  \"assignee\": \"" + testUserId + "\",\n"
+                                  + "  \"configuration_variables\": {\n"
+                                  + "    \"taskType\": \"reviewTheAppeal\",\n"
+                                  + "    \"jurisdiction\": \"IA\",\n"
+                                  + "    \"caseTypeId\": \"Asylum\",\n"
+                                  + "    \"taskState\": \"assigned\",\n"
+                                  + "    \"executionType\": \"Case Management Task\",\n"
+                                  + "    \"caseId\": \"" + testCaseId + "\",\n"
+                                  + "    \"securityClassification\": \"PUBLIC\",\n"
+                                  + "    \"autoAssigned\": true,\n"
+                                  + "    \"taskSystem\": \"SELF\",\n"
+                                  + "    \"title\": \"taskName\""
+                                  + "  }\n"
+                                  + "}";
+
+
+        Map<String, Object> requiredProcessVariables = Map.of(
+            TASK_ID.value(), "reviewTheAppeal",
+            CASE_ID.value(), testCaseId,
+            CamundaVariableDefinition.TASK_NAME.value(), TASK_NAME
+        );
+
+        mockMvc.perform(
+            post(TASK_CONFIGURATION_ENDPOINT + testTaskId + "/configuration")
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(new ConfigureTaskRequest(requiredProcessVariables)))
+        )
+            .andExpect(status().isOk())
+            .andExpect(content().json(expectedResponse))
+            .andReturn();
+    }
+
+    private List<RoleAssignment> createRoleAssignmentWithCustomRoleName(String roleName) {
+
+        return List.of(RoleAssignment.builder()
+            .id("someId")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId(testUserId)
+            .roleName(roleName)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .build());
+
+    }
+
     private void setupRoleAssignmentResponse(boolean shouldReturnRoleAssignment) {
         Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
-            (condition) ? List.of(RoleAssignment.builder()
-                                      .id("someId")
-                                      .actorIdType(ActorIdType.IDAM)
-                                      .actorId(testUserId)
-                                      .roleName("tribunal-caseworker")
-                                      .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                      .roleType(RoleType.ORGANISATION)
-                                      .classification(Classification.PUBLIC)
-                                      .build()) : emptyList();
+            (condition) ? createRoleAssignmentWithCustomRoleName("tribunal-caseworker") : emptyList();
+
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(
+            eq(BEARER_USER_TOKEN),
+            eq(BEARER_SERVICE_TOKEN),
+            any(MultipleQueryRequest.class)
+        )).thenReturn(new RoleAssignmentResource(getRoleAssignment.apply(shouldReturnRoleAssignment)));
+
+    }
+
+
+    private void setupRoleAssignmentResponseWithCustomRoleName(String roleName, boolean shouldReturnRoleAssignment) {
+        Function<Boolean, List<RoleAssignment>> getRoleAssignment = (condition) ->
+            (condition) ? createRoleAssignmentWithCustomRoleName(roleName) : emptyList();
+
 
         when(roleAssignmentServiceApi.queryRoleAssignments(
             eq(BEARER_USER_TOKEN),
@@ -322,15 +427,17 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             BEARER_USER_TOKEN,
             BEARER_SERVICE_TOKEN,
             testCaseId
-             )
+            )
         ).thenReturn(caseDetails);
 
-        when(camundaServiceApi.evaluateDmnTable(
+        when(camundaServiceApi.evaluateConfigurationDmnTable(
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
+            "ia",
             new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
-             )
-        ).thenReturn(singletonList(new DecisionTableResult(stringValue("name"), stringValue("value1"))));
+        )).thenReturn(
+            singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1")))
+        );
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("caseId", stringValue(testCaseId));

@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 
@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class CFTWorkTypeDatabaseServiceTest extends CftRepositoryBaseTest {
+class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     WorkTypeResourceRepository workTypeResourceRepository;
@@ -50,8 +51,7 @@ class CFTWorkTypeDatabaseServiceTest extends CftRepositoryBaseTest {
 
         final Optional<WorkType> workType = cftWorkTypeDatabaseService.getWorkType("invalid_work");
 
-        assertEquals("hearing_work", workType.get().getId());
-        assertEquals("Hearing work", workType.get().getLabel());
+        assertTrue(workType.isEmpty());
     }
 
 }

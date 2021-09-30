@@ -53,7 +53,12 @@ public enum ErrorMessages {
         "The request failed the Role Assignment checks performed."),
 
     GENERIC_FORBIDDEN_ERROR(
-        "The action could not be completed because the client/user had insufficient rights to a resource.");
+        "The action could not be completed because the client/user had insufficient rights to a resource."),
+
+    COULD_NOT_OBTAIN_LOCK_ERROR(
+        "The action could not be completed because there was a problem when obtaining a lock on a record."),
+    DATABASE_CONFLICT_ERROR(
+        "The action could not be completed because there was a conflict in the database.");
 
     private final String detail;
 

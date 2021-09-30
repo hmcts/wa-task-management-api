@@ -5,25 +5,30 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.response.ConfigureTaskResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.configurators.TaskConfigurator;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
 
 class ConfigureTaskServiceTest {
@@ -33,27 +38,27 @@ class ConfigureTaskServiceTest {
     private TaskConfigurationCamundaService camundaService;
     private ConfigureTaskService configureTaskService;
     private TaskConfigurator taskVariableExtractor;
-    private TaskAutoAssignmentService service;
+    private TaskAutoAssignmentService autoAssignmentService;
+    private CFTTaskMapper cftTaskMapper;
 
     @BeforeEach
     void setup() {
         camundaService = mock(TaskConfigurationCamundaService.class);
         taskVariableExtractor = mock(TaskConfigurator.class);
-        service = mock(TaskAutoAssignmentService.class);
+        autoAssignmentService = mock(TaskAutoAssignmentService.class);
+        cftTaskMapper = mock(CFTTaskMapper.class);
         configureTaskService = new ConfigureTaskService(
             camundaService,
             Collections.singletonList(taskVariableExtractor),
-            service
+            autoAssignmentService,
+            cftTaskMapper
         );
 
         task = new TaskToConfigure(
             "taskId",
+            "taskTypeId",
             "caseId",
-            "taskName",
-            Map.of(
-                CASE_ID.value(), "caseId",
-                TASK_STATE.value(), "unconfigured"
-            )
+            "taskName"
         );
     }
 
@@ -69,7 +74,7 @@ class ConfigureTaskServiceTest {
         );
         when(camundaService.getTask(task.getId())).thenReturn(camundaTask);
 
-        HashMap<String, CamundaValue<Object>> processVariables = new HashMap<>();
+        HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
         processVariables.put(
             CASE_ID.value(),
             new CamundaValue<>(task.getCaseId(), "String")
@@ -78,22 +83,28 @@ class ConfigureTaskServiceTest {
             TASK_STATE.value(),
             new CamundaValue<>(UNCONFIGURED.value(), "String")
         );
+        processVariables.put(
+            TASK_ID.value(),
+            CamundaValue.stringValue("taskTypeId")
+        );
 
-        when(camundaService.getVariables(task.getId())).thenReturn(processVariables);
+        doReturn(processVariables).when(camundaService).getVariables(task.getId());
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put("key1", "value1");
         mappedValues.put("key2", "value2");
+        mappedValues.put(TASK_TYPE.value(), "taskTypeId");
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
         when(taskVariableExtractor.getConfigurationVariables(task))
-            .thenReturn(mappedValues);
+            .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(task.getId());
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("key1", CamundaValue.stringValue("value1"));
         modifications.put("key2", CamundaValue.stringValue("value2"));
+        modifications.put(TASK_TYPE.value(), CamundaValue.stringValue("taskTypeId"));
         modifications.put(TASK_STATE.value(), CamundaValue.stringValue(CONFIGURED.value()));
 
         verify(camundaService).addProcessVariables(
@@ -114,7 +125,7 @@ class ConfigureTaskServiceTest {
         );
         when(camundaService.getTask(task.getId())).thenReturn(camundaTask);
 
-        HashMap<String, CamundaValue<Object>> processVariables = new HashMap<>();
+        HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
         processVariables.put(
             CASE_ID.value(),
             new CamundaValue<>(task.getCaseId(), "String")
@@ -123,20 +134,25 @@ class ConfigureTaskServiceTest {
             TASK_STATE.value(),
             new CamundaValue<>(UNCONFIGURED.value(), "String")
         );
+        processVariables.put(
+            TASK_ID.value(),
+            CamundaValue.stringValue("taskTypeId")
+        );
 
-        when(camundaService.getVariables(task.getId()))
-            .thenReturn(processVariables);
+        doReturn(processVariables).when(camundaService).getVariables(task.getId());
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
+        mappedValues.put(TASK_TYPE.value(), "taskTypeId");
 
         when(taskVariableExtractor.getConfigurationVariables(task))
-            .thenReturn(mappedValues);
+            .thenReturn(new TaskConfigurationResults(mappedValues));
 
         configureTaskService.configureTask(task.getId());
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put(TASK_STATE.value(), CamundaValue.stringValue(CONFIGURED.value()));
+        modifications.put(TASK_TYPE.value(), CamundaValue.stringValue("taskTypeId"));
 
         verify(camundaService).addProcessVariables(
             task.getId(),
@@ -164,9 +180,17 @@ class ConfigureTaskServiceTest {
                 "assignee1"
             );
 
-        when(service
-                 .getAutoAssignmentVariables(task))
+        when(autoAssignmentService.getAutoAssignmentVariables(task))
             .thenReturn(autoAssignmentResult);
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put("key1", "value1");
+        mappedValues.put("key2", "value2");
+        mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
+
+        when(taskVariableExtractor.getConfigurationVariables(task))
+            .thenReturn(new TaskConfigurationResults(mappedValues));
+
 
         final ConfigureTaskResponse configureTaskResponse =
             configureTaskService.getConfiguration(task);
@@ -180,11 +204,19 @@ class ConfigureTaskServiceTest {
     @Test
     void should_get_configuration_with_no_assignee() {
 
-        final AutoAssignmentResult result = mock(AutoAssignmentResult.class);
+        final AutoAssignmentResult result = new AutoAssignmentResult(UNASSIGNED.value(), null);
 
-        when(service
-                 .getAutoAssignmentVariables(task))
+        when(autoAssignmentService.getAutoAssignmentVariables(task))
             .thenReturn(result);
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put("key1", "value1");
+        mappedValues.put("key2", "value2");
+        mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
+
+        when(taskVariableExtractor.getConfigurationVariables(task))
+            .thenReturn(new TaskConfigurationResults(mappedValues));
+
 
         final ConfigureTaskResponse configureTaskResponse =
             configureTaskService.getConfiguration(task);

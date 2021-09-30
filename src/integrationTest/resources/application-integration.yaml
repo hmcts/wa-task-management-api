@@ -2,8 +2,6 @@ spring:
   datasource:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
-    properties:
-      charSet: UTF-8
     hikari:
       minimum-idle: 5
   jpa:
@@ -15,6 +13,8 @@ spring:
       hibernate:
         default_schema: cft_task_db
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+        show_sql: true
+        format_sql: true
   flyway:
     enabled: true
     baselineOnMigrate: true
@@ -34,3 +34,15 @@ document_management:
 
 ccd_gateway:
   url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+logging:
+  level:
+    org.springframework:
+      dao: info
+      transaction: debug
+      jdbc.core.JdbcTemplate: info
+    org.hibernate:
+      SQL: info
+      type.descriptor.sql.BasicBinder: info
+      engine: info
+    uk.gov.hmcts.reform: debug

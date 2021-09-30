@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,6 +30,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
@@ -56,6 +59,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
+@Slf4j
 class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
@@ -87,6 +91,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @MockBean
+    private ConfigureTaskService configureTaskService;
+    @MockBean
+    private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private ServiceMocks mockServices;
 
@@ -106,7 +114,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            configureTaskService,
+            taskAutoAssignmentService
         );
 
         mockServices.mockServiceAPIs();
@@ -114,7 +124,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
             RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
             IDAM_USER_ID
-                       )
+            )
         ).thenReturn(true);
 
     }

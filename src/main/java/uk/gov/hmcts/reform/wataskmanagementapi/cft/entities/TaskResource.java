@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -24,6 +25,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
@@ -31,13 +33,17 @@ import javax.persistence.OneToOne;
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "tasks")
-@TypeDef(
-    name = "pgsql_enum",
-    typeClass = PostgreSQLEnumType.class
-)
-@TypeDef(
-    name = "jsonb",
-    typeClass = JsonType.class
+@TypeDefs(
+    {
+        @TypeDef(
+            name = "pgsql_enum",
+            typeClass = PostgreSQLEnumType.class
+        ),
+        @TypeDef(
+            name = "jsonb",
+            typeClass = JsonType.class
+        )
+    }
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
 public class TaskResource implements Serializable {
@@ -55,17 +61,19 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime dueDateTime;
 
-    @Column
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "task_state_enum")
     private CFTTaskState state;
 
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "task_system_enum")
     private TaskSystem taskSystem;
 
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "security_classification_enum")
     private SecurityClassification securityClassification;
 
     private String title;
@@ -80,7 +88,7 @@ public class TaskResource implements Serializable {
     private String assignee;
     private Boolean autoAssigned = false;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
     private WorkTypeResource workTypeResource;
     private String roleCategory;
@@ -92,6 +100,7 @@ public class TaskResource implements Serializable {
     private String caseId;
     private String caseTypeId;
     private String caseName;
+    private String caseCategory;
     private String jurisdiction;
     private String region;
     private String regionName;
@@ -100,6 +109,7 @@ public class TaskResource implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "business_context_enum")
     private BusinessContext businessContext;
 
     private String terminationReason;
@@ -107,12 +117,12 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskResource", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
 
     protected TaskResource() {
@@ -127,6 +137,33 @@ public class TaskResource implements Serializable {
         this.taskName = taskName;
         this.taskType = taskType;
         this.state = state;
+    }
+
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        String caseId) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
+    }
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        String caseId,
+                        Set<TaskRoleResource> taskRoleResources) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
+        this.taskRoleResources = taskRoleResources;
     }
 
     @SuppressWarnings("squid:S00107")
@@ -160,8 +197,8 @@ public class TaskResource implements Serializable {
                         BusinessContext businessContext,
                         String terminationReason,
                         OffsetDateTime created,
-                        Set<TaskRoleResource> taskRoleResources) {
-
+                        Set<TaskRoleResource> taskRoleResources,
+                        String caseCategory) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -193,6 +230,7 @@ public class TaskResource implements Serializable {
         this.terminationReason = terminationReason;
         this.created = created;
         this.taskRoleResources = taskRoleResources;
+        this.caseCategory = caseCategory;
     }
 
     public void setTaskId(String taskId) {
@@ -319,4 +357,7 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
     }
 
+    public void setCaseCategory(String caseCategory) {
+        this.caseCategory = caseCategory;
+    }
 }
