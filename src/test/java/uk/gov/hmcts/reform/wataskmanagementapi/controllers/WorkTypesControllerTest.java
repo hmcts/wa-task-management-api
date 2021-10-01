@@ -70,7 +70,7 @@ class WorkTypesControllerTest {
         when(cftWorkTypeDatabaseService.getAllWorkTypes()).thenReturn(workTypes);
 
         ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
-            IDAM_AUTH_TOKEN, Optional.of(Boolean.FALSE)
+            IDAM_AUTH_TOKEN, false
         );
 
         assertNotNull(response);
@@ -118,7 +118,7 @@ class WorkTypesControllerTest {
             .thenReturn(Optional.of(workType));
 
         ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
-            IDAM_AUTH_TOKEN, Optional.of(Boolean.TRUE)
+            IDAM_AUTH_TOKEN, true
         );
 
         assertNotNull(response);
@@ -173,7 +173,7 @@ class WorkTypesControllerTest {
             .thenReturn(Optional.of(workType2));
 
         ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
-            IDAM_AUTH_TOKEN, Optional.of(Boolean.TRUE)
+            IDAM_AUTH_TOKEN, true
         );
 
         assertNotNull(response);
@@ -214,7 +214,7 @@ class WorkTypesControllerTest {
             .thenReturn(accessControlResponse);
 
         ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
-            IDAM_AUTH_TOKEN, Optional.of(Boolean.TRUE)
+            IDAM_AUTH_TOKEN, true
         );
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -230,7 +230,7 @@ class WorkTypesControllerTest {
             .thenReturn(mockedAccessControlResponse);
 
         ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
-            IDAM_AUTH_TOKEN, Optional.of(Boolean.TRUE)
+            IDAM_AUTH_TOKEN, true
         );
 
         assertNotNull(response);

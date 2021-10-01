@@ -56,11 +56,11 @@ public class WorkTypesController extends BaseController {
     public ResponseEntity<GetWorkTypesResponse<WorkType>> getWorkTypes(
         @RequestHeader(AUTHORIZATION) String authToken,
         @RequestParam(
-            required = false, name = "filter-by-user", defaultValue = "false") Optional<Boolean> filterByUser
+            required = false, name = "filter-by-user", defaultValue = "false") boolean filterByUser
     ) {
 
         List<WorkType> workTypes = new ArrayList<>();
-        if (filterByUser.get()) {
+        if (filterByUser) {
             AccessControlResponse roles = accessControlService.getRoles(authToken);
             if (!roles.getRoleAssignments().isEmpty()) {
                 Set<String> roleWorkTypes = getActorWorkTypes(roles);
