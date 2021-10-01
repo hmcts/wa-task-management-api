@@ -5,7 +5,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValue
 import java.time.ZonedDateTime;
 
 public class TaskWithWorkType extends uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task {
-    private WorkType workType;
+    private String workType;
 
     public TaskWithWorkType(String id, String name, String type, String taskState,
                             String taskSystem, String securityClassification, String taskTitle,
@@ -14,7 +14,7 @@ public class TaskWithWorkType extends uk.gov.hmcts.reform.wataskmanagementapi.do
                             String region, String location, String locationName,
                             String caseTypeId, String caseId, String caseCategory,
                             String caseName, Boolean hasWarnings, WarningValues warningList,
-                            String caseManagementCategory, WorkType workType) {
+                            String caseManagementCategory, String workType) {
         super(id, name, type, taskState, taskSystem, securityClassification,
             taskTitle, createdDate, dueDate, assignee, autoAssigned,
             executionType, jurisdiction, region, location, locationName,

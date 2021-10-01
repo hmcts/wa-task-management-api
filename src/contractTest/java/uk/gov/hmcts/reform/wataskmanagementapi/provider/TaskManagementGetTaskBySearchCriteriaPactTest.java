@@ -5,8 +5,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
-import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,11 +19,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.model.TaskWithWorkType;
-import uk.gov.hmcts.reform.wataskmanagementapi.provider.model.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -42,14 +39,14 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
-@PactBroker(
+/*@PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
     port = "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
-)
-//@PactFolder("pacts")
+)*/
+@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
@@ -120,8 +117,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         setInitMockForSearchTaskWithWorkTypeWithWarningsOnly();
     }
 
-    public Task createTaskWithNoWarnings() {
-        return new Task(
+    public TaskWithWorkType createTaskWithNoWarnings() {
+        return new TaskWithWorkType(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
             "reviewTheAppeal",
@@ -144,7 +141,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "Bob Smith",
             false,
             new WarningValues(emptyList()),
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "routine work"
         );
     }
 
@@ -173,16 +171,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             false,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            new WorkType("hearing_work", "Hearing work")
+            "routine work"
         );
     }
 
-    public Task createTaskWithWarnings() {
+    public TaskWithWorkType createTaskWithWarnings() {
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
 
-        return new Task(
+        return new TaskWithWorkType(
             "fda422de-b381-43ff-94ea-eea5790188a3",
             "Review the appeal",
             "reviewTheAppeal",
@@ -205,7 +203,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "John Doe",
             true,
             new WarningValues(warnings),
-            "Some Case Management Category");
+            "Some Case Management Category",
+            "routine work"
+        );
     }
 
     public TaskWithWorkType createTaskWithWorkTypeWithWarnings() {
@@ -237,7 +237,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             true,
             new WarningValues(warnings),
             "Some Case Management Category",
-            new WorkType("upper_tribunal", "Upper Tribunal")
+            "routine work"
         );
     }
 

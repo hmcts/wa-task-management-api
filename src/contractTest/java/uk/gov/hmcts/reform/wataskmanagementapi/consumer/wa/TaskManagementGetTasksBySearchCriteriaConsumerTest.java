@@ -170,6 +170,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("security_classification", "PUBLIC")
                         .stringType("task_title", "Review the appeal")
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("work_type", "routine work")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
                         .booleanType("auto_assigned", true)
@@ -210,8 +211,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_type_id", "Asylum")
                         .stringType("case_id", "1617708245335311")
                         .stringType("case_category", "refusalOfHumanRights")
+                        .stringType("work_type", "routine work")
                         .stringType("case_name", "Bob Smith")
-                        .stringType("work_type", "routine-work")
                         .booleanType("warnings", false)
                 )).build();
     }
@@ -229,6 +230,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("security_classification", "PUBLIC")
                         .stringType("task_title", "Review the appeal")
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("work_type", "routine work")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .booleanType("auto_assigned", true)
                         .stringType("execution_type", "Case Management Task")
@@ -263,6 +265,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("security_classification", "PUBLIC")
                         .stringType("task_title", "Review the appeal")
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .stringType("work_type", "routine work")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .booleanType("auto_assigned", true)
                         .stringType("execution_type", "Case Management Task")
@@ -274,7 +277,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_id", "1617708245308495")
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
-                        .stringType("work_type", "routine-work")
                         .booleanType("warnings", true)
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
