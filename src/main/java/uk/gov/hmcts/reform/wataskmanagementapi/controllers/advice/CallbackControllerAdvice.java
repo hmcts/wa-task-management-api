@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.NotImplementedException;
+import org.hibernate.exception.JDBCConnectionException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -76,7 +77,8 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         return getErrorMessageResponseEntity(ex, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler({NullPointerException.class, ServerErrorException.class, RequireDbLockException.class})
+    @ExceptionHandler({NullPointerException.class, ServerErrorException.class, RequireDbLockException.class,
+        JDBCConnectionException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
     }
