@@ -42,5 +42,6 @@ public class IdamServiceUserIdCacheTest {
 
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken1);
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken2);
+
     }
 }

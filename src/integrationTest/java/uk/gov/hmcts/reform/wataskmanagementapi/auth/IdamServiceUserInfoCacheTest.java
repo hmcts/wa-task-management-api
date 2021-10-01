@@ -40,6 +40,11 @@ public class IdamServiceUserInfoCacheTest {
         idamService.getUserInfo(bearerAccessToken2);
         idamService.getUserInfo(bearerAccessToken2);
 
+        idamService.getUserInfo(bearerAccessToken1);
+        idamService.getUserInfo(bearerAccessToken1);
+        idamService.getUserInfo(bearerAccessToken2);
+        idamService.getUserInfo(bearerAccessToken2);
+
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken1);
         verify(idamWebApi, times(1)).userInfo(bearerAccessToken2);
     }
