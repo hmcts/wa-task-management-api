@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entitie
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 

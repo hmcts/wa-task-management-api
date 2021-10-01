@@ -2,14 +2,14 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.confi
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
 
 import java.util.Map;
 
-import static java.util.Collections.emptyMap;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsSame.sameInstance;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -33,9 +33,9 @@ class CaseRelatedVariablesConfiguratorTest {
 
         TaskToConfigure testTaskToConfigure = new TaskToConfigure(
             "taskId",
+            "taskType",
             null,
-            "taskName",
-            emptyMap()
+            "taskName"
         );
 
         assertThrows(NullPointerException.class, () -> {
@@ -49,22 +49,23 @@ class CaseRelatedVariablesConfiguratorTest {
 
         TaskToConfigure testTaskToConfigure = new TaskToConfigure(
             "taskId",
+            "taskType",
             caseId,
-            "taskName",
-            emptyMap()
+            "taskName"
         );
 
         Map<String, Object> expectedValues = Map.of(
             SECURITY_CLASSIFICATION.value(), "PUBLIC",
             JURISDICTION.value(), "IA",
-            CASE_TYPE_ID.value(), "Asylum");
+            CASE_TYPE_ID.value(), "Asylum"
+        );
 
         when(caseConfigurationProviderService.getCaseRelatedConfiguration(caseId))
-            .thenReturn(expectedValues);
+            .thenReturn(new TaskConfigurationResults(expectedValues));
 
-        Map<String, Object> values = caseRelatedVariablesConfigurator
+        TaskConfigurationResults actual = caseRelatedVariablesConfigurator
             .getConfigurationVariables(testTaskToConfigure);
 
-        assertThat(values, sameInstance(expectedValues));
+        assertThat(actual.getProcessVariables(), is(expectedValues));
     }
 }

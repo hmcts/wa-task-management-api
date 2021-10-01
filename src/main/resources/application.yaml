@@ -125,3 +125,4 @@ logging:
 
 logbook:
   include: /task/**
+

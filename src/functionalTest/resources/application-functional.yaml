@@ -15,3 +15,18 @@ idam:
   test:
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
     password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
+
+#Point to in memory database which enables spring context to start and run ft tests against TEST_URL
+spring.flyway.enabled: false
+
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:wa_workflow_api
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+      default_schema: cft_task_db

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda;
+package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
@@ -12,6 +12,7 @@ public class DecisionTableRequest {
     private CamundaValue<String> caseData;
 
     private DecisionTableRequest() {
+        //No-op constructor for deserialization
     }
 
     public DecisionTableRequest(CamundaValue<String> caseData) {

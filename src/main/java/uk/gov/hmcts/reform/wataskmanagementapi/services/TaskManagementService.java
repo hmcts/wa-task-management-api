@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -23,11 +24,19 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksComp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +56,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "PMD.LawOfDemeter"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
 
@@ -57,6 +66,9 @@ public class TaskManagementService {
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final ConfigureTaskService configureTaskService;
+    private final TaskAutoAssignmentService taskAutoAssignmentService;
+
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
@@ -64,13 +76,18 @@ public class TaskManagementService {
                                  PermissionEvaluatorService permissionEvaluatorService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
-                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider) {
+                                 LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                 ConfigureTaskService configureTaskService,
+                                 TaskAutoAssignmentService taskAutoAssignmentService
+    ) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.configureTaskService = configureTaskService;
+        this.taskAutoAssignmentService = taskAutoAssignmentService;
     }
 
     /**
@@ -363,8 +380,8 @@ public class TaskManagementService {
         //4. Extract if a task is assigned and assignee is idam userId
         String idamUserId = accessControlResponse.getUserInfo().getUid();
 
-        final List<CamundaTask> tasksAssignedToUser = searchResults.stream().filter(
-            task -> idamUserId.equals(task.getAssignee()))
+        final List<CamundaTask> tasksAssignedToUser = searchResults.stream()
+            .filter(task -> idamUserId.equals(task.getAssignee()))
             .collect(Collectors.toList());
 
         if (!tasksAssignedToUser.isEmpty()) {
@@ -440,16 +457,67 @@ public class TaskManagementService {
 
     /**
      * Exclusive client access only.
-     * This method initiates a task and orchestrates the logic between CFT Task db and camunda.
+     * This method initiates a task and orchestrates the logic between CFT Task db, camunda and role assignment.
      *
      * @param taskId              the task id.
      * @param initiateTaskRequest Additional data to define how a task should be initiated.
      * @return The updated entity {@link TaskResource}
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        TaskResource mappedTask = cftTaskMapper.mapToTaskObject(taskId, initiateTaskRequest.getTaskAttributes());
-        return cftTaskDatabaseService.saveTask(mappedTask);
+        lockTaskId(taskId);
+        return initiateTaskProcess(taskId, initiateTaskRequest);
+    }
+
+    @SuppressWarnings("PMD.PreserveStackTrace")
+    private TaskResource initiateTaskProcess(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        try {
+            TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
+            taskResource = configureTask(taskResource);
+            taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            updateCftTaskState(taskResource.getTaskId(), taskResource);
+            return cftTaskDatabaseService.saveTask(taskResource);
+        } catch (Exception e) {
+            throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
+        }
+    }
+
+    @SuppressWarnings("PMD.PreserveStackTrace")
+    private void lockTaskId(String taskId) {
+        try {
+            cftTaskDatabaseService.insertAndLock(taskId);
+        } catch (DataAccessException | SQLException e) {
+            throw new DatabaseConflictException(ErrorMessages.DATABASE_CONFLICT_ERROR);
+        }
+    }
+
+    private void updateCftTaskState(String taskId, TaskResource taskResource) {
+        if (CFTTaskState.ASSIGNED.equals(taskResource.getState())) {
+            camundaService.updateCftTaskState(taskId, TaskState.ASSIGNED);
+        } else if (CFTTaskState.UNASSIGNED.equals(taskResource.getState())) {
+            camundaService.updateCftTaskState(taskId, TaskState.UNASSIGNED);
+        }
+    }
+
+    private TaskResource configureTask(TaskResource taskSkeleton) {
+        TaskToConfigure taskToConfigure = new TaskToConfigure(
+            taskSkeleton.getTaskId(),
+            taskSkeleton.getTaskType(),
+            taskSkeleton.getCaseId(),
+            taskSkeleton.getTaskName()
+        );
+
+        return configureTaskService.configureCFTTask(
+            taskSkeleton,
+            taskToConfigure
+        );
+    }
+
+    private TaskResource createTaskSkeleton(String taskId, InitiateTaskRequest initiateTaskRequest) {
+        return cftTaskMapper.mapToTaskResource(
+            taskId,
+            initiateTaskRequest.getTaskAttributes()
+        );
     }
 
     @Transactional

@@ -5,10 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.time.OffsetDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -21,8 +19,6 @@ public class NoteResource implements Serializable {
     private String code;
     private String noteType;
     private String userId;
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private OffsetDateTime noteCreationDateTime;
     private String content;
 
     private NoteResource() {
@@ -30,12 +26,10 @@ public class NoteResource implements Serializable {
     }
 
     @JsonCreator
-    public NoteResource(String code, String noteType, String userId,
-                        OffsetDateTime noteCreationDateTime, String content) {
+    public NoteResource(String code, String noteType, String userId, String content) {
         this.code = code;
         this.noteType = noteType;
         this.userId = userId;
-        this.noteCreationDateTime = noteCreationDateTime;
         this.content = content;
     }
 }

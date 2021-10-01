@@ -125,7 +125,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             "taskType",
             UNCONFIGURED
         );
-        taskResourceRepository.saveAndFlush(taskResource);
+        taskResourceRepository.save(taskResource);
     }
 
     @Nested
