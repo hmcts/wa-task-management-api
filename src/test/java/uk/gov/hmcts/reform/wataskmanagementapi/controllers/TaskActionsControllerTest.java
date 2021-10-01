@@ -274,7 +274,7 @@ class TaskActionsControllerTest {
     }
 
     @Test
-    void should_return_403_when_task_updated_with_notes() {
+    void should_return_403_when_task_updated_with_notes_and_with_insufficient_permission() {
         NotesRequest notesRequest = new NotesRequest(List.of());
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);

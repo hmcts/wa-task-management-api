@@ -527,6 +527,7 @@ public class TaskManagementService {
         final List<NoteResource> noteResources = notesRequest.getNoteResource();
 
         noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+        taskResource.setHasWarnings(true);
 
         return cftTaskDatabaseService.saveTask(taskResource);
     }

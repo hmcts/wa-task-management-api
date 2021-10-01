@@ -229,7 +229,6 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(code = 204, message = "Updated Task with notes", response = Object.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
