@@ -31,6 +31,6 @@ class CFTTaskStateTest {
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = CFTTaskState.values().length;
-        assertEquals(8, assigneeEnumLength);
+        assertEquals(9, assigneeEnumLength);
     }
 }

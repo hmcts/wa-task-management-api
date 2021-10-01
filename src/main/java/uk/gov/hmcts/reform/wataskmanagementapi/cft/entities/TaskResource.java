@@ -25,6 +25,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
@@ -86,7 +87,10 @@ public class TaskResource implements Serializable {
     private Integer minorPriority;
     private String assignee;
     private Boolean autoAssigned = false;
-    private String workType;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
+    private WorkTypeResource workTypeResource;
     private String roleCategory;
     private Boolean hasWarnings = false;
 
@@ -96,6 +100,7 @@ public class TaskResource implements Serializable {
     private String caseId;
     private String caseTypeId;
     private String caseName;
+    private String caseCategory;
     private String jurisdiction;
     private String region;
     private String regionName;
@@ -112,12 +117,12 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "executionTypeCode", referencedColumnName = "execution_code")
     private ExecutionTypeResource executionTypeCode;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskResource", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
 
     protected TaskResource() {
@@ -132,6 +137,33 @@ public class TaskResource implements Serializable {
         this.taskName = taskName;
         this.taskType = taskType;
         this.state = state;
+    }
+
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        String caseId) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
+    }
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        String caseId,
+                        Set<TaskRoleResource> taskRoleResources) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
+        this.taskRoleResources = taskRoleResources;
     }
 
     @SuppressWarnings("squid:S00107")
@@ -150,7 +182,7 @@ public class TaskResource implements Serializable {
                         String assignee,
                         boolean autoAssigned,
                         ExecutionTypeResource executionTypeCode,
-                        String workType,
+                        WorkTypeResource workTypeResource,
                         String roleCategory,
                         boolean hasWarnings,
                         OffsetDateTime assignmentExpiry,
@@ -165,8 +197,8 @@ public class TaskResource implements Serializable {
                         BusinessContext businessContext,
                         String terminationReason,
                         OffsetDateTime created,
-                        Set<TaskRoleResource> taskRoleResources) {
-
+                        Set<TaskRoleResource> taskRoleResources,
+                        String caseCategory) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -182,7 +214,7 @@ public class TaskResource implements Serializable {
         this.assignee = assignee;
         this.autoAssigned = autoAssigned;
         this.executionTypeCode = executionTypeCode;
-        this.workType = workType;
+        this.workTypeResource = workTypeResource;
         this.roleCategory = roleCategory;
         this.hasWarnings = hasWarnings;
         this.assignmentExpiry = assignmentExpiry;
@@ -198,6 +230,7 @@ public class TaskResource implements Serializable {
         this.terminationReason = terminationReason;
         this.created = created;
         this.taskRoleResources = taskRoleResources;
+        this.caseCategory = caseCategory;
     }
 
     public void setTaskId(String taskId) {
@@ -256,8 +289,8 @@ public class TaskResource implements Serializable {
         this.autoAssigned = autoAssigned;
     }
 
-    public void setWorkType(String workType) {
-        this.workType = workType;
+    public void setWorkTypeResource(WorkTypeResource workTypeResource) {
+        this.workTypeResource = workTypeResource;
     }
 
     public void setRoleCategory(String roleCategory) {
@@ -324,4 +357,7 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
     }
 
+    public void setCaseCategory(String caseCategory) {
+        this.caseCategory = caseCategory;
+    }
 }

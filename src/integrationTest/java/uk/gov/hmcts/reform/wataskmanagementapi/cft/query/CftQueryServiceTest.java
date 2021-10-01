@@ -9,8 +9,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
-import uk.gov.hmcts.reform.wataskmanagementapi.CftRepositoryBaseTest;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -29,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +46,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 
+@ActiveProfiles("integration")
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Testcontainers
 @Sql("/scripts/data.sql")
-public class CftQueryServiceTest extends CftRepositoryBaseTest {
+public class CftQueryServiceTest {
 
     private List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
@@ -94,7 +102,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
     @ParameterizedTest
     @MethodSource({
         "grantTypeBasicErrorScenario",
-        "grantTypeBasicSpecificErrorScenario",
+        "grantTypeSpecificErrorScenario",
         "grantTypeStandardErrorScenario",
         "grantTypeChallengedErrorScenario",
         "grantTypeWithStandardAndExcludedErrorScenario",
@@ -346,7 +354,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         );
     }
 
-    private static Stream<TaskQueryScenario> grantTypeBasicSpecificErrorScenario() {
+    private static Stream<TaskQueryScenario> grantTypeSpecificErrorScenario() {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
@@ -1179,7 +1187,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .attributes(tcAttributes)
-            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1192,7 +1200,7 @@ public class CftQueryServiceTest extends CftRepositoryBaseTest {
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .attributes(stcAttributes)
-            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

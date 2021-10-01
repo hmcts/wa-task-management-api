@@ -8,3 +8,15 @@ feign:
         connectTimeout: 30000
         readTimeout: 30000
         loggerLevel: full
+
+logging:
+  level:
+    org.springframework:
+      dao: debug
+      transaction: debug
+      jdbc.core.JdbcTemplate: info
+    org.hibernate:
+      SQL: debug
+      type.descriptor.sql.BasicBinder: debug
+      engine: debug
+    uk.gov.hmcts.reform: debug

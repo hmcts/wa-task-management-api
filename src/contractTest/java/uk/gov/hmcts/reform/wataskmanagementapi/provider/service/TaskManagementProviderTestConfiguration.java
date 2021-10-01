@@ -22,6 +22,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -46,6 +48,10 @@ public class TaskManagementProviderTestConfiguration {
     private RoleAssignmentService roleAssignmentService;
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @MockBean
+    private ConfigureTaskService configureTaskService;
+    @MockBean
+    private TaskAutoAssignmentService taskAutoAssignmentService;
 
     @Bean
     @Primary
@@ -62,8 +68,10 @@ public class TaskManagementProviderTestConfiguration {
             permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
-            launchDarklyFeatureFlagProvider
-        );
+            launchDarklyFeatureFlagProvider,
+            configureTaskService,
+            taskAutoAssignmentService
+            );
     }
 
     @Bean
