@@ -173,11 +173,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     stringValue("Read,Refer,Own,Manage,Cancel"),
                     stringValue("IA,WA"),
                     null,
+                    null,
                     null
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
                     stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
                     null,
                     null,
                     null
