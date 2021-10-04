@@ -31,8 +31,12 @@ import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
@@ -77,9 +81,13 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
         ).andExpect(
             ResultMatcher.matchAll(
-                status().is5xxServerError()
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                status().isServiceUnavailable(),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
+                jsonPath("$.title").value("Service Unavailable"),
+                jsonPath("$.status").value(SERVICE_UNAVAILABLE.getStatusCode()),
+                jsonPath("$.detail").value("Database is unavailable.")
             ));
-
     }
 
     @Test
@@ -117,9 +125,13 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
         ).andExpect(
             ResultMatcher.matchAll(
-                status().is5xxServerError()
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                status().isServiceUnavailable(),
+                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
+                jsonPath("$.title").value("Service Unavailable"),
+                jsonPath("$.status").value(SERVICE_UNAVAILABLE.getStatusCode()),
+                jsonPath("$.detail").value("Database is unavailable.")
             ));
-
     }
 }
 
