@@ -35,6 +35,7 @@ public interface RoleAssignmentServiceApi {
                                            @RequestHeader(AUTHORIZATION) String userToken,
                                            @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken);
 
+
     @DeleteMapping(
         value = "/am/role-assignments/{role-assignment-id}",
         consumes = MediaType.APPLICATION_JSON_VALUE
