@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
+import java.sql.SQLException;
 import java.util.Optional;
 
 @Slf4j
@@ -20,11 +21,11 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findById(taskId);
     }
 
-    public Optional<TaskResource> findByIdOnly(String taskId) {
-        return tasksRepository.getByTaskId(taskId);
-    }
-
     public TaskResource saveTask(TaskResource task) {
         return tasksRepository.save(task);
+    }
+
+    public void insertAndLock(String taskId) throws SQLException {
+        tasksRepository.insertAndLock(taskId);
     }
 }

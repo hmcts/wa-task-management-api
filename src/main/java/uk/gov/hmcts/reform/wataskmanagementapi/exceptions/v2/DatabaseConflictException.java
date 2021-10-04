@@ -5,7 +5,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 
 import java.net.URI;
 
-import static org.zalando.problem.Status.CONFLICT;
+import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 
 @SuppressWarnings("java:S110")
 public class DatabaseConflictException extends AbstractThrowableProblem {
@@ -16,6 +16,6 @@ public class DatabaseConflictException extends AbstractThrowableProblem {
     private static final String TITLE = "Database Conflict Error";
 
     public DatabaseConflictException(ErrorMessages message) {
-        super(TYPE, TITLE, CONFLICT, message.getDetail());
+        super(TYPE, TITLE, SERVICE_UNAVAILABLE, message.getDetail());
     }
 }

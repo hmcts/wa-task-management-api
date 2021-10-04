@@ -4,6 +4,22 @@ spring:
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     hikari:
       minimum-idle: 5
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+    properties:
+      hibernate:
+        default_schema: cft_task_db
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+        show_sql: true
+        format_sql: true
+  flyway:
+    enabled: true
+    baselineOnMigrate: true
+    defaultSchema: cft_task_db
+    schemas: cft_task_db
 
 idam:
   test:
@@ -22,12 +38,11 @@ ccd_gateway:
 logging:
   level:
     org.springframework:
-      dao: info
+      dao: debug
       transaction: debug
       jdbc.core.JdbcTemplate: info
     org.hibernate:
-      SQL: info
-      type.descriptor.sql.BasicBinder: info
-      engine: info
+      SQL: debug
+      type.descriptor.sql.BasicBinder: debug
+      engine: debug
     uk.gov.hmcts.reform: debug
-

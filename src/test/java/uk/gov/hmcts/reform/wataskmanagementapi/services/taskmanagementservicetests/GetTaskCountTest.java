@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -48,6 +49,8 @@ class GetTaskCountTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
+    @Mock
+    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     TaskManagementService taskManagementService;
     String taskId;
 
@@ -85,7 +88,8 @@ class GetTaskCountTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
+            taskAutoAssignmentService,
+            cftWorkTypeDatabaseService
         );
 
         taskId = UUID.randomUUID().toString();
