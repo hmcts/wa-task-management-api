@@ -114,7 +114,7 @@ public class TaskRoleResource implements Serializable {
                             Boolean manage,
                             Boolean cancel,
                             Boolean refer,
-                            List<String> authorizations,
+                            String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
                             String roleCategory) {
