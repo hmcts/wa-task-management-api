@@ -67,6 +67,21 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_all_work_types_when_filter_is_not_provided() throws Exception {
+        mockMvc.perform(
+            get(ENDPOINT_PATH)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isOk(),
+                jsonPath("$.work_types").isNotEmpty(),
+                jsonPath("$.work_types.length()").value(8)
+            ));
+    }
+
+    @Test
     void should_return_200_and_valid_work_type_list_when_user_has_work_types() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
@@ -93,17 +108,17 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(accessControlService.getRoles(any()))
             .thenReturn(accessControlResponse);
 
-        MvcResult postResponse = mockMvc.perform(
+        MvcResult getResponse = mockMvc.perform(
             get(ENDPOINT_PATH + "?filter-by-user=true").header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
         ).andReturn();
 
         var expectedResponse = "{\"work_types\":[{\"id\":\"upper_tribunal\",\"label\":\"Upper Tribunal\"},"
                                + "{\"id\":\"hearing_work\",\"label\":\"Hearing work\"}]}";
-        assertEquals(expectedResponse, postResponse.getResponse().getContentAsString());
+        assertEquals(expectedResponse, getResponse.getResponse().getContentAsString());
     }
 
     @Test
-    void should_return_200_and_empty_list_when_work_types_are_given() throws Exception {
+    void should_return_200_and_empty_list_when_user_has_no_work_types() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
@@ -162,8 +177,6 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                 );
                 allTestRoles.add(roleAssignment);
             }));
-        final UserInfo userInfo = UserInfo.builder().uid(ServiceMocks.IDAM_USER_ID).build();
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
 
         when(accessControlService.getRoles(any()))
             .thenThrow(UnAuthorizedException.class);

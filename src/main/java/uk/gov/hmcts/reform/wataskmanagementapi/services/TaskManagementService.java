@@ -76,8 +76,7 @@ public class TaskManagementService {
                                  CFTTaskMapper cftTaskMapper,
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
-                                 TaskAutoAssignmentService taskAutoAssignmentService
-    ) {
+                                 TaskAutoAssignmentService taskAutoAssignmentService) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;

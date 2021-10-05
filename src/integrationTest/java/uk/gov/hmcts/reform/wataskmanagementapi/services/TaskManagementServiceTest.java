@@ -74,8 +74,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private PermissionEvaluatorService permissionEvaluatorService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Autowired
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @MockBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired

@@ -13,4 +13,5 @@ public interface WorkTypeResourceRepository extends CrudRepository<WorkTypeResou
 
     @Override
     List<WorkTypeResource> findAll();
+
 }

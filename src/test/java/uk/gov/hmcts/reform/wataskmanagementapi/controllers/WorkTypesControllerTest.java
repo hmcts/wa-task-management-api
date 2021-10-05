@@ -191,7 +191,7 @@ class WorkTypesControllerTest {
     }
 
     @Test
-    void should_return_empty_list_when_user_does_not_have_work_types() {
+    void should_return_empty_list_when_user_work_types_is_empty() {
         UserInfo userInfo = new UserInfo("", "",
                                          new ArrayList<>(Arrays.asList("Role1","Role2")),
                                          "",
@@ -206,7 +206,42 @@ class WorkTypesControllerTest {
                                                            GrantType.BASIC,
                                                            RoleCategory.JUDICIAL,
                                                            false,
-                                                           new HashMap<>());
+            Map.of("workTypes",""));
+        List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
+
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(accessControlResponse);
+
+        ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
+            IDAM_AUTH_TOKEN, true
+        );
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().getWorkTypes());
+        assertEquals(emptyList(), response.getBody().getWorkTypes());
+        verify(cftWorkTypeDatabaseService, times(0)).getWorkType(anyString());
+    }
+
+    @Test
+    void should_return_empty_list_when_user_work_types_is_null() {
+        UserInfo userInfo = new UserInfo("", "",
+            new ArrayList<>(Arrays.asList("Role1","Role2")),
+            "",
+            "",
+            "");
+
+        Map<String, String> workTypesMap = new HashMap<>();
+        workTypesMap.put("workTypes", null);
+        RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
+            "1258555",
+            RoleType.CASE,
+            "Judge",
+            Classification.PUBLIC,
+            GrantType.BASIC,
+            RoleCategory.JUDICIAL,
+            false,
+            workTypesMap);
         List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
         AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
 

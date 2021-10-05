@@ -45,8 +45,6 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
-    @MockBean
     private IdamService idamService;
     @MockBean
     private RoleAssignmentService roleAssignmentService;
@@ -76,7 +74,7 @@ public class TaskManagementProviderTestConfiguration {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService
-            );
+        );
     }
 
     @Bean
