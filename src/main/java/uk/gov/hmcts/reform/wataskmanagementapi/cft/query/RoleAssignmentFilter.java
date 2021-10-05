@@ -130,7 +130,7 @@ public final class RoleAssignmentFilter {
         if (CHALLENGED.equals(roleAssignment.getGrantType())) {
             authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
         } else {
-            authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).isNull();
+            authorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
         }
         Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
         Predicate region = searchByRegion(root, builder, roleAssignment);
@@ -140,6 +140,16 @@ public final class RoleAssignmentFilter {
 
         return builder.and(securityClassification, authorizations, jurisdiction,
             location, region, caseTypeId, caseId);
+    }
+
+    private static Predicate getEmptyOrNullAuthorizationsPredicate(
+        Join<TaskResource, TaskRoleResource> taskRoleResources, CriteriaBuilder builder
+    ) {
+        Predicate nullAuthorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).isNull();
+        Predicate emptyAuthorizations = builder.equal(
+            taskRoleResources.get(AUTHORIZATIONS_COLUMN), new String[]{}
+        );
+        return builder.or(nullAuthorizations, emptyAuthorizations);
     }
 
     private static Predicate mapSecurityClassification(
@@ -163,19 +173,21 @@ public final class RoleAssignmentFilter {
                     SecurityClassification.PUBLIC
                 )
             );
-        } else {
+        } else if (classification.equals(Classification.PUBLIC)) {
             return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
                 List.of(
                     SecurityClassification.PUBLIC
                 )
             );
+        } else {
+            return builder.conjunction();
         }
     }
 
     private static Predicate mapAuthorizations(Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                CriteriaBuilder builder,
                                                RoleAssignment roleAssignment) {
-        Predicate nullAuthorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).isNull();
+        Predicate nullAuthorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
         if (roleAssignment.getAuthorisations() != null) {
             Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
                 (Object) roleAssignment.getAuthorisations().toArray()

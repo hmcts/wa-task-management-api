@@ -130,7 +130,7 @@ public class RestApiActions {
 
     public void updateFeatureFlag(String featureFlag, boolean featureToggled) {
 
-        String accessToken = System.getenv("launch_darkly.accessToken");
+        String accessToken = System.getenv("LAUNCH_DARKLY_ACCESS_TOKEN");
 
         final Response response = given()
             .log()
@@ -253,7 +253,11 @@ public class RestApiActions {
 
     private String jsonBodyWithFeatureToggled(boolean featureToggled) {
         return "["
-               + " { \"op\": \"replace\", \"path\": \"/environments/test/on\", \"value\": " + featureToggled + "}\n"
+               +    " { "
+               +        "\"op\": \"replace\", "
+               +        "\"path\": \"/environments/test/on\", "
+               +        "\"value\": " + featureToggled
+               +    "}\n"
                + "]";
     }
 

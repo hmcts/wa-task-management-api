@@ -9,6 +9,8 @@
       "roleCategory": "LEGAL_OPERATIONS",
       "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "ORGANISATION",
+      "beginTime": "2020-01-01T00:00Z",
+      "endTime": "2030-01-01T00:00Z",
       "attributes": "{ATTRIBUTES_PLACEHOLDER}"
     }
   ],
