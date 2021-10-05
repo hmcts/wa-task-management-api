@@ -141,6 +141,7 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
+                .log().all(true)
                 .post(path, resourceId);
         } else {
             log.info("Calling POST {}", path);

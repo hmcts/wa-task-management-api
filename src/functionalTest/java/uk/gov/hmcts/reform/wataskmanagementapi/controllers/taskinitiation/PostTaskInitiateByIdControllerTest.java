@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -10,10 +10,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
@@ -80,35 +80,28 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("location_name", equalTo("Taylor House"))
             .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body("execution_type_code.description",
+            .body(
+                "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"))
+                        + "(Typically this will be in CCD.)")
+            )
             .body("task_role_resources[0].task_role_id", notNullValue())
-            .body("task_role_resources[0].role_name", equalTo("senior-tribunal-caseworker"))
+            .body("task_role_resources[0].role_name", equalTo("task-supervisor"))
             .body("task_role_resources[0].read", equalTo(true))
-            .body("task_role_resources[0].own", equalTo(true))
+            .body("task_role_resources[0].own", equalTo(false))
             .body("task_role_resources[0].execute", equalTo(false))
             .body("task_role_resources[0].cancel", equalTo(true))
             .body("task_role_resources[0].refer", equalTo(true))
-            .body("task_role_resources[0].authorizations", equalTo(emptyList()))
+            .body("task_role_resources[0].manage", equalTo(true))
+            .body("task_role_resources[0].authorizations", equalTo(List.of("IA")))
             .body("task_role_resources[0].auto_assignable", equalTo(false))
-            .body("task_role_resources[0].role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("task_role_resources[1].task_role_id", notNullValue())
-            .body("task_role_resources[1].role_name", equalTo("tribunal-caseworker"))
-            .body("task_role_resources[1].read", equalTo(true))
-            .body("task_role_resources[1].own", equalTo(true))
-            .body("task_role_resources[1].execute", equalTo(false))
-            .body("task_role_resources[1].cancel", equalTo(true))
-            .body("task_role_resources[1].refer", equalTo(true))
-            .body("task_role_resources[1].authorizations", equalTo(emptyList()))
-            .body("task_role_resources[1].auto_assignable", equalTo(false))
-            .body("task_role_resources[1].role_category", equalTo("LEGAL_OPERATIONS"));
-
+            .body("task_role_resources[0].role_category", equalTo("LEGAL_OPERATIONS"));
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
-            "unassigned");
+            "unassigned"
+        );
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
     }

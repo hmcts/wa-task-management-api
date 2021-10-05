@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -9,6 +9,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -88,6 +90,8 @@ public class TaskPermissionsTest extends SpringBootFunctionalBaseTest {
             .body("task_role_resources[0].execute", equalTo(false))
             .body("task_role_resources[0].cancel", equalTo(true))
             .body("task_role_resources[0].refer", equalTo(true))
+            .body("task_role_resources[0].manage", equalTo(true))
+            .body("task_role_resources[0].authorizations", equalTo(List.of("IA")))
             .body("task_role_resources[0].auto_assignable", equalTo(false))
             .body("task_role_resources[0].role_category", equalTo("LEGAL_OPERATIONS"));
 
