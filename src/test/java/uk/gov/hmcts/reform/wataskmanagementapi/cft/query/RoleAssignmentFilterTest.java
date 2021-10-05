@@ -26,7 +26,8 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -61,52 +62,59 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
             Boolean.TRUE);
         lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
 
         lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
 
-        Predicate predicate1 = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+        Predicate predicate = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes(Classification.PUBLIC));
-        assertNull(predicate1);
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
 
-        Predicate predicate2 = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
+        predicate = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes(Classification.PUBLIC));
-        assertNull(predicate2);
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
 
-        Predicate predicate3 = RoleAssignmentFilter.buildQueryForExcluded(
+        predicate = RoleAssignmentFilter.buildQueryForExcluded(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes(Classification.PUBLIC));
-        assertNull(predicate3);
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
 
-        Predicate predicate4 = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+        predicate = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes(Classification.PRIVATE));
-        assertNull(predicate4);
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
 
-        Predicate predicate5 = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+        predicate = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes(Classification.RESTRICTED));
-        assertNull(predicate5);
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
     }
 
     @Test
@@ -117,11 +125,14 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
+
         BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
             Boolean.TRUE);
+        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
         lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
 
@@ -146,12 +157,13 @@ public class RoleAssignmentFilterTest {
             .build();
         roleAssignments.add(Optional.of(roleAssignment));
 
-        Predicate predicate1 = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+        Predicate predicate = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignments);
-        assertNull(predicate1);
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
 
     }
 
