@@ -99,8 +99,13 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void given_task_is_saved_when_findById_then_task_has_expected_fields() {
-        assertTrue(taskResourceRepository.findById(taskId).isPresent());
-        WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
+        TaskResource str = createTask(taskId);
+        assertEquals(1, taskResourceRepository.count());
+        assertTrue(taskResourceRepository.findById(str.getTaskId()).isPresent());
+
+        WorkTypeResource workTypeResource = taskResourceRepository
+            .findById(str.getTaskId()).get().getWorkTypeResource();
+
         assertEquals("routine_work", workTypeResource.getId());
         assertEquals("Routine work", workTypeResource.getLabel());
 
