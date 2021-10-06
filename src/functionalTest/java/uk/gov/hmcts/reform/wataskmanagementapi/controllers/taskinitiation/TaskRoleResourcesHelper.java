@@ -59,6 +59,7 @@ public class TaskRoleResourcesHelper {
             "LEGAL_OPERATIONS"
         );
     }
+
     @NotNull
     public static TaskRoleResource getExpectedNationalBusinessCentreTaskRoleResource() {
         return new TaskRoleResource(
@@ -75,6 +76,7 @@ public class TaskRoleResourcesHelper {
             "ADMINISTRATOR"
         );
     }
+
     @NotNull
     public static TaskRoleResource getExpectedHearingCentreAdminTaskRoleResource() {
         return new TaskRoleResource(
@@ -91,5 +93,40 @@ public class TaskRoleResourcesHelper {
             "ADMINISTRATOR"
         );
     }
+
+    @NotNull
+    public static TaskRoleResource getExpectedHearingJudgeTaskRoleResource() {
+        return new TaskRoleResource(
+            "hearing-judge",
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            new String[]{"IA"},
+            null,
+            true,
+            "JUDICIAL"
+        );
+    }
+
+    @NotNull
+    public static TaskRoleResource getExpectedJudgeTaskRoleResource() {
+        return new TaskRoleResource(
+            "judge",
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            new String[]{"IA"},
+            null,
+            false,
+            "JUDICIAL"
+        );
+    }
+
 
 }

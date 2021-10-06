@@ -28,6 +28,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedCaseManagerTaskRoleResource;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedHearingCentreAdminTaskRoleResource;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedHearingJudgeTaskRoleResource;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedJudgeTaskRoleResource;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedNationalBusinessCentreTaskRoleResource;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedTaskSupervisorTaskRoleResource;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedTribunalCaseWorkerTaskRoleResource;
@@ -154,7 +156,10 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             .as(TaskResource.class);
 
         Set<TaskRoleResource> actualTaskRoleResources = actualTaskResource.getTaskRoleResources();
-        assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedNationalBusinessCentreTaskRoleResource()));
+        assertTrue(assertTaskRoleResources(
+            actualTaskRoleResources,
+            getExpectedNationalBusinessCentreTaskRoleResource()
+        ));
         assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedTaskSupervisorTaskRoleResource()));
 
         assertions.taskVariableWasUpdated(
@@ -189,6 +194,41 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
 
         Set<TaskRoleResource> actualTaskRoleResources = actualTaskResource.getTaskRoleResources();
         assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedHearingCentreAdminTaskRoleResource()));
+        assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedTaskSupervisorTaskRoleResource()));
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void when_task_type_is_ReviewHearingBundle_then_expect_one_sixth_and_seventh_rules() {
+        initiateTaskRequest.getTaskAttributes()
+            .set(0, new TaskAttribute(TASK_TYPE, "Review hearing bundle"));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            initiateTaskRequest,
+            authenticationHeaders
+        );
+
+        result.prettyPrint();
+        TaskResource actualTaskResource = result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .body("task_id", equalTo(taskId))
+            .body("task_type", equalTo("Review hearing bundle"))
+            .extract()
+            .as(TaskResource.class);
+
+        Set<TaskRoleResource> actualTaskRoleResources = actualTaskResource.getTaskRoleResources();
+        assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedHearingJudgeTaskRoleResource()));
+        assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedJudgeTaskRoleResource()));
         assertTrue(assertTaskRoleResources(actualTaskRoleResources, getExpectedTaskSupervisorTaskRoleResource()));
 
         assertions.taskVariableWasUpdated(
