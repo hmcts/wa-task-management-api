@@ -35,17 +35,17 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals("Hearing work", allWorkTypes.get(0).getLabel());
         assertEquals("upper_tribunal", allWorkTypes.get(1).getId());
         assertEquals("Upper Tribunal", allWorkTypes.get(1).getLabel());
-        assertEquals("routine-work", allWorkTypes.get(2).getId());
+        assertEquals("routine_work", allWorkTypes.get(2).getId());
         assertEquals("Routine work", allWorkTypes.get(2).getLabel());
-        assertEquals("decision-making-work", allWorkTypes.get(3).getId());
+        assertEquals("decision_making_work", allWorkTypes.get(3).getId());
         assertEquals("Decision-making work", allWorkTypes.get(3).getLabel());
         assertEquals("applications", allWorkTypes.get(4).getId());
         assertEquals("Applications", allWorkTypes.get(4).getLabel());
         assertEquals("priority", allWorkTypes.get(5).getId());
         assertEquals("Priority", allWorkTypes.get(5).getLabel());
-        assertEquals("access-requests", allWorkTypes.get(6).getId());
+        assertEquals("access_requests", allWorkTypes.get(6).getId());
         assertEquals("Access requests", allWorkTypes.get(6).getLabel());
-        assertEquals("error-management", allWorkTypes.get(7).getId());
+        assertEquals("error_management", allWorkTypes.get(7).getId());
         assertEquals("Error management", allWorkTypes.get(7).getLabel());
 
     }
