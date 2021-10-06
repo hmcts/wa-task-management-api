@@ -58,10 +58,9 @@ public class WorkTypesController extends BaseController {
         @RequestParam(
             required = false, name = "filter-by-user", defaultValue = "false") boolean filterByUser
     ) {
-
+        AccessControlResponse roles = accessControlService.getRoles(authToken);
         List<WorkType> workTypes = new ArrayList<>();
         if (filterByUser) {
-            AccessControlResponse roles = accessControlService.getRoles(authToken);
             if (!roles.getRoleAssignments().isEmpty()) {
                 Set<String> roleWorkTypes = getActorWorkTypes(roles);
 
@@ -81,7 +80,6 @@ public class WorkTypesController extends BaseController {
             .ok()
             .cacheControl(CacheControl.noCache())
             .body(new GetWorkTypesResponse<>(workTypes));
-
     }
 
     private Set<String> getActorWorkTypes(AccessControlResponse accessControlResponse) {

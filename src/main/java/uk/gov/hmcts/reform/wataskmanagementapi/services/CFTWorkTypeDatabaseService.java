@@ -40,6 +40,7 @@ public class CFTWorkTypeDatabaseService {
      */
     public List<WorkType> getAllWorkTypes() {
         final List<WorkTypeResource> workTypeResources = workTypeResourceRepository.findAll();
+
         return workTypeResources.stream().map(workTypeResource ->
             new WorkType(workTypeResource.getId(), workTypeResource.getLabel()))
             .collect(Collectors.toList());
