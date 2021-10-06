@@ -96,7 +96,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_task_is_initiated_when_task_type_is_ReviewRespondentEvidence_then_expect_one_two_and_three_rules() {
+    public void when_task_type_is_ReviewRespondentEvidence_then_expect_one_two_and_three_rules() {
         initiateTaskRequest.getTaskAttributes()
             .set(0, new TaskAttribute(TASK_TYPE, "Review respondent evidence"));
 

@@ -5,6 +5,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 
 public class TaskRoleResourcesHelper {
 
+    private TaskRoleResourcesHelper() {
+        //checkstyle
+    }
+
     @NotNull
     public static TaskRoleResource getExpectedCaseManagerTaskRoleResource() {
         return new TaskRoleResource(

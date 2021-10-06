@@ -20,6 +20,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 @Slf4j
 @Component
+@SuppressWarnings("PMD.UseObjectForClearerAPI")
 public class DmnEvaluationService {
 
     private final CamundaServiceApi camundaServiceApi;
