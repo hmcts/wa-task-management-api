@@ -59,5 +59,37 @@ public class TaskRoleResourcesHelper {
             "LEGAL_OPERATIONS"
         );
     }
+    @NotNull
+    public static TaskRoleResource getExpectedNationalBusinessCentreTaskRoleResource() {
+        return new TaskRoleResource(
+            "national-business-centre",
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            new String[]{"IA"},
+            null,
+            false,
+            "ADMINISTRATOR"
+        );
+    }
+    @NotNull
+    public static TaskRoleResource getExpectedHearingCentreAdminTaskRoleResource() {
+        return new TaskRoleResource(
+            "hearing-centre-admin",
+            true,
+            true,
+            false,
+            false,
+            false,
+            true,
+            new String[]{"IA"},
+            null,
+            false,
+            "ADMINISTRATOR"
+        );
+    }
 
 }
