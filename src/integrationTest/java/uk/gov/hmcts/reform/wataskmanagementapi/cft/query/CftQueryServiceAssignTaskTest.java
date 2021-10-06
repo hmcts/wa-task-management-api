@@ -28,14 +28,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-@Sql("/scripts/complete_task_data.sql")
-public class CftQueryServiceCompleteTaskTest {
+@Sql("/scripts/assign_task_data.sql")
+public class CftQueryServiceAssignTaskTest {
 
     private List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
@@ -55,7 +58,7 @@ public class CftQueryServiceCompleteTaskTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("getGrantTypes")
-    void should_retrieve_a_task_to_complete(GrantType grantType) {
+    void should_retrieve_a_task_to_assign(GrantType grantType) {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111017";
         final String caseId = "1623278362431017";
 
@@ -85,23 +88,50 @@ public class CftQueryServiceCompleteTaskTest {
             .build();
         roleAssignments.add(roleAssignment);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
+        AccessControlResponse assignerAccessControlResponse = new AccessControlResponse(null, roleAssignments);
 
+        List<PermissionTypes> assignerPermissionsRequired = new ArrayList<>();
+        assignerPermissionsRequired.add(PermissionTypes.MANAGE);
 
-
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
+                                                                    assignerAccessControlResponse,
+                                                                    assignerPermissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+
+        List<RoleAssignment> assignerRoleAssignments = new ArrayList<>();
+        RoleAssignment assignerRoleAssignment = RoleAssignment
+            .builder()
+            .roleName("senior-tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .grantType(grantType)
+            .attributes(tcAttributes)
+            .build();
+        assignerRoleAssignments.add(assignerRoleAssignment);
+
+        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
+                                                                                        assignerRoleAssignments);
+        List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
+        assigneePermissionsRequired.add(OWN);
+        assigneePermissionsRequired.add(EXECUTE);
+
+        final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
+                                                                            assigneeAccessControlResponse,
+                                                                            assigneePermissionsRequired);
+        Assertions.assertThat(assignerTask.isPresent()).isTrue();
+        Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
     }
 
     @Test
-    void should_retrieve_a_task_to_complete_challenged() {
+    void should_retrieve_a_task_to_assign_challenged() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111018";
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
@@ -118,15 +148,38 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
-
+        permissionsRequired.add(PermissionTypes.MANAGE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+
+        List<RoleAssignment> assignerRoleAssignments = new ArrayList<>();
+        RoleAssignment assignerRoleAssignment = RoleAssignment
+            .builder()
+            .roleName("senior-tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .authorisations(List.of("DIVORCE","IA"))
+            .grantType(GrantType.CHALLENGED)
+            .attributes(tcAttributes)
+            .build();
+        assignerRoleAssignments.add(assignerRoleAssignment);
+
+        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
+                                                                                        assignerRoleAssignments);
+        List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
+        assigneePermissionsRequired.add(OWN);
+        assigneePermissionsRequired.add(EXECUTE);
+
+        final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
+                                                                            assigneeAccessControlResponse,
+                                                                            assigneePermissionsRequired);
+        Assertions.assertThat(assignerTask.isPresent()).isTrue();
+        Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
+        Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
     }
 
     @Test
@@ -150,10 +203,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
-
+        permissionsRequired.add(MANAGE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
@@ -180,10 +230,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
-
+        permissionsRequired.add(MANAGE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
@@ -236,7 +283,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.CANCEL);
+        permissionsRequired.add(PermissionTypes.EXECUTE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
@@ -263,7 +310,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.MANAGE);
+        permissionsRequired.add(PermissionTypes.OWN);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
@@ -289,9 +336,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
+        permissionsRequired.add(MANAGE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();

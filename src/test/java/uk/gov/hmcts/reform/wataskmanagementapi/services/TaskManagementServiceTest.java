@@ -173,7 +173,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("getTask()")
-    class Release2GetTask {
+    class Release2EndpointsGetTask {
         @Test
         void getTask_should_succeed_and_return_mapped_task() {
 
@@ -309,7 +309,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("claimTask()")
-    class Release2ClaimTask {
+    class Release2EndpointsClaimTask {
         @Test
         void claimTask_should_succeed() {
 
@@ -422,7 +422,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("unclaimTask()")
-    class Release2UnclaimTask {
+    class Release2EndpointsUnclaimTask {
         @Test
         void unclaimTask_should_succeed() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
@@ -666,7 +666,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("assignTask()")
-    class Release2AssignTask {
+    class Release2EndpointsAssignTask {
         @Test
         void assignTask_should_succeed() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
@@ -972,7 +972,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("cancelTask()")
-    class Release2CancelTask {
+    class Release2EndpointsCancelTask {
         @Test
         void cancelTask_should_succeed_and_feature_flag_is_on() {
 
@@ -1298,7 +1298,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("completeTask()")
-    class Release2CompleteTask {
+    class Release2EndpointsCompleteTask {
         @Test
         void completeTask_should_succeed_and_feature_flag_is_on() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
@@ -1836,7 +1836,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     @Nested
     @DisplayName("completeTaskWithPrivilegeAndCompletionOptions()")
-    class Release2CompleteTaskWithPrivilegeAndCompletionOptions {
+    class Release2EndpointsCompleteTaskWithPrivilegeAndCompletionOptions {
 
         @Test
         void should_throw_exception_when_missing_required_arguments() {

@@ -55,7 +55,7 @@ public class CftQueryServiceCancelTaskTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("getGrantTypes")
-    void should_retrieve_a_task_to_unclaim(GrantType grantType) {
+    void should_retrieve_a_task_to_cancel(GrantType grantType) {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111017";
         final String caseId = "1623278362431017";
 
@@ -97,7 +97,7 @@ public class CftQueryServiceCancelTaskTest {
     }
 
     @Test
-    void should_retrieve_a_task_to_unclaim_challenged() {
+    void should_retrieve_a_task_to_cancel_challenged() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111018";
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -118,8 +118,6 @@ public class CftQueryServiceCancelTaskTest {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.CANCEL);
-
-
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();

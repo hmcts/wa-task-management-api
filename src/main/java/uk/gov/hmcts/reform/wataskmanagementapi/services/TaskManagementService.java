@@ -134,6 +134,7 @@ public class TaskManagementService {
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      */
+    @Transactional
     public void claimTask(String taskId,
                           AccessControlResponse accessControlResponse) {
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
@@ -166,6 +167,7 @@ public class TaskManagementService {
      * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      */
+    @Transactional
     public void unclaimTask(String taskId, AccessControlResponse accessControlResponse) {
         String userId = accessControlResponse.getUserInfo().getUid();
         List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
@@ -217,6 +219,7 @@ public class TaskManagementService {
      * @param assignerAccessControlResponse Assigner's access control response containing user id and role assignments.
      * @param assigneeAccessControlResponse Assignee's access control response containing user id and role assignments.
      */
+    @Transactional
     public void assignTask(String taskId,
                            AccessControlResponse assignerAccessControlResponse,
                            AccessControlResponse assigneeAccessControlResponse) {
