@@ -35,7 +35,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_task_configuration_then_expect_task_is_auto_assigned() throws Exception {
+    public void given_task_is_configured_then_expect_task_is_auto_assigned() throws Exception {
         caseId = createCcdCase();
         createTaskMessage = createBasicMessageForTask()
             .withCaseId(caseId)

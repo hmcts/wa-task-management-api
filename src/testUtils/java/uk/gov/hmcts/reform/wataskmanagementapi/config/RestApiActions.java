@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
@@ -12,6 +13,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
+import org.zalando.problem.ProblemModule;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -38,6 +40,7 @@ public class RestApiActions {
                                 objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
                                 objectMapper.registerModule(new Jdk8Module());
                                 objectMapper.registerModule(new JavaTimeModule());
+                                objectMapper.registerModule(new ProblemModule());
                                 return objectMapper;
                             }
                         ))

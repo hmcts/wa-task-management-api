@@ -60,7 +60,12 @@ class CaseConfigurationProviderServiceTest {
         String someCaseId = "someCaseId";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}"))
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
+            "IA",
+            "Asylum",
+            "{}",
+            null
+        ))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunalCaseworker"),
@@ -86,7 +91,10 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
-        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
+        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(
+            someCaseId,
+            null
+        );
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
     }
@@ -110,7 +118,10 @@ class CaseConfigurationProviderServiceTest {
             "caseTypeId", "Asylum"
         );
 
-        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
+        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(
+            someCaseId,
+            null
+        );
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 

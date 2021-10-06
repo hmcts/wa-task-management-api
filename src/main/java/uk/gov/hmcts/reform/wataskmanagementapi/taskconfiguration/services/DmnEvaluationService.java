@@ -4,6 +4,7 @@ import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
@@ -32,12 +33,14 @@ public class DmnEvaluationService {
 
     public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
                                                                              String caseType,
-                                                                             String caseData) {
+                                                                             String caseData,
+                                                                             String taskTypeId) {
         String decisionTableKey = WA_TASK_PERMISSIONS.getTableKey(jurisdiction, caseType);
         return performEvaluatePermissionsDmnAction(
             decisionTableKey,
             jurisdiction,
-            caseData
+            caseData,
+            taskTypeId
         );
     }
 
@@ -76,14 +79,15 @@ public class DmnEvaluationService {
 
     private List<PermissionsDmnEvaluationResponse> performEvaluatePermissionsDmnAction(String decisionTableKey,
                                                                                        String jurisdiction,
-                                                                                       String caseData) {
+                                                                                       String caseData,
+                                                                                       String taskTypeId) {
         try {
             return camundaServiceApi.evaluatePermissionsDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(
-                    new DecisionTableRequest(jsonValue(caseData))
+                    new DecisionTableRequest(jsonValue(caseData), CamundaValue.stringValue(taskTypeId))
                 )
             );
         } catch (FeignException e) {
