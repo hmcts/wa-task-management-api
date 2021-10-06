@@ -47,7 +47,8 @@ public class CamundaHelpers {
             "Bob Smith",
             false,
             new WarningValues(Collections.emptyList()),
-            "someCaseManagementCategory"
+            "someCaseManagementCategory",
+            "someWorkType"
         );
     }
 

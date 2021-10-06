@@ -81,6 +81,57 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void given_configure_task_then_expect_task_state_is_assigned_and_has_work_type() throws Exception {
+        caseId = createCcdCase();
+
+        String taskTypeId = "followUpOverdueReasonsForAppeal";
+        createTaskMessage = createBasicMessageForTask(taskTypeId, caseId).build();
+        this.taskId = createTask(createTaskMessage);
+        log.info("task found [{}]", this.taskId);
+
+        log.info("Creating roles...");
+        roleAssignmentHelper.setRoleAssignments(caseId);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            this.taskId,
+            new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
+        );
+        result.prettyPeek();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE);
+
+        Response camundaResult = camundaApiActions.get(
+            "/task/{task-id}/variables",
+            this.taskId,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        camundaResult.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("taskType.value", is(taskTypeId))
+            .body("workType.value", is("decision_making_work"))
+            .body("caseName.value", is("Bob Smith"))
+            .body("appealType.value", is("Protection"))
+            .body("region.value", is("1"))
+            .body("location.value", is("765324"))
+            .body("locationName.value", is("Taylor House"))
+            .body("taskState.value", is("assigned"))
+            .body("caseId.value", is(createTaskMessage.getCaseId()))
+            .body("securityClassification.value", is("PUBLIC"))
+            .body("jurisdiction.value", is("IA"))
+            .body("caseTypeId.value", is("Asylum"))
+            .body("title.value", is("task name"))
+            .body("hasWarnings.value", is(false))
+            .body("tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"))
+            .body("senior-tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"))
+            .body("workType.value", is("decision_making_work"));
+    }
+
+    @Test
     public void given_configure_task_then_expect_task_state_is_unassigned() throws IOException {
         caseId = createCcdCase();
         createTaskMessage = createBasicMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())

@@ -129,7 +129,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "Bob Smith",
             false,
             new WarningValues(emptyList()),
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "someWorkType"
         );
     }
 
@@ -161,7 +162,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "John Doe",
             true,
             new WarningValues(warnings),
-            "Some Case Management Category");
+            "Some Case Management Category",
+            "someWorkType"
+        );
     }
 
     private void setInitMockForSearchTask() {

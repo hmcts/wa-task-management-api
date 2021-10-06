@@ -121,7 +121,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "Bob Smith",
             true,
             new WarningValues(emptyList()),
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "someWorkType"
         );
 
         return singletonList(task);
@@ -155,7 +156,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "Bob Smith",
             true,
             warningValues,
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "someWorkType"
         );
 
         return singletonList(taskWithWarnings);
