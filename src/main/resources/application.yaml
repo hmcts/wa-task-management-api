@@ -126,3 +126,7 @@ logging:
 logbook:
   include: /task/**
 
+caffeine:
+  timeout:
+    duration: 30
+    unit: MINUTES

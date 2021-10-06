@@ -87,6 +87,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
     PermissionEvaluatorService permissionEvaluatorService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
+
+    @Mock
+    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
@@ -108,7 +111,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
+            taskAutoAssignmentService,
+            cftWorkTypeDatabaseService
         );
 
         taskId = UUID.randomUUID().toString();
