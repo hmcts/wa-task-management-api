@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,16 +32,16 @@ public class IdamServiceUserIdCacheTest {
 
         when(idamWebApi.userInfo(anyString()))
             .thenReturn(UserInfo.builder()
-                            .uid("some user id1")
-                            .build());
+                .uid("some user id1")
+                .build());
 
         idamService.getUserId(bearerAccessToken1);
         idamService.getUserId(bearerAccessToken1);
         idamService.getUserId(bearerAccessToken2);
         idamService.getUserId(bearerAccessToken2);
 
+        verify(idamWebApi, times(1)).userInfo(bearerAccessToken1);
+        verify(idamWebApi, times(1)).userInfo(bearerAccessToken2);
 
-        verify(idamWebApi).userInfo(bearerAccessToken1);
-        verify(idamWebApi).userInfo(bearerAccessToken2);
     }
 }

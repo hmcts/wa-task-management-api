@@ -28,7 +28,7 @@ public class IdamTokenGenerator {
         );
     }
 
-    @Cacheable
+    @Cacheable(value = "bearer_token_cache", key = "#username")
     public String getUserBearerToken(String username, String password) {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "password");
@@ -43,7 +43,7 @@ public class IdamTokenGenerator {
         return "Bearer " + tokenResponse.getAccessToken();
     }
 
-    @Cacheable
+    @Cacheable(value = "user_info_cache", key = "#bearerAccessToken")
     public UserInfo getUserInfo(String bearerAccessToken) {
         return idamWebApi.userInfo(bearerAccessToken);
     }
