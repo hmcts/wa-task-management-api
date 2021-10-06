@@ -176,4 +176,7 @@ public class AuthorizationHeadersProvider {
     public Headers getServiceAuthorizationHeadersOnly() {
         return new Headers(getServiceAuthorizationHeader());
     }
+    public Headers getWrongServiceAuthorizationHeaders() {
+        return new Headers(new Header(SERVICE_AUTHORIZATION, ""));
+    }
 }

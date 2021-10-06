@@ -720,6 +720,10 @@ public class TaskManagementService {
             .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
     }
 
+    public Optional<TaskResource> getTaskById(String taskId) {
+        return cftTaskDatabaseService.findByIdOnly(taskId);
+    }
+
     private boolean isTaskRequired(List<Map<String, CamundaVariable>> evaluateDmnResult, List<String> taskTypes) {
         /*
          * EvaluateDmnResult contains with and without empty rows for an event.
