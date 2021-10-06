@@ -25,10 +25,6 @@ public class CFTTaskDatabaseService {
         return tasksRepository.save(task);
     }
 
-    public Optional<TaskResource> getTaskById(String taskId) {
-        return tasksRepository.getByTaskId(taskId);
-    }
-
     public void insertAndLock(String taskId) throws SQLException {
         tasksRepository.insertAndLock(taskId);
     }
