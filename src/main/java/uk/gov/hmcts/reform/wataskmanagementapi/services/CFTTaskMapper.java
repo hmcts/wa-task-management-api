@@ -315,7 +315,7 @@ public class CFTTaskMapper {
                 .collect(Collectors.toList());
             return new WarningValues(warnings);
         }
-        return null;
+        return new WarningValues();
     }
 
     @SuppressWarnings("unchecked")
@@ -358,8 +358,8 @@ public class CFTTaskMapper {
                      taskResource.getTaskSystem().getValue(),
                      taskResource.getSecurityClassification().getSecurityClassification(),
                      taskResource.getTitle(),
-                     taskResource.getCreated().toZonedDateTime(),
-                     taskResource.getDueDateTime().toZonedDateTime(),
+                     taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
+                     taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
                      taskResource.getAssignee(),
                      taskResource.getAutoAssigned(),
                      taskResource.getExecutionTypeCode().getExecutionName(),
@@ -369,7 +369,7 @@ public class CFTTaskMapper {
                      taskResource.getLocationName(),
                      taskResource.getCaseTypeId(),
                      taskResource.getCaseId(),
-                     taskResource.getRoleCategory(),
+                     taskResource.getCaseCategory(),
                      taskResource.getCaseName(),
                      taskResource.getHasWarnings(),
                      mapNoteResourceToWarnings(taskResource.getNotes()),
