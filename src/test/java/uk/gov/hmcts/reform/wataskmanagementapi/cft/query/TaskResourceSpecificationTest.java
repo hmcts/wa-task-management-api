@@ -118,6 +118,9 @@ public class TaskResourceSpecificationTest {
             accessControlResponse,
             permissionsRequired
         );
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
+
         Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
         assertNotNull(predicate);
@@ -166,6 +169,39 @@ public class TaskResourceSpecificationTest {
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().plusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest,
+            accessControlResponse,
+            permissionsRequired
+        );
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    @Test
+    public void buildQueryForBeginTimeAfterEndTime() {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        ));
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(Classification.RESTRICTED)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().plusYears(1))
+            .endTime(LocalDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
