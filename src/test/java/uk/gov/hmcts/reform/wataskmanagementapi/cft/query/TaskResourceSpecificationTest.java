@@ -1,7 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
+import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -14,17 +18,58 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
 
 @ExtendWith(MockitoExtension.class)
 public class TaskResourceSpecificationTest {
+
+    @Mock(extraInterfaces = Serializable.class) Root<TaskResource> root;
+    @Mock(extraInterfaces = Serializable.class) CriteriaQuery<?> query;
+    @Mock(extraInterfaces = Serializable.class) CriteriaBuilderImpl criteriaBuilder;
+    @Mock Join<Object, Object> taskRoleResources;
+    @Mock CriteriaBuilder.In<Object> inObject;
+    @Mock CriteriaBuilder.In<Object> values;
+    @Mock Path<Object> authorizations;
+
+    @BeforeEach
+    @SuppressWarnings("unchecked")
+    public void setUp() {
+        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
+        lenient().when(inObject.value(any())).thenReturn(values);
+        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
+        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+            criteriaBuilder,
+            null,
+            Boolean.TRUE);
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
+        lenient().when(inObject.value(any())).thenReturn(values);
+
+        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
+
+        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
+        lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+    }
 
     @Test
     public void buildQueryForBasicGrantTypes() {
@@ -44,7 +89,10 @@ public class TaskResourceSpecificationTest {
             searchTaskRequest,
             accessControlResponse,
             permissionsRequired);
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
+        assertNotNull(predicate);
     }
 
     @Test
@@ -70,7 +118,9 @@ public class TaskResourceSpecificationTest {
             accessControlResponse,
             permissionsRequired
         );
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
+        assertNotNull(predicate);
     }
 
     @Test
@@ -97,7 +147,9 @@ public class TaskResourceSpecificationTest {
             accessControlResponse,
             permissionsRequired
         );
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
+        assertNotNull(predicate);
     }
 
 
@@ -129,7 +181,9 @@ public class TaskResourceSpecificationTest {
             accessControlResponse,
             permissionsRequired
         );
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
+        assertNotNull(predicate);
     }
 
     @Test
@@ -160,7 +214,9 @@ public class TaskResourceSpecificationTest {
             accessControlResponse,
             permissionsRequired
         );
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
+        assertNotNull(predicate);
     }
 
 
