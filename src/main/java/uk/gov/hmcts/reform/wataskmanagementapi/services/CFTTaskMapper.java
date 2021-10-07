@@ -165,6 +165,11 @@ public class CFTTaskMapper {
                 autoAssignable = Boolean.TRUE.equals(permission.getAutoAssignable().getValue());
             }
 
+            String roleCategory = null;
+            if (permission.getRoleCategory() != null && permission.getRoleCategory().getValue() != null) {
+                roleCategory = permission.getRoleCategory().getValue();
+            }
+
             return new TaskRoleResource(
                 roleName,
                 permissionsFound.contains(PermissionTypes.READ),
@@ -176,7 +181,7 @@ public class CFTTaskMapper {
                 authorisations.toArray(new String[0]),
                 assignmentPriority,
                 autoAssignable,
-                null,
+                roleCategory,
                 taskResource.getTaskId(),
                 ZonedDateTime.now().toOffsetDateTime()
             );
