@@ -699,6 +699,36 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
     }
 
+    //todo: add more tasks here
+    @Test
+    public void should_return_a_200_with_work_type() {
+        TestVariables taskVariables = common.setupTaskWithWorkTypeAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("total_records", greaterThanOrEqualTo(1))
+            .body("tasks.warnings", everyItem(notNullValue()))
+            .body("tasks.work_type", hasItem("decision_making_work"))
+            .body("tasks.warning_list.values", everyItem(notNullValue()));
+
+        //common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
         for (String state : states) {

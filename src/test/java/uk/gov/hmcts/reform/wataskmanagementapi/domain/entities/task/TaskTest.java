@@ -11,6 +11,7 @@ public class TaskTest {
     ZonedDateTime created = ZonedDateTime.now();
     ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
 
+    //todo: check here
     @Test
     void should_create_full_object_and_get_values() {
 
@@ -67,7 +68,7 @@ public class TaskTest {
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
         Assertions.assertThat(task.getCaseManagementCategory()).isEqualTo("some-case-management-category");
-
+        Assertions.assertThat(task.getWorkType()).isEqualTo("someWorkType");
 
     }
 }

@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 class TaskMapperTest {
-
+    //todo: check here
     CamundaObjectMapper camundaObjectMapper;
 
     private TaskMapper taskMapper;
@@ -113,7 +113,7 @@ class TaskMapperTest {
         );
         WarningValues warningValues = new WarningValues(
             Arrays.asList(new Warning("123", "some warning"),
-                          new Warning("456", "some more warning")));
+                new Warning("456", "some more warning")));
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
@@ -123,7 +123,7 @@ class TaskMapperTest {
         variables.put("hasWarnings", new CamundaVariable(false, "Boolean"));
         variables.put("warningList", new CamundaVariable(warningValues, "WarningValues"));
         variables.put("caseManagementCategory", new CamundaVariable("someCaseManagementCategory", "String"));
-
+        variables.put("workType", new CamundaVariable("someWorkType", "String"));
 
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
         assertEquals("configured", result.getTaskState());
@@ -138,8 +138,7 @@ class TaskMapperTest {
         assertEquals(false, result.getWarnings());
         assertNotNull(result.getWarningList());
         assertEquals("someCaseManagementCategory", result.getCaseManagementCategory());
-
-
+        assertEquals("someWorkType", result.getWorkType());
 
     }
 

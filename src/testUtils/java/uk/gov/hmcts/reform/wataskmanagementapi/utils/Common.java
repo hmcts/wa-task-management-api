@@ -151,7 +151,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false)
+            .iCreateATaskWithCaseId(caseId, false, false)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
@@ -162,12 +162,29 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
+    //todo: check here
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
 
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, true)
+            .iCreateATaskWithCaseId(caseId, true, false)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
+    public TestVariables setupTaskWithWorkTypeAndRetrieveIds() {
+
+        String caseId = given.iCreateACcdCase();
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, false, true)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 

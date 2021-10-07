@@ -18,14 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 class CreateTaskVariableTest {
-
+    //todo: check here
     private CamundaTask camundaTask;
     Map<String, CamundaVariable> localVariables;
 
     private TaskMapper taskMapper;
     private WarningValues warningValues = new WarningValues(
         Arrays.asList(new Warning("123", "some warning"),
-                      new Warning("456", "some more warning")));
+            new Warning("456", "some more warning")));
 
     @BeforeEach
     void setup() {
@@ -49,6 +49,7 @@ class CreateTaskVariableTest {
         localVariables.put("taskType", new CamundaVariable("task-type", "string"));
         localVariables.put("warningList", new CamundaVariable(warningValues, "WarningValues"));
         localVariables.put("caseManagementCategory", new CamundaVariable("someCaseManagementCategory", "string"));
+        localVariables.put("workType", new CamundaVariable("someWorkType", "String"));
     }
 
     @Test
@@ -80,6 +81,7 @@ class CreateTaskVariableTest {
         Assertions.assertThat(task.getWarnings()).isFalse();
         Assertions.assertThat(task.getWarningList()).isNotNull();
         Assertions.assertThat(task.getCaseManagementCategory()).isNotNull();
+        Assertions.assertThat(task.getWorkType()).isEqualTo("someWorkType");
 
     }
 }
