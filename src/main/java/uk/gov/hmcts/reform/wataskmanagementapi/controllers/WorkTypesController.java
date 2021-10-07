@@ -11,19 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
@@ -32,52 +27,33 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 public class WorkTypesController extends BaseController {
     private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
+    private final WorkTypesService workTypesService;
 
     public WorkTypesController(TaskManagementService taskManagementService,
-                               AccessControlService accessControlService) {
+                               AccessControlService accessControlService,
+                               WorkTypesService workTypesService) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
+        this.workTypesService = workTypesService;
     }
 
     @ApiOperation("Retrieve a list of work types for the current user")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = String.class)
+        @ApiResponse(code = 200, message = OK, response = GetWorkTypesResponse.class),
+        @ApiResponse(code = 502, message = "Downstream Dependency Error", response = String.class),
+        @ApiResponse(code = 503, message = "Service Unavailable", response = String.class)
     })
     @GetMapping(path = "/users")
-    public ResponseEntity<List<WorkType>> getWorkTypes(@RequestHeader(AUTHORIZATION) String authToken) {
-
-        List<WorkType> workTypes = new ArrayList<>();
+    public ResponseEntity<GetWorkTypesResponse> getWorkTypes(@RequestHeader(AUTHORIZATION) String authToken) {
 
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        if (!roles.getRoleAssignments().isEmpty()) {
-            Set<String> roleWorkTypes = getActorWorkTypes(roles);
-
-            if (!roleWorkTypes.isEmpty()) {
-                for (String workTypeId : roleWorkTypes) {
-                    Optional<WorkType> optionalWorkType = taskManagementService.getWorkType(workTypeId.trim());
-
-                    optionalWorkType.ifPresent(workTypes::add);
-                }
-            }
-        }
-
+        List<WorkType> workTypes = workTypesService.getWorkTypes(roles);
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(workTypes);
+            .body(new GetWorkTypesResponse(workTypes));
 
     }
 
-    private Set<String> getActorWorkTypes(AccessControlResponse accessControlResponse) {
-        Set<String> roleWorkTypes = new HashSet<>();
-
-        for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
-            if (assignedWorkedList != null && !assignedWorkedList.isEmpty()) {
-                roleWorkTypes.addAll(Arrays.asList(assignedWorkedList.split(",")));
-            }
-        }
-        return roleWorkTypes;
-    }
 }

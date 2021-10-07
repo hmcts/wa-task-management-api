@@ -58,7 +58,11 @@ public enum ErrorMessages {
     INITIATE_TASK_PROCESS_ERROR(
         "The action could not be completed because there was a problem when initiating the task."),
     DATABASE_CONFLICT_ERROR(
-        "The action could not be completed because there was a conflict in the database.");
+        "The action could not be completed because there was a conflict in the database."),
+    DATABASE_IS_UNAVAILABLE(
+        "Database is unavailable."),
+    DOWNSTREAM_DEPENDENCY_ERROR(
+        "Downstream dependency did not respond as expected and the request could not be completed.");
 
     private final String detail;
 

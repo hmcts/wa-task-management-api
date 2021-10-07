@@ -17,22 +17,24 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,152 +48,128 @@ class WorkTypesControllerTest {
     private TaskManagementService taskManagementService;
     @Mock
     private AccessControlService accessControlService;
+    @Mock
+    private WorkTypesService workTypesService;
 
     @Mock
     private AccessControlResponse mockedAccessControlResponse;
 
     private WorkTypesController workTypesController;
-    private String workTypeKey;
+    private UserInfo userInfo;
 
     @BeforeEach
     void setUp() {
         workTypesController = new WorkTypesController(
             taskManagementService,
-            accessControlService
+            accessControlService,
+            workTypesService
         );
+
+        userInfo = UserInfo.builder()
+            .roles(new ArrayList<>(asList("Role1", "Role2")))
+            .build();
     }
 
     @Test
     void should_return_a_single_element_list_of_work_type_when_user_has_a_single_work_type() {
 
-        UserInfo userInfo = new UserInfo("", "",
-                                         new ArrayList<>(Arrays.asList("Role1","Role2")),
-                                         "",
-                                         "",
-                                         "");
-
         RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
-                                                           "1258555",
-                                                           RoleType.CASE,
-                                                           "Judge",
-                                                           Classification.PUBLIC,
-                                                           GrantType.BASIC,
-                                                           RoleCategory.JUDICIAL,
-                                                           false,
-                                                           Map.of("workTypes","hearing_work"));
-        List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
+            "1258555",
+            RoleType.CASE,
+            "Judge",
+            Classification.PUBLIC,
+            GrantType.BASIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of("workTypes", "hearing_work"));
+        List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignmentList);
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
-        WorkType workType = new WorkType("hearing_work","Hearing Work");
+        WorkType workType = new WorkType("hearing_work", "Hearing Work");
 
-        when(taskManagementService.getWorkType(
-            workType.getId()
-        ))
-            .thenReturn(Optional.of(workType));
+        when(workTypesService.getWorkTypes(accessControlResponse))
+            .thenReturn(singletonList(workType));
 
-        ResponseEntity<List<WorkType>> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat(response.getBody(), instanceOf(ArrayList.class));
         assertNotNull(response.getBody());
 
-        List<WorkType> workTypeList = Arrays.asList(workType);
-        assertEquals(workTypeList, response.getBody());
-        verify(taskManagementService, times(1))
-            .getWorkType(workType.getId());
+        List<WorkType> workTypeList = singletonList(workType);
+        assertEquals(response.getBody(), new GetWorkTypesResponse(workTypeList));
+        verify(workTypesService, times(1)).getWorkTypes(accessControlResponse);
     }
 
     @Test
     void should_return_a_list_of_work_types_when_user_has_many_work_types() {
 
-        UserInfo userInfo = UserInfo.builder()
-            .email("")
-            .uid("")
-            .roles(new ArrayList<>(Arrays.asList("Role1", "Role2")))
-            .name("")
-            .givenName("")
-            .familyName("")
-            .build();
-
-        workTypeKey = RoleAttributeDefinition.WORK_TYPES.value();
+        String workTypeKey = RoleAttributeDefinition.WORK_TYPES.value();
         RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
-                                                           "1258555",
-                                                           RoleType.CASE,
-                                                           "Judge",
-                                                           Classification.PUBLIC,
-                                                           GrantType.BASIC,
-                                                           RoleCategory.JUDICIAL,
-                                                           false,
-                                                           Map.of(workTypeKey, "hearing_work,upper_tribunal"));
-        List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
+            "1258555",
+            RoleType.CASE,
+            "Judge",
+            Classification.PUBLIC,
+            GrantType.BASIC,
+            RoleCategory.JUDICIAL,
+            false,
+            Map.of(workTypeKey, "hearing_work,upper_tribunal"));
+        List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignmentList);
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
-        WorkType workType = new WorkType("hearing_work","Hearing Work");
-        WorkType workType2 = new WorkType("upper_tribunal","Upper Tribunal");
+        WorkType workType = new WorkType("hearing_work", "Hearing Work");
+        WorkType workType2 = new WorkType("upper_tribunal", "Upper Tribunal");
 
-        when(taskManagementService.getWorkType(
-            workType.getId()
-        ))
-            .thenReturn(Optional.of(workType));
+        when(workTypesService.getWorkTypes(
+        accessControlResponse
+            ))
+            .thenReturn(asList(workType, workType2));
 
-        when(taskManagementService.getWorkType(
-            workType2.getId()
-        ))
-            .thenReturn(Optional.of(workType2));
-
-        ResponseEntity<List<WorkType>> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat(response.getBody(), instanceOf(ArrayList.class));
         assertNotNull(response.getBody());
 
-        List<WorkType> workTypeList = Arrays.asList(workType,workType2);
+        List<WorkType> workTypeList = asList(workType, workType2);
 
-        assertEquals(workTypeList.size(), response.getBody().size());
-        verify(taskManagementService, times(1))
-            .getWorkType(workType.getId());
-
-        verify(taskManagementService, times(1))
-            .getWorkType(workType2.getId());
+        assertEquals(response.getBody(), new GetWorkTypesResponse(workTypeList));
+        verify(workTypesService, times(1))
+            .getWorkTypes(accessControlResponse);
     }
 
     @Test
     void should_return_empty_list_when_user_does_not_have_work_types() {
-        UserInfo userInfo = new UserInfo("", "",
-                                         new ArrayList<>(Arrays.asList("Role1","Role2")),
-                                         "",
-                                         "",
-                                         "");
 
         RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
-                                                           "1258555",
-                                                           RoleType.CASE,
-                                                           "Judge",
-                                                           Classification.PUBLIC,
-                                                           GrantType.BASIC,
-                                                           RoleCategory.JUDICIAL,
-                                                           false,
-                                                           new HashMap<>());
-        List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
+            "1258555",
+            RoleType.CASE,
+            "Judge",
+            Classification.PUBLIC,
+            GrantType.BASIC,
+            RoleCategory.JUDICIAL,
+            false,
+            new HashMap<>());
+        List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignmentList);
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
-        ResponseEntity<List<WorkType>> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(emptyList(), response.getBody());
-        verify(taskManagementService, times(0)).getWorkType(anyString());
+        assertEquals(new GetWorkTypesResponse(emptyList()), response.getBody());
+        verify(workTypesService, times(0)).getWorkTypes(any());
     }
 
     @Test
@@ -200,12 +178,12 @@ class WorkTypesControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(mockedAccessControlResponse);
 
-        ResponseEntity<List<WorkType>> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(emptyList(), response.getBody());
-        verify(taskManagementService, times(0)).getWorkType(anyString());
+        assertEquals(new GetWorkTypesResponse(emptyList()), response.getBody());
+        verify(workTypesService, times(0)).getWorkTypes(any());
     }
 }
