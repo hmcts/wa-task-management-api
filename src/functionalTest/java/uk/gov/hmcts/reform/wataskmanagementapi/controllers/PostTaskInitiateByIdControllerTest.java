@@ -57,6 +57,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             authenticationHeaders
         );
 
+        result.prettyPrint();
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
@@ -91,6 +92,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[0].refer", equalTo(true))
             .body("task_role_resources[0].authorizations", equalTo(emptyList()))
             .body("task_role_resources[0].auto_assignable", equalTo(false))
+            .body("task_role_resources[0].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("task_role_resources[1].task_role_id", notNullValue())
             .body("task_role_resources[1].role_name", equalTo("tribunal-caseworker"))
             .body("task_role_resources[1].read", equalTo(true))
@@ -99,7 +101,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[1].cancel", equalTo(true))
             .body("task_role_resources[1].refer", equalTo(true))
             .body("task_role_resources[1].authorizations", equalTo(emptyList()))
-            .body("task_role_resources[1].auto_assignable", equalTo(false));
+            .body("task_role_resources[1].auto_assignable", equalTo(false))
+            .body("task_role_resources[1].role_category", equalTo("LEGAL_OPERATIONS"));
 
 
         assertions.taskVariableWasUpdated(
