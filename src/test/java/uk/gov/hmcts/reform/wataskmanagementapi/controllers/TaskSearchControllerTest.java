@@ -14,6 +14,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -41,6 +43,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,6 +58,10 @@ class TaskSearchControllerTest {
     private RoleAssignment mockedRoleAssignment;
     @Mock
     private UserInfo mockedUserInfo;
+    @Mock
+    private CftQueryService cftQueryService;
+    @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private TaskSearchController taskSearchController;
 
@@ -63,9 +70,10 @@ class TaskSearchControllerTest {
 
         taskSearchController = new TaskSearchController(
             taskManagementService,
-            accessControlService
+            accessControlService,
+            cftQueryService,
+            launchDarklyFeatureFlagProvider
         );
-
     }
 
     @Test
@@ -118,7 +126,6 @@ class TaskSearchControllerTest {
                 any(AccessControlResponse.class)
             );
     }
-
 
     @Test
     void should_succeed_when_performing_search_with_sorting_and_return_a_200_ok() {
@@ -183,5 +190,32 @@ class TaskSearchControllerTest {
         assertNotNull(response.getBody());
         assertEquals(emptyList(), response.getBody().getTasks());
 
+    }
+
+    @Test
+    void should_succeed_when_performing_search_with_feature_flag_on_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            mockedUserInfo.getUid()
+            )
+        ).thenReturn(true);
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
+        when(cftQueryService.getAllTasks(anyInt(), anyInt(), any(), any(), any())).thenReturn(tasksResponse);
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
+            new SearchTaskRequest(
+                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+            )
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
     }
 }
