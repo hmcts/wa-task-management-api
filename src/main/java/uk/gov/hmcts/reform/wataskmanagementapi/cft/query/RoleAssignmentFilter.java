@@ -173,14 +173,12 @@ public final class RoleAssignmentFilter {
                     SecurityClassification.PUBLIC
                 )
             );
-        } else if (classification.equals(Classification.PUBLIC)) {
+        } else {
             return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
                 List.of(
                     SecurityClassification.PUBLIC
                 )
             );
-        } else {
-            return builder.conjunction();
         }
     }
 
