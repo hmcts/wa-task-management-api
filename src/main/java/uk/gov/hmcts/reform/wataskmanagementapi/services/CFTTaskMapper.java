@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -132,11 +133,13 @@ public class CFTTaskMapper {
             .forEach((key, value) -> mapVariableToTaskResourceProperty(taskResource, key, value));
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
-        taskResource.setTaskRoleResources(mapPermissions(permissions));
+        taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
         return taskResource;
     }
 
-    private Set<TaskRoleResource> mapPermissions(List<PermissionsDmnEvaluationResponse> permissions) {
+    private Set<TaskRoleResource> mapPermissions(
+        List<PermissionsDmnEvaluationResponse> permissions, TaskResource taskResource
+    ) {
 
         return permissions.stream().map(permission -> {
 
@@ -178,7 +181,9 @@ public class CFTTaskMapper {
                 authorisations.toArray(new String[0]),
                 assignmentPriority,
                 autoAssignable,
-                roleCategory
+                roleCategory,
+                taskResource.getTaskId(),
+                ZonedDateTime.now().toOffsetDateTime()
             );
         }).collect(Collectors.toSet());
     }
