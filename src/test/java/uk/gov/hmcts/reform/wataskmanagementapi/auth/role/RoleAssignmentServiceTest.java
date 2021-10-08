@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskconfigurationapi.auth.role;
+package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
@@ -23,9 +27,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entit
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.entities.request.QueryRequest;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -111,17 +118,129 @@ class RoleAssignmentServiceTest {
     }
 
     @Test
-    void should_throw_server_error_exception_when_call_to_role_assignment_fails() {
+    void should_query_roles_for_auto_assignment_by_case_id() {
 
         final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
             singletonList(testRoleAssignment)
         );
 
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenReturn(roleAssignmentResource);
+
+        final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
+            createTestTaskWithRoleResources(
+                SecurityClassification.PUBLIC,
+                singleton(taskRoleResource("tribunal-caseworker", true))
+            )
+        );
+
+        assertNotNull(actualRoleAssignments);
+        assertEquals(1, actualRoleAssignments.size());
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        QueryRequest actualQueryRequest = queryRequests.getQueryRequests().get(0);
+        assertThat(actualQueryRequest.getRoleName()).contains("tribunal-caseworker");
+        assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
+        assertThat(actualQueryRequest.getHasAttributes()).contains("caseId");
+        assertThat(actualQueryRequest.getAttributes()).isNotNull();
+    }
+
+    @Test
+    void should_filter_non_auto_assignment_roles_when_query_for_auto_assignment() {
+
+        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
+            singletonList(testRoleAssignment)
+        );
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenReturn(roleAssignmentResource);
+
+        final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
+            createTestTaskWithRoleResources(
+                SecurityClassification.RESTRICTED,
+                Set.of(taskRoleResource("tribunal-caseworker", true), taskRoleResource("tribunal-caseworker-2", false))
+            )
+        );
+
+        assertNotNull(actualRoleAssignments);
+        assertEquals(1, actualRoleAssignments.size());
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        QueryRequest actualQueryRequest = queryRequests.getQueryRequests().get(0);
+        assertThat(actualQueryRequest.getRoleName()).contains("tribunal-caseworker");
+        assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
+        assertThat(actualQueryRequest.getHasAttributes()).contains("caseId");
+        assertThat(actualQueryRequest.getAttributes()).isNotNull();
+    }
+
+    @Test
+    void should_query_roles_for_auto_assignment_by_case_id_when_no_results_exists() {
+
+        final RoleAssignmentResource roleAssignmentResource = new RoleAssignmentResource(
+            Collections.emptyList()
+        );
+
+        when(roleAssignmentServiceApi.queryRoleAssignments(eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            any(MultipleQueryRequest.class)))
+            .thenReturn(roleAssignmentResource);
+
+        final List<RoleAssignment> actualRoleAssignments = roleAssignmentService.queryRolesForAutoAssignmentByCaseId(
+            createTestTaskWithRoleResources(
+                SecurityClassification.PRIVATE,
+                Set.of(taskRoleResource("tribunal-caseworker", true))
+            )
+        );
+
+        assertNotNull(actualRoleAssignments);
+        assertEquals(0, actualRoleAssignments.size());
+
+        verify(roleAssignmentServiceApi).queryRoleAssignments(
+            eq(IDAM_USER_TOKEN),
+            eq(S2S_TOKEN),
+            captor.capture()
+        );
+
+        MultipleQueryRequest queryRequests = captor.getValue();
+
+        assertThat(queryRequests).isNotNull();
+        assertThat(queryRequests.getQueryRequests()).isNotEmpty();
+        QueryRequest actualQueryRequest = queryRequests.getQueryRequests().get(0);
+        assertThat(actualQueryRequest.getRoleName()).contains("tribunal-caseworker");
+        assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
+        assertThat(actualQueryRequest.getHasAttributes()).contains("caseId");
+        assertThat(actualQueryRequest.getAttributes()).isNotNull();
+    }
+
+    @Test
+    void should_throw_server_error_exception_when_call_to_role_assignment_fails() {
 
         doThrow(FeignException.FeignServerException.class)
             .when(roleAssignmentServiceApi).queryRoleAssignments(eq(IDAM_USER_TOKEN),
-            eq(S2S_TOKEN),
-            any(MultipleQueryRequest.class));
+                eq(S2S_TOKEN),
+                any(MultipleQueryRequest.class));
 
         assertThatThrownBy(() -> roleAssignmentService.searchRolesByCaseId(caseId))
             .isInstanceOf(ServerErrorException.class)
@@ -141,5 +260,35 @@ class RoleAssignmentServiceTest {
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .build();
+    }
+
+    private TaskResource createTestTaskWithRoleResources(
+        SecurityClassification classification,
+        Set<TaskRoleResource> taskResourceList) {
+        TaskResource taskResource = new TaskResource(
+            UUID.randomUUID().toString(),
+            "someTaskName",
+            "someTaskType",
+            CFTTaskState.UNCONFIGURED,
+            "someCaseId",
+            taskResourceList
+        );
+        taskResource.setSecurityClassification(classification);
+        return taskResource;
+    }
+
+    private TaskRoleResource taskRoleResource(String name, boolean autoAssign) {
+        return new TaskRoleResource(
+            name,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            new String[]{"IA"},
+            0,
+            autoAssign
+        );
     }
 }
