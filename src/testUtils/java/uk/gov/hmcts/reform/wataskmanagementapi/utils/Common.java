@@ -151,7 +151,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, false)
+            .iCreateATaskWithCaseId(caseId, false)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
@@ -168,7 +168,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, true, false)
+            .iCreateATaskWithCaseId(caseId, true)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 
@@ -179,12 +179,12 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public TestVariables setupTaskWithWorkTypeAndRetrieveIds() {
+    public TestVariables setupTaskWithTaskIdAndRetrieveIds(String taskId) {
 
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, true)
+            .iCreateATaskWithCaseId(caseId, taskId)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 

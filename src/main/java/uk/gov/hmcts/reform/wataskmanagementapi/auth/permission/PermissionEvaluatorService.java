@@ -190,12 +190,12 @@ public class PermissionEvaluatorService {
             hasAccess = attributeEvaluatorService.hasCaseTypeIdPermission(caseTypeValue, variables);
             log.debug("CaseTypeId permission check {}", hasAccess);
         }
+        //todo: check test
         // 8. Conditionally check workType matches the one on the task
         /*String workTypeValue = attributes.get(RoleAttributeDefinition.WORK_TYPE.value());
         if (hasAccess && workTypeValue != null) {
             hasAccess = attributeEvaluatorService.hasWorkTypePermission(workTypeValue, variables);
-            //todo: change this to debug
-            log.info("WorkType permission check {}", hasAccess);
+            log.debug("WorkType permission check {}", hasAccess);
         }*/
         return hasAccess;
     }

@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +40,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
@@ -553,7 +555,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.id", hasItems(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
@@ -702,7 +704,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     //todo: add more tasks here
     @Test
     public void should_return_a_200_with_work_type() {
-        TestVariables taskVariables = common.setupTaskWithWorkTypeAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -726,8 +728,92 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.work_type", hasItem("decision_making_work"))
             .body("tasks.warning_list.values", everyItem(notNullValue()));
 
-        //common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId, REASON_COMPLETED);
     }
+
+    @Test
+    public void given_search_by_parameter_should_return_only_one() throws JsonProcessingException {
+        // create some tasks
+        TestVariables taskVariablesForTask1 = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariablesForTask2 = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
+        String taskId1 = taskVariablesForTask1.getTaskId();
+        String taskId2 = taskVariablesForTask2.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // Given query
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("decision_making_work")))
+        );
+
+        // When
+        Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        //Then
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariablesForTask1.getCaseId()))
+            .body("tasks.id", hasItem(taskId1))
+            .body("tasks.work_type", hasItem("decision_making_work"))
+            .body("total_records", equalTo(1));
+
+        // Given query
+        searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")))
+        );
+
+        // When
+        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        //Then
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariablesForTask2.getCaseId()))
+            .body("tasks.id", hasItem(taskId2))
+            .body("tasks.work_type", hasItem("routine_work"))
+            .body("total_records", equalTo(1));
+
+
+        common.cleanUpTask(taskVariablesForTask1.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(taskVariablesForTask2.getTaskId(), REASON_COMPLETED);
+    }
+
+    @Test
+    public void given_search_by_multiple_parameter_should_return_all() throws JsonProcessingException {
+        // create some tasks
+        TestVariables taskVariablesForTask1 = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
+        TestVariables taskVariablesForTask2 = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
+        String taskId1 = taskVariablesForTask1.getTaskId();
+        String taskId2 = taskVariablesForTask2.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // Given query
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, Arrays.asList("decision_making_work", "routine_work")))
+        );
+
+        // When
+        Response result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        //Then
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItems(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+            .body("tasks.id", hasItems(taskId1, taskId2))
+            .body("tasks.work_type", hasItems("decision_making_work", "routine_work"))
+            .body("total_records", equalTo(2));
+
+        common.cleanUpTask(taskVariablesForTask1.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(taskVariablesForTask2.getTaskId(), REASON_COMPLETED);
+    }
+
 
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();

@@ -11,7 +11,6 @@ public class TaskTest {
     ZonedDateTime created = ZonedDateTime.now();
     ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
 
-    //todo: check here
     @Test
     void should_create_full_object_and_get_values() {
 

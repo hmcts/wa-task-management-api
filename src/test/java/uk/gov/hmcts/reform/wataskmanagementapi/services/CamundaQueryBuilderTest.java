@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -29,6 +30,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 class CamundaQueryBuilderTest {
 
@@ -788,5 +790,73 @@ class CamundaQueryBuilderTest {
 
         JSONAssert.assertEquals(expected, resultJson, false);
     }
+
+    @Test
+    void createQuery_should_build_query_for_work_type()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, asList("someWorkType"))
+        ));
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"workType\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someWorkType\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
+    @Test
+    void createQuery_should_build_query_for_multiple_work_type()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, Arrays.asList("someWorkType", "anotherWorkType"))
+        ));
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"workType\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someWorkType\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"workType\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherWorkType\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}\n";
+
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
+
 
 }

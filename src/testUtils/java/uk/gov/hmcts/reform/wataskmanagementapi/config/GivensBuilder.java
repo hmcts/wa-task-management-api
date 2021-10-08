@@ -94,8 +94,28 @@ public class GivensBuilder {
     }
 
     //todo: check here
-    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings, boolean workType) {
-        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, warnings, workType);
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings) {
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, warnings);
+
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables
+        );
+
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
+    }
+
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, String taskId) {
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, taskId);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -251,7 +271,7 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWorkType(String caseId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId, String taskId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", "IA")
@@ -263,8 +283,8 @@ public class GivensBuilder {
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "followUpOverdueReasonsForAppeal")
-            .withProcessVariable("taskType", "followUpOverdueReasonsForAppeal")
+            .withProcessVariable("taskId", taskId)
+            .withProcessVariable("taskType", taskId)
             .withProcessVariable("taskCategory", "Case Progression")
             .withProcessVariable("taskState", "unconfigured")
             //for testing-purposes
@@ -470,24 +490,17 @@ public class GivensBuilder {
         }
     }
 
-    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, boolean warnings, boolean workType) {
-        if (!warnings && !workType) {
+    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, boolean warnings) {
+        if (warnings) {
+            return createDefaultTaskVariablesWithWarnings(caseId);
+        } else {
             return createDefaultTaskVariables(caseId);
         }
-
-        if (warnings) {
-            return initiateProcessVariablesWarningTrue(caseId, workType);
-        }
-
-        return createDefaultTaskVariablesWithWorkType(caseId);
     }
 
-    private Map<String, CamundaValue<?>> initiateProcessVariablesWarningTrue(String caseId, boolean workType) {
-        if (workType) {
-            return createDefaultTaskVariablesWithWarningsWithWorkType(caseId);
-        } else {
-            return createDefaultTaskVariablesWithWarnings(caseId);
-        }
+    //todo: mine
+    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskId) {
+        return createDefaultTaskVariables(caseId, taskId);
     }
 
     private class Modifications {

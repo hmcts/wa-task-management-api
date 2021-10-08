@@ -35,6 +35,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField.DUE_DATE_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.DESCENDANT;
 
@@ -77,6 +78,11 @@ public class CamundaQueryBuilder {
             CamundaVariableDefinition.CASE_ID,
             searchParametersMap.get(CASE_ID)
         );
+        //todo: check test
+        CamundaOrQuery.CamundaOrQueryBuilder workTypeQueries = createTaskVariableQueriesFor(
+            CamundaVariableDefinition.WORK_TYPE,
+            searchParametersMap.get(WORK_TYPE)
+        );
 
         CamundaSearchQuery.CamundaAndQueryBuilder queries = camundaQuery()
             .withKeyValue("processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY)
@@ -85,6 +91,7 @@ public class CamundaQueryBuilder {
             .andQuery(locationQueries)
             .andQuery(stateQueries)
             .andQuery(caseIdQueries)
+            .andQuery(workTypeQueries)
             .andSortingQuery(sortingQueries);
 
         //Safe-guard to avoid sending empty orQueries to camunda
@@ -108,21 +115,21 @@ public class CamundaQueryBuilder {
         CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.CASE_ID,
             new SearchParameter(CASE_ID,
-                                SearchOperator.IN, singletonList(caseId)
+                SearchOperator.IN, singletonList(caseId)
             )
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder taskIdQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.TASK_TYPE,
             new SearchParameter(TASK_ID,
-                                SearchOperator.IN, taskTypes
+                SearchOperator.IN, taskTypes
             )
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.TASK_STATE,
             new SearchParameter(STATE,
-                                SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())
+                SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())
             )
         );
 
