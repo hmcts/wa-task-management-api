@@ -15,7 +15,7 @@ public class SortingParameter {
 
     @ApiModelProperty(required = true,
         allowableValues = "dueDate, due_date, taskTitle, task_title, locationName, location_name, caseCategory, "
-            + "case_category, caseId, case_id, caseName, case_name",
+                          + "case_category, caseId, case_id, caseName, case_name, work_type",
         notes = "Support snake_case and camelCase values",
         example = "due_date")
     private SortField sortBy;

@@ -51,13 +51,6 @@ public class AttributesValueVerifier {
         return roleAssignmentCaseTypeId.equals(caseTypeId);
     }
 
-    //todo: check test
-    /*protected boolean hasWorkTypePermission(String roleAssignmentWorkType, Map<String, CamundaVariable> variables) {
-        String taskWorkType = getVariableValue(variables.get(WORK_TYPE.value()), String.class);
-        return roleAssignmentWorkType.equals(taskWorkType);
-
-    }*/
-
     private <T> T getVariableValue(CamundaVariable variable, Class<T> type) {
         Optional<T> value = camundaObjectMapper.read(variable, type);
         return value.orElse(null);

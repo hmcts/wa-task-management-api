@@ -78,7 +78,7 @@ public class CamundaQueryBuilder {
             CamundaVariableDefinition.CASE_ID,
             searchParametersMap.get(CASE_ID)
         );
-        //todo: check test
+        
         CamundaOrQuery.CamundaOrQueryBuilder workTypeQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.WORK_TYPE,
             searchParametersMap.get(WORK_TYPE)

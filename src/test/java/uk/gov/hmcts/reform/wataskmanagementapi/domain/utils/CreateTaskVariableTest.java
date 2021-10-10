@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 class CreateTaskVariableTest {
-    //todo: check here
+    
     private CamundaTask camundaTask;
     Map<String, CamundaVariable> localVariables;
 

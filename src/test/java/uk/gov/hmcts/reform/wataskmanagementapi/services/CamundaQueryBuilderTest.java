@@ -858,5 +858,54 @@ class CamundaQueryBuilderTest {
         JSONAssert.assertEquals(expected, resultJson, false);
     }
 
+    @Test
+    void createQuery_should_build_query_for_multiple_work_type_sort()
+        throws JsonProcessingException, JSONException {
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            asList(
+                new SearchParameter(WORK_TYPE, SearchOperator.IN, Arrays.asList("someWorkType", "anotherWorkType"))
+            ),
+            singletonList(
+                new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.DESCENDANT)
+            )
+        );
+
+        CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+        String expected = "{\n"
+                          + "  \"queries\": {\n"
+                          + "    \"orQueries\": [\n"
+                          + "      {\n"
+                          + "        \"taskVariables\": [\n"
+                          + "          {\n"
+                          + "            \"name\": \"workType\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"someWorkType\"\n"
+                          + "          },\n"
+                          + "          {\n"
+                          + "            \"name\": \"workType\",\n"
+                          + "            \"operator\": \"eq\",\n"
+                          + "            \"value\": \"anotherWorkType\"\n"
+                          + "          }\n"
+                          + "        ]\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"sorting\": [\n"
+                          + "      {\n"
+                          + "        \"sortBy\": \"taskVariable\",\n"
+                          + "        \"sortOrder\": \"desc\",\n"
+                          + "        \"parameters\": {\n"
+                          + "          \"variable\": \"workType\",\n"
+                          + "          \"type\": \"String\"\n"
+                          + "        }\n"
+                          + "      }\n"
+                          + "    ],\n"
+                          + "    \"processDefinitionKey\": \"wa-task-initiation-ia-asylum\"\n"
+                          + "  }\n"
+                          + "}";
+        JSONAssert.assertEquals(expected, resultJson, false);
+    }
 
 }

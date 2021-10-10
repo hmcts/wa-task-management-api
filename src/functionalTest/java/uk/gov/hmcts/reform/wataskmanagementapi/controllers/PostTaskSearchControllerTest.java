@@ -18,9 +18,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -47,6 +48,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
 
     private Headers authenticationHeaders;
+
+    private static final Map<String, String> TASK_ID_WORK_TYPE_MAP = new HashMap<>() {{
+        put("arrangeOfflinePayment", "routine_work");
+        put("followUpOverdueReasonsForAppeal", "decision_making_work");
+    }};
 
     @Before
     public void setUp() {
@@ -701,7 +707,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
     }
 
-    //todo: add more tasks here
     @Test
     public void should_return_a_200_with_work_type() {
         TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
@@ -732,7 +737,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_search_by_parameter_should_return_only_one() throws JsonProcessingException {
+    public void given_search_by_work_type_should_return_only_one() throws JsonProcessingException {
+
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
         TestVariables taskVariablesForTask2 = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
@@ -743,7 +749,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("decision_making_work")))
+            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList(TASK_ID_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))))
         );
 
         // When
@@ -756,12 +762,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariablesForTask1.getCaseId()))
             .body("tasks.id", hasItem(taskId1))
-            .body("tasks.work_type", hasItem("decision_making_work"))
+            .body("tasks.work_type", hasItem(TASK_ID_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal")))
             .body("total_records", equalTo(1));
 
         // Given query
         searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")))
+            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList(TASK_ID_WORK_TYPE_MAP.get("arrangeOfflinePayment"))))
         );
 
         // When
@@ -774,7 +780,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariablesForTask2.getCaseId()))
             .body("tasks.id", hasItem(taskId2))
-            .body("tasks.work_type", hasItem("routine_work"))
+            .body("tasks.work_type", hasItem(TASK_ID_WORK_TYPE_MAP.get("arrangeOfflinePayment")))
             .body("total_records", equalTo(1));
 
 
@@ -783,7 +789,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_search_by_multiple_parameter_should_return_all() throws JsonProcessingException {
+    public void given_search_by_multiple_work_type_should_return_all() throws JsonProcessingException {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
         TestVariables taskVariablesForTask2 = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
@@ -792,9 +798,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
-        // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, Arrays.asList("decision_making_work", "routine_work")))
+            singletonList(
+                new SearchParameter(WORK_TYPE, SearchOperator.IN, TASK_ID_WORK_TYPE_MAP.values()
+                    .stream().collect(Collectors.toList()))
+            )
         );
 
         // When
@@ -807,13 +815,65 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItems(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
             .body("tasks.id", hasItems(taskId1, taskId2))
-            .body("tasks.work_type", hasItems("decision_making_work", "routine_work"))
+            .body("tasks.work_type", hasItems(
+                TASK_ID_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
+                TASK_ID_WORK_TYPE_MAP.get("arrangeOfflinePayment")))
             .body("total_records", equalTo(2));
 
         common.cleanUpTask(taskVariablesForTask1.getTaskId(), REASON_COMPLETED);
         common.cleanUpTask(taskVariablesForTask2.getTaskId(), REASON_COMPLETED);
     }
 
+    @Test
+    public void given_sort_by_work_type_should_sort_by_work_type() throws JsonProcessingException {
+        // create some tasks
+        TestVariables taskVariablesForTask1 = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
+        TestVariables taskVariablesForTask2 = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // Given query
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        // When
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        // Then expect task2,tak1 order
+        List<String> actualCaseIdList = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body().path("tasks.case_id");
+
+        assertThat(actualCaseIdList).asList()
+            .containsSequence(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId());
+
+        // Given query
+        searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            singletonList(new SortingParameter(SortField.WORK_TYPE_CAMEL_CASE, SortOrder.ASCENDANT))
+        );
+
+        // When
+        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        // Then expect task2,task1 order
+        actualCaseIdList = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body().path("tasks.case_id");
+        assertThat(actualCaseIdList).asList()
+            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+
+        common.cleanUpTask(taskVariablesForTask1.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(taskVariablesForTask2.getTaskId(), REASON_COMPLETED);
+    }
 
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();

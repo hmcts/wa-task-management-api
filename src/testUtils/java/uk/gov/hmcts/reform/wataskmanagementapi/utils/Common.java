@@ -162,7 +162,6 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    //todo: check here
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
 
         String caseId = given.iCreateACcdCase();

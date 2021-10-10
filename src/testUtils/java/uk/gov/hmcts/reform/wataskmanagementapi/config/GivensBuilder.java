@@ -93,7 +93,6 @@ public class GivensBuilder {
         return this;
     }
 
-    //todo: check here
     public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings) {
         Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, warnings);
 
@@ -497,8 +496,7 @@ public class GivensBuilder {
             return createDefaultTaskVariables(caseId);
         }
     }
-
-    //todo: mine
+    
     private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskId) {
         return createDefaultTaskVariables(caseId, taskId);
     }
