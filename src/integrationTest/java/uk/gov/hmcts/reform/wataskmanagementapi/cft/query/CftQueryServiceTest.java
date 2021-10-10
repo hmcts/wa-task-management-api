@@ -117,7 +117,8 @@ public class CftQueryServiceTest {
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
-            1, 10, scenario.searchTaskRequest, accessControlResponse, permissionsRequired
+            scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
+            accessControlResponse, permissionsRequired
         );
 
         //then

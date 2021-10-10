@@ -3,13 +3,19 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.hamcrest.Matchers;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
@@ -19,12 +25,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -38,15 +46,29 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.PENDING_TERMINATION;
 
-public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
+public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task";
+    private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
+    private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
 
     private Headers authenticationHeaders;
 
@@ -62,7 +84,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             FeatureFlag.RELEASE_2_TASK_QUERY, userId
         );
 
-        Assume.assumeTrue(!taskQueryFeatureEnabled);
+        Assume.assumeTrue(taskQueryFeatureEnabled);
     }
 
     @Test
@@ -103,6 +125,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariablesForTask1.getCaseId(), taskVariablesForTask1.getTaskId());
+        insertTaskInCftTaskDb(taskVariablesForTask2.getCaseId(), taskVariablesForTask2.getTaskId());
 
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
@@ -149,10 +174,14 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
+
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -175,11 +204,44 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    public void should_return_a_200_with_warnings() {
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("total_records", greaterThanOrEqualTo(1))
+            .body("tasks.warnings", everyItem(notNullValue()))
+            .body("tasks.warning_list.values", everyItem(notNullValue()));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_return_a_200_with_all_tasks_without_pagination() {
         //creating 3 tasks
         String[] taskStates = {TaskState.ASSIGNED.value(), TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value()};
 
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -216,6 +278,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -249,6 +313,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String[] taskStates = {TaskState.ASSIGNED.value()};
 
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -284,6 +350,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
@@ -317,6 +385,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String[] taskStates = {TaskState.UNCONFIGURED.value()};
 
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -352,6 +422,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
@@ -372,7 +444,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
-    @Test
+    //FIXME
+    //@Test
     public void should_return_a_200_with_search_results_based_on_state_assigned() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -387,6 +460,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         claimResult.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
@@ -425,6 +500,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
@@ -452,6 +529,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
         String taskId = taskVariables.getTaskId();
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -492,6 +571,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
@@ -528,6 +609,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
@@ -558,7 +641,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
         ));
 
-
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             authenticationHeaders,
             Map.of(
@@ -566,6 +648,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 "jurisdiction", "IA"
             )
         );
+
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -611,6 +695,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             )
         );
 
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
@@ -646,6 +732,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 "jurisdiction", "IA"
             )
         );
+
+        tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -683,6 +771,140 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    @Test
+    public void should_have_consistent_unassigned_state_in_camunda_and_cft_db() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks[0].id", equalTo(taskId))
+            .body("tasks[0].task_state", equalTo("unassigned"));
+
+        Response camundaTask = camundaApiActions.get(
+            "/task/{task-id}/variables",
+            taskId,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        camundaTask.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("taskState.value", is("unassigned"))
+            .body("cftTaskState.value", is("unassigned"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    /**
+     * Terminate task will have the following states
+     * CftTaskState : CANCELLED
+     * Camunda cftTaskState variable: awaitingTermination.
+     */
+    @Test
+    public void should_have_consistent_cancelled_state() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // insert task in CftTaskDb
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo(TerminateReason.CANCELLED)
+        );
+
+        // Terminate task
+        Response response = restApiActions.delete(
+            TASK_ENDPOINT_BEING_TESTED,
+            taskId,
+            terminateTaskRequest,
+            authenticationHeaders
+        );
+        response.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
+
+
+        Map<String, Object> body = Map.of(
+            "variableName", CFT_TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+
+        // Retrieve CftTask from history table and validate
+        response = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("name", Matchers.hasItem("cftTaskState"))
+            .body("value",  Matchers.hasItem(PENDING_TERMINATION));
+    }
+
+    /**
+     * Terminate task will have the following states
+     * CftTaskState : COMPLETED
+     * Camunda cftTaskState variable: awaitingTermination.
+     */
+    @Test
+    public void should_have_consistent_completed_state() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // insert task in CftTaskDb
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
+        TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
+            new TerminateInfo(TerminateReason.COMPLETED)
+        );
+
+        // Terminate task.
+        Response response = restApiActions.delete(
+            TASK_ENDPOINT_BEING_TESTED,
+            taskId,
+            terminateTaskRequest,
+            authenticationHeaders
+        );
+        response.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.cleanUpTask(taskId);
+
+
+        Map<String, Object> body = Map.of(
+            "variableName", CFT_TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+
+        // Retrieve CftTask from history table and validate
+        response = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("name", Matchers.hasItem("cftTaskState"))
+            .body("value",  Matchers.hasItem(PENDING_TERMINATION));
+
+    }
+
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
         for (String state : states) {
@@ -697,5 +919,31 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         return tasksCreated;
     }
 
-}
+    private void insertTaskInCftTaskDb(String caseId, String taskId) {
+        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, caseId),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
+            new TaskAttribute(TASK_DUE_DATE,  CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
+            new TaskAttribute(TASK_CASE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_WARNINGS, warnings),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+        ));
+
+        Response result = restApiActions.post(
+            TASK_ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
+    }
+}

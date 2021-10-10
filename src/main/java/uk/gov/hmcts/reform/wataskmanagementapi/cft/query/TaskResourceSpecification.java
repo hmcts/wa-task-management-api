@@ -34,7 +34,6 @@ public final class TaskResourceSpecification {
     public static final String TASK_TYPE = "taskType";
     public static final String ASSIGNEE = "assignee";
     public static final String CASE_ID = "caseId";
-    public static final String ROLE_NAME = "roleName";
 
     private TaskResourceSpecification() {
         // avoid creating object
@@ -100,8 +99,8 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.STATE) != null) {
             final List<String> values = keyMap.get(SearchParameterKey.STATE).getValues();
-            final List<CFTTaskState> cftTaskStates = values.stream().map(CFTTaskState::valueOf)
-                .collect(Collectors.toList());
+            final List<CFTTaskState> cftTaskStates = values.stream().map(
+                value -> CFTTaskState.valueOf(value.toUpperCase(Locale.ROOT))).collect(Collectors.toList());
 
             return (root, query, builder) -> builder.in(root.get(STATE))
                 .value(cftTaskStates);

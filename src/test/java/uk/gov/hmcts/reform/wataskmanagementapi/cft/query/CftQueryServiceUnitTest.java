@@ -46,6 +46,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
@@ -154,6 +156,36 @@ public class CftQueryServiceUnitTest {
         assertNotNull(taskResourceList);
         assertTrue(taskResourceList.getTasks().isEmpty());
 
+    }
+
+    @Test
+    void shouldHandleInvalidPagination() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
+            new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
+            new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+        ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        GetTasksResponse<Task> taskResourceList
+            = cftQueryService.getAllTasks(
+                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        assertNotNull(taskResourceList);
+        assertTrue(taskResourceList.getTasks().isEmpty());
+
+        verify(taskResourceRepository, times(0))
+            .findAll(any(), any(Pageable.class));
     }
 
 
