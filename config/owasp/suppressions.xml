@@ -8,7 +8,7 @@
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
   </suppress>
-  <suppress until="2021-10-25">
+  <suppress until="2030-01-01">
     <notes><![CDATA[
      Suppressing as it's a false positive (see: https://github.com/jeremylong/DependencyCheck/issues/3594)
    ]]></notes>
