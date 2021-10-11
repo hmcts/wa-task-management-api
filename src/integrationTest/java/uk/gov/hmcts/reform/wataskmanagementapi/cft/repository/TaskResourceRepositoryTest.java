@@ -148,7 +148,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
                              "noteTypeVal",
-                             "userVal", OffsetDateTime.now(),
+                             "userVal",
                              "someContent"
             ));
         return new TaskResource(
