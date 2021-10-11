@@ -172,7 +172,6 @@ public class TaskSearchController extends BaseController {
                 accessControlResponse
             );
         }
-
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

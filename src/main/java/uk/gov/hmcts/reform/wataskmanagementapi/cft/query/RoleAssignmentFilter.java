@@ -60,7 +60,7 @@ public final class RoleAssignmentFilter {
         // avoid creating object
     }
 
-    public static Specification<TaskResource> buildRoleAssignmentConstraints(
+    protected static Specification<TaskResource> buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
         AccessControlResponse accessControlResponse) {
 
@@ -81,7 +81,7 @@ public final class RoleAssignmentFilter {
 
             // builds query for grant type EXCLUDED
             final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
-                root, builder, activeRoleAssignments);
+                root, taskRoleResources, builder, activeRoleAssignments);
 
             final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
 
@@ -90,7 +90,7 @@ public final class RoleAssignmentFilter {
             for (PermissionTypes type : permissionsRequired) {
                 permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
             }
-            final Predicate permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
+            final Predicate permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
 
             query.distinct(true);
 
@@ -145,6 +145,7 @@ public final class RoleAssignmentFilter {
     }
 
     private static Predicate buildQueryForExcluded(Root<TaskResource> root,
+                                                  final Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                   CriteriaBuilder builder,
                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
@@ -347,7 +348,7 @@ public final class RoleAssignmentFilter {
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
         }
-        return true;
+        return false;
     }
 
     private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
@@ -359,6 +360,6 @@ public final class RoleAssignmentFilter {
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
-        return true;
+        return false;
     }
 }
