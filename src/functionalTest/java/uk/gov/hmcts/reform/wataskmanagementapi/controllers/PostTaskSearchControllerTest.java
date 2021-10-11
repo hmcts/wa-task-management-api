@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +114,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         // Given query
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                Arrays.asList(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId()))
+        ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE_CFT, SortOrder.DESCENDANT))
         );
 
@@ -780,11 +784,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String firstTaskId = taskVariablesForTask1.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
+        
         // Given query
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN,
-                singletonList(TASK_ID_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))))
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+                singletonList(TASK_ID_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                Arrays.asList(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId()))
+        ),
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE_CFT, SortOrder.DESCENDANT))
         );
 
         // When
