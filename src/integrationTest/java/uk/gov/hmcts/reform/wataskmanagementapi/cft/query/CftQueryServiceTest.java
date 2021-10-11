@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -55,6 +57,8 @@ public class CftQueryServiceTest {
 
     private List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
+    @MockBean
+    private CamundaService camundaService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
 
@@ -62,8 +66,7 @@ public class CftQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        cftQueryService = new CftQueryService(taskResourceRepository);
-
+        cftQueryService = new CftQueryService(camundaService, taskResourceRepository);
     }
 
     @ParameterizedTest(name = "{0}")

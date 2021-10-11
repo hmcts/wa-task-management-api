@@ -35,9 +35,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @Slf4j
@@ -144,10 +147,21 @@ public class TaskSearchController extends BaseController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
-        final GetTasksCompletableResponse<Task> response = taskManagementService.searchForCompletableTasks(
-            searchEventAndCase,
-            accessControlResponse
+        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid()
         );
+        GetTasksCompletableResponse<Task> response;
+        if (isFeatureEnabled) {
+            List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
+            response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase, accessControlResponse, permissionsRequired);
+        }  else {
+            response = taskManagementService.searchForCompletableTasks(
+                searchEventAndCase,
+                accessControlResponse
+            );
+        }
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
