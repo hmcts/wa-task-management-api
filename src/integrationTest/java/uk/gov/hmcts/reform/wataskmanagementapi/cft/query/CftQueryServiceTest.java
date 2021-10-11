@@ -20,14 +20,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -76,8 +77,7 @@ public class CftQueryServiceTest {
         "withAllGrantTypesHappyPath",
         "inActiveRole",
         "sortByFieldScenario",
-        "paginatedResultsScenario",
-        "grantTypeChallengedScenarioHappyPath"
+        "paginatedResultsScenario"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         //given
@@ -85,15 +85,15 @@ public class CftQueryServiceTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         //when
-        final List<TaskResource> allTasks = cftQueryService.getAllTasks(
+        final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
             scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
             accessControlResponse, permissionsRequired
         );
 
         //then
-        Assertions.assertThat(allTasks)
+        Assertions.assertThat(allTasks.getTasks())
             .hasSize(scenario.expectedSize)
-            .flatExtracting(TaskResource::getTaskId, TaskResource::getCaseId)
+            .flatExtracting(Task::getId, Task::getCaseId)
             .containsExactly(
                 scenario.expectedTaskDetails.toArray()
             );
@@ -116,13 +116,12 @@ public class CftQueryServiceTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         //when
-        final List<TaskResource> allTasks = cftQueryService.getAllTasks(
-            scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
-            accessControlResponse, permissionsRequired
+        final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+            1, 10, scenario.searchTaskRequest, accessControlResponse, permissionsRequired
         );
 
         //then
-        Assertions.assertThat(allTasks)
+        Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
     }
 
