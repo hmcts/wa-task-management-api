@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +24,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,41 +57,55 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_locked_then_other_transactions_cannot_make_changes() {
+    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed()
+        throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
-        executorService.execute(() -> requireLockForGivenTask(task));
+        TaskResource taskResource = new TaskResource(
+            "some task id",
+            "some task name",
+            "some task type",
+            CFTTaskState.ASSIGNED
+        );
 
-        Future<?> futureResult = executorService.submit(() -> {
-            await().timeout(3, TimeUnit.SECONDS);
-            requireLockForGivenTask(task);
-            task.setAssignee("changed assignee");
-            taskResourceRepository.save(task);
+        executorService.execute(() -> {
+            taskResourceRepository.insertAndLock(taskResource.getTaskId());
+            await().timeout(10, TimeUnit.SECONDS);
+            taskResourceRepository.save(taskResource);
         });
 
-        await()
-            .ignoreException(AssertionError.class)
-            .pollInterval(2, TimeUnit.SECONDS)
-            .atMost(7, TimeUnit.SECONDS)
-            .until(() -> {
-                Exception exception = Assertions.assertThrows(Exception.class, futureResult::get);
-                log.info(exception.toString());
-                assertThat(exception).hasMessageContaining("PessimisticLockException");
+        TaskResource otherTaskResource = new TaskResource(
+            "other task id",
+            "other task name",
+            "other task type",
+            CFTTaskState.ASSIGNED
+        );
 
-                return true;
-            });
+        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId()));
+        checkTaskWasSaved(taskResource.getTaskId());
+        checkTaskWasSaved(otherTaskResource.getTaskId());
 
-        transactionHelper.doInNewTransaction(() -> {
-            TaskResource dbTask = taskResourceRepository.getByTaskId(task.getTaskId()).orElseThrow();
-            assertEquals("someAssignee", dbTask.getAssignee());
+        executorService.shutdown();
+        //noinspection ResultOfMethodCallIgnored
+        executorService.awaitTermination(13, TimeUnit.SECONDS);
+    }
 
-        });
+    private void checkTaskWasSaved(String taskId) {
+        assertEquals(
+            taskId,
+            taskResourceRepository.getByTaskId(taskId).orElseThrow().getTaskId()
+        );
     }
 
     @Test
-    void shouldReadTaskData() {
-        assertTrue(taskResourceRepository.findById(taskId).isPresent());
-        WorkTypeResource workTypeResource = taskResourceRepository.findById(taskId).get().getWorkTypeResource();
+    void given_task_is_saved_when_findById_then_task_has_expected_fields() {
+        TaskResource str = createTask(taskId);
+        assertEquals(1, taskResourceRepository.count());
+        assertTrue(taskResourceRepository.findById(str.getTaskId()).isPresent());
+
+        WorkTypeResource workTypeResource = taskResourceRepository
+            .findById(str.getTaskId()).get().getWorkTypeResource();
+
         assertEquals("routine_work", workTypeResource.getId());
         assertEquals("Routine work", workTypeResource.getLabel());
 
@@ -109,8 +121,10 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
-            () -> assertEquals(LocalDate.of(2022, 05, 9),
-                taskResource.getAssignmentExpiry().toLocalDate()),
+            () -> assertEquals(
+                LocalDate.of(2022, 5, 9),
+                taskResource.getAssignmentExpiry().toLocalDate()
+            ),
             () -> assertNotNull(notes),
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
@@ -119,27 +133,23 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         assertEquals(1, taskRoles.size());
 
         final TaskRoleResource taskRole = taskRoles.iterator().next();
-        List<String> expectedAuthorizations = asList("SPECIFIC", "BASIC");
+        String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
 
         assertAll(
             () -> assertNotNull(taskRole.getTaskRoleId()),
             () -> assertEquals(taskId, taskRole.getTaskId()),
             () -> assertTrue(taskRole.getRead()),
             () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
-            () -> assertEquals(expectedAuthorizations, taskRole.getAuthorizations())
+            () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
         );
-    }
-
-    private void requireLockForGivenTask(TaskResource task) {
-        transactionHelper.doInNewTransaction(() -> taskResourceRepository.findById(task.getTaskId()));
     }
 
     private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
-                "noteTypeVal",
-                "userVal", OffsetDateTime.now(),
-                "someContent"
+                             "noteTypeVal",
+                             "userVal", OffsetDateTime.now(),
+                             "someContent"
             ));
         return new TaskResource(
             taskId,
@@ -180,7 +190,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 false,
                 false,
                 false,
-                asList("SPECIFIC", "BASIC"),
+                new String[]{"SPECIFIC", "BASIC"},
                 0,
                 false,
                 "JUDICIAL",

@@ -15,7 +15,9 @@ import java.util.List;
 @ToString
 public class SearchParameter {
 
-    @ApiModelProperty(required = true, allowableValues = "location, user, jurisdiction, state, work_type", example = "user")
+    @ApiModelProperty(required = true,
+        allowableValues = "location, user, jurisdiction, state, work_type",
+        example = "user")
     private SearchParameterKey key;
     @ApiModelProperty(allowableValues = "IN", example = "IN")
     private SearchOperator operator;

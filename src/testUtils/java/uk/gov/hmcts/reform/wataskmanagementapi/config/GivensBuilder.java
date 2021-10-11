@@ -270,7 +270,7 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId, String taskId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithTaskId(String caseId, String taskId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", "IA")
@@ -496,9 +496,9 @@ public class GivensBuilder {
             return createDefaultTaskVariables(caseId);
         }
     }
-    
+
     private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskId) {
-        return createDefaultTaskVariables(caseId, taskId);
+        return createDefaultTaskVariablesWithTaskId(caseId, taskId);
     }
 
     private class Modifications {
