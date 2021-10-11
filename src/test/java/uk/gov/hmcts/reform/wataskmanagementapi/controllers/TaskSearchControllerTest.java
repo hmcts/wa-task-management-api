@@ -235,4 +235,5 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
+
 }
