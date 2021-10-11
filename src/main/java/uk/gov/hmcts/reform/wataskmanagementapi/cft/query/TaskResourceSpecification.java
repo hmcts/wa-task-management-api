@@ -41,6 +41,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods", "PMD.LawOfDemeter", "PMD.ExcessiveImports"})
 public final class TaskResourceSpecification {
 
+    public static final String LOCATION = "location";
+    public static final String TASK_ID = "taskId";
+    public static final String TASK_TYPE = "taskType";
+    public static final String CASE_ID = "caseId";
+    public static final String ROLE_NAME = "roleName";
+    public static final String WORK_TYPE = "workTypeResource";
+
     private TaskResourceSpecification() {
         // avoid creating object
     }
