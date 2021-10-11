@@ -3,7 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
@@ -16,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.ArrayList;
@@ -30,11 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
-    private static final String ENDPOINT_PATH = "/work-types/users";
+    private static final String ENDPOINT_PATH = "/work-types";
 
     @MockBean
     private IdamWebApi idamWebApi;
@@ -60,7 +67,22 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_a_valid_work_type_list_when_user_has_work_types() throws Exception {
+    void should_return_all_work_types_when_filter_is_not_provided() throws Exception {
+        mockMvc.perform(
+            get(ENDPOINT_PATH)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isOk(),
+                jsonPath("$.work_types").isNotEmpty(),
+                jsonPath("$.work_types.length()").value(8)
+            ));
+    }
+
+    @Test
+    void should_return_200_and_valid_work_type_list_when_user_has_work_types() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
@@ -86,17 +108,17 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(accessControlService.getRoles(any()))
             .thenReturn(accessControlResponse);
 
-        MvcResult postResponse = mockMvc.perform(
-            get(ENDPOINT_PATH).header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+        MvcResult getResponse = mockMvc.perform(
+            get(ENDPOINT_PATH + "?filter-by-user=true").header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
         ).andReturn();
 
-        var expectedResponse = "[{\"id\":\"upper_tribunal\",\"label\":\"Upper Tribunal\"},"
-                               + "{\"id\":\"hearing_work\",\"label\":\"Hearing work\"}]";
-        assertEquals(expectedResponse, postResponse.getResponse().getContentAsString());
+        var expectedResponse = "{\"work_types\":[{\"id\":\"upper_tribunal\",\"label\":\"Upper Tribunal\"},"
+                               + "{\"id\":\"hearing_work\",\"label\":\"Hearing work\"}]}";
+        assertEquals(expectedResponse, getResponse.getResponse().getContentAsString());
     }
 
     @Test
-    void should_return_empty_list_when_work_types_are_given() throws Exception {
+    void should_return_200_and_empty_list_when_user_has_no_work_types() throws Exception {
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
@@ -121,10 +143,53 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         when(accessControlService.getRoles(any()))
             .thenReturn(accessControlResponse);
 
-        MvcResult postResponse = mockMvc.perform(get(ENDPOINT_PATH)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)).andReturn();
+        mockMvc.perform(
+            get(ENDPOINT_PATH + "?filter-by-user=true")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isOk(),
+                jsonPath("$.work_types").isEmpty()
+            )
+        );
+    }
 
-        assertEquals("[]", postResponse.getResponse().getContentAsString());
+    @Test
+    void should_return_401_when_invalid_user_access() throws Exception {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        // Role attribute is IA
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+            .forEach(roleType -> {
+                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
+                    UUID.randomUUID().toString(), "tribunal-caseworker",
+                    roleType,
+                    Classification.PUBLIC,
+                    roleAttributes
+                );
+                allTestRoles.add(roleAssignment);
+            }));
+
+        when(accessControlService.getRoles(any()))
+            .thenThrow(UnAuthorizedException.class);
+
+        mockMvc.perform(
+            get(ENDPOINT_PATH + "?filter-by-user=true")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isUnauthorized()
+            ));
+
     }
 }
 
