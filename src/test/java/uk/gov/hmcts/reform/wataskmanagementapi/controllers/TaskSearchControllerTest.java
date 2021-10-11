@@ -195,7 +195,6 @@ class TaskSearchControllerTest {
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
             new SearchTaskRequest(
                 singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")))
-                //singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
             )
         );
 
