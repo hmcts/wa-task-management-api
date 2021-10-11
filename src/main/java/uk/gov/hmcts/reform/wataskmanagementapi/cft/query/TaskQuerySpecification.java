@@ -89,6 +89,10 @@ public final class TaskQuerySpecification {
         return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID))
             .value(workTypes);
     }
+    protected static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
+        return (root, query, builder) -> builder.in(root.get(TASK_ID))
+            .value(taskIds);
+    }
 
     public static Specification<TaskResource> searchByRoleCategory(List<String> roleCategories) {
         if (isEmpty(roleCategories)) {
