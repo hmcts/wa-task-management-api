@@ -74,8 +74,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private PermissionEvaluatorService permissionEvaluatorService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Autowired
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @MockBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired
@@ -116,15 +114,14 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            taskAutoAssignmentService
         );
 
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID
             )
         ).thenReturn(true);
 

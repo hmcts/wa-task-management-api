@@ -45,7 +45,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class TaskSearchControllerTest {
@@ -199,8 +198,8 @@ class TaskSearchControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_TASK_QUERY,
-            mockedUserInfo.getUid()
+                RELEASE_2_TASK_QUERY,
+                mockedUserInfo.getUid()
             )
         ).thenReturn(true);
 
@@ -218,21 +217,5 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalRecords());
-    }
-
-    @Test
-    void should_succeed_when_performing_search_with_work_type_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
-
-        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
-            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
-            new SearchTaskRequest(
-                singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")))
-            )
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 }

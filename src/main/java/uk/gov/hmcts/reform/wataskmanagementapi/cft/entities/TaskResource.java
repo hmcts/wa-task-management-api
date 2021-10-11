@@ -88,7 +88,7 @@ public class TaskResource implements Serializable {
     private String assignee;
     private Boolean autoAssigned = false;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
     private WorkTypeResource workTypeResource;
     private String roleCategory;

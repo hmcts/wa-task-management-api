@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectExce
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -70,8 +69,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
+    
     TaskManagementService taskManagementService;
     String taskId;
 
@@ -85,8 +83,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            taskAutoAssignmentService
         );
 
         taskId = UUID.randomUUID().toString();
@@ -136,8 +133,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID
                     )
                 ).thenReturn(true);
 
@@ -168,8 +165,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID
                     )
                 ).thenReturn(false);
 
@@ -228,8 +225,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .thenReturn(Optional.empty());
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID
                     )
                 ).thenReturn(true);
 
@@ -277,8 +274,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID
                     )
                 ).thenReturn(true);
 
@@ -312,8 +309,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID
                     )
                 ).thenReturn(false);
 
@@ -405,8 +402,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .thenReturn(Optional.empty());
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID
                     )
                 ).thenReturn(true);
 
