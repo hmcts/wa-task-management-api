@@ -298,7 +298,6 @@ public class CFTTaskMapper {
                         warning.getWarningCode(),
                         "WARNING",
                         null,
-                        OffsetDateTime.now(),
                         warning.getWarningText()
                     )).collect(Collectors.toList());
             }

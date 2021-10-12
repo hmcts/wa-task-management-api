@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
@@ -33,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -255,5 +258,37 @@ class TaskActionsControllerTest {
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
         assertEquals(exceptionMessage, response.getBody().getMessage());
 
+    }
+
+    @Test
+    void should_update_notes() {
+        NotesRequest notesRequest = new NotesRequest(List.of());
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(taskManagementService.updateNotes(taskId, notesRequest)).thenReturn(any());
+        ResponseEntity<Void> response = taskActionsController
+            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, taskId, notesRequest);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
+    void should_return_403_when_task_updated_with_notes_and_with_insufficient_permission() {
+        NotesRequest notesRequest = new NotesRequest(List.of());
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(false);
+
+        assertThatThrownBy(() -> taskActionsController
+            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, taskId, notesRequest))
+            .isInstanceOf(GenericForbiddenException.class)
+            .hasNoCause()
+            .hasMessage("Forbidden: "
+                        + "The action could not be completed because the "
+                        + "client/user had insufficient rights to a resource.");
+
+        verify(taskManagementService, times(0))
+            .updateNotes(taskId, notesRequest);
     }
 }

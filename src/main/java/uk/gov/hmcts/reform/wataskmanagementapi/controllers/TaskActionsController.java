@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControl
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
@@ -38,6 +39,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
+@SuppressWarnings({"PMD.ExcessiveImports"})
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
@@ -215,6 +217,36 @@ public class TaskActionsController extends BaseController {
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
         taskManagementService.cancelTask(taskId, accessControlResponse);
+
+        return ResponseEntity
+            .noContent()
+            .cacheControl(CacheControl.noCache())
+            .build();
+    }
+
+    @ApiOperation("Update Task with notes")
+    @ApiResponses({
+        @ApiResponse(code = 204, message = "Updated Task with notes", response = Object.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+    })
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PostMapping(path = "/{task-id}/notes")
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public ResponseEntity<Void> updatesTaskWithNotes(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
+        @PathVariable(TASK_ID) String taskId,
+        @RequestBody NotesRequest notesRequest
+    ) {
+
+        boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
+        if (!hasAccess) {
+            throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
+
+        taskManagementService.updateNotes(taskId, notesRequest);
 
         return ResponseEntity
             .noContent()

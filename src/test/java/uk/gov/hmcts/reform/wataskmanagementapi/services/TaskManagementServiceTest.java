@@ -15,11 +15,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
@@ -42,6 +44,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -2293,7 +2296,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
     }
 
-
     @Nested
     @DisplayName("searchForCompletableTasks()")
     class SearchForCompletableTasks {
@@ -2723,4 +2725,88 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
     }
+
+    @Nested
+    @DisplayName("updateNotes()")
+    class UpdateNotes {
+        @Test
+        void should_succeed() {
+            List<NoteResource> existingNotesList = new ArrayList<>();
+            final NoteResource existingNoteResource = new NoteResource("someCode",
+                "noteTypeVal",
+                "userVal",
+                "someContent"
+            );
+            existingNotesList.add(existingNoteResource);
+
+            TaskResource taskResourceById = new TaskResource(
+                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+            taskResourceById.setNotes(existingNotesList);
+
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(any()))
+                .thenReturn(Optional.of(taskResourceById));
+
+            List<NoteResource> mergedNotesList = new ArrayList<>();
+            NoteResource noteResource = new NoteResource("Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            mergedNotesList.add(noteResource);
+            noteResource = new NoteResource("Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            mergedNotesList.add(noteResource);
+
+            TaskResource mergedTaskResource = new TaskResource(
+                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+
+            mergedTaskResource.setNotes(mergedNotesList);
+            when(cftTaskDatabaseService.saveTask(any()))
+                .thenReturn(mergedTaskResource);
+
+            final NoteResource newNoteResource = new NoteResource(
+                "Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
+
+            final TaskResource expected = taskManagementService.updateNotes("taskId", notesRequest);
+
+            assertEquals(expected, mergedTaskResource);
+            verify(cftTaskDatabaseService, times(1))
+                .findByIdAndObtainPessimisticWriteLock(any());
+            verify(cftTaskDatabaseService, times(1))
+                .saveTask(any());
+        }
+
+        @Test
+        void should_throw_resource_not_found_exception_when_task_id_not_present() {
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock("taskId"))
+                .thenReturn(Optional.empty());
+
+            final NotesRequest notesRequest = new NotesRequest(List.of());
+
+            assertThatThrownBy(() -> taskManagementService.updateNotes("taskId", notesRequest))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasNoCause()
+                .hasMessage("Resource not found");
+
+            verify(cftTaskDatabaseService, times(1))
+                .findByIdAndObtainPessimisticWriteLock("taskId");
+            verify(cftTaskDatabaseService, times(0))
+                .saveTask(any());
+        }
+
+    }
+
+
 }
