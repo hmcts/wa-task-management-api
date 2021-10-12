@@ -90,7 +90,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         taskId1 = null;
         taskId2 = null;
     }
-    
+
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
@@ -728,10 +728,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", greaterThanOrEqualTo(1));
     }
 
-    //given_sort_by_work_type_should_sort_by_work_type
-    //given_search_by_work_type_should_return_only_one
-    //given_search_by_multiple_work_type_should_return_all
-    //should_return_a_200_empty_list_when_the_user_did_not_have_any_roles
     @Test
     public void should_return_a_200_with_work_type() {
         TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
@@ -835,7 +831,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_sort_by_work_type_should_sort_by_work_type() throws JsonProcessingException {
+    public void given_search_by_work_type_should_sort_by_work_type() throws JsonProcessingException {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
         TestVariables taskVariablesForTask2 = common
