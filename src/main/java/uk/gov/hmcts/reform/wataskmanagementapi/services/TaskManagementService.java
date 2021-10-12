@@ -148,6 +148,7 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
+            task.setAssignee(accessControlResponse.getUserInfo().getUid());
             //Perform Camunda updates
             camundaService.claimTask(taskId,accessControlResponse.getUserInfo().getUid());
             //Commit transaction
@@ -187,6 +188,7 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.UNASSIGNED);
+            task.setAssignee(null);
             //Perform Camunda updates
             camundaService.unclaimTask(taskId,taskHasUnassigned);
             //Commit transaction
@@ -334,7 +336,7 @@ public class TaskManagementService {
 
         requireNonNull(accessControlResponse.getUserInfo().getUid(), USER_ID_CANNOT_BE_NULL);
         List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
-        boolean taskHasCompleted;
+        boolean taskHasCompleted = false;
         final String userId = accessControlResponse.getUserInfo().getUid();
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -349,7 +351,6 @@ public class TaskManagementService {
                 accessControlResponse,
                 permissionsRequired);
 
-            taskHasCompleted = taskResource.getState().equals(CFTTaskState.COMPLETED);
             //Safe-guard
             if (taskResource.getAssignee() == null) {
                 throw new TaskStateIncorrectException(
@@ -370,6 +371,7 @@ public class TaskManagementService {
             // Check that task state was not already completed
             String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
             taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
+
             roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
                 camundaTask.getAssignee(),
                 userId,
@@ -384,13 +386,22 @@ public class TaskManagementService {
         );
 
         if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
+
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
-            task.setState(CFTTaskState.COMPLETED);
-            //Perform Camunda updates
-            camundaService.completeTask(taskId, taskHasCompleted);
-            //Commit transaction
-            cftTaskDatabaseService.saveTask(task);
+            taskHasCompleted = task.getState() == CFTTaskState.COMPLETED;
+
+            // If task was not already completed complete it
+            if (taskHasCompleted) {
+                //Perform Camunda updates
+                camundaService.completeTask(taskId, taskHasCompleted);
+            } else {
+                task.setState(CFTTaskState.COMPLETED);
+                //Perform Camunda updates
+                camundaService.completeTask(taskId, taskHasCompleted);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+            }
         } else {
             camundaService.completeTask(taskId, taskHasCompleted);
         }

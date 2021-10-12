@@ -1314,8 +1314,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
-
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_ENDPOINTS_FEATURE,
@@ -1326,7 +1324,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             taskManagementService.completeTask(taskId, accessControlResponse);
             boolean taskStateIsCompletedAlready = taskResource.getState().equals(CFTTaskState.COMPLETED);
             assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
-            verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+            verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
         }
 
@@ -1404,7 +1402,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
             when(taskResource.getAssignee()).thenReturn(null);
-            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_ENDPOINTS_FEATURE,
@@ -2008,7 +2005,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN,EXECUTE)))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
-                when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
+                when(taskResource.getState()).thenReturn(CFTTaskState.CANCELLED);
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
@@ -2036,8 +2033,51 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 );
                 boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
                     .equals(taskResource.getState().getValue());
-                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+                verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
+            }
+
+            @Test
+            void should_succeed_task_already_complete_and_feature_flag_is_on() {
+                AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+                List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+                when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
+                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+
+                TaskResource taskResource = spy(TaskResource.class);
+                when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
+                when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN,EXECUTE)))
+                    .thenReturn(Optional.of(taskResource));
+                when(taskResource.getAssignee()).thenReturn(IDAM_USER_ID);
+                when(taskResource.getState()).thenReturn(CFTTaskState.COMPLETED);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(true);
+
+                taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
+                    taskId,
+                    accessControlResponse,
+                    new CompletionOptions(false)
+                );
+                boolean taskStateIsCompletedAlready = CFTTaskState.COMPLETED.getValue()
+                    .equals(taskResource.getState().getValue());
+                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
                 verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
             }
 
@@ -2125,7 +2165,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN, EXECUTE)))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(null);
-                when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,

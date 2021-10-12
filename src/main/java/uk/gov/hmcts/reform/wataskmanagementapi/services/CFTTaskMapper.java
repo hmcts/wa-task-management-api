@@ -69,7 +69,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity","PMD.TooManyMethods"})
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -306,6 +306,18 @@ public class CFTTaskMapper {
         return notes;
     }
 
+    private WarningValues mapNoteResourceToWarnings(List<NoteResource> notes) {
+
+        if (notes != null) {
+            List<Warning> warnings = notes.stream()
+                .filter(noteResource -> "WARNING".equals(noteResource.getNoteType()))
+                .map(noteResource -> new Warning(noteResource.getCode(),noteResource.getContent()))
+                .collect(Collectors.toList());
+            return new WarningValues(warnings);
+        }
+        return null;
+    }
+
     @SuppressWarnings("unchecked")
     private <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
                        TaskAttributeDefinition extractor,
@@ -360,7 +372,7 @@ public class CFTTaskMapper {
                      taskResource.getRoleCategory(),
                      taskResource.getCaseName(),
                      taskResource.getHasWarnings(),
-                     null,
+                     mapNoteResourceToWarnings(taskResource.getNotes()),
                      taskResource.getCaseCategory());
     }
 }
