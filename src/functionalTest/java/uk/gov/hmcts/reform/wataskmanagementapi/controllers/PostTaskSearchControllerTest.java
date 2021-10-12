@@ -7,7 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -80,7 +79,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
         common.clearAllRoleAssignments(authenticationHeaders);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
     }
 
     @After
@@ -92,28 +90,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         taskId1 = null;
         taskId2 = null;
     }
-
-    @Test
-    @Order(1)
-    public void cleanProcesses() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
-        );
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization()
-        );
-
-        List<String> tasks = result.then()
-            .extract()
-            .body()
-            .path("tasks.id");
-
-        tasks.forEach(task -> common.cleanUpTask(task, REASON_COMPLETED));
-    }
-
+    
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
@@ -751,6 +728,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("total_records", greaterThanOrEqualTo(1));
     }
 
+    //given_sort_by_work_type_should_sort_by_work_type
+    //given_search_by_work_type_should_return_only_one
+    //given_search_by_multiple_work_type_should_return_all
+    //should_return_a_200_empty_list_when_the_user_did_not_have_any_roles
     @Test
     public void should_return_a_200_with_work_type() {
         TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds("followUpOverdueReasonsForAppeal");
@@ -796,7 +777,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameter(WORK_TYPE, SearchOperator.IN,
                 singletonList(TASK_ID_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))),
             new SearchParameter(CASE_ID, SearchOperator.IN,
-                Arrays.asList(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId()))
+                asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
         ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE_CFT, SortOrder.DESCENDANT))
         );
@@ -828,11 +809,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(
-                new SearchParameter(WORK_TYPE, SearchOperator.IN, TASK_ID_WORK_TYPE_MAP.values()
-                    .stream().collect(Collectors.toList()))
-            )
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, TASK_ID_WORK_TYPE_MAP.values()
+                .stream().collect(Collectors.toList())),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+        ),
+            singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.DESCENDANT))
         );
 
         // When
@@ -861,8 +844,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         // Given query
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, TASK_ID_WORK_TYPE_MAP.values()
+                .stream().collect(Collectors.toList())),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+        ),
             singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.DESCENDANT))
         );
 
@@ -882,9 +869,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .containsSequence(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId());
 
         // Given query
-        searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-            singletonList(new SortingParameter(SortField.WORK_TYPE_CAMEL_CASE, SortOrder.ASCENDANT))
+        searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, TASK_ID_WORK_TYPE_MAP.values()
+                .stream().collect(Collectors.toList())),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+        ),
+            singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.ASCENDANT))
         );
 
         // When
