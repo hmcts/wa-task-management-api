@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 
 import java.util.ArrayList;
@@ -59,8 +58,12 @@ public class WorkTypesService {
         return workTypes;
     }
 
+    public List<WorkType> getAllWorkTypes() {
+        return cftWorkTypeDatabaseService.getAllWorkTypes();
+    }
+
     private Optional<WorkType> getWorkType(String workTypeId) {
-        Optional<WorkTypeResource> workTypeResource = cftWorkTypeDatabaseService.findById(workTypeId);
+        Optional<WorkType> workTypeResource = cftWorkTypeDatabaseService.findById(workTypeId);
         if (workTypeResource.isEmpty()) {
             return Optional.empty();
         }

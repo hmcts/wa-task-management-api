@@ -12,22 +12,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
@@ -44,24 +36,6 @@ public class WorkTypesController extends BaseController {
         this.workTypesService = workTypesService;
     }
 
-    @ApiOperation("Retrieve a list of work types for the current user")
-    @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetWorkTypesResponse.class),
-        @ApiResponse(code = 502, message = "Downstream Dependency Error", response = String.class),
-        @ApiResponse(code = 503, message = "Service Unavailable", response = String.class)
-    })
-    @GetMapping(path = "/users")
-    public ResponseEntity<GetWorkTypesResponse> getWorkTypes(@RequestHeader(AUTHORIZATION) String authToken) {
-
-        AccessControlResponse roles = accessControlService.getRoles(authToken);
-        List<WorkType> workTypes = workTypesService.getWorkTypes(roles);
-        return ResponseEntity
-            .ok()
-            .cacheControl(CacheControl.noCache())
-            .body(new GetWorkTypesResponse(workTypes));
-
-    }
-
     @ApiOperation("Retrieve a list of work types with or without filter by user")
     @ApiResponses({
         @ApiResponse(code = 200, message = OK, response = GetTaskResponse.class),
@@ -69,7 +43,9 @@ public class WorkTypesController extends BaseController {
         @ApiResponse(code = 403, message = FORBIDDEN),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR),
+        @ApiResponse(code = 502, message = "Downstream Dependency Error", response = String.class),
+        @ApiResponse(code = 503, message = "Service Unavailable", response = String.class)
     })
     @GetMapping
     public ResponseEntity<GetWorkTypesResponse> getWorkTypes(
@@ -78,38 +54,16 @@ public class WorkTypesController extends BaseController {
             required = false, name = "filter-by-user", defaultValue = "false") boolean filterByUser
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
-        List<WorkType> workTypes = new ArrayList<>();
+        List<WorkType> workTypes;
         if (filterByUser) {
-            if (!roles.getRoleAssignments().isEmpty()) {
-                Set<String> roleWorkTypes = getActorWorkTypes(roles);
-
-                if (!roleWorkTypes.isEmpty()) {
-                    for (String workTypeId : roleWorkTypes) {
-                        Optional<WorkType> optionalWorkType = cftWorkTypeDatabaseService.getWorkType(workTypeId.trim());
-
-                        optionalWorkType.ifPresent(workTypes::add);
-                    }
-                }
-            }
+            workTypes = workTypesService.getWorkTypes(roles);
         } else {
-            workTypes = cftWorkTypeDatabaseService.getAllWorkTypes();
+            workTypes = workTypesService.getAllWorkTypes();
         }
 
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
-            .body(new GetWorkTypesResponse<>(workTypes));
-    }
-
-    private Set<String> getActorWorkTypes(AccessControlResponse accessControlResponse) {
-        Set<String> roleWorkTypes = new HashSet<>();
-
-        for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
-            if (assignedWorkedList != null && !assignedWorkedList.isEmpty()) {
-                roleWorkTypes.addAll(Arrays.asList(assignedWorkedList.split(",")));
-            }
-        }
-        return roleWorkTypes;
+            .body(new GetWorkTypesResponse(workTypes));
     }
 }

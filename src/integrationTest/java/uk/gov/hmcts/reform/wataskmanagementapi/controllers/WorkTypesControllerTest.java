@@ -21,7 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeD
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -113,9 +112,9 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
 
 
         when(cftWorkTypeDatabaseService.findById("upper_tribunal"))
-            .thenReturn(Optional.of(new WorkTypeResource("upper_tribunal", "Upper Tribunal")));
+            .thenReturn(Optional.of(new WorkType("upper_tribunal", "Upper Tribunal")));
         when(cftWorkTypeDatabaseService.findById("hearing_work"))
-            .thenReturn(Optional.of(new WorkTypeResource("hearing_work", "Hearing work")));
+            .thenReturn(Optional.of(new WorkType("hearing_work", "Hearing work")));
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 

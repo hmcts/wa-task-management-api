@@ -35,7 +35,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -91,7 +90,7 @@ class WorkTypesControllerTest {
         when(workTypesService.getWorkTypes(accessControlResponse))
             .thenReturn(singletonList(workType));
 
-        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN, true);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -130,7 +129,7 @@ class WorkTypesControllerTest {
         ))
             .thenReturn(asList(workType, workType2));
 
-        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN, true);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -147,7 +146,7 @@ class WorkTypesControllerTest {
     @Test
     void should_return_empty_list_when_user_work_types_is_null() {
         UserInfo userInfo = new UserInfo("", "",
-            new ArrayList<>(Arrays.asList("Role1","Role2")),
+            new ArrayList<>(Arrays.asList("Role1", "Role2")),
             "",
             "",
             "");
@@ -164,19 +163,19 @@ class WorkTypesControllerTest {
             false,
             workTypesMap);
         List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, roleAssignmentList);
 
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
-        ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(
             IDAM_AUTH_TOKEN, true
         );
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody().getWorkTypes());
         assertEquals(emptyList(), response.getBody().getWorkTypes());
-        verify(cftWorkTypeDatabaseService, times(0)).getWorkType(anyString());
+        verify(workTypesService, times(1)).getWorkTypes(any());
     }
 
     @Test
@@ -197,7 +196,7 @@ class WorkTypesControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(accessControlResponse);
 
-        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN, true);
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -211,7 +210,7 @@ class WorkTypesControllerTest {
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
             .thenReturn(mockedAccessControlResponse);
 
-        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);
+        ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN, true);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());

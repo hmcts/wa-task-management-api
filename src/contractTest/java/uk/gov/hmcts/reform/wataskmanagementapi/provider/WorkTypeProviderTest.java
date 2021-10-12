@@ -25,9 +25,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.WorkTypesController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,7 +58,7 @@ public class WorkTypeProviderTest {
     private AccessControlService accessControlService;
 
     @Mock
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
+    private WorkTypesService workTypesService;
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -71,8 +72,8 @@ public class WorkTypeProviderTest {
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
         testTarget.setControllers(new WorkTypesController(
-            cftWorkTypeDatabaseService,
-            accessControlService
+            accessControlService,
+            workTypesService
         ));
         if (context != null) {
             context.setTarget(testTarget);
@@ -82,17 +83,17 @@ public class WorkTypeProviderTest {
     @State({"retrieve all work types"})
     public void allWorkTypes() {
         List<WorkType> workTypes = new ArrayList<>();
-        workTypes.add(new WorkType("hearing_work","Hearing Work"));
+        workTypes.add(new WorkType("hearing_work", "Hearing Work"));
 
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(cftWorkTypeDatabaseService.getAllWorkTypes()).thenReturn(workTypes);
+        when(workTypesService.getAllWorkTypes()).thenReturn(workTypes);
     }
 
     @State({"retrieve work types by userId"})
     public void workTypesByUserId() {
         List<WorkType> workTypes = new ArrayList<>();
-        workTypes.add(new WorkType("hearing_work","Hearing Work"));
+        workTypes.add(new WorkType("hearing_work", "Hearing Work"));
 
         Map<String, String> attributes = Map.of(
             WORK_TYPES.value(), "hearing_work"
@@ -106,7 +107,7 @@ public class WorkTypeProviderTest {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
-        when(cftWorkTypeDatabaseService.getWorkType(any())).thenReturn(workType);
+        when(workTypesService.getWorkTypes(any())).thenReturn(Collections.singletonList(workType.get()));
     }
 
 }
