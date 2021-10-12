@@ -57,13 +57,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE
 
 @ExtendWith(MockitoExtension.class)
 class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
-    private static final String ENDPOINT_PATH = "/work-types/users";
-    UserInfo mockedUserInfo;
+    private static final String ENDPOINT_PATH = "/work-types";
+
     @MockBean
     private IdamWebApi idamWebApi;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
-    @MockBean
+    @SpyBean
     private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -74,6 +74,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private AuthTokenGenerator serviceAuthTokenGenerator;
     private ServiceMocks mockServices;
+    private UserInfo mockedUserInfo;
 
     @BeforeEach
     void setUp() {
@@ -89,27 +90,60 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_all_work_types_when_filter_is_not_provided() throws Exception {
+        when(cftWorkTypeDatabaseService.findById(anyString())).thenCallRealMethod();
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+        List<RoleAssignment> allTestRoles = createTestRoleAssignments(roleNames);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
+            .thenReturn(new RoleAssignmentResource(allTestRoles));
+        when(cftWorkTypeDatabaseService.getAllWorkTypes()).thenCallRealMethod();
+        mockMvc.perform(
+            get(ENDPOINT_PATH)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isOk(),
+                jsonPath("$.work_types").isNotEmpty(),
+                jsonPath("$.work_types.length()").value(8)
+            ));
+    }
+
+
+    @Test
+    void should_return_all_work_types_when_filter_is_false() throws Exception {
+        when(cftWorkTypeDatabaseService.findById(anyString())).thenCallRealMethod();
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+        List<RoleAssignment> allTestRoles = createTestRoleAssignments(roleNames);
+        when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
+            .thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(cftWorkTypeDatabaseService.getAllWorkTypes()).thenCallRealMethod();
+        mockMvc.perform(
+            get(ENDPOINT_PATH + "?filter-by-user=false")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isOk(),
+                jsonPath("$.work_types").isNotEmpty(),
+                jsonPath("$.work_types.length()").value(8)
+            ));
+    }
+
+    @Test
     void should_return_a_valid_work_type_list_when_user_has_work_types() throws Exception {
         final List<String> roleNames = singletonList("tribunal-caseworker");
+
 
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
-        List<RoleAssignment> allTestRoles = new ArrayList<>();
-        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
-            .forEach(roleType -> {
-                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
-                    UUID.randomUUID().toString(),
-                    "tribunal-caseworker",
-                    roleType,
-                    Classification.PUBLIC,
-                    roleAttributes
-                );
-                allTestRoles.add(roleAssignment);
-            }));
-
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         when(cftWorkTypeDatabaseService.findById("upper_tribunal"))
             .thenReturn(Optional.of(new WorkType("upper_tribunal", "Upper Tribunal")));
@@ -120,7 +154,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
 
 
         MvcResult getResponse = mockMvc.perform(
-            get(ENDPOINT_PATH)
+            get(ENDPOINT_PATH + "?filter-by-user=true")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
         ).andReturn();
@@ -139,27 +173,13 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     void should_return_empty_list_when_work_types_are_given() throws Exception {
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
-        // Role attribute is IA
-        Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-
-        List<RoleAssignment> allTestRoles = new ArrayList<>();
-        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
-            .forEach(roleType -> {
-                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
-                    UUID.randomUUID().toString(), "tribunal-caseworker",
-                    roleType,
-                    Classification.PUBLIC,
-                    roleAttributes
-                );
-                allTestRoles.add(roleAssignment);
-            }));
+        List<RoleAssignment> allTestRoles = createTestRoleAssignments(roleNames);
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
         MvcResult getResponse = mockMvc.perform(
-            get(ENDPOINT_PATH)
+            get(ENDPOINT_PATH + "?filter-by-user=true")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
         ).andReturn();
@@ -177,7 +197,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             .when(roleAssignmentServiceApi).getRolesForUser(anyString(), anyString(), anyString());
 
         mockMvc.perform(
-            get(ENDPOINT_PATH)
+            get(ENDPOINT_PATH + "?filter-by-user=true")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -202,19 +222,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
-
-        List<RoleAssignment> allTestRoles = new ArrayList<>();
-        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
-            .forEach(roleType -> {
-                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
-                    UUID.randomUUID().toString(),
-                    "tribunal-caseworker",
-                    roleType,
-                    Classification.PUBLIC,
-                    roleAttributes
-                );
-                allTestRoles.add(roleAssignment);
-            }));
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
@@ -222,7 +230,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         doThrow(JDBCConnectionException.class)
             .when(cftWorkTypeDatabaseService).findById(anyString());
         mockMvc.perform(
-            get(ENDPOINT_PATH)
+            get(ENDPOINT_PATH + "?filter-by-user=true")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -236,6 +244,57 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.detail").value(
                     "Database is unavailable.")
             ));
+    }
+
+    @Test
+    void should_return_401_when_invalid_user_access() throws Exception {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        // Role attribute is IA
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
+            .thenThrow(FeignException.Unauthorized.class);
+
+        mockMvc.perform(
+            get(ENDPOINT_PATH + "?filter-by-user=true")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+        ).andExpect(
+            ResultMatcher.matchAll(
+                status().isUnauthorized()
+            ));
+
+    }
+
+    private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames, Map<String, String> roleAttributes) {
+
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+            .forEach(roleType -> {
+                RoleAssignment roleAssignment = mockServices.createBaseAssignment(
+                    UUID.randomUUID().toString(),
+                    "tribunal-caseworker",
+                    roleType,
+                    Classification.PUBLIC,
+                    roleAttributes
+                );
+                allTestRoles.add(roleAssignment);
+            }));
+        return allTestRoles;
+    }
+
+    private List<RoleAssignment> createTestRoleAssignments(List<String> roleNames) {
+
+        // Role attribute is IA
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+
+        return createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
     }
 }
 

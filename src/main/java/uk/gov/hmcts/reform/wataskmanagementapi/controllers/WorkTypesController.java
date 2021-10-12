@@ -55,6 +55,7 @@ public class WorkTypesController extends BaseController {
     ) {
         AccessControlResponse roles = accessControlService.getRoles(authToken);
         List<WorkType> workTypes;
+
         if (filterByUser) {
             workTypes = workTypesService.getWorkTypes(roles);
         } else {
