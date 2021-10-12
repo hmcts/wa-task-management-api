@@ -222,6 +222,7 @@ public class Common {
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
+            "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA"

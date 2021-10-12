@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -140,6 +142,41 @@ class WorkTypesControllerTest {
         assertEquals(response.getBody(), new GetWorkTypesResponse(workTypeList));
         verify(workTypesService, times(1))
             .getWorkTypes(accessControlResponse);
+    }
+
+    @Test
+    void should_return_empty_list_when_user_work_types_is_null() {
+        UserInfo userInfo = new UserInfo("", "",
+            new ArrayList<>(Arrays.asList("Role1","Role2")),
+            "",
+            "",
+            "");
+
+        Map<String, String> workTypesMap = new HashMap<>();
+        workTypesMap.put("workTypes", null);
+        RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
+            "1258555",
+            RoleType.CASE,
+            "Judge",
+            Classification.PUBLIC,
+            GrantType.BASIC,
+            RoleCategory.JUDICIAL,
+            false,
+            workTypesMap);
+        List<RoleAssignment> roleAssignmentList = Arrays.asList(roleAssignment);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo,roleAssignmentList);
+
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(accessControlResponse);
+
+        ResponseEntity<GetWorkTypesResponse<WorkType>> response = workTypesController.getWorkTypes(
+            IDAM_AUTH_TOKEN, true
+        );
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody().getWorkTypes());
+        assertEquals(emptyList(), response.getBody().getWorkTypes());
+        verify(cftWorkTypeDatabaseService, times(0)).getWorkType(anyString());
     }
 
     @Test
