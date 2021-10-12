@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.ArrayList;
@@ -45,8 +44,6 @@ class WorkTypesControllerTest {
 
     private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
     @Mock
-    private TaskManagementService taskManagementService;
-    @Mock
     private AccessControlService accessControlService;
     @Mock
     private WorkTypesService workTypesService;
@@ -60,7 +57,6 @@ class WorkTypesControllerTest {
     @BeforeEach
     void setUp() {
         workTypesController = new WorkTypesController(
-            taskManagementService,
             accessControlService,
             workTypesService
         );
@@ -128,8 +124,8 @@ class WorkTypesControllerTest {
         WorkType workType2 = new WorkType("upper_tribunal", "Upper Tribunal");
 
         when(workTypesService.getWorkTypes(
-        accessControlResponse
-            ))
+            accessControlResponse
+        ))
             .thenReturn(asList(workType, workType2));
 
         ResponseEntity<GetWorkTypesResponse> response = workTypesController.getWorkTypes(IDAM_AUTH_TOKEN);

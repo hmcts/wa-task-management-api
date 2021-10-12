@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.List;
@@ -25,15 +24,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @RequestMapping(path = "/work-types", produces = APPLICATION_JSON_VALUE)
 @RestController
 public class WorkTypesController extends BaseController {
-    private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
     private final WorkTypesService workTypesService;
 
-    public WorkTypesController(TaskManagementService taskManagementService,
-                               AccessControlService accessControlService,
+    public WorkTypesController(AccessControlService accessControlService,
                                WorkTypesService workTypesService) {
         super();
-        this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.workTypesService = workTypesService;
     }
