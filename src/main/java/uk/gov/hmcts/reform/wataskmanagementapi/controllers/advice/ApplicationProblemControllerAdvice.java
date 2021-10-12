@@ -85,7 +85,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
     }
 
     @ExceptionHandler(JDBCConnectionException.class)
-    public ResponseEntity<ThrowableProblem> handleJDBCConnectionException(Exception ex) {
+    public ResponseEntity<ThrowableProblem> handleJdbcConnectionException(Exception ex) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
 
         Status statusType = SERVICE_UNAVAILABLE; //503

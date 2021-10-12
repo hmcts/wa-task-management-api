@@ -123,8 +123,7 @@ class UnclaimTaskTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            taskAutoAssignmentService
         );
 
         taskId = UUID.randomUUID().toString();

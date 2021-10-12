@@ -62,7 +62,6 @@ public class TaskManagementService {
     private final CamundaQueryBuilder camundaQueryBuilder;
     private final PermissionEvaluatorService permissionEvaluatorService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
-    private final CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ConfigureTaskService configureTaskService;
@@ -77,8 +76,7 @@ public class TaskManagementService {
                                  CFTTaskMapper cftTaskMapper,
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
-                                 TaskAutoAssignmentService taskAutoAssignmentService,
-                                 CFTWorkTypeDatabaseService cftWorkTypeDatabaseService) {
+                                 TaskAutoAssignmentService taskAutoAssignmentService) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
@@ -87,7 +85,6 @@ public class TaskManagementService {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
-        this.cftWorkTypeDatabaseService = cftWorkTypeDatabaseService;
     }
 
     /**

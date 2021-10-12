@@ -93,7 +93,7 @@ class WorkTypesControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertThat(response.getBody(), instanceOf(ArrayList.class));
+        assertThat(response.getBody(), instanceOf(GetWorkTypesResponse.class));
         assertNotNull(response.getBody());
 
         List<WorkType> workTypeList = singletonList(workType);
@@ -132,7 +132,7 @@ class WorkTypesControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertThat(response.getBody(), instanceOf(ArrayList.class));
+        assertThat(response.getBody(), instanceOf(GetWorkTypesResponse.class));
         assertNotNull(response.getBody());
 
         List<WorkType> workTypeList = asList(workType, workType2);
@@ -165,7 +165,7 @@ class WorkTypesControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(new GetWorkTypesResponse(emptyList()), response.getBody());
-        verify(workTypesService, times(0)).getWorkTypes(any());
+        verify(workTypesService, times(1)).getWorkTypes(any());
     }
 
     @Test
@@ -180,6 +180,6 @@ class WorkTypesControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(new GetWorkTypesResponse(emptyList()), response.getBody());
-        verify(workTypesService, times(0)).getWorkTypes(any());
+        verify(workTypesService, times(1)).getWorkTypes(any());
     }
 }

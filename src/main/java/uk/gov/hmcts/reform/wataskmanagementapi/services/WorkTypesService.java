@@ -20,6 +20,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAtt
 
 @Slf4j
 @Service
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class WorkTypesService {
 
     private final CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
@@ -36,7 +37,6 @@ public class WorkTypesService {
      * @return A mapped optional of work type {@link WorkType}
      */
     public List<WorkType> getWorkTypes(AccessControlResponse accessControlResponse) {
-        List<WorkType> workTypes = new ArrayList<>();
 
         //Safe-guard
         if (accessControlResponse.getRoleAssignments().isEmpty()) {
@@ -49,6 +49,7 @@ public class WorkTypesService {
         if (actorWorkTypes.isEmpty()) {
             return emptyList();
         }
+        List<WorkType> workTypes = new ArrayList<>();
 
         for (String workTypeId : actorWorkTypes) {
             Optional<WorkType> optionalWorkType = getWorkType(workTypeId.trim());
