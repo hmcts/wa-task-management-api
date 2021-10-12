@@ -80,11 +80,14 @@ public class TaskSearchController extends BaseController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
+        //todo: Ravi said don't add workType filter to camundaQueryBuilder.createQuery
+        //todo: How can I filter task according to workType?
         List<Task> tasks = taskManagementService.searchWithCriteria(
             searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
             accessControlResponse
         );
 
+        //todo: do I need to go to cftTaskDatabaseService in taskManagementService?
         if (tasks.isEmpty()) {
             return ResponseEntity
                 .ok()

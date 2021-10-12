@@ -10,8 +10,8 @@ public enum SearchParameterKey {
     STATE("state"),
     TASK_ID("taskId"),
     TASK_TYPE("taskType"),
+    WORK_TYPE("workType"),
     CASE_ID("caseId");
-
 
     @JsonValue
     private final String id;

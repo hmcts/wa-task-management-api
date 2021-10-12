@@ -21,6 +21,9 @@ public enum SortField {
     CASE_ID_CAMEL_CASE("caseId", "caseId"),
     CASE_ID_SNAKE_CASE("case_id", "caseId"),
 
+    WORK_TYPE_CAMEL_CASE("workType", "workType"),
+    WORK_TYPE_SNAKE_CASE("work_type", "workType"),
+
     CASE_NAME_CAMEL_CASE("caseName", "caseName"),
     CASE_NAME_SNAKE_CASE("case_name", "caseName");
 

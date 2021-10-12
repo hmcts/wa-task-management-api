@@ -23,6 +23,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
@@ -109,6 +110,80 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             "unassigned");
 
         common.cleanUpTask(taskId, REASON_COMPLETED);
+    }
+
+    @Test
+    public void should_return_a_201_when_initiating_a_task_by_id_work_type() {
+        TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds("arrangeOfflinePayment");
+        String taskId = taskVariables.getTaskId();
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "arrangeOfflinePayment"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_WORK_TYPE, "routine_work")
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .body("task_id", equalTo(taskId))
+            .body("task_name", equalTo("aTaskName"))
+            .body("task_type", equalTo("aTaskType"))
+            .body("state", equalTo("UNASSIGNED"))
+            .body("task_system", equalTo("SELF"))
+            .body("security_classification", equalTo("PUBLIC"))
+            .body("title", equalTo("aTaskName"))
+            .body("auto_assigned", equalTo(false))
+            .body("has_warnings", equalTo(false))
+            .body("case_id", equalTo(taskVariables.getCaseId()))
+            .body("case_type_id", equalTo("Asylum"))
+            .body("case_name", equalTo("Bob Smith"))
+            .body("case_category", equalTo("Protection"))
+            .body("jurisdiction", equalTo("IA"))
+            .body("region", equalTo("1"))
+            .body("location", equalTo("765324"))
+            .body("location_name", equalTo("Taylor House"))
+            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body("execution_type_code.description",
+                equalTo("The task requires a case management event to be executed by the user. "
+                        + "(Typically this will be in CCD.)"))
+            .body("task_role_resources[0].task_role_id", notNullValue())
+            .body("task_role_resources[0].role_name", equalTo("senior-tribunal-caseworker"))
+            .body("task_role_resources[0].read", equalTo(true))
+            .body("task_role_resources[0].own", equalTo(true))
+            .body("task_role_resources[0].execute", equalTo(false))
+            .body("task_role_resources[0].cancel", equalTo(true))
+            .body("task_role_resources[0].refer", equalTo(true))
+            .body("task_role_resources[0].authorizations", equalTo(emptyList()))
+            .body("task_role_resources[0].auto_assignable", equalTo(false))
+            .body("task_role_resources[1].task_role_id", notNullValue())
+            .body("task_role_resources[1].role_name", equalTo("tribunal-caseworker"))
+            .body("task_role_resources[1].read", equalTo(true))
+            .body("task_role_resources[1].own", equalTo(true))
+            .body("task_role_resources[1].execute", equalTo(false))
+            .body("task_role_resources[1].cancel", equalTo(true))
+            .body("task_role_resources[1].refer", equalTo(true))
+            .body("task_role_resources[1].authorizations", equalTo(emptyList()))
+            .body("task_role_resources[1].auto_assignable", equalTo(false));
+
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned");
+
+        //common.cleanUpTask(taskId, REASON_COMPLETED);
     }
 
     @Test
