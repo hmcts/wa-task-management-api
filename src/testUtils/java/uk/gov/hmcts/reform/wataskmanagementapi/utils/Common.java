@@ -178,6 +178,22 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
+    public TestVariables setupTaskWithTaskIdAndRetrieveIds(String taskId) {
+
+        String caseId = given.iCreateACcdCase();
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, taskId)
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
     public void cleanUpTask(String taskId, String reason) {
         log.info("Cleaning task {}", taskId);
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
@@ -222,6 +238,7 @@ public class Common {
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
+            "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA"
