@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,6 +63,23 @@ public class CftQueryService {
         ).collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, totalNumberOfTasks);
+    }
+
+    public Optional<TaskResource> getTask(String taskId,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired
+    ) {
+
+        if (permissionsRequired.isEmpty()
+            || taskId == null
+            || taskId.isBlank()) {
+            return Optional.empty();
+        }
+        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
+
+        return taskResourceRepository.findOne(taskResourceSpecification);
+
     }
 
 }
