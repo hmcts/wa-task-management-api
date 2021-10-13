@@ -48,11 +48,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
@@ -81,14 +83,41 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void teardown() {
-        //tasksCreated
-        //    .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId(), REASON_COMPLETED));
 
         tasksCreated.clear();
         taskId1 = null;
         taskId2 = null;
     }
 
+    @Test
+    public void cleanUp(){
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        // Given query
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        // When
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        List<String> tasks = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body()
+            .path("tasks.id");
+
+        System.out.println(String.format("Total task count : %s", tasks.size()));
+        tasks
+            .forEach(taskId -> common.cleanUpTask(taskId, REASON_COMPLETED));
+
+    }
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
@@ -137,7 +166,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameter(CASE_ID, SearchOperator.IN,
                 Arrays.asList(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId()))
         ),
-            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE_CFT, SortOrder.DESCENDANT))
         );
 
         // When
@@ -215,6 +244,50 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId1))
+            .body("total_records", greaterThanOrEqualTo(1));
+    }@Test
+    public void search_by_work_type_should_return_results() {
+        String taskId="followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds(taskId);
+        tasksCreated.add(taskVariables);
+        taskId1 = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task")
+        ));
+
+        Response result = restApiActions.post(
+            TASK_INITIATION_ENDPOINT_BEING_TESTED,
+            taskId1,
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList(TASK_ID_WORK_TYPE_MAP.get(taskId)))
+        ));
+
+        result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId1))
+            .body("tasks.work_type", everyItem(is(TASK_ID_WORK_TYPE_MAP.get(taskId))))
             .body("total_records", greaterThanOrEqualTo(1));
     }
 

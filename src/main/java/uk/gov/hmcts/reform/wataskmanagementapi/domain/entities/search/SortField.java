@@ -10,8 +10,9 @@ public enum SortField {
     DUE_DATE_CAMEL_CASE("dueDate", "dueDate"),
     DUE_DATE_SNAKE_CASE("due_date", "dueDate"),
 
-    DUE_DATE_CAMEL_CASE_CFT("dueDate", "dueDateTime"),
-    DUE_DATE_SNAKE_CASE_CFT("due_date", "dueDateTime"),
+    //todo: Vam will arrange this
+    DUE_DATE_CAMEL_CASE_CFT("dueDateTime", "dueDateTime"),
+    DUE_DATE_SNAKE_CASE_CFT("due_date_time", "dueDateTime"),
 
     TASK_TITLE_CAMEL_CASE("taskTitle", "title"),
     TASK_TITLE_SNAKE_CASE("task_title", "title"),

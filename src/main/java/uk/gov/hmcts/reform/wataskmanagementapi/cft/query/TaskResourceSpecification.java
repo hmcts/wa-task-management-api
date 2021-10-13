@@ -35,6 +35,7 @@ public final class TaskResourceSpecification {
     public static final String ASSIGNEE = "assignee";
     public static final String CASE_ID = "caseId";
     public static final String ROLE_NAME = "roleName";
+    public static final String WORK_TYPE = "workTypeResource";
 
     private TaskResourceSpecification() {
         // avoid creating object
@@ -141,7 +142,8 @@ public final class TaskResourceSpecification {
             .and(searchByState(searchTaskRequest))
             .and(searchByLocation(searchTaskRequest))
             .and(searchByCaseId(searchTaskRequest))
-            .and(searchByUser(searchTaskRequest));
+            .and(searchByUser(searchTaskRequest))
+            .and(searchByWorkType(searchTaskRequest));
     }
 
     private static Specification<TaskResource> searchByState(SearchTaskRequest searchTaskRequest) {
@@ -196,6 +198,17 @@ public final class TaskResourceSpecification {
             final List<String> usersList = keyMap.get(SearchParameterKey.USER).getValues();
             return (root, query, builder) -> builder.in(root.get(ASSIGNEE))
                 .value(usersList);
+        }
+
+        return (root, query, builder) -> builder.conjunction();
+    }
+
+    private static Specification<TaskResource> searchByWorkType(SearchTaskRequest searchTaskRequest) {
+        final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
+        if (keyMap.get(SearchParameterKey.WORK_TYPE) != null) {
+            final List<String> workTypeList = keyMap.get(SearchParameterKey.WORK_TYPE).getValues();
+            return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get("id"))
+                .value(workTypeList);
         }
 
         return (root, query, builder) -> builder.conjunction();
