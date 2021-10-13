@@ -44,8 +44,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
-
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task";
 
     private Headers authenticationHeaders;
@@ -174,6 +172,34 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_200_with_warnings() {
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("total_records", greaterThanOrEqualTo(1))
+            .body("tasks.warnings", everyItem(notNullValue()))
+            .body("tasks.warning_list.values", everyItem(notNullValue()));
 
         common.cleanUpTask(taskId);
     }
