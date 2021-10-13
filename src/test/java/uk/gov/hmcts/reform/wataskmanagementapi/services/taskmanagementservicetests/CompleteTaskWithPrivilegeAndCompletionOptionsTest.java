@@ -13,16 +13,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -40,6 +41,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -48,6 +50,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 
 @ExtendWith(MockitoExtension.class)
 class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
@@ -63,6 +66,8 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
+    CftQueryService cftQueryService;
+    @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -70,8 +75,6 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     TaskManagementService taskManagementService;
     String taskId;
 
@@ -86,7 +89,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
 
         taskId = UUID.randomUUID().toString();
@@ -140,17 +143,22 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     IDAM_USER_ID
                     )
                 ).thenReturn(true);
-
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true)
                 );
-
+                boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
+                    .equals(mockedVariables.get("taskState"));
                 assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
                 verify(camundaService, times(1))
-                    .assignAndCompleteTask(taskId, IDAM_USER_ID, mockedVariables);
+                    .assignAndCompleteTask(taskId, IDAM_USER_ID, taskStateIsAssignededAlready);
             }
 
             @Test
@@ -172,15 +180,20 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     IDAM_USER_ID
                     )
                 ).thenReturn(false);
-
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(true)
                 );
-
+                boolean taskStateIsAssignededAlready = TaskState.ASSIGNED.value()
+                    .equals(mockedVariables.get("taskState"));
                 verify(camundaService, times(1))
-                    .assignAndCompleteTask(taskId, IDAM_USER_ID, mockedVariables);
+                    .assignAndCompleteTask(taskId, IDAM_USER_ID, taskStateIsAssignededAlready);
             }
 
             @Test
@@ -233,6 +246,11 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     )
                 ).thenReturn(true);
 
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                    )
+                ).thenReturn(false);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -242,7 +260,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasNoCause()
                     .hasMessage("Resource not found");
-                verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), any());
+                verify(camundaService, times(0)).assignAndCompleteTask(any(), any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
 
@@ -281,16 +299,27 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     IDAM_USER_ID
                     )
                 ).thenReturn(true);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                    )
+                ).thenReturn(false);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false)
                 );
-
+                boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
+                    .equals(mockedVariables.get("taskState"));
                 assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
-                verify(camundaService, times(1)).completeTask(taskId, mockedVariables);
+                verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
             }
 
             @Test
@@ -316,14 +345,20 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     IDAM_USER_ID
                     )
                 ).thenReturn(false);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                    )
+                ).thenReturn(false);
 
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
                     new CompletionOptions(false)
                 );
-
-                verify(camundaService, times(1)).completeTask(taskId, mockedVariables);
+                boolean taskStateIsCompletedAlready = TaskState.COMPLETED.value()
+                    .equals(mockedVariables.get("taskState"));
+                verify(camundaService, times(1)).completeTask(taskId, taskStateIsCompletedAlready);
             }
 
             @Test
@@ -344,6 +379,11 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     roleAssignment,
                     asList(OWN, EXECUTE)
                 )).thenReturn(false);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -355,7 +395,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .hasMessage("Role Assignment Verification: "
                                 + "The request failed the Role Assignment checks performed.");
 
-                verify(camundaService, times(0)).completeTask(any(), any());
+                verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
 
             @Test
@@ -365,7 +405,11 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                 when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
                 CamundaTask mockedUnmappedTask = createMockedUnmappedTaskWithNoAssignee();
                 when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
-
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
                     accessControlResponse,
@@ -377,7 +421,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                         String.format("Could not complete task with id: %s as task was not previously assigned", taskId)
                     );
 
-                verify(camundaService, times(0)).completeTask(any(), any());
+                verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
 
 
@@ -398,7 +442,11 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     roleAssignment,
                     asList(OWN, EXECUTE)
                 )).thenReturn(true);
-
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                     )
+                ).thenReturn(false);
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
@@ -409,6 +457,11 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     IDAM_USER_ID
                     )
                 ).thenReturn(true);
+                when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID
+                    )
+                ).thenReturn(false);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -419,7 +472,7 @@ class CompleteTaskWithPrivilegeAndCompletionOptionsTest extends CamundaHelpers {
                     .hasNoCause()
                     .hasMessage("Resource not found");
 
-                verify(camundaService, times(0)).completeTask(any(), any());
+                verify(camundaService, times(0)).completeTask(any(), anyBoolean());
                 verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
             }
         }

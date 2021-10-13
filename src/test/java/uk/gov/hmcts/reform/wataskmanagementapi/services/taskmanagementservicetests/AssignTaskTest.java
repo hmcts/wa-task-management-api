@@ -9,12 +9,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -30,6 +30,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -52,6 +53,8 @@ class AssignTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
+    CftQueryService cftQueryService;
+    @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -59,8 +62,6 @@ class AssignTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     TaskManagementService taskManagementService;
     String taskId;
 
@@ -92,8 +93,8 @@ class AssignTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         taskManagementService.assignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
-
-        verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, mockedVariables);
+        boolean isTaskAssigned = mockedVariables.get("taskState").getValue().equals("ASSIGNED");
+        verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, isTaskAssigned);
     }
 
     @Test
@@ -126,7 +127,7 @@ class AssignTaskTest extends CamundaHelpers {
             .hasNoCause()
             .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
-        verify(camundaService, times(0)).assignTask(any(), any(), any());
+        verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
 
     @Test
@@ -166,7 +167,7 @@ class AssignTaskTest extends CamundaHelpers {
             .hasNoCause()
             .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
-        verify(camundaService, times(0)).assignTask(any(), any(), any());
+        verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
 
     @Test
@@ -212,7 +213,7 @@ class AssignTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
 
         taskId = UUID.randomUUID().toString();

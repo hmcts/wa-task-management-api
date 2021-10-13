@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -16,6 +15,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -88,6 +88,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @SpyBean
+    private CftQueryService cftQueryService;
+    @SpyBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired
     private TaskManagementService taskManagementService;
@@ -106,8 +108,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @Autowired
     private TransactionHelper transactionHelper;
     @Captor
@@ -128,7 +128,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(

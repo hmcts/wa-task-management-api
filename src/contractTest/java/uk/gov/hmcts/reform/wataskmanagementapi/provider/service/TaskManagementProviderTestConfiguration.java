@@ -15,10 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
@@ -42,9 +43,9 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private CFTTaskMapper cftTaskMapper;
     @MockBean
-    private CFTTaskDatabaseService cftTaskDatabaseService;
+    private CftQueryService cftQueryService;
     @MockBean
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
+    private CFTTaskDatabaseService cftTaskDatabaseService;
     @MockBean
     private IdamService idamService;
     @MockBean
@@ -52,6 +53,7 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @MockBean
+    private WorkTypeResourceRepository workTypeResourceRepository;
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
@@ -74,7 +76,7 @@ public class TaskManagementProviderTestConfiguration {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
     }
 

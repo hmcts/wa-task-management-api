@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -74,10 +75,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private PermissionEvaluatorService permissionEvaluatorService;
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
-    @Autowired
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @MockBean
     private CFTTaskMapper cftTaskMapper;
+    @MockBean
+    private CftQueryService cftQueryService;
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
@@ -117,7 +118,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
 
         mockServices.mockServiceAPIs();

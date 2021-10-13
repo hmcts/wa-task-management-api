@@ -39,6 +39,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -180,7 +181,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .content(asJsonString(searchTaskRequest))
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(
+            ).andDo(print())
+            .andExpect(
             ResultMatcher.matchAll(
                 status().isOk(),
                 jsonPath("total_records").value(1),

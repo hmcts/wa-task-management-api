@@ -10,13 +10,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -48,6 +48,8 @@ class TerminateTaskTest extends CamundaHelpers {
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
     @Mock
+    CftQueryService cftQueryService;
+    @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -55,8 +57,6 @@ class TerminateTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
-    @Mock
-    CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     TaskManagementService taskManagementService;
     String taskId;
 
@@ -71,7 +71,7 @@ class TerminateTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
 
         taskId = UUID.randomUUID().toString();

@@ -70,6 +70,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected Common common;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
+    protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
     @Autowired
@@ -90,13 +91,15 @@ public abstract class SpringBootFunctionalBaseTest {
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
+    @Value("${launch_darkly.url}")
+    private String launchDarklyUrl;
 
     @Before
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
-
+        launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
         documentManagementFiles.prepare();
 
         given = new GivensBuilder(
