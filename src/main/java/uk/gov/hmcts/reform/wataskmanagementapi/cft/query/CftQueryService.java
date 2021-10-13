@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValue
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -92,4 +93,20 @@ public class CftQueryService {
         return null;
     }
 
+    public Optional<TaskResource> getTask(String taskId,
+                                          AccessControlResponse accessControlResponse,
+                                          List<PermissionTypes> permissionsRequired
+    ) {
+
+        if (permissionsRequired.isEmpty()
+            || taskId == null
+            || taskId.isBlank()) {
+            return Optional.empty();
+        }
+        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
+
+        return taskResourceRepository.findOne(taskResourceSpecification);
+
+    }
 }

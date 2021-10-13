@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.hamcrest.Matchers;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -44,6 +43,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assume.assumeTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -62,7 +62,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.PENDING_TERMINATION;
 
 public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTest {
 
@@ -83,8 +82,12 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         final boolean taskQueryFeatureEnabled = featureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY, userId
         );
+        final boolean release2Endpoints = featureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE, userId
+        );
 
-        Assume.assumeTrue(taskQueryFeatureEnabled);
+        assumeTrue(taskQueryFeatureEnabled);
+        assumeTrue(release2Endpoints);
     }
 
     @Test
@@ -444,45 +447,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
-    //FIXME
-    //@Test
-    public void should_return_a_200_with_search_results_based_on_state_assigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response claimResult = restApiActions.post(
-            "task/{task-id}/claim",
-            taskId,
-            authenticationHeaders
-        );
-
-        claimResult.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.task_state", everyItem(is("assigned")))
-            .body("total_records", greaterThanOrEqualTo(1));
-
-        common.cleanUpTask(taskId);
-    }
-
     @Test
     public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
@@ -811,9 +775,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     /**
-     * Terminate task will have the following states
-     * CftTaskState : CANCELLED
-     * Camunda cftTaskState variable: awaitingTermination.
+     * Terminate task with state CANCELLED will remove cftTaskState from Camunda history table.
      */
     @Test
     public void should_have_consistent_cancelled_state() {
@@ -825,11 +787,14 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         // insert task in CftTaskDb
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
+        // verify cftTaskState exists in Camunda history table before termination
+        cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
+
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo(TerminateReason.CANCELLED)
         );
 
-        // Terminate task
+        // Terminate task will remove record from camunda history table.
         Response response = restApiActions.delete(
             TASK_ENDPOINT_BEING_TESTED,
             taskId,
@@ -839,28 +804,14 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId);
+        // verify cftTaskState does not exist in Camunda history table before termination
+        cftTaskStateVariableShouldNotExistInCamundaHistoryTable(taskId);
 
-
-        Map<String, Object> body = Map.of(
-            "variableName", CFT_TASK_STATE.value(),
-            "taskIdIn", singleton(taskId)
-        );
-
-        // Retrieve CftTask from history table and validate
-        response = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("name", Matchers.hasItem("cftTaskState"))
-            .body("value",  Matchers.hasItem(PENDING_TERMINATION));
+        cleanUp(taskId);
     }
 
     /**
-     * Terminate task will have the following states
-     * CftTaskState : COMPLETED
-     * Camunda cftTaskState variable: awaitingTermination.
+     * Terminate task with state COMPLETED will remove cftTaskState from Camunda history table.
      */
     @Test
     public void should_have_consistent_completed_state() {
@@ -871,6 +822,9 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         // insert task in CftTaskDb
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
+        // verify cftTaskState exists in Camunda history table before termination
+        cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo(TerminateReason.COMPLETED)
@@ -886,23 +840,10 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        // verify cftTaskState does not exist in Camunda history table before termination
+        cftTaskStateVariableShouldNotExistInCamundaHistoryTable(taskId);
+
         common.cleanUpTask(taskId);
-
-
-        Map<String, Object> body = Map.of(
-            "variableName", CFT_TASK_STATE.value(),
-            "taskIdIn", singleton(taskId)
-        );
-
-        // Retrieve CftTask from history table and validate
-        response = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("name", Matchers.hasItem("cftTaskState"))
-            .body("value",  Matchers.hasItem(PENDING_TERMINATION));
-
     }
 
     private List<TestVariables> createMultipleTasks(String[] states) {
@@ -945,5 +886,30 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value());
+    }
+
+    private void cftTaskStateVariableShouldExistInCamundaHistoryTable(String taskId) {
+        Map<String, Object> body = Map.of(
+            "variableName", CFT_TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+        Response camundaHistoryResponse = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+        camundaHistoryResponse.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("size()", is(1))
+            .body("name", Matchers.hasItem("cftTaskState"));
+    }
+
+    private void cftTaskStateVariableShouldNotExistInCamundaHistoryTable(String taskId) {
+        Map<String, Object> body = Map.of(
+            "variableName", CFT_TASK_STATE.value(),
+            "taskIdIn", singleton(taskId)
+        );
+        Response camundaHistoryResponse = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+        camundaHistoryResponse.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("size()", is(0));
     }
 }

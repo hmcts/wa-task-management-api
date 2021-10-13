@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -102,7 +103,7 @@ public class TaskConfigurationRoleAssignmentService {
         QueryRequest queryRequest = QueryRequest.builder()
             .roleName(new ArrayList<>(roleNamesFound))
             .classification(securityClassifications)
-            //.grantType(singletonList(GrantType.SPECIFIC))
+            .grantType(singletonList(GrantType.SPECIFIC))
             .validAt(LocalDateTime.now())
             .hasAttributes(singletonList("caseId"))
             .attributes(Map.of("caseId", List.of(caseId)))

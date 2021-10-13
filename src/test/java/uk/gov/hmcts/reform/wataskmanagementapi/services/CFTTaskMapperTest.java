@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
@@ -463,5 +464,43 @@ class CFTTaskMapperTest {
         return attributes;
     }
 
+    @Test
+    void should_map_task_resource_to_task() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
+
+        List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertEquals("SOME_TASK_ID", task.getId());
+        assertEquals("someCamundaTaskName", task.getName());
+        assertEquals("someTaskType", task.getType());
+        assertEquals(
+            ZonedDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            task.getDueDate()
+        );
+        assertEquals(CFTTaskState.UNCONFIGURED.getValue(), task.getTaskState());
+        assertEquals(TaskSystem.SELF.getValue(), task.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
+        assertEquals("someTitle", task.getTaskTitle());
+        assertEquals("someAssignee", task.getAssignee());
+        assertEquals(false, task.getAutoAssigned());
+        assertEquals("Manual", task.getExecutionType());
+        assertEquals("someJurisdiction", task.getJurisdiction());
+        assertEquals("00000", task.getCaseId());
+        assertEquals("someCaseType", task.getCaseTypeId());
+        assertEquals("someCaseName", task.getCaseName());
+        assertEquals("someJurisdiction", task.getJurisdiction());
+        assertEquals("someRegion", task.getRegion());
+        assertEquals("someStaffLocationId", task.getLocation());
+        assertEquals("someStaffLocationName", task.getLocationName());
+        assertEquals(false,task.getWarnings());
+        assertEquals(null, task.getWarningList());
+        assertEquals("someCaseCategory", task.getCaseManagementCategory());
+    }
 }
