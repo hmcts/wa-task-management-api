@@ -176,8 +176,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
-        //launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(), true);
-
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         tasksCreated.add(taskVariables);
         taskId1 = taskVariables.getTaskId();
@@ -218,8 +216,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId1))
             .body("total_records", greaterThanOrEqualTo(1));
-
-        //launchDarklyActions.updateFeatureFlag(FeatureFlag.RELEASE_2_TASK_QUERY.getKey(), false);
     }
 
     @Test
@@ -808,7 +804,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameter(CASE_ID, SearchOperator.IN,
                 asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
         ),
-            singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.DESCENDANT))
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
         // When
@@ -843,7 +839,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameter(CASE_ID, SearchOperator.IN,
                 asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
         ),
-            singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.DESCENDANT))
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
         // When
@@ -868,7 +864,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             new SearchParameter(CASE_ID, SearchOperator.IN,
                 asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
         ),
-            singletonList(new SortingParameter(SortField.WORK_TYPE_SNAKE_CASE, SortOrder.ASCENDANT))
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.ASCENDANT))
         );
 
         // When

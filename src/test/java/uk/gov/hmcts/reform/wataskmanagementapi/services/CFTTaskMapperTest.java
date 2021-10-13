@@ -10,12 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
@@ -30,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -97,7 +100,7 @@ class CFTTaskMapperTest {
         assertEquals(null, taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource());
+        assertEquals(null, taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());
@@ -158,7 +161,7 @@ class CFTTaskMapperTest {
         assertEquals(null, taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource());
+        assertEquals(null, taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());
@@ -216,6 +219,9 @@ class CFTTaskMapperTest {
             skeletonTask,
             new TaskConfigurationResults(mappedValues));
 
+        if (taskResource.getWorkTypeResource() == null) {
+            taskResource.setWorkTypeResource(new WorkTypeResource(null));
+        }
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
         assertEquals("someCamundaTaskName", taskResource.getTaskName());
@@ -230,7 +236,7 @@ class CFTTaskMapperTest {
         assertEquals(null, taskResource.getMinorPriority());
         assertEquals(null, taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource());
+        assertEquals(null, taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());
@@ -288,14 +294,16 @@ class CFTTaskMapperTest {
                     stringValue("Read,Refer,Own,Manage,Cancel"),
                     stringValue("IA,WA"),
                     null,
-                    null
+                    null,
+                    stringValue("LEGAL_OPERATIONS")
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
                     stringValue("Read,Refer,Own,Manage,Cancel"),
                     null,
                     null,
-                    null
+                    null,
+                    stringValue("LEGAL_OPERATIONS")
                 )
             );
 
@@ -303,6 +311,9 @@ class CFTTaskMapperTest {
             skeletonTask,
             new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses));
 
+        if (taskResource.getWorkTypeResource() == null) {
+            taskResource.setWorkTypeResource(new WorkTypeResource(null));
+        }
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
         assertEquals("someCamundaTaskName", taskResource.getTaskName());
@@ -317,7 +328,7 @@ class CFTTaskMapperTest {
         assertEquals(null, taskResource.getMinorPriority());
         assertEquals(null, taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource());
+        assertEquals(null, taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());
@@ -348,7 +359,7 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(0).getManage());
         assertEquals(true, roleResourcesList.get(0).getCancel());
         assertEquals(true, roleResourcesList.get(0).getRefer());
-        assertEquals(emptyList(), roleResourcesList.get(0).getAuthorizations());
+        assertArrayEquals(new String[]{}, roleResourcesList.get(0).getAuthorizations());
         assertEquals("tribunal-caseworker", roleResourcesList.get(1).getRoleName());
         assertEquals(true, roleResourcesList.get(1).getRead());
         assertEquals(true, roleResourcesList.get(1).getOwn());
@@ -356,7 +367,7 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getManage());
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
-        assertEquals(asList("IA", "WA"), roleResourcesList.get(1).getAuthorizations());
+        assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
     }
 
     @Test
@@ -460,5 +471,43 @@ class CFTTaskMapperTest {
         return attributes;
     }
 
+    @Test
+    void should_map_task_resource_to_task() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
+
+        List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertEquals("SOME_TASK_ID", task.getId());
+        assertEquals("someCamundaTaskName", task.getName());
+        assertEquals("someTaskType", task.getType());
+        assertEquals(
+            ZonedDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            task.getDueDate()
+        );
+        assertEquals(CFTTaskState.UNCONFIGURED.getValue(), task.getTaskState());
+        assertEquals(TaskSystem.SELF.getValue(), task.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
+        assertEquals("someTitle", task.getTaskTitle());
+        assertEquals("someAssignee", task.getAssignee());
+        assertEquals(false, task.getAutoAssigned());
+        assertEquals("Manual", task.getExecutionType());
+        assertEquals("someJurisdiction", task.getJurisdiction());
+        assertEquals("00000", task.getCaseId());
+        assertEquals("someCaseType", task.getCaseTypeId());
+        assertEquals("someCaseName", task.getCaseName());
+        assertEquals("someJurisdiction", task.getJurisdiction());
+        assertEquals("someRegion", task.getRegion());
+        assertEquals("someStaffLocationId", task.getLocation());
+        assertEquals("someStaffLocationName", task.getLocationName());
+        assertEquals(false, task.getWarnings());
+        assertEquals(null, task.getWarningList());
+        assertEquals("someCaseCategory", task.getCaseManagementCategory());
+    }
 }

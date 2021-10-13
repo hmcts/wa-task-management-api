@@ -54,14 +54,16 @@ class DmnEvaluationServiceTest {
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
                 null,
-                null
+                null,
+                stringValue("LEGAL_OPERATIONS")
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("senior-tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
                 null,
-                null
+                null,
+                stringValue("LEGAL_OPERATIONS")
             )
         );
 

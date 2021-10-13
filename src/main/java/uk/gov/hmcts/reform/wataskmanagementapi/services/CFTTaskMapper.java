@@ -17,12 +17,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAtt
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,13 +35,41 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
-
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_BUSINESS_CONTEXT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SYSTEM;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TERMINATION_REASON;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -97,11 +127,7 @@ public class CFTTaskMapper {
     }
 
     private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        WorkTypeResource workTypeResource = new WorkTypeResource(read(attributes, TASK_WORK_TYPE, null));
-        if(workTypeResource == null){
-            workTypeResource = new WorkTypeResource(null);
-        }
-        return workTypeResource;
+        return new WorkTypeResource(read(attributes, TASK_WORK_TYPE, null));
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -112,11 +138,13 @@ public class CFTTaskMapper {
             .forEach((key, value) -> mapVariableToTaskResourceProperty(taskResource, key, value));
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
-        taskResource.setTaskRoleResources(mapPermissions(permissions));
+        taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
         return taskResource;
     }
 
-    private Set<TaskRoleResource> mapPermissions(List<PermissionsDmnEvaluationResponse> permissions) {
+    private Set<TaskRoleResource> mapPermissions(
+        List<PermissionsDmnEvaluationResponse> permissions, TaskResource taskResource
+    ) {
 
         return permissions.stream().map(permission -> {
 
@@ -142,6 +170,11 @@ public class CFTTaskMapper {
                 autoAssignable = Boolean.TRUE.equals(permission.getAutoAssignable().getValue());
             }
 
+            String roleCategory = null;
+            if (permission.getRoleCategory() != null && permission.getRoleCategory().getValue() != null) {
+                roleCategory = permission.getRoleCategory().getValue();
+            }
+
             return new TaskRoleResource(
                 roleName,
                 permissionsFound.contains(PermissionTypes.READ),
@@ -150,9 +183,12 @@ public class CFTTaskMapper {
                 permissionsFound.contains(PermissionTypes.MANAGE),
                 permissionsFound.contains(PermissionTypes.CANCEL),
                 permissionsFound.contains(PermissionTypes.REFER),
-                authorisations,
+                authorisations.toArray(new String[0]),
                 assignmentPriority,
-                autoAssignable
+                autoAssignable,
+                roleCategory,
+                taskResource.getTaskId(),
+                ZonedDateTime.now().toOffsetDateTime()
             );
         }).collect(Collectors.toSet());
     }
@@ -270,12 +306,23 @@ public class CFTTaskMapper {
                         warning.getWarningCode(),
                         "WARNING",
                         null,
-                        OffsetDateTime.now(),
                         warning.getWarningText()
                     )).collect(Collectors.toList());
             }
         }
         return notes;
+    }
+
+    private WarningValues mapNoteResourceToWarnings(List<NoteResource> notes) {
+
+        if (notes != null) {
+            List<Warning> warnings = notes.stream()
+                .filter(noteResource -> "WARNING".equals(noteResource.getNoteType()))
+                .map(noteResource -> new Warning(noteResource.getCode(), noteResource.getContent()))
+                .collect(Collectors.toList());
+            return new WarningValues(warnings);
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -307,6 +354,34 @@ public class CFTTaskMapper {
         Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return value == null ? Optional.empty() : Optional.of((T) value);
+    }
+
+    public Task mapToTask(TaskResource taskResource) {
+        return new Task(taskResource.getTaskId(),
+            taskResource.getTaskName(),
+            taskResource.getTaskType(),
+            taskResource.getState().getValue(),
+            taskResource.getTaskSystem().getValue(),
+            taskResource.getSecurityClassification().getSecurityClassification(),
+            taskResource.getTitle(),
+            taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getAssignee(),
+            taskResource.getAutoAssigned(),
+            taskResource.getExecutionTypeCode().getExecutionName(),
+            taskResource.getJurisdiction(),
+            taskResource.getRegion(),
+            taskResource.getLocation(),
+            taskResource.getLocationName(),
+            taskResource.getCaseTypeId(),
+            taskResource.getCaseId(),
+            taskResource.getRoleCategory(),
+            taskResource.getCaseName(),
+            taskResource.getHasWarnings(),
+            mapNoteResourceToWarnings(taskResource.getNotes()),
+            taskResource.getCaseCategory(),
+            taskResource.getWorkTypeResource().getId()
+        );
     }
 }
 

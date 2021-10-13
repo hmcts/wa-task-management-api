@@ -3,11 +3,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals"})
 @Getter
 public enum SortField {
 
     DUE_DATE_CAMEL_CASE("dueDate", "dueDate"),
     DUE_DATE_SNAKE_CASE("due_date", "dueDate"),
+
+    DUE_DATE_CAMEL_CASE_CFT("dueDate", "dueDateTime"),
+    DUE_DATE_SNAKE_CASE_CFT("due_date", "dueDateTime"),
 
     TASK_TITLE_CAMEL_CASE("taskTitle", "title"),
     TASK_TITLE_SNAKE_CASE("task_title", "title"),
@@ -20,10 +24,7 @@ public enum SortField {
 
     CASE_ID_CAMEL_CASE("caseId", "caseId"),
     CASE_ID_SNAKE_CASE("case_id", "caseId"),
-
-    WORK_TYPE_CAMEL_CASE("workType", "workType"),
-    WORK_TYPE_SNAKE_CASE("work_type", "workType"),
-
+    
     CASE_NAME_CAMEL_CASE("caseName", "caseName"),
     CASE_NAME_SNAKE_CASE("case_name", "caseName");
 

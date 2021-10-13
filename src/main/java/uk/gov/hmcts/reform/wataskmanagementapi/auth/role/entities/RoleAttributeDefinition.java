@@ -8,7 +8,8 @@ public enum RoleAttributeDefinition {
     BASE_LOCATION("baseLocation"),
     CASE_TYPE("caseType"),
     WORK_TYPE("workType"),
-    REGION("region");
+    REGION("region"),
+    WORK_TYPES("workTypes");
 
     private final String value;
 
