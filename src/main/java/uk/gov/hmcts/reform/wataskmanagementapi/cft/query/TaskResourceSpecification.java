@@ -50,6 +50,14 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 
+    public static Specification<TaskResource> buildSingleTaskQuery(String taskId,
+                                                             AccessControlResponse accessControlResponse,
+                                                             List<PermissionTypes> permissionsRequired
+    ) {
+
+        return buildRoleAssignmentConstraints(taskId,permissionsRequired, accessControlResponse);
+    }
+
     private static Specification<TaskResource> buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
         AccessControlResponse accessControlResponse) {
@@ -85,6 +93,46 @@ public final class TaskResourceSpecification {
             query.distinct(true);
 
             return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
+        };
+    }
+
+    private static Specification<TaskResource> buildRoleAssignmentConstraints(String taskId,
+          List<PermissionTypes> permissionsRequired,
+          AccessControlResponse accessControlResponse) {
+
+        return (root, query, builder) -> {
+            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
+            final Predicate taskIdPredicate = builder.equal(root.get(TASK_ID),taskId);
+
+            // filter roles which are active.
+            final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+                .stream().map(TaskResourceSpecification::filterByActiveRole).collect(Collectors.toList());
+
+            // builds query for grant type BASIC, SPECIFIC
+            final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            // builds query for grant type STANDARD, CHALLENGED
+            final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            // builds query for grant type EXCLUDED
+            final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
+
+            // permissions check
+            List<Predicate> permissionPredicates = new ArrayList<>();
+            for (PermissionTypes type : permissionsRequired) {
+                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
+            }
+            final Predicate permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
+            query.distinct(true);
+
+            return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded),
+                               taskIdPredicate,permissionPredicate);
+
         };
     }
 
@@ -193,5 +241,4 @@ public final class TaskResourceSpecification {
         }
         return false;
     }
-
 }
