@@ -238,7 +238,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             ResultMatcher.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
                 jsonPath("$.title").value("Service Unavailable"),
                 jsonPath("$.status").value(503),
                 jsonPath("$.detail").value(
