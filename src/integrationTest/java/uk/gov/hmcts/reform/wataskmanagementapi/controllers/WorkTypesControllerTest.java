@@ -250,14 +250,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_401_when_invalid_user_access() throws Exception {
 
-        final List<String> roleNames = singletonList("tribunal-caseworker");
-
         // Role attribute is IA
-        Map<String, String> roleAttributes = new HashMap<>();
-        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
-        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
-
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenThrow(FeignException.Unauthorized.class);
 
