@@ -265,7 +265,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
 
     }
 
-    private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames, Map<String, String> roleAttributes) {
+    private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,
+                                                                             Map<String, String> roleAttributes) {
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
