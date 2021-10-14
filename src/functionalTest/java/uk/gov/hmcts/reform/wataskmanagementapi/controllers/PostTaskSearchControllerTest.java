@@ -49,7 +49,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -68,6 +68,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_empty_list_when_the_user_did_not_have_any_roles() {
+
+        authenticationHeaders = authorizationHeadersProvider
+            .getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
+        common.clearAllRoleAssignments(authenticationHeaders);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
