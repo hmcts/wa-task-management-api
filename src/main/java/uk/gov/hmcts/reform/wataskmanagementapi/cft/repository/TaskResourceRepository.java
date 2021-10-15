@@ -33,7 +33,7 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
         @QueryHint(name = "javax.persistence.query.timeout", value = "5000"),
         @QueryHint(name = "org.hibernate.timeout", value = "5")
     })
-    @Query(value = "insert into tasks (task_id) VALUES (:task_id)", nativeQuery = true)
+    @Query(value = "insert into {h-schema}tasks (task_id) VALUES (:task_id)", nativeQuery = true)
     @Transactional
     void insertAndLock(@Param("task_id") String taskId);
 
