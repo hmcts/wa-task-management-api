@@ -16,8 +16,8 @@ public enum SortField {
     LOCATION_NAME_CAMEL_CASE("locationName", "locationName", "locationName"),
     LOCATION_NAME_SNAKE_CASE("location_name", "locationName", "locationName"),
 
-    CASE_CATEGORY_CAMEL_CASE("caseCategory", "appealType", "appealType"),
-    CASE_CATEGORY_SNAKE_CASE("case_category", "appealType", "appealType"),
+    CASE_CATEGORY_CAMEL_CASE("caseCategory", "appealType", "caseCategory"),
+    CASE_CATEGORY_SNAKE_CASE("case_category", "appealType", "caseCategory"),
 
     CASE_ID_CAMEL_CASE("caseId", "caseId", "caseId"),
     CASE_ID_SNAKE_CASE("case_id", "caseId", "caseId"),
