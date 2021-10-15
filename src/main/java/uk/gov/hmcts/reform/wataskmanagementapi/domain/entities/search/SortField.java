@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals"})
+@SuppressWarnings({"squid:S1192", "PMD.AvoidDuplicateLiterals"})
 @Getter
 public enum SortField {
 
