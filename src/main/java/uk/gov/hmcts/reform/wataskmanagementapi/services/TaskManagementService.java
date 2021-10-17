@@ -82,7 +82,6 @@ public class TaskManagementService {
     private final CftQueryService cftQueryService;
 
 
-
     @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CamundaQueryBuilder camundaQueryBuilder,
@@ -108,7 +107,7 @@ public class TaskManagementService {
      * Retrieves a task from camunda, performs role assignment verifications and returns a mapped task.
      * This method requires {@link PermissionTypes#READ} permission.
      *
-     * @param taskId          the task id.
+     * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @return A mapped task {@link Task}
      */
@@ -117,7 +116,8 @@ public class TaskManagementService {
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                             accessControlResponse.getUserInfo().getUid());
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             return cftTaskMapper.mapToTask(taskResource);
@@ -126,7 +126,6 @@ public class TaskManagementService {
             return camundaService.getMappedTask(taskId, variables);
         }
     }
-
 
 
     /**
@@ -144,7 +143,8 @@ public class TaskManagementService {
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                             accessControlResponse.getUserInfo().getUid());
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             //Lock & update Task
@@ -152,7 +152,7 @@ public class TaskManagementService {
             task.setState(CFTTaskState.ASSIGNED);
             task.setAssignee(accessControlResponse.getUserInfo().getUid());
             //Perform Camunda updates
-            camundaService.claimTask(taskId,accessControlResponse.getUserInfo().getUid());
+            camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
         } else {
@@ -177,7 +177,8 @@ public class TaskManagementService {
         boolean taskHasUnassigned;
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                             accessControlResponse.getUserInfo().getUid());
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
                 taskId,
@@ -192,7 +193,7 @@ public class TaskManagementService {
             task.setState(CFTTaskState.UNASSIGNED);
             task.setAssignee(null);
             //Perform Camunda updates
-            camundaService.unclaimTask(taskId,taskHasUnassigned);
+            camundaService.unclaimTask(taskId, taskHasUnassigned);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
         } else {
@@ -236,8 +237,9 @@ public class TaskManagementService {
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            assignerAccessControlResponse.getUserInfo().getUid()
-        );
+            assignerAccessControlResponse.getUserInfo().getUid(),
+            assignerAccessControlResponse.getUserInfo().getEmail());
+
         if (isRelease2EndpointsFeatureEnabled) {
             roleAssignmentVerification(
                 taskId,
@@ -299,8 +301,8 @@ public class TaskManagementService {
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
-        );
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail());
 
         if (isRelease2EndpointsFeatureEnabled) {
             roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
@@ -310,8 +312,9 @@ public class TaskManagementService {
         }
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
-        );
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail());
+
         if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
@@ -343,8 +346,8 @@ public class TaskManagementService {
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
-        );
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail());
 
         if (isRelease2EndpointsFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
@@ -384,7 +387,8 @@ public class TaskManagementService {
         }
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            userId
+            userId,
+            accessControlResponse.getUserInfo().getEmail()
         );
 
         if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
@@ -427,8 +431,8 @@ public class TaskManagementService {
         if (completionOptions.isAssignAndComplete()) {
             final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid()
-            );
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
 
             if (isRelease2EndpointsFeatureEnabled) {
                 TaskResource taskResource = roleAssignmentVerification(
@@ -450,8 +454,9 @@ public class TaskManagementService {
 
             boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
                 FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                accessControlResponse.getUserInfo().getUid()
-            );
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
+
             if (isFeatureEnabled
                 || isRelease2EndpointsFeatureEnabled) {
                 //Lock & update Task
@@ -459,14 +464,14 @@ public class TaskManagementService {
                 task.setState(CFTTaskState.COMPLETED);
                 //Perform Camunda updates
                 camundaService.assignAndCompleteTask(taskId,
-                                                     accessControlResponse.getUserInfo().getUid(),
-                                                     taskStateIsAssignedAlready);
+                    accessControlResponse.getUserInfo().getUid(),
+                    taskStateIsAssignedAlready);
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             } else {
                 camundaService.assignAndCompleteTask(taskId,
-                                                     accessControlResponse.getUserInfo().getUid(),
-                                                     taskStateIsAssignedAlready);
+                    accessControlResponse.getUserInfo().getUid(),
+                    taskStateIsAssignedAlready);
             }
 
         } else {
@@ -732,8 +737,8 @@ public class TaskManagementService {
      * @param permissionsRequired   the permissions that are required by the endpoint.
      */
     private TaskResource roleAssignmentVerification(String taskId,
-                                            AccessControlResponse accessControlResponse,
-                                            List<PermissionTypes> permissionsRequired) {
+                                                    AccessControlResponse accessControlResponse,
+                                                    List<PermissionTypes> permissionsRequired) {
         Optional<TaskResource> optionalTaskResource = cftQueryService
             .getTask(taskId, accessControlResponse, permissionsRequired);
 
@@ -798,10 +803,10 @@ public class TaskManagementService {
      * This method also performs extra checks for hierarchy and assignee.
      * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
      *
-     * @param taskId              the task id.
-     * @param userId              the IDAM userId of the user making the request.
-     * @param accessControlResponse     the role assignments of the user.
-     * @param permissionsRequired the permissions that are required by the endpoint.
+     * @param taskId                the task id.
+     * @param userId                the IDAM userId of the user making the request.
+     * @param accessControlResponse the role assignments of the user.
+     * @param permissionsRequired   the permissions that are required by the endpoint.
      */
     private TaskResource roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
         String taskId,

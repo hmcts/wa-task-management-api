@@ -26,6 +26,7 @@ class ClientAccessControlServiceTest {
     private static final String PRIVILEGED_ACCESS_SERVICE_NAME = "somePrivilegedServiceName";
     private static final String EXCLUSIVE_ACCESS_SERVICE_NAME = "someExclusiveServiceName";
     private static final String USER_ID = "someUserId";
+    private static final String EMAIL = "some@mail.com";
     @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
@@ -43,6 +44,8 @@ class ClientAccessControlServiceTest {
             .thenReturn(userInfo);
         lenient().when(userInfo.getUid())
             .thenReturn(USER_ID);
+        lenient().when(userInfo.getEmail())
+            .thenReturn(EMAIL);
 
         clientAccessControlService = new ClientAccessControlService(
             serviceAuthTokenValidator,
@@ -55,7 +58,7 @@ class ClientAccessControlServiceTest {
     @Test
     void hasPrivilegedAccess_should_return_true_if_feature_is_enabled_and_service_whitelisted() {
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID))
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID, EMAIL))
             .thenReturn(true);
         when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
             .thenReturn(PRIVILEGED_ACCESS_SERVICE_NAME);
@@ -68,7 +71,7 @@ class ClientAccessControlServiceTest {
     @Test
     void hasPrivilegedAccess_should_return_false_if_feature_is_disabled() {
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID))
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID, EMAIL))
             .thenReturn(false);
 
         boolean result = clientAccessControlService.hasPrivilegedAccess(SERVICE_AUTH_TOKEN, accessControlResponse);
@@ -79,7 +82,7 @@ class ClientAccessControlServiceTest {
     @Test
     void hasPrivilegedAccess_should_return_false_if_feature_is_enabled_and_service_is_not_whitelisted() {
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID))
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.PRIVILEGED_ACCESS_FEATURE, USER_ID, EMAIL))
             .thenReturn(true);
         when(serviceAuthTokenValidator.getServiceName(SERVICE_AUTH_TOKEN))
             .thenReturn("anotherService");

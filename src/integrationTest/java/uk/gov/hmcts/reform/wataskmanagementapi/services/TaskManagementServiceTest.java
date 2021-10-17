@@ -58,6 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
@@ -124,8 +125,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(true);
 
@@ -203,7 +205,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             when(permissionEvaluatorService.hasAccess(
@@ -237,7 +240,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
             CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
@@ -271,7 +275,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-            when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
             CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
@@ -315,7 +320,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                when(accessControlResponse.getUserInfo())
+                    .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
                 when(permissionEvaluatorService.hasAccess(
@@ -358,7 +364,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-                when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+                when(accessControlResponse.getUserInfo())
+                    .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
                 CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);

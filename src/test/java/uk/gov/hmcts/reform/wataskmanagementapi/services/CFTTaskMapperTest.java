@@ -53,6 +53,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
@@ -214,14 +215,11 @@ class CFTTaskMapperTest {
         mappedValues.put(TITLE.value(), "someTitle");
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
+        mappedValues.put(WORK_TYPE.value(), "someWorkType");
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
             new TaskConfigurationResults(mappedValues));
-
-        if (taskResource.getWorkTypeResource() == null) {
-            taskResource.setWorkTypeResource(new WorkTypeResource(null));
-        }
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
         assertEquals("someCamundaTaskName", taskResource.getTaskName());
@@ -236,7 +234,7 @@ class CFTTaskMapperTest {
         assertEquals(null, taskResource.getMinorPriority());
         assertEquals(null, taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource().getId());
+        assertEquals("someWorkType", taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());
@@ -286,6 +284,7 @@ class CFTTaskMapperTest {
         mappedValues.put(TITLE.value(), "someTitle");
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
+        mappedValues.put(WORK_TYPE.value(), "someWorkType");
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
             asList(
@@ -311,10 +310,6 @@ class CFTTaskMapperTest {
             skeletonTask,
             new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses));
 
-        if (taskResource.getWorkTypeResource() == null) {
-            taskResource.setWorkTypeResource(new WorkTypeResource(null));
-        }
-
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
         assertEquals("someCamundaTaskName", taskResource.getTaskName());
         assertEquals("someTaskType", taskResource.getTaskType());
@@ -328,7 +323,7 @@ class CFTTaskMapperTest {
         assertEquals(null, taskResource.getMinorPriority());
         assertEquals(null, taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource().getId());
+        assertEquals("someWorkType", taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertEquals(null, taskResource.getAssignmentExpiry());

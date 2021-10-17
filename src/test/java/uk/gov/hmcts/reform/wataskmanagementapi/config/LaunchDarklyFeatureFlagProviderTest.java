@@ -33,6 +33,7 @@ class LaunchDarklyFeatureFlagProviderTest {
             .name("some user id")
             .firstName("Work Allocation")
             .lastName("Task Management")
+            .email("some@mail.com")
             .build();
     }
 
@@ -49,7 +50,8 @@ class LaunchDarklyFeatureFlagProviderTest {
         when(ldClient.boolVariation(FeatureFlag.TEST_KEY.getKey(), expectedLdUser, defaultValue))
             .thenReturn(boolVariationReturn);
 
-        assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.TEST_KEY, "some user id"))
+        assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.TEST_KEY,
+            "some user id", "some@mail.com"))
             .isEqualTo(expectedFlagValue);
     }
 
@@ -58,7 +60,8 @@ class LaunchDarklyFeatureFlagProviderTest {
         "NULL, some user id, featureFlag must not be null",
         "PRIVILEGED_ACCESS_FEATURE, NULL, userId must not be null"}, nullValues = "NULL")
     void getBooleanValue_edge_case_scenarios(FeatureFlag featureFlag, String userId, String expectedMessage) {
-        assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, userId))
+        assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag,
+            userId, "some@mail.com"))
             .isInstanceOf(NullPointerException.class)
             .hasMessage(expectedMessage);
     }

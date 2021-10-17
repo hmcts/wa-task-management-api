@@ -32,6 +32,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.EMAIL;
 
 public class ServiceMocks {
 
@@ -93,7 +94,7 @@ public class ServiceMocks {
     }
 
     public void mockUserInfo() {
-        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
     }
 

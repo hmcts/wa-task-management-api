@@ -71,12 +71,13 @@ class AssignTaskTest extends CamundaHelpers {
         List<RoleAssignment> roleAssignmentAssigner = singletonList(mock(RoleAssignment.class));
         when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
         when(assignerAccessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(EMAIL).build());
 
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignmentAssignee = singletonList(mock(RoleAssignment.class));
         when(assigneeAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssignee);
-        when(assigneeAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(assigneeAccessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
 
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -103,10 +104,11 @@ class AssignTaskTest extends CamundaHelpers {
         List<RoleAssignment> roleAssignmentAssigner = singletonList(mock(RoleAssignment.class));
         when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
         when(assignerAccessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(EMAIL).build());
 
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
-        when(assigneeAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(assigneeAccessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
 
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
 
@@ -136,12 +138,13 @@ class AssignTaskTest extends CamundaHelpers {
         List<RoleAssignment> roleAssignmentAssigner = singletonList(mock(RoleAssignment.class));
         when(assignerAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssigner);
         when(assignerAccessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(EMAIL).build());
 
         AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignmentAssignee = singletonList(mock(RoleAssignment.class));
         when(assigneeAccessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentAssignee);
-        when(assigneeAccessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(assigneeAccessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
 
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -187,7 +190,7 @@ class AssignTaskTest extends CamundaHelpers {
             .hasMessage("Assigner userId cannot be null");
 
         when(assignerAccessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).build());
+            .thenReturn(UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(EMAIL).build());
         when(assigneeAccessControlResponse.getUserInfo())
             .thenReturn(UserInfo.builder().uid(null).build());
 

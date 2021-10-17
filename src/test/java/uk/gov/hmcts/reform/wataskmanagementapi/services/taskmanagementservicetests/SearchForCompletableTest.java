@@ -164,7 +164,8 @@ class SearchForCompletableTest extends CamundaHelpers {
 
         when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
             .thenReturn(mockTaskCompletionDMNResponse());
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
 
         CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
@@ -199,7 +200,8 @@ class SearchForCompletableTest extends CamundaHelpers {
             "Asylum"
         );
 
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
         when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
             .thenReturn(mockTaskCompletionDMNResponse());
@@ -236,7 +238,8 @@ class SearchForCompletableTest extends CamundaHelpers {
 
         when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
             .thenReturn(mockTaskCompletionDMNResponse());
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
 
         CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
@@ -272,7 +275,8 @@ class SearchForCompletableTest extends CamundaHelpers {
 
         when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
             .thenReturn(mockTaskCompletionDMNResponseWithEmptyRow());
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
         CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
         when(camundaQueryBuilder.createCompletableTasksQuery(any(), any()))

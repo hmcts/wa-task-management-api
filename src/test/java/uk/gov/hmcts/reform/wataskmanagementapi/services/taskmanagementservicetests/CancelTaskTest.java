@@ -75,7 +75,8 @@ class CancelTaskTest extends CamundaHelpers {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
@@ -91,13 +92,15 @@ class CancelTaskTest extends CamundaHelpers {
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(true);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(false);
 
@@ -115,7 +118,8 @@ class CancelTaskTest extends CamundaHelpers {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
@@ -125,13 +129,15 @@ class CancelTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(false);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(false);
 
@@ -146,7 +152,8 @@ class CancelTaskTest extends CamundaHelpers {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
@@ -186,7 +193,8 @@ class CancelTaskTest extends CamundaHelpers {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
@@ -201,13 +209,15 @@ class CancelTaskTest extends CamundaHelpers {
             .thenReturn(Optional.empty());
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(true);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID
+                RELEASE_2_ENDPOINTS_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
             )
         ).thenReturn(false);
 

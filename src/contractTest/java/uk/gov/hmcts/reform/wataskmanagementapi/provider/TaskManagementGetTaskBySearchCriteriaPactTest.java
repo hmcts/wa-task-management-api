@@ -186,7 +186,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail())
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
@@ -201,7 +202,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail())
         ).thenReturn(false);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithWarnings()));
@@ -216,7 +218,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail())
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))

@@ -33,7 +33,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -128,7 +128,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
+            new TaskAttribute(TASK_TYPE, "reviewAppeal"),
             new TaskAttribute(TASK_NAME, "Review The Appeal")
         ));
 

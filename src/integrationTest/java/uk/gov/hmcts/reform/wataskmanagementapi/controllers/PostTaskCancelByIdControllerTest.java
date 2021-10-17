@@ -48,6 +48,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CAN
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -92,6 +93,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
+        when(mockedUserInfo.getEmail())
+            .thenReturn(EMAIL);
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
         mockServices = new ServiceMocks(
@@ -114,18 +117,20 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
-        )).thenReturn(true);
+                FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                EMAIL
+            )
+        ).thenReturn(true);
 
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
         mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(status().isNoContent());
 
         Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
