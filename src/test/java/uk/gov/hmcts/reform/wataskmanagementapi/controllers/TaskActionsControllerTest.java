@@ -79,13 +79,14 @@ class TaskActionsControllerTest {
     void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
 
         Task mockedTask = mock(Task.class);
-
+        AccessControlResponse accessControlResponse = new AccessControlResponse(mockedUserInfo,
+                                                                                singletonList(mockedRoleAssignment));
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+            .thenReturn(accessControlResponse);
 
         when(taskManagementService.getTask(
             taskId,
-            singletonList(mockedRoleAssignment)
+            accessControlResponse
         ))
             .thenReturn(mockedTask);
 

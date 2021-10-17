@@ -20,39 +20,29 @@ public final class TaskQuerySpecification {
         // avoid creating object
     }
 
-    protected static Specification<TaskResource> searchByState(List<CFTTaskState> cftTaskStates) {
+    public static Specification<TaskResource> searchByState(List<CFTTaskState> cftTaskStates) {
         return (root, query, builder) -> builder.in(root.get(STATE))
             .value(cftTaskStates);
     }
 
-    protected static Specification<TaskResource> searchByJurisdiction(List<String> jurisdictions) {
+    public static Specification<TaskResource> searchByJurisdiction(List<String> jurisdictions) {
         return (root, query, builder) -> builder.in(root.get(JURISDICTION))
             .value(jurisdictions);
     }
 
-    protected static Specification<TaskResource> searchByLocation(List<String> locations) {
+    public static Specification<TaskResource> searchByLocation(List<String> locations) {
         return (root, query, builder) -> builder.in(root.get(LOCATION))
             .value(locations);
     }
 
-    protected static Specification<TaskResource> searchByCaseId(List<String> caseIds) {
+    public static Specification<TaskResource> searchByCaseId(List<String> caseIds) {
         return (root, query, builder) -> builder.in(root.get(CASE_ID))
             .value(caseIds);
     }
 
-    protected static Specification<TaskResource> searchByUser(List<String> users) {
+    public static Specification<TaskResource> searchByUser(List<String> users) {
         return (root, query, builder) -> builder.in(root.get(ASSIGNEE))
             .value(users);
-    }
-
-    protected static Specification<TaskResource> searchByTaskType(List<String> taskTypes) {
-        return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
-            .value(taskTypes);
-    }
-
-    protected static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
-        return (root, query, builder) -> builder.in(root.get(TASK_ID))
-            .value(taskIds);
     }
 
 }

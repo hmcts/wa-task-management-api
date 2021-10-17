@@ -1438,5 +1438,4 @@ public class CftQueryServiceTest {
             new SearchParameter(USER, SearchOperator.IN, asList("unknown", "", null))
         ));
     }
-
 }

@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
@@ -87,6 +88,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private IdamTokenGenerator systemUserIdamToken;
     @Autowired
     private IdamTokenGenerator waTestLawFirmIdamToken;
+    @Autowired
+    protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")

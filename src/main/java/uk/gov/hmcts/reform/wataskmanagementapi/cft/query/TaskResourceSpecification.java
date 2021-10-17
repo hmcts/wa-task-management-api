@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
 
-import java.time.ZoneId;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,21 +19,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByState;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods", "PMD.LawOfDemeter"})
 public final class TaskResourceSpecification {
 
-    public static final String TASK_ROLE_RESOURCES = "taskRoleResources";
-    public static final String STATE = "state";
     public static final String LOCATION = "location";
-    public static final ZoneId ZONE_ID = ZoneId.of("Europe/London");
     public static final String TASK_ID = "taskId";
     public static final String TASK_TYPE = "taskType";
-    public static final String ASSIGNEE = "assignee";
     public static final String CASE_ID = "caseId";
-    public static final String ROLE_NAME = "roleName";
 
     private TaskResourceSpecification() {
         // avoid creating object
@@ -50,13 +43,22 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 
+    public static Specification<TaskResource> buildSingleTaskQuery(String taskId,
+                                                                   AccessControlResponse accessControlResponse,
+                                                                   List<PermissionTypes> permissionsRequired
+    ) {
+        return searchByTaskId(taskId)
+            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
+    }
+
+
     public static Specification<TaskResource> buildQueryForCompletable(
         SearchEventAndCase searchEventAndCase, AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired, List<String> taskTypes) {
 
         return searchByCaseId(List.of(searchEventAndCase.getCaseId()))
             .and(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .and(searchByTaskId(taskTypes))
+            .and(searchByTaskTypes(taskTypes))
             .and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
@@ -116,6 +118,15 @@ public final class TaskResourceSpecification {
         }
 
         return (root, query, builder) -> builder.conjunction();
+    }
+
+    private static Specification<TaskResource> searchByTaskId(String taskId) {
+        return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
+    }
+
+    private static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {
+        return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
+            .value(taskTypes);
     }
 
     private static EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {

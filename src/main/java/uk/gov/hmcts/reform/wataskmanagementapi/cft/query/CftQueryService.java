@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
@@ -57,7 +58,7 @@ public class CftQueryService {
         return mapToTask(taskResources, pages.getTotalElements());
     }
 
-    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase ,
+    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                 AccessControlResponse accessControlResponse,
                                                 List<PermissionTypes> permissionsRequired) {
 
@@ -108,6 +109,23 @@ public class CftQueryService {
         ).collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, totalNumberOfTasks);
+    }
+
+    public Optional<TaskResource> getTask(String taskId,
+                                          AccessControlResponse accessControlResponse,
+                                          List<PermissionTypes> permissionsRequired
+    ) {
+
+        if (permissionsRequired.isEmpty()
+            || taskId == null
+            || taskId.isBlank()) {
+            return Optional.empty();
+        }
+        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
+
+        return taskResourceRepository.findOne(taskResourceSpecification);
+
     }
 
     private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {

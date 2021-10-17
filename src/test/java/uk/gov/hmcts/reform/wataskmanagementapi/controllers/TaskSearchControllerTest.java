@@ -169,6 +169,8 @@ class TaskSearchControllerTest {
 
     @Test
     void should_auto_complete_a_task() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "caseJurisdiction", "caseType");
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
