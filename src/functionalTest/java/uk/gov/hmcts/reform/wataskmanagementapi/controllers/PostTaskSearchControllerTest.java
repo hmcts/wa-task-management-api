@@ -131,8 +131,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         // Given query
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId()))),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
@@ -153,8 +155,10 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
         // Given query
-        searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+        searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId()))),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
         );
 
