@@ -13,17 +13,22 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CftQueryService {
 
+    private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
 
-    public CftQueryService(TaskResourceRepository taskResourceRepository) {
+    public CftQueryService(CFTTaskMapper cftTaskMapper, TaskResourceRepository taskResourceRepository) {
+        this.cftTaskMapper = cftTaskMapper;
         this.taskResourceRepository = taskResourceRepository;
     }
 
@@ -34,12 +39,17 @@ public class CftQueryService {
         AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired
     ) {
+        Sort sort = SortQuery.sortByFields(searchTaskRequest);
+        Pageable page;
+        try {
+            page = PageRequest.of(firstResult, maxResults, sort);
+        } catch (IllegalArgumentException exp) {
+            return new GetTasksResponse<>(Collections.emptyList(), 0);
+        }
+
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
 
-        Sort sort = SortQuery.sortByFields(searchTaskRequest);
-
-        Pageable page = PageRequest.of(firstResult, maxResults, sort);
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
         final List<TaskResource> taskResources = pages.toList();
@@ -48,26 +58,15 @@ public class CftQueryService {
     }
 
     private GetTasksResponse<Task> mapToTask(List<TaskResource> taskResources, long totalNumberOfTasks) {
-        final List<Task> tasks = taskResources.stream().map(taskResource ->
-            new Task(taskResource.getTaskId(), taskResource.getTaskName(), taskResource.getTaskType(),
-                taskResource.getState().getValue(), taskResource.getTaskSystem().getValue(),
-                taskResource.getSecurityClassification().getSecurityClassification(),
-                taskResource.getTitle(),
-                taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
-                taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
-                taskResource.getAssignee(), taskResource.getAutoAssigned(),
-                taskResource.getExecutionTypeCode().getExecutionName(), taskResource.getJurisdiction(),
-                taskResource.getRegion(), taskResource.getLocation(), taskResource.getLocationName(),
-                taskResource.getCaseTypeId(), taskResource.getCaseId(), taskResource.getRoleCategory(),
-                taskResource.getCaseName(), taskResource.getHasWarnings(), null, null)
+        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
         ).collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, totalNumberOfTasks);
     }
 
     public Optional<TaskResource> getTask(String taskId,
-        AccessControlResponse accessControlResponse,
-        List<PermissionTypes> permissionsRequired
+                                          AccessControlResponse accessControlResponse,
+                                          List<PermissionTypes> permissionsRequired
     ) {
 
         if (permissionsRequired.isEmpty()
@@ -81,5 +80,4 @@ public class CftQueryService {
         return taskResourceRepository.findOne(taskResourceSpecification);
 
     }
-
 }

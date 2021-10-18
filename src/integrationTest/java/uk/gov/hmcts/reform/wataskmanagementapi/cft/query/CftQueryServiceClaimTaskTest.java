@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -46,7 +48,8 @@ public class CftQueryServiceClaimTaskTest {
 
     @BeforeEach
     void setUp() {
-        cftQueryService = new CftQueryService(taskResourceRepository);
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        cftQueryService = new CftQueryService(cftTaskMapper, taskResourceRepository);
     }
 
     private static Stream<GrantType> getGrantTypes() {
