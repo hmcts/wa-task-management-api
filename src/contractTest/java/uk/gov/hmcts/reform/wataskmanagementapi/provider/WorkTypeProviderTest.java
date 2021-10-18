@@ -28,11 +28,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -107,7 +107,7 @@ public class WorkTypeProviderTest {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
-        when(workTypesService.getWorkTypes(any())).thenReturn(Collections.singletonList(workType.get()));
+        when(workTypesService.getWorkTypes(any())).thenReturn(singletonList(workType.get()));
     }
 
 }

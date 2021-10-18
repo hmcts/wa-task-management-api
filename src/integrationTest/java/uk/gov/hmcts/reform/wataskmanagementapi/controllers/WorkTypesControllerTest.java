@@ -170,7 +170,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_empty_list_when_work_types_are_given() throws Exception {
+    void should_return_empty_list_when_filters_are_given() throws Exception {
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         List<RoleAssignment> allTestRoles = createTestRoleAssignments(roleNames);
