@@ -50,7 +50,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -75,7 +75,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -95,7 +95,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-")
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -121,7 +121,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-")
+            authenticationHeaders
         );
 
         result.then().assertThat()
@@ -135,14 +135,12 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
-
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), headers);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            headers
+            authenticationHeaders
         );
 
         result.then().assertThat()
