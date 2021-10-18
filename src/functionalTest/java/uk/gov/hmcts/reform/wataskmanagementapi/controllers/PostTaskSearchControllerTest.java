@@ -756,10 +756,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         initiateTask(taskId2, taskType, taskVariables2);
 
         //search by all work types
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN,
-                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList()))
-        ));
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(WORK_TYPE, SearchOperator.IN,
+                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList()))),
+            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
