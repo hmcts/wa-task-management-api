@@ -34,9 +34,9 @@ public final class SortQuery {
         return sortingParameters.stream().map((sortingParameter) -> {
             switch (sortingParameter.getSortOrder()) {
                 case ASCENDANT:
-                    return Sort.by(Sort.Order.asc(sortingParameter.getSortBy().getCamundaVariableName()));
+                    return Sort.by(Sort.Order.asc(sortingParameter.getSortBy().getCftVariableName()));
                 case DESCENDANT:
-                    return Sort.by(Sort.Order.desc(sortingParameter.getSortBy().getCamundaVariableName()));
+                    return Sort.by(Sort.Order.desc(sortingParameter.getSortBy().getCftVariableName()));
                 default:
                     return null;
             }
