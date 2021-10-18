@@ -18,7 +18,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -79,7 +78,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         assertions.taskVariableWasUpdated(testVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -101,7 +100,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -125,7 +124,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -153,7 +152,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("detail", equalTo(
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -184,7 +183,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     private String getAssigneeId(Headers headers) {

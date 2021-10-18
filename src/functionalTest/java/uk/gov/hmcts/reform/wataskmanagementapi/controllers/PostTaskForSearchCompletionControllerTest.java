@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 @Slf4j
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
@@ -82,7 +81,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].type", equalTo("processApplication"));
 
-        common.cleanUpTask(processApplicationTaskVariables.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(processApplicationTaskVariables.getTaskId());
     }
 
     @Test
@@ -104,7 +103,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -140,7 +139,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -182,8 +181,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].id", equalTo(taskId2));
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
     }
 
     @Test
@@ -222,7 +221,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -280,8 +279,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
         assertTrue(actualWarnings.isEmpty());
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
     }
 
     @Test
@@ -343,8 +342,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         );
         Assertions.assertEquals(expectedWarnings, actualWarnings);
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
     }
 
     @Test
@@ -404,9 +403,9 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.case_type_id", everyItem(is("Asylum")))
             .body("tasks.task_state", everyItem(is("assigned")));
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
-        common.cleanUpTask(taskId3, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
+        common.cleanUpTask(taskId3);
     }
 
     @Test
@@ -431,7 +430,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -454,7 +453,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -479,7 +478,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -504,7 +503,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -536,7 +535,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -561,7 +560,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.size()", equalTo(0));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -585,7 +584,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     private String getAssigneeId(Headers headers) {

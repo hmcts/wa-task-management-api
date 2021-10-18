@@ -25,6 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -484,7 +485,7 @@ class CFTTaskMapperTest {
             ZonedDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
             task.getDueDate()
         );
-        assertEquals(CFTTaskState.UNCONFIGURED.getValue(), task.getTaskState());
+        assertEquals(UNCONFIGURED.getValue().toLowerCase(Locale.ROOT), task.getTaskState());
         assertEquals(TaskSystem.SELF.getValue(), task.getTaskSystem());
         assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
         assertEquals("someTitle", task.getTaskTitle());
