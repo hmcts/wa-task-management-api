@@ -150,8 +150,8 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.STATE) != null) {
             final List<String> values = keyMap.get(SearchParameterKey.STATE).getValues();
-            final List<CFTTaskState> cftTaskStates = values.stream().map(CFTTaskState::valueOf)
-                .collect(Collectors.toList());
+            final List<CFTTaskState> cftTaskStates = values.stream().map(
+                value -> CFTTaskState.valueOf(value.toUpperCase(Locale.ROOT))).collect(Collectors.toList());
 
             return (root, query, builder) -> builder.in(root.get(STATE))
                 .value(cftTaskStates);

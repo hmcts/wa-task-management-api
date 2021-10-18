@@ -17,8 +17,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_DELETED;
 
 public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -29,7 +27,8 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider
+            .getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -80,7 +79,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -108,7 +107,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("detail", equalTo(
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -127,7 +126,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId, REASON_DELETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -146,7 +145,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId, REASON_DELETED);
+        common.cleanUpTask(taskId);
     }
 
 }

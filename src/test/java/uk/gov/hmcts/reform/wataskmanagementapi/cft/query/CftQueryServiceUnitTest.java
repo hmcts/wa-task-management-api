@@ -32,9 +32,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,9 +45,10 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
@@ -58,13 +61,15 @@ public class CftQueryServiceUnitTest {
 
     @Mock
     private TaskResourceRepository taskResourceRepository;
+    @Mock
+    private CFTTaskMapper cftTaskMapper;
 
     @InjectMocks
     private CftQueryService cftQueryService;
 
     @Test
     void shouldReturnAllTasks() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
             new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
@@ -73,7 +78,7 @@ public class CftQueryServiceUnitTest {
         ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
+        final AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
         );
@@ -81,14 +86,14 @@ public class CftQueryServiceUnitTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         Page<TaskResource> taskResources = new PageImpl<>(List.of(createTaskResource()));
+        when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
         when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
 
         GetTasksResponse<Task> taskResourceList
             = cftQueryService.getAllTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired);
 
         assertNotNull(taskResourceList);
-        assertEquals("taskId", taskResourceList.getTasks().get(0).getId());
-
+        assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
     }
 
     @Test
@@ -110,10 +115,9 @@ public class CftQueryServiceUnitTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         final TaskResource taskResource = createTaskResource();
-        taskResource.setCreated(null);
-        taskResource.setDueDateTime(null);
 
         Page<TaskResource> taskResources = new PageImpl<>(List.of(taskResource));
+        when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
         when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
 
         GetTasksResponse<Task> taskResourceList
@@ -122,13 +126,43 @@ public class CftQueryServiceUnitTest {
         assertNotNull(taskResourceList);
         final Task task = taskResourceList.getTasks().get(0);
 
-        assertEquals("taskId", task.getId());
-        assertNull(task.getCreatedDate());
-        assertNull(task.getDueDate());
+        assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", task.getId());
+        assertNotNull(task.getCreatedDate());
+        assertNotNull(task.getDueDate());
     }
 
     @Test
     void shouldReturnEmptyListWhenNoTasksInDatabase() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
+            new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
+            new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
+            new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+        ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+        final AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        Page<TaskResource> taskResources = Page.empty();
+        when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
+        //when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+
+        GetTasksResponse<Task> taskResourceList
+            = cftQueryService.getAllTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired);
+
+        assertNotNull(taskResourceList);
+        assertTrue(taskResourceList.getTasks().isEmpty());
+
+    }
+
+    @Test
+    void shouldHandleInvalidPagination() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
@@ -145,15 +179,16 @@ public class CftQueryServiceUnitTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        Page<TaskResource> taskResources = Page.empty();
-        when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
-
         GetTasksResponse<Task> taskResourceList
-            = cftQueryService.getAllTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired);
+            = cftQueryService.getAllTasks(
+            -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+        );
 
         assertNotNull(taskResourceList);
         assertTrue(taskResourceList.getTasks().isEmpty());
 
+        verify(taskResourceRepository, times(0))
+            .findAll(any(), any(Pageable.class));
     }
 
 
@@ -271,6 +306,35 @@ public class CftQueryServiceUnitTest {
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory"
+        );
+    }
+
+    private Task getTask() {
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            true,
+            null,
+            "Some Case Management Category",
+            "someWorkType"
         );
     }
 }

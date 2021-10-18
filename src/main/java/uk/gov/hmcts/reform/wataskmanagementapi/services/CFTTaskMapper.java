@@ -356,6 +356,7 @@ public class CFTTaskMapper {
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
 
+
     public Task mapToTask(TaskResource taskResource) {
         return new Task(taskResource.getTaskId(),
             taskResource.getTaskName(),
@@ -364,8 +365,8 @@ public class CFTTaskMapper {
             taskResource.getTaskSystem().getValue(),
             taskResource.getSecurityClassification().getSecurityClassification(),
             taskResource.getTitle(),
-            taskResource.getCreated().toZonedDateTime(),
-            taskResource.getDueDateTime().toZonedDateTime(),
+            extractDate(taskResource.getCreated()),
+            extractDate(taskResource.getDueDateTime()),
             taskResource.getAssignee(),
             taskResource.getAutoAssigned(),
             taskResource.getExecutionTypeCode().getExecutionName(),
@@ -382,6 +383,13 @@ public class CFTTaskMapper {
             taskResource.getCaseCategory(),
             taskResource.getWorkTypeResource().getId()
         );
+    }
+
+    private ZonedDateTime extractDate(OffsetDateTime created) {
+        if (created != null) {
+            return created.toZonedDateTime();
+        }
+        return null;
     }
 }
 

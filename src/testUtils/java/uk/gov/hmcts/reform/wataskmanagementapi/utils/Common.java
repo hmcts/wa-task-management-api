@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import io.restassured.http.Headers;
+import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.ORGANISATION;
@@ -38,6 +40,7 @@ public class Common {
 
     public static final String REASON_COMPLETED = "completed";
     public static final String REASON_DELETED = "deleted";
+    public static final String PENDING_TERMINATION = "pendingTermination";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private static final String ENDPOINT_HISTORY_TASK = "history/task";
     private final GivensBuilder given;
@@ -194,9 +197,24 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public void cleanUpTask(String taskId, String reason) {
+    public void cleanUpTask(String taskId) {
         log.info("Cleaning task {}", taskId);
         camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+    }
+
+    public void cleanUpAndValidateCftTaskState(String taskId, String reason) {
+        log.info("Cleaning task {}", taskId);
+        Response response = camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
+            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value())
+            .body("cftTaskState.value", is(reason));
+    }
+
+    public Response getCamundaTask(String taskId) {
+        return camundaApiActions.get("/task", taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
     }
 
