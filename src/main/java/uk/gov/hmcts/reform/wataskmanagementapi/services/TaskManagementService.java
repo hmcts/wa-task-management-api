@@ -116,8 +116,10 @@ public class TaskManagementService {
         List<PermissionTypes> permissionsRequired = singletonList(READ);
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
-            .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                             accessControlResponse.getUserInfo().getUid());
+            .getBooleanValue(
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             return cftTaskMapper.mapToTask(taskResource);
@@ -143,8 +145,10 @@ public class TaskManagementService {
         List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
-            .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                             accessControlResponse.getUserInfo().getUid());
+            .getBooleanValue(
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             //Lock & update Task
@@ -176,8 +180,10 @@ public class TaskManagementService {
         List<PermissionTypes> permissionsRequired = singletonList(MANAGE);
         boolean taskHasUnassigned;
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
-            .getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                             accessControlResponse.getUserInfo().getUid());
+            .getBooleanValue(
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
                 taskId,
@@ -236,7 +242,8 @@ public class TaskManagementService {
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            assignerAccessControlResponse.getUserInfo().getUid()
+            assignerAccessControlResponse.getUserInfo().getUid(),
+            assignerAccessControlResponse.getUserInfo().getEmail()
         );
         if (isRelease2EndpointsFeatureEnabled) {
             roleAssignmentVerification(
@@ -299,7 +306,8 @@ public class TaskManagementService {
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
@@ -310,7 +318,8 @@ public class TaskManagementService {
         }
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
         );
         if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
             //Lock & update Task
@@ -340,10 +349,12 @@ public class TaskManagementService {
         List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
         boolean taskHasCompleted = false;
         final String userId = accessControlResponse.getUserInfo().getUid();
+        final String userEmail = accessControlResponse.getUserInfo().getEmail();
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
+            userId,
+            userEmail
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
@@ -384,7 +395,8 @@ public class TaskManagementService {
         }
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            userId
+            userId,
+            userEmail
         );
 
         if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
@@ -427,7 +439,8 @@ public class TaskManagementService {
         if (completionOptions.isAssignAndComplete()) {
             final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                accessControlResponse.getUserInfo().getUid()
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail()
             );
 
             if (isRelease2EndpointsFeatureEnabled) {
@@ -450,7 +463,8 @@ public class TaskManagementService {
 
             boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
                 FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                accessControlResponse.getUserInfo().getUid()
+                accessControlResponse.getUserInfo().getUid(),
+                accessControlResponse.getUserInfo().getEmail()
             );
             if (isFeatureEnabled
                 || isRelease2EndpointsFeatureEnabled) {
