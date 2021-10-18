@@ -104,6 +104,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         lenient().when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
+        lenient().when(mockedUserInfo.getEmail())
+            .thenReturn(EMAIL);
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
         mockServices = new ServiceMocks(
