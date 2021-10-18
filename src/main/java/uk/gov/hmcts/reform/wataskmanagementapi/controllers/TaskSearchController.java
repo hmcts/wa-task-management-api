@@ -99,31 +99,38 @@ public class TaskSearchController extends BaseController {
         );
 
         if (isFeatureEnabled) {
+            //Release 2
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.getAllTasks(
-                firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
-                searchTaskRequest, accessControlResponse, permissionsRequired
+                firstResult.orElse(0),
+                maxResults.orElse(defaultMaxResults),
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired
             );
             return ResponseEntity
                 .ok()
                 .cacheControl(CacheControl.noCache())
                 .body(tasksResponse);
-        }
-        List<Task> tasks = taskManagementService.searchWithCriteria(
-            searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
-            accessControlResponse
-        );
-        if (tasks.isEmpty()) {
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(new GetTasksResponse<>(tasks, 0));
         } else {
-            final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(new GetTasksResponse<>(tasks, taskCount));
+            //Release 1
+            List<Task> tasks = taskManagementService.searchWithCriteria(
+                searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
+                accessControlResponse
+            );
+
+            if (tasks.isEmpty()) {
+                return ResponseEntity
+                    .ok()
+                    .cacheControl(CacheControl.noCache())
+                    .body(new GetTasksResponse<>(tasks, 0));
+            } else {
+                final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
+                return ResponseEntity
+                    .ok()
+                    .cacheControl(CacheControl.noCache())
+                    .body(new GetTasksResponse<>(tasks, taskCount));
+            }
         }
     }
 

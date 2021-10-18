@@ -15,11 +15,14 @@ import java.util.List;
 @ToString
 public class SearchParameter {
 
-    @ApiModelProperty(required = true, allowableValues = "location, user, jurisdiction, state", example = "user")
+    @ApiModelProperty(
+        required = true,
+        allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, workType",
+        example = "user")
     private SearchParameterKey key;
     @ApiModelProperty(allowableValues = "IN", example = "IN")
     private SearchOperator operator;
-    @ApiModelProperty(required = true, example = "998db99b-08aa-43d4-bc6b-0aabbb0e3c6f", allowEmptyValue = true)
+    @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = true)
     private List<String> values;
 
     private SearchParameter() {
