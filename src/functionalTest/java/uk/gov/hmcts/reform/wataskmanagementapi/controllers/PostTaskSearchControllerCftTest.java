@@ -7,7 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
@@ -42,9 +41,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static org.junit.Assume.assumeTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
@@ -74,20 +71,8 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
         common.clearAllRoleAssignments(authenticationHeaders);
-
-        final String userId =
-            authorizationHeadersProvider.getUserInfo(authenticationHeaders.getValue(AUTHORIZATION)).getUid();
-        final boolean taskQueryFeatureEnabled = featureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, userId
-        );
-        final boolean release2Endpoints = featureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE, userId
-        );
-
-        assumeTrue(taskQueryFeatureEnabled);
-        assumeTrue(release2Endpoints);
     }
 
     @Test
@@ -122,7 +107,44 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
+    public void given_sort_by_parameter_should_support_snake_case() {
+        // create some tasks
+        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariablesForTask1.getCaseId(), taskVariablesForTask1.getTaskId());
+        insertTaskInCftTaskDb(taskVariablesForTask2.getCaseId(), taskVariablesForTask2.getTaskId());
+
+        // Given query
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        // When
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        // Then expect task2,tak1 order
+        List<String> actualCaseIdList = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body().path("tasks.case_id");
+
+        assertThat(actualCaseIdList).asList()
+            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+
+        common.cleanUpTask(taskVariablesForTask1.getTaskId());
+        common.cleanUpTask(taskVariablesForTask2.getTaskId());
+    }
+
+    @Test
+    public void given_sort_by_parameter_should_support_camelCase() {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
@@ -151,23 +173,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .extract()
             .body().path("tasks.case_id");
 
-        assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
-
-        // Given query
-        searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
-        );
-
-        // When
-        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
-
-        // Then expect task2,task1 order
-        actualCaseIdList = result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .extract()
-            .body().path("tasks.case_id");
         assertThat(actualCaseIdList).asList()
             .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
