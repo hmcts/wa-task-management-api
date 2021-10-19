@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
@@ -53,7 +52,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 @Slf4j
 public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunctionalBaseTest {
@@ -70,20 +68,8 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
         common.clearAllRoleAssignments(authenticationHeaders);
-
-        final String userId =
-            authorizationHeadersProvider.getUserInfo(authenticationHeaders.getValue(AUTHORIZATION)).getUid();
-        final boolean taskQueryFeatureEnabled = featureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, userId
-        );
-        final boolean release2Endpoints = featureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE, userId
-        );
-
-        //assumeTrue(taskQueryFeatureEnabled);
-        //assumeTrue(release2Endpoints);
     }
 
     @Test
@@ -120,7 +106,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].type", equalTo("processApplication"));
 
-        common.cleanUpTask(processApplicationTaskVariables.getTaskId(), REASON_COMPLETED);
+        common.cleanUpTask(processApplicationTaskVariables.getTaskId());
     }
 
     @Test
@@ -142,7 +128,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -178,7 +164,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -220,8 +206,8 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("tasks.size()", equalTo(1))
             .body("tasks[0].id", equalTo(taskId2));
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
     }
 
     @Test
@@ -260,7 +246,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -318,8 +304,8 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
 
         assertTrue(actualWarnings.isEmpty());
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
     }
 
     @Test
@@ -381,8 +367,8 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
         );
         Assertions.assertEquals(expectedWarnings, actualWarnings);
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
     }
 
     @Test
@@ -442,9 +428,9 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("tasks.case_type_id", everyItem(is("Asylum")))
             .body("tasks.task_state", everyItem(is("assigned")));
 
-        common.cleanUpTask(taskId1, REASON_COMPLETED);
-        common.cleanUpTask(taskId2, REASON_COMPLETED);
-        common.cleanUpTask(taskId3, REASON_COMPLETED);
+        common.cleanUpTask(taskId1);
+        common.cleanUpTask(taskId2);
+        common.cleanUpTask(taskId3);
     }
 
     @Test
@@ -469,7 +455,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -492,7 +478,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -517,7 +503,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -542,7 +528,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -574,7 +560,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -599,7 +585,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .body("tasks.size()", equalTo(0));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -623,7 +609,7 @@ public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunc
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(0));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     private String getAssigneeId(Headers headers) {

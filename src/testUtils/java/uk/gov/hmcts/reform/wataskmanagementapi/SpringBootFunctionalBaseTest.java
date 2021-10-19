@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
@@ -90,6 +91,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private IdamTokenGenerator waTestLawFirmIdamToken;
     @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    @Autowired
+    protected CFTTaskDatabaseService cftTaskDatabaseService;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")

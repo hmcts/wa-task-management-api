@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -27,7 +26,6 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -37,7 +35,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -88,7 +86,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId, Common.REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -118,7 +116,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", is(false));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -147,7 +145,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -181,7 +179,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "task.warning_list.values");
 
         assertTrue(actualWarnings.isEmpty());
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -219,7 +217,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         );
         Assertions.assertEquals(expectedWarnings, actualWarnings);
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -268,7 +266,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue());
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -302,7 +300,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
 }

@@ -21,7 +21,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -32,7 +31,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -82,7 +81,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -103,7 +102,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -124,7 +123,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -156,7 +155,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -171,7 +170,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             authenticationHeaders
         );
 
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
+        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-");
         common.setupOrganisationalRoleAssignment(otherUserHeaders);
 
         Response result = restApiActions.post(
@@ -194,7 +193,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 taskId
             )));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -223,7 +222,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -249,7 +248,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -283,7 +282,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -317,7 +316,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
 }

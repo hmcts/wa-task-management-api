@@ -50,24 +50,24 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
-    public Headers getTribunalCaseworkerAAuthorization() {
+    public Headers getTribunalCaseworkerAAuthorization(String emailPrefix) {
         /*
          * This user is used to assign role assignments to on a per test basis.
          * A clean up before assigning new role assignments is needed.
          */
         return new Headers(
-            getCaseworkerAAuthorizationOnly(),
+            getCaseworkerAAuthorizationOnly(emailPrefix),
             getServiceAuthorizationHeader()
         );
     }
 
-    public Headers getTribunalCaseworkerBAuthorization() {
+    public Headers getTribunalCaseworkerBAuthorization(String emailPrefix) {
         /*
          * This user is used to assign role assignments to on a per test basis.
          * A clean up before assigning new role assignments is needed.
          */
         return new Headers(
-            getCaseworkerBAuthorizationOnly(),
+            getCaseworkerBAuthorizationOnly(emailPrefix),
             getServiceAuthorizationHeader()
         );
     }
@@ -83,20 +83,20 @@ public class AuthorizationHeadersProvider {
     }
 
 
-    public Header getCaseworkerAAuthorizationOnly() {
+    public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
 
         String key = "Caseworker A";
 
-        TestAccount caseworker = getIdamCredentials(key);
+        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
         return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
 
     }
 
-    public Header getCaseworkerBAuthorizationOnly() {
+    public Header getCaseworkerBAuthorizationOnly(String emailPrefix) {
 
         String key = "Caseworker B";
 
-        TestAccount caseworker = getIdamCredentials(key);
+        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
         return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
 
     }
@@ -121,11 +121,11 @@ public class AuthorizationHeadersProvider {
         return new Header(AUTHORIZATION, accessToken);
     }
 
-    private TestAccount getIdamCredentials(String key) {
+    private TestAccount getIdamCredentials(String key, String emailPrefix) {
 
         return accounts.computeIfAbsent(
             key,
-            user -> generateIdamTestAccount()
+            user -> generateIdamTestAccount(emailPrefix)
         );
     }
 
@@ -142,8 +142,8 @@ public class AuthorizationHeadersProvider {
         return body;
     }
 
-    private TestAccount generateIdamTestAccount() {
-        String email = "wa-ft-test-r2" + UUID.randomUUID() + "@fake.hmcts.net";
+    private TestAccount generateIdamTestAccount(String emailPrefix) {
+        String email = emailPrefix + UUID.randomUUID() + "@fake.hmcts.net";
         String password = "London01";
 
         log.info("Attempting to create a new test account {}", email);

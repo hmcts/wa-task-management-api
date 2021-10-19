@@ -201,7 +201,8 @@ class TaskSearchControllerTest {
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             RELEASE_2_TASK_QUERY,
-            mockedUserInfo.getUid()
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail()
             )
         ).thenReturn(true);
 
