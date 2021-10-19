@@ -659,6 +659,7 @@ public class TaskManagementService {
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
+            log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
         }
     }
@@ -668,6 +669,7 @@ public class TaskManagementService {
         try {
             cftTaskDatabaseService.insertAndLock(taskId);
         } catch (DataAccessException | SQLException e) {
+            log.error("Error when inserting and locking the task(id={})", taskId, e);
             throw new DatabaseConflictException(ErrorMessages.DATABASE_CONFLICT_ERROR);
         }
     }
