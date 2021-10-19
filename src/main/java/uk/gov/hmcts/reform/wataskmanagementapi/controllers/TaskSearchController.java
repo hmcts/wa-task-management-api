@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.validation.Valid;
 
 import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -83,7 +84,7 @@ public class TaskSearchController extends BaseController {
         @RequestHeader("Authorization") String authToken,
         @RequestParam(required = false, name = "first_result") Optional<Integer> firstResult,
         @RequestParam(required = false, name = "max_results") Optional<Integer> maxResults,
-        @RequestBody SearchTaskRequest searchTaskRequest
+        @Valid @RequestBody SearchTaskRequest searchTaskRequest
     ) {
 
         //Safe-guard

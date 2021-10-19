@@ -51,6 +51,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@SuppressWarnings("checkstyle:LineLength")
 @ExtendWith(MockitoExtension.class)
 class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     private static final String ENDPOINT_PATH = "/work-types";
@@ -206,7 +207,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Downstream Dependency Error"),
                     jsonPath("$.status").value(502),
                     jsonPath("$.detail").value(
-                        "Downstream dependency did not respond as expected and the request could not be completed.")
+                        "Downstream dependency did not respond as expected and the"
+                        + " request could not be completed.")
                 ));
     }
 
@@ -218,7 +220,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
-        List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
@@ -234,7 +237,8 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             ResultMatcher.matchAll(
                 status().is5xxServerError(),
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/service-unavailable"),
                 jsonPath("$.title").value("Service Unavailable"),
                 jsonPath("$.status").value(503),
                 jsonPath("$.detail").value(
@@ -251,7 +255,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
         roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
-        List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+        mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenThrow(FeignException.Unauthorized.class);

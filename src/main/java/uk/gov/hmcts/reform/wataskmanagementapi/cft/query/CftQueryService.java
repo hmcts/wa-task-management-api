@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 @Service
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
