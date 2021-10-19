@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 
@@ -10,6 +11,7 @@ import static java.util.Objects.requireNonNull;
 
 @Slf4j
 @Service
+@Profile("!local")
 public class LaunchDarklyFeatureFlagProvider {
 
     private final LDClientInterface ldClient;
