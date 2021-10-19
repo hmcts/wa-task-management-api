@@ -107,44 +107,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void given_sort_by_parameter_should_support_snake_case() {
-        // create some tasks
-        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
-        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        insertTaskInCftTaskDb(taskVariablesForTask1.getCaseId(), taskVariablesForTask1.getTaskId());
-        insertTaskInCftTaskDb(taskVariablesForTask2.getCaseId(), taskVariablesForTask2.getTaskId());
-
-        // Given query
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
-            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
-        );
-
-        // When
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            authenticationHeaders
-        );
-
-        // Then expect task2,tak1 order
-        List<String> actualCaseIdList = result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .extract()
-            .body().path("tasks.case_id");
-
-        assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
-
-        common.cleanUpTask(taskVariablesForTask1.getTaskId());
-        common.cleanUpTask(taskVariablesForTask2.getTaskId());
-    }
-
-    @Test
-    public void given_sort_by_parameter_should_support_camelCase() {
+    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
@@ -173,6 +136,23 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .extract()
             .body().path("tasks.case_id");
 
+        assertThat(actualCaseIdList).asList()
+            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+
+        // Given query
+        searchTaskRequest = new SearchTaskRequest(
+            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
+        );
+
+        // When
+        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+
+        // Then expect task2,task1 order
+        actualCaseIdList = result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .extract()
+            .body().path("tasks.case_id");
         assertThat(actualCaseIdList).asList()
             .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
