@@ -61,7 +61,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     private List<TestVariables> tasksCreated = new ArrayList<>();
     private String taskId1;
-    private String taskId2;
 
     @Before
     public void setUp() {
@@ -77,7 +76,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         tasksCreated.clear();
         taskId1 = null;
-        taskId2 = null;
     }
 
     @Test
@@ -118,7 +116,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         tasksCreated.add(taskVariablesForTask1);
         tasksCreated.add(taskVariablesForTask2);
         taskId1 = taskVariablesForTask1.getTaskId();
-        taskId2 = taskVariablesForTask2.getTaskId();
+        String taskId2 = taskVariablesForTask2.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         // Given query
