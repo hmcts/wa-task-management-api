@@ -659,6 +659,7 @@ public class TaskManagementService {
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
+            log.error("Error when initiating task(id={})", taskId, e);
             throw new GenericServerErrorException(ErrorMessages.INITIATE_TASK_PROCESS_ERROR);
         }
     }
