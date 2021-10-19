@@ -669,6 +669,7 @@ public class TaskManagementService {
         try {
             cftTaskDatabaseService.insertAndLock(taskId);
         } catch (DataAccessException | SQLException e) {
+            log.error("Error when inserting and locking the task(id={})", taskId, e);
             throw new DatabaseConflictException(ErrorMessages.DATABASE_CONFLICT_ERROR);
         }
     }
