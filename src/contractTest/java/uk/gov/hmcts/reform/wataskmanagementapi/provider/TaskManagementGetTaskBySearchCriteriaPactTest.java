@@ -182,6 +182,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(userInfo.getEmail()).thenReturn("test@test.com");
         when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
 

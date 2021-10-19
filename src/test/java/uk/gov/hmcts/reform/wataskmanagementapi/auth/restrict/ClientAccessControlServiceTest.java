@@ -26,7 +26,7 @@ class ClientAccessControlServiceTest {
     private static final String PRIVILEGED_ACCESS_SERVICE_NAME = "somePrivilegedServiceName";
     private static final String EXCLUSIVE_ACCESS_SERVICE_NAME = "someExclusiveServiceName";
     private static final String USER_ID = "someUserId";
-    private static final String EMAIL = "some@mail.com";
+    private static final String EMAIL = "test@test.com";
     @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock

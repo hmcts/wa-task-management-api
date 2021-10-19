@@ -66,8 +66,8 @@ class GetTaskTest extends CamundaHelpers {
     void getTask_should_succeed_and_return_mapped_task() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
 
-        when(accessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
         Task mockedMappedTask = mock(Task.class);
@@ -80,9 +80,9 @@ class GetTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                EMAIL
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
             )
         ).thenReturn(false);
         when(camundaService.getMappedTask(taskId, mockedVariables)).thenReturn(mockedMappedTask);
@@ -97,8 +97,8 @@ class GetTaskTest extends CamundaHelpers {
     void getTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-        when(accessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -108,9 +108,9 @@ class GetTaskTest extends CamundaHelpers {
             singletonList(READ)
         )).thenReturn(false);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                EMAIL
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
             )
         ).thenReturn(false);
         assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))

@@ -70,7 +70,7 @@ class ClaimTaskTest extends CamundaHelpers {
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
         when(accessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
@@ -91,7 +91,7 @@ class ClaimTaskTest extends CamundaHelpers {
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
         when(accessControlResponse.getUserInfo())
-            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(EMAIL).build());
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(

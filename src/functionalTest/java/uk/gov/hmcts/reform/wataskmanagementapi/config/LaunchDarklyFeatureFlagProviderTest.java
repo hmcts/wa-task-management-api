@@ -16,27 +16,27 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFla
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
 
     public static final String SOME_USER_ID = "some user id";
-    public static final String EMAIL = "some@mail.com";
-
+    public static final String SOME_USER_EMAIL = "test@test.com";
     @Autowired
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Test
     public void should_hit_launch_darkly_and_return_true() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TEST_KEY, SOME_USER_ID, EMAIL);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TEST_KEY, SOME_USER_ID, SOME_USER_EMAIL);
         assertThat(launchDarklyFeature, is(true));
     }
 
     @Test
     public void should_hit_launch_darkly_with_non_existent_key_and_return_default_value_for_boolean() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(NON_EXISTENT_KEY, SOME_USER_ID, EMAIL);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
+            NON_EXISTENT_KEY, SOME_USER_ID,  SOME_USER_EMAIL);
         assertThat(launchDarklyFeature, is(false));
     }
 
     @Test
     public void should_hit_launch_darkly_for_privileged_access_feature_and_return_either_true_or_false() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(PRIVILEGED_ACCESS_FEATURE,
-            SOME_USER_ID, EMAIL);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
+            PRIVILEGED_ACCESS_FEATURE, SOME_USER_ID,  SOME_USER_EMAIL);
         assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
     }
 
@@ -44,7 +44,8 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     public void should_return_either_true_or_false_for_release_2_cancellation_completion_feature() {
         boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
             RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            SOME_USER_ID, EMAIL
+            SOME_USER_ID,
+            SOME_USER_EMAIL
         );
         assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
     }

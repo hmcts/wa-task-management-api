@@ -2,10 +2,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -84,8 +84,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -521,7 +520,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_STATE, "UNASSIGNED"
+            CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
@@ -557,7 +556,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_STATE, "UNASSIGNED"
+            CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
@@ -647,7 +646,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS")),
             new SearchParameter(LOCATION, SearchOperator.IN, asList("17595", "17594")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("UNASSIGNED"))
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -1029,7 +1028,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     private void insertTaskInCftTaskDb(String caseId, String taskId) {
-
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                           + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 

@@ -56,7 +56,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.EMAIL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
@@ -133,9 +133,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                EMAIL
+            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
             )
         ).thenReturn(true);
 

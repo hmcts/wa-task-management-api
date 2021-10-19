@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAccount;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,17 +61,6 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-    public Headers getTribunalCaseworkerAAuthorization(String key, String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        return new Headers(
-            getCaseworkerAAuthorizationOnly(key, emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }
-
     public Headers getTribunalCaseworkerBAuthorization(String emailPrefix) {
         /*
          * This user is used to assign role assignments to on a per test basis.
@@ -96,14 +84,8 @@ public class AuthorizationHeadersProvider {
 
 
     public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
+
         String key = "Caseworker A";
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
-
-    }
-
-    public Header getCaseworkerAAuthorizationOnly(String key, String emailPrefix) {
-        Objects.requireNonNull(key, "Key is required");
 
         TestAccount caseworker = getIdamCredentials(key, emailPrefix);
         return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());

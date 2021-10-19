@@ -198,9 +198,9 @@ class TaskSearchControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_TASK_QUERY,
-                mockedUserInfo.getUid(),
-                mockedUserInfo.getEmail()
+            RELEASE_2_TASK_QUERY,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail()
             )
         ).thenReturn(true);
 

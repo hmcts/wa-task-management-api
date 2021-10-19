@@ -129,8 +129,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerBAuthorization("wa-ft-test-");
+        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization(
+            "wa-ft-test-");
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
         given.iClaimATaskWithIdAndAuthorization(
@@ -161,8 +161,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerBAuthorization("wa-ft-test-");
+        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization(
+            "wa-ft-test-");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "senior-tribunal-caseworker");
