@@ -5,6 +5,7 @@ import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -65,6 +66,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
+@Slf4j
 public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
@@ -852,6 +854,10 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         String taskId1 = taskVariables.getTaskId();
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
+
+        log.info(String.format("should_return_every_items_have_same_work_type_when_search_by_work_type "
+                               + "taskId1: %s - caseId: %s", taskId1, taskVariables.getCaseId()));
+
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(WORK_TYPE, SearchOperator.IN,
                 singletonList(TASK_TYPE_WORK_TYPE_MAP.get(taskType))),
@@ -884,13 +890,19 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         String taskId1 = taskVariables.getTaskId();
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
-
+        log.info(String.format(
+            "should_return_every_items_work_type_in_search_parameter_when_search_by_multiple_work_types "
+            + "taskId1: %s - caseId1: %s", taskId1, taskVariables.getCaseId()));
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
         insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskType, taskId2);
+        log.info(String.format(
+            "should_return_every_items_work_type_in_search_parameter_when_search_by_multiple_work_types"
+            + "taskId2: %s - caseId2: %s", taskId2, taskVariables2.getCaseId()));
+
         //search by all work types
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(WORK_TYPE, SearchOperator.IN,
@@ -961,12 +973,19 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         String taskId1 = taskVariables.getTaskId();
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
+        log.info(String.format(
+            "should_return_every_items_work_type_in_search_parameter_when_search_by_work_types_and_case_id "
+            + "taskId1: %s - caseId1: %s", taskId1, taskVariables.getCaseId()));
+
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
         insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskType, taskId2);
+        log.info(String.format(
+            "should_return_every_items_work_type_in_search_parameter_when_search_by_work_types_and_case_id "
+            + "taskId2: %s - caseId2: %s", taskId2, taskVariables2.getCaseId()));
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
