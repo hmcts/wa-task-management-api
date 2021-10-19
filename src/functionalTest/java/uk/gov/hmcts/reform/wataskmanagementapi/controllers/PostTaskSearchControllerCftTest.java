@@ -852,7 +852,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         String taskId1 = taskVariables.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
 
         log.info(String.format("should_return_every_items_have_same_work_type_when_search_by_work_type "
                                + "taskId1: %s - caseId: %s", taskId1, taskVariables.getCaseId()));
@@ -888,7 +888,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId1 = taskVariables.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
         log.info(String.format(
             "should_return_every_items_work_type_in_search_parameter_when_search_by_multiple_work_types "
             + "taskId1: %s - caseId1: %s", taskId1, taskVariables.getCaseId()));
@@ -897,7 +897,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables2 = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskType, taskId2);
+        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
         log.info(String.format(
             "should_return_every_items_work_type_in_search_parameter_when_search_by_multiple_work_types"
             + "taskId2: %s - caseId2: %s", taskId2, taskVariables2.getCaseId()));
@@ -938,14 +938,14 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         String taskId1 = taskVariables.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskType, taskId2);
+        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))
@@ -971,7 +971,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId1 = taskVariables.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskType, taskId1);
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
         log.info(String.format(
             "should_return_every_items_work_type_in_search_parameter_when_search_by_work_types_and_case_id "
             + "taskId1: %s - caseId1: %s", taskId1, taskVariables.getCaseId()));
@@ -981,7 +981,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables2 = common.setupTaskWithTaskIdAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskType, taskId2);
+        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
         log.info(String.format(
             "should_return_every_items_work_type_in_search_parameter_when_search_by_work_types_and_case_id "
             + "taskId2: %s - caseId2: %s", taskId2, taskVariables2.getCaseId()));
@@ -1056,11 +1056,8 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.CREATED.value());
     }
 
-    private void insertTaskInCftTaskDb(String caseId, String taskType, String taskId) {
+    private void insertTaskInCftTaskDb(String caseId, String taskId, String taskType) {
         Objects.requireNonNull(taskType, "please provide a taskType");
-
-        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, taskType),
@@ -1071,8 +1068,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
             new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warnings),
             new TaskAttribute(TASK_AUTO_ASSIGNED, true)
         ));
 

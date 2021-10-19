@@ -181,12 +181,12 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public TestVariables setupTaskWithTaskIdAndRetrieveIds(String taskId) {
+    public TestVariables setupTaskWithTaskIdAndRetrieveIds(String taskType) {
 
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, taskId)
+            .iCreateATaskWithCaseId(caseId, taskType)
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
 

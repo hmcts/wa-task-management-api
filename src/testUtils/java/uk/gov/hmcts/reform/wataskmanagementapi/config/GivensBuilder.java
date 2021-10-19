@@ -113,8 +113,8 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId, String taskId) {
-        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, taskId);
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, String taskType) {
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, taskType);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -270,7 +270,7 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithTaskId(String caseId, String taskId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithTaskId(String caseId, String taskType) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
             .withProcessVariable("jurisdiction", "IA")
@@ -282,10 +282,10 @@ public class GivensBuilder {
             .withProcessVariable("securityClassification", "PUBLIC")
             .withProcessVariable("group", "TCW")
             .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", taskId)
-            .withProcessVariable("taskType", taskId)
+            .withProcessVariable("taskId", taskType)
+            .withProcessVariable("taskType", taskType)
             .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
+            .withProcessVariable("taskState", "unassigned")
             //for testing-purposes
             .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
@@ -294,38 +294,6 @@ public class GivensBuilder {
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .build();
-
-        return processVariables.getProcessVariablesMap();
-    }
-
-    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarningsWithWorkType(String caseId) {
-        String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
-
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "Taylor House")
-            .withProcessVariable("staffLocation", "Taylor House")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("group", "TCW")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "followUpOverdueReasonsForAppeal")
-            .withProcessVariable("taskType", "followUpOverdueReasonsForAppeal")
-            .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", true)
-            .withProcessVariable("warningList", values)
             .withProcessVariable("caseManagementCategory", "Protection")
             .build();
 
@@ -497,8 +465,8 @@ public class GivensBuilder {
         }
     }
 
-    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskId) {
-        return createDefaultTaskVariablesWithTaskId(caseId, taskId);
+    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskType) {
+        return createDefaultTaskVariablesWithTaskId(caseId, taskType);
     }
 
     private class Modifications {
