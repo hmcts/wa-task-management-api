@@ -86,19 +86,20 @@ public class TaskSearchController extends BaseController {
         @RequestBody SearchTaskRequest searchTaskRequest
     ) {
 
+        LOG.debug(String.format("remove here searchTaskRequest : %s", searchTaskRequest));
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-
+        LOG.debug(String.format("remove here accessControlResponse : %s", accessControlResponse));
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-
+        LOG.debug(String.format("remove here isFeatureEnabled : %s", isFeatureEnabled));
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.getAllTasks(
