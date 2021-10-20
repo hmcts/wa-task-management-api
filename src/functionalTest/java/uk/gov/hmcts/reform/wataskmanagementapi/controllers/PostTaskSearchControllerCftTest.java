@@ -137,7 +137,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .body().path("tasks.case_id");
 
         assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+            .containsSubsequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
         // Given query
         searchTaskRequest = new SearchTaskRequest(
@@ -847,7 +847,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
     private void insertTaskInCftTaskDb(String caseId, String taskId) {
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
@@ -855,7 +855,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new TaskAttribute(TASK_CASE_ID, caseId),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE,  CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
+            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
             new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),

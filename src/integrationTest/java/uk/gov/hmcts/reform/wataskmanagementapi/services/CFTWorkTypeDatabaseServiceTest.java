@@ -53,7 +53,7 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_retrieve_work_type_when_work_type_id_is_given() {
 
-        final Optional<WorkType> workType = cftWorkTypeDatabaseService.getWorkType("hearing_work");
+        final Optional<WorkType> workType = cftWorkTypeDatabaseService.findById("hearing_work");
 
         assertEquals("hearing_work", workType.get().getId());
         assertEquals("Hearing work", workType.get().getLabel());
@@ -62,7 +62,7 @@ class CFTWorkTypeDatabaseServiceTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_empty_work_type_when_invalid_work_type_id_is_given() {
 
-        final Optional<WorkType> workType = cftWorkTypeDatabaseService.getWorkType("invalid_work");
+        final Optional<WorkType> workType = cftWorkTypeDatabaseService.findById("invalid_work");
 
         assertTrue(workType.isEmpty());
     }
