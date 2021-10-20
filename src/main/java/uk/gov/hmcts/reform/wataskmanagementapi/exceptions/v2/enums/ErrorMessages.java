@@ -62,10 +62,11 @@ public enum ErrorMessages {
     DATABASE_IS_UNAVAILABLE(
         "Database is unavailable."),
     DOWNSTREAM_DEPENDENCY_ERROR(
-        "Downstream dependency did not respond as expected and the request could not be completed.");
+        "Downstream dependency did not respond as expected and the request could not be completed."),
+    TASK_NOT_FOUND_ERROR(
+        "The task could not be found.");
 
     private final String detail;
-
 
     ErrorMessages(String detail) {
         this.detail = detail;

@@ -85,10 +85,10 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         LOG.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
         return ResponseEntity.status(httpStatus)
             .body(new ErrorMessage(
-                      ex,
-                      httpStatus,
-                      systemDateProvider.nowWithTime()
-                  )
+                    ex,
+                    httpStatus,
+                    systemDateProvider.nowWithTime()
+                )
             );
     }
 }

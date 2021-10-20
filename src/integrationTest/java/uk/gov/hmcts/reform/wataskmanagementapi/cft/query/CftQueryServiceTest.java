@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.launchdarkly.shaded.com.google.common.collect.Lists;
 import lombok.Builder;
 import org.assertj.core.api.Assertions;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,7 +41,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertThrows;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
@@ -62,8 +63,8 @@ public class CftQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        cftQueryService = new CftQueryService(taskResourceRepository);
-
+        CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
+        cftQueryService = new CftQueryService(cftTaskMapper, taskResourceRepository);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -117,7 +118,8 @@ public class CftQueryServiceTest {
 
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
-            1, 10, scenario.searchTaskRequest, accessControlResponse, permissionsRequired
+            scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
+            accessControlResponse, permissionsRequired
         );
 
         //then
@@ -137,29 +139,34 @@ public class CftQueryServiceTest {
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        assertThrows(IllegalArgumentException.class, () ->
-            cftQueryService.getAllTasks(
-                -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
-            )
+        GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+            -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
 
-        assertThrows(IllegalArgumentException.class, () ->
-            cftQueryService.getAllTasks(
-                0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
-            )
-        );
+        //then
+        Assertions.assertThat(allTasks.getTasks())
+            .isEmpty();
 
-        assertThrows(IllegalArgumentException.class, () ->
-            cftQueryService.getAllTasks(
-                1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
-            )
+        allTasks = cftQueryService.getAllTasks(
+            0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
         );
+        //then
+        Assertions.assertThat(allTasks.getTasks())
+            .isEmpty();
 
-        assertThrows(IllegalArgumentException.class, () ->
-            cftQueryService.getAllTasks(
-                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
-            )
+        allTasks = cftQueryService.getAllTasks(
+            1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
+        //then
+        Assertions.assertThat(allTasks.getTasks())
+            .isEmpty();
+
+        allTasks = cftQueryService.getAllTasks(
+            -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+        //then
+        Assertions.assertThat(allTasks.getTasks())
+            .isEmpty();
     }
 
     @Builder
@@ -1435,5 +1442,4 @@ public class CftQueryServiceTest {
             new SearchParameter(USER, SearchOperator.IN, asList("unknown", "", null))
         ));
     }
-
 }
