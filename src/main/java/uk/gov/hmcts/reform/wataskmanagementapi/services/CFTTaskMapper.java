@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -28,6 +29,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,10 +68,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 
+
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
         "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
+@Slf4j
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -80,9 +84,12 @@ public class CFTTaskMapper {
     }
 
     public TaskResource mapToTaskResource(String taskId, List<TaskAttribute> taskAttributes) {
-
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
         Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> attribute.getValue() != null)
+            .filter(attribute -> {
+                log.debug("filtering out null attributes: attribute({})", attribute);
+                return attribute != null && attribute.getValue() != null;
+            })
             .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
 
         List<NoteResource> notes = extractWarningNotes(attributes);
@@ -361,12 +368,12 @@ public class CFTTaskMapper {
         return new Task(taskResource.getTaskId(),
             taskResource.getTaskName(),
             taskResource.getTaskType(),
-            taskResource.getState().getValue(),
+            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
             taskResource.getTaskSystem().getValue(),
             taskResource.getSecurityClassification().getSecurityClassification(),
             taskResource.getTitle(),
-            extractDate(taskResource.getCreated()),
-            extractDate(taskResource.getDueDateTime()),
+            taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime().toZonedDateTime(),
             taskResource.getAssignee(),
             taskResource.getAutoAssigned(),
             taskResource.getExecutionTypeCode().getExecutionName(),
@@ -385,11 +392,5 @@ public class CFTTaskMapper {
         );
     }
 
-    private ZonedDateTime extractDate(OffsetDateTime created) {
-        if (created != null) {
-            return created.toZonedDateTime();
-        }
-        return null;
-    }
 }
 
