@@ -31,7 +31,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -170,7 +170,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             authenticationHeaders
         );
 
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
+        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-");
         common.setupOrganisationalRoleAssignment(otherUserHeaders);
 
         Response result = restApiActions.post(
