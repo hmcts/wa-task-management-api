@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
