@@ -4,6 +4,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -145,10 +146,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
-    //@Test
-    //this is disabled until we have the endpoint that will allow us to create task
-    // in the db without the initiation process
-    // see Spike RWA-858
+    @Test
+    @Disabled("Disabled temporarily see RWA-858")
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
 
         String noManagePermission = "Read,Refer,Own,Cancel";
@@ -178,10 +177,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
-    //@Test
-    // this is disabled until we have the endpoint that will allow us to create task
-    // in the db without the initiation process
-    // see Spike RWA-858
+    @Test
+    @Disabled("Disabled temporarily see RWA-858")
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
 
         String noOwnPermission = "Read,Refer,Manage,Cancel";

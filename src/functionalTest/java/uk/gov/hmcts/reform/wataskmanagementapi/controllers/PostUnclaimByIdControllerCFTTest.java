@@ -5,6 +5,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -306,10 +307,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    //@Test
-    //this is disabled until we have the endpoint that will allow us to create task
-    // in the db without the initiation process
-    // see Spike RWA-858
+    @Test
+    @Disabled("Disabled temporarily see RWA-858")
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
 
         TestVariables taskVariables = setupScenario();
