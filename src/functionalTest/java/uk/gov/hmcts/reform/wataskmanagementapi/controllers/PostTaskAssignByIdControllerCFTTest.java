@@ -146,8 +146,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
-    @Test
     @Disabled("Disabled temporarily see RWA-858")
+    @Test
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
 
         String noManagePermission = "Read,Refer,Own,Cancel";
@@ -177,8 +177,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
-    @Test
     @Disabled("Disabled temporarily see RWA-858")
+    @Test
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
 
         String noOwnPermission = "Read,Refer,Manage,Cancel";
