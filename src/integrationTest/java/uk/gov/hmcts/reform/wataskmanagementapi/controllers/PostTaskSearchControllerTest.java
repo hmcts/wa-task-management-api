@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
@@ -53,9 +52,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
@@ -227,8 +228,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -272,8 +276,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -581,8 +588,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
 
         mockMvc.perform(
                 post("/task")
@@ -625,8 +635,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
 
         mockMvc.perform(
                 post("/task")

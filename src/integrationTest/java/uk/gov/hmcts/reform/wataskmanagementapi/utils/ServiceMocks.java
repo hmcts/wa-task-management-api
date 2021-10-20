@@ -95,7 +95,7 @@ public class ServiceMocks {
     }
 
     public UserInfo mockUserInfo() {
-        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
         return mockedUserInfo;
     }
