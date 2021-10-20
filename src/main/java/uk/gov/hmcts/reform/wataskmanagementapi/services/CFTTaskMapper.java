@@ -372,8 +372,8 @@ public class CFTTaskMapper {
             taskResource.getTaskSystem().getValue(),
             taskResource.getSecurityClassification().getSecurityClassification(),
             taskResource.getTitle(),
-            taskResource.getCreated().toZonedDateTime(),
-            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
             taskResource.getAssignee(),
             taskResource.getAutoAssigned(),
             taskResource.getExecutionTypeCode().getExecutionName(),
@@ -388,7 +388,7 @@ public class CFTTaskMapper {
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory(),
-            taskResource.getWorkTypeResource().getId()
+            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId()
         );
     }
 
