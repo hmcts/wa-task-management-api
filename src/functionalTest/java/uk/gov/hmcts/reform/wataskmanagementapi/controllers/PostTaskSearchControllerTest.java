@@ -88,7 +88,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() throws JsonProcessingException {
+    public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
@@ -132,7 +132,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .extract()
             .body().path("tasks.case_id");
         assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+            .containsSubsequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
         common.cleanUpTask(taskVariablesForTask1.getTaskId());
         common.cleanUpTask(taskVariablesForTask2.getTaskId());
