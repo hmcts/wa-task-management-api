@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -70,7 +71,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity","PMD.TooManyMethods"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
+@Slf4j
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -81,9 +83,12 @@ public class CFTTaskMapper {
     }
 
     public TaskResource mapToTaskResource(String taskId, List<TaskAttribute> taskAttributes) {
-
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
         Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> attribute.getValue() != null)
+            .filter(attribute -> {
+                log.debug("filtering out null attributes: attribute({})", attribute);
+                return attribute != null && attribute.getValue() != null;
+            })
             .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
 
         List<NoteResource> notes = extractWarningNotes(attributes);
@@ -311,7 +316,7 @@ public class CFTTaskMapper {
         if (notes != null) {
             List<Warning> warnings = notes.stream()
                 .filter(noteResource -> "WARNING".equals(noteResource.getNoteType()))
-                .map(noteResource -> new Warning(noteResource.getCode(),noteResource.getContent()))
+                .map(noteResource -> new Warning(noteResource.getCode(), noteResource.getContent()))
                 .collect(Collectors.toList());
             return new WarningValues(warnings);
         }
@@ -352,28 +357,28 @@ public class CFTTaskMapper {
 
     public Task mapToTask(TaskResource taskResource) {
         return new Task(taskResource.getTaskId(),
-                     taskResource.getTaskName(),
-                     taskResource.getTaskType(),
-                     taskResource.getState().getValue().toLowerCase(Locale.ROOT),
-                     taskResource.getTaskSystem().getValue(),
-                     taskResource.getSecurityClassification().getSecurityClassification(),
-                     taskResource.getTitle(),
-                     taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
-                     taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
-                     taskResource.getAssignee(),
-                     taskResource.getAutoAssigned(),
-                     taskResource.getExecutionTypeCode().getExecutionName(),
-                     taskResource.getJurisdiction(),
-                     taskResource.getRegion(),
-                     taskResource.getLocation(),
-                     taskResource.getLocationName(),
-                     taskResource.getCaseTypeId(),
-                     taskResource.getCaseId(),
-                     taskResource.getCaseCategory(),
-                     taskResource.getCaseName(),
-                     taskResource.getHasWarnings(),
-                     mapNoteResourceToWarnings(taskResource.getNotes()),
-                     taskResource.getCaseCategory());
+            taskResource.getTaskName(),
+            taskResource.getTaskType(),
+            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
+            taskResource.getTaskSystem().getValue(),
+            taskResource.getSecurityClassification().getSecurityClassification(),
+            taskResource.getTitle(),
+            taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getAssignee(),
+            taskResource.getAutoAssigned(),
+            taskResource.getExecutionTypeCode().getExecutionName(),
+            taskResource.getJurisdiction(),
+            taskResource.getRegion(),
+            taskResource.getLocation(),
+            taskResource.getLocationName(),
+            taskResource.getCaseTypeId(),
+            taskResource.getCaseId(),
+            taskResource.getRoleCategory(),
+            taskResource.getCaseName(),
+            taskResource.getHasWarnings(),
+            mapNoteResourceToWarnings(taskResource.getNotes()),
+            taskResource.getCaseCategory());
     }
 }
 
