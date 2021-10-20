@@ -584,11 +584,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid())).thenReturn(true);
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("access_requests"))
-        ));
-
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -598,6 +593,59 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "    {\n"
                              + "      \"key\": \"jurisdiction\",\n"
                              + "      \"values\": [\"ia\", null],\n"
+                             + "      \"operator\": \"IN\"\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk()));
+    }
+
+    @Test
+    void should_return_200_and_accept_work_type_values() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        //enable R2 flag
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"work_type\",\n"
+                             + "      \"values\": [\n"
+                             + "        \"hearing-work\",\n"
+                             + "        \"upper-tribunal\",\n"
+                             + "        \"routine-work\",\n"
+                             + "        \"decision-making-work\",\n"
+                             + "        \"applications\",\n"
+                             + "        \"priority\",\n"
+                             + "        \"error-management\",\n"
+                             + "        \"access-requests\"\n"
+                             + "      ],\n"
                              + "      \"operator\": \"IN\"\n"
                              + "    }\n"
                              + "  ]\n"
