@@ -9,16 +9,16 @@ import java.util.List;
 
 @EqualsAndHashCode
 @ToString
-public class GetWorkTypesResponse<T extends WorkType> {
+public class GetWorkTypesResponse {
 
     @JsonProperty("work_types")
-    private final List<T> workTypes;
+    private final List<WorkType> workTypes;
 
-    public GetWorkTypesResponse(List<T> workTypes) {
+    public GetWorkTypesResponse(List<WorkType> workTypes) {
         this.workTypes = workTypes;
     }
 
-    public List<T> getWorkTypes() {
+    public List<WorkType> getWorkTypes() {
         return workTypes;
     }
 }
