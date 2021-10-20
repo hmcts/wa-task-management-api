@@ -132,7 +132,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .extract()
             .body().path("tasks.case_id");
         assertThat(actualCaseIdList).asList()
-            .containsSequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
+            .containsSubsequence(taskVariablesForTask2.getCaseId(), taskVariablesForTask1.getCaseId());
 
         common.cleanUpTask(taskVariablesForTask1.getTaskId());
         common.cleanUpTask(taskVariablesForTask2.getTaskId());
