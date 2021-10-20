@@ -862,8 +862,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
                 singletonList(TASK_TYPE_WORK_TYPE_MAP.get(taskType))),
             new SearchParameter(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
-        ), singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
-        );
+        ));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
@@ -908,8 +907,8 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
                 TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
             new SearchParameter(CASE_ID, SearchOperator.IN,
                 asList(taskVariables.getCaseId(), taskVariables2.getCaseId()))
-        ), singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
-        );
+        ));
+        
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
