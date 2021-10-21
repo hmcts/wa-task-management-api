@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
+import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -24,7 +25,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
@@ -40,8 +40,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
@@ -52,12 +52,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
+@SuppressWarnings("checkstyle:LineLength")
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private IdamWebApi idamWebApi;
@@ -226,10 +228,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
-            IDAM_USER_EMAIL)).thenReturn(true);
-
+            IDAM_USER_EMAIL
+        )).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -273,9 +276,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
-            IDAM_USER_EMAIL)).thenReturn(true);
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -336,10 +341,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                         .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
-                    jsonPath("$.detail").value(
-                        containsString(
-                            "\"someInvalidKey\": not one of the values accepted for Enum class: "
-                            + "[taskId, jurisdiction, location, caseId, taskType, state, workType, user]"))));
+                    jsonPath("$.detail")
+                        .value("Invalid request field: search_parameters.[0].key")));
     }
 
     @Test
@@ -371,11 +374,301 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                         .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
-                    jsonPath("$.detail").value(
-                        containsString("\"INVALID\": not one of the values accepted for Enum class: "
-                                       + "[BETWEEN, AFTER, IN, BEFORE]"))));
+                    jsonPath("$.detail").value("Invalid request field: search_parameters.[0].operator")));
     }
 
+    @Test
+    void should_return_400_bad_request_when_no_search_parameters_provided() throws Exception {
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(new SearchTaskRequest(emptyList())))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
+                        ),
+                    jsonPath("$.title").value("Constraint Violation"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.violations").isNotEmpty(),
+                    jsonPath("$.violations.[0].field").value("search_parameters"),
+                    jsonPath("$.violations.[0].message")
+                        .value("At least one search_parameter element is required.")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_no_operator_provided() throws Exception {
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "    \"search_parameters\": [\n"
+                             + "        {\n"
+                             + "            \"key\": \"jurisdiction\",\n"
+                             + "            \"values\": [\"ia\", \"sscs\"]\n"
+                             + "        }\n"
+                             + "    ]\n"
+                             + "}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
+                        ),
+                    jsonPath("$.title").value("Constraint Violation"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.violations").isNotEmpty(),
+                    jsonPath("$.violations.[0].field").value("search_parameters[0].operator"),
+                    jsonPath("$.violations.[0].message")
+                        .value("Each search_parameter element must have 'key', 'values'"
+                               + " and 'operator' fields present and populated.")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_empty_string_value_provided() throws Exception {
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "    \"search_parameters\": [\n"
+                             + "        {\n"
+                             + "            \"key\": \"jurisdiction\",\n"
+                             + "            \"values\": [\"ia\", \"sscs\"],\n"
+                             + "            \"operator\": \"\"\n"
+                             + "        }\n"
+                             + "    ]\n"
+                             + "}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                        ),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Invalid request field: search_parameters.[0].operator")));
+    }
+
+
+    @Test
+    void should_return_400_bad_request_when_null_operator_provided() throws Exception {
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "    \"search_parameters\": [\n"
+                             + "        {\n"
+                             + "            \"key\": \"jurisdiction\",\n"
+                             + "            \"values\": [\"ia\", \"sscs\"],\n"
+                             + "            \"operator\": null\n"
+                             + "        }\n"
+                             + "    ]\n"
+                             + "}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
+                        ),
+                    jsonPath("$.title").value("Constraint Violation"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.violations").isNotEmpty(),
+                    jsonPath("$.violations.[0].field").value("search_parameters[0].operator"),
+                    jsonPath("$.violations.[0].message")
+                        .value("Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_null_key_provided() throws Exception {
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "    \"search_parameters\": [\n"
+                             + "        {\n"
+                             + "            \"key\": null,\n"
+                             + "            \"values\": [\"ia\", \"something\"],\n"
+                             + "            \"operator\": \"IN\"\n"
+                             + "        }\n"
+                             + "    ]\n"
+                             + "}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
+                        ),
+                    jsonPath("$.title").value("Constraint Violation"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.violations").isNotEmpty(),
+                    jsonPath("$.violations.[0].field").value("search_parameters[0].key"),
+                    jsonPath("$.violations.[0].message")
+                        .value("Each search_parameter element must have 'key', 'values' "
+                               + "and 'operator' fields present and populated.")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_empty_string_key_provided() throws Exception {
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "    \"search_parameters\": [\n"
+                             + "        {\n"
+                             + "            \"key\": \"\",\n"
+                             + "            \"values\": [\"ia\", \"something\"],\n"
+                             + "            \"operator\": \"IN\"\n"
+                             + "        }\n"
+                             + "    ]\n"
+                             + "}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                        ),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Invalid request field: search_parameters.[0].key")));
+    }
+
+
+    @Test
+    void should_return_200_and_accept_Request_when_theres_at_least_one_value() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        //enable R2 flag
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"jurisdiction\",\n"
+                             + "      \"values\": [\"ia\", null],\n"
+                             + "      \"operator\": \"IN\"\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk()));
+    }
+
+    @Test
+    void should_return_200_and_accept_work_type_values() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        //enable R2 flag
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"work_types\",\n"
+                             + "      \"values\": [\n"
+                             + "        \"hearing-work\",\n"
+                             + "        \"upper-tribunal\",\n"
+                             + "        \"routine-work\",\n"
+                             + "        \"decision-making-work\",\n"
+                             + "        \"applications\",\n"
+                             + "        \"priority\",\n"
+                             + "        \"error-management\",\n"
+                             + "        \"access-requests\"\n"
+                             + "      ],\n"
+                             + "      \"operator\": \"IN\"\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk()));
+    }
 
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                              String jurisdiction,

@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @ApiModel(
     value = "SearchParameter",
@@ -13,16 +15,31 @@ import java.util.List;
 )
 @EqualsAndHashCode
 @ToString
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameter {
 
     @ApiModelProperty(
         required = true,
         allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, workType",
         example = "user")
+    @NotNull(
+        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+    )
     private SearchParameterKey key;
+
     @ApiModelProperty(allowableValues = "IN", example = "IN")
+    @NotNull(
+        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+    )
     private SearchOperator operator;
-    @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = true)
+
+    @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = false)
+    @NotNull(
+        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+    )
+    @NotEmpty(
+        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+    )
     private List<String> values;
 
     private SearchParameter() {

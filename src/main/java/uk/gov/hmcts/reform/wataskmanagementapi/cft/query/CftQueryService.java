@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@Service
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "routine_work", "decision_making_work",
@@ -48,8 +48,8 @@ public class CftQueryService {
         AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired
     ) {
-
         validateRequest(searchTaskRequest);
+
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         Pageable page;
         try {

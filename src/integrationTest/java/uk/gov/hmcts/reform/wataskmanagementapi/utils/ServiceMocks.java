@@ -33,6 +33,7 @@ import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class ServiceMocks {
 
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
@@ -94,7 +95,7 @@ public class ServiceMocks {
     }
 
     public UserInfo mockUserInfo() {
-        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).build();
+        UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
         return mockedUserInfo;
     }
@@ -184,7 +185,8 @@ public class ServiceMocks {
         return allTestRoles;
     }
 
-    public List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames, Map<String, String> roleAttributes) {
+    public List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,
+                                                                            Map<String, String> roleAttributes) {
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
