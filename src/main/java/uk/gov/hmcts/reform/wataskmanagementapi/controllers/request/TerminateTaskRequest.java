@@ -18,7 +18,7 @@ public class TerminateTaskRequest {
     private final TerminateInfo terminateInfo;
 
     @JsonCreator
-    public TerminateTaskRequest(@JsonProperty("terminateInfo") TerminateInfo terminateInfo) {
+    public TerminateTaskRequest(TerminateInfo terminateInfo) {
         this.terminateInfo = terminateInfo;
     }
 
