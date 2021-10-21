@@ -16,12 +16,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
-import java.util.Collections;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -68,6 +68,23 @@ public class CftQueryService {
         return mapToTask(taskResources, pages.getTotalElements());
     }
 
+    public Optional<TaskResource> getTask(String taskId,
+                                          AccessControlResponse accessControlResponse,
+                                          List<PermissionTypes> permissionsRequired
+    ) {
+
+        if (permissionsRequired.isEmpty()
+            || taskId == null
+            || taskId.isBlank()) {
+            return Optional.empty();
+        }
+        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
+
+        return taskResourceRepository.findOne(taskResourceSpecification);
+
+    }
+
     private void validateRequest(SearchTaskRequest searchTaskRequest) {
         List<Violation> violations = new ArrayList<>();
 
@@ -101,22 +118,5 @@ public class CftQueryService {
         ).collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, totalNumberOfTasks);
-    }
-
-    public Optional<TaskResource> getTask(String taskId,
-                                          AccessControlResponse accessControlResponse,
-                                          List<PermissionTypes> permissionsRequired
-    ) {
-
-        if (permissionsRequired.isEmpty()
-            || taskId == null
-            || taskId.isBlank()) {
-            return Optional.empty();
-        }
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
-
-        return taskResourceRepository.findOne(taskResourceSpecification);
-
     }
 }
