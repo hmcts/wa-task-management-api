@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -26,19 +27,22 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 @ToString
 @Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity(name = "tasks")
-@TypeDef(
-    name = "pgsql_enum",
-    typeClass = PostgreSQLEnumType.class
-)
-@TypeDef(
-    name = "jsonb",
-    typeClass = JsonType.class
+@TypeDefs(
+    {
+        @TypeDef(
+            name = "pgsql_enum",
+            typeClass = PostgreSQLEnumType.class
+        ),
+        @TypeDef(
+            name = "jsonb",
+            typeClass = JsonType.class
+        )
+    }
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
 public class TaskResource implements Serializable {
@@ -56,17 +60,19 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime dueDateTime;
 
-    @Column
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "task_state_enum")
     private CFTTaskState state;
 
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "task_system_enum")
     private TaskSystem taskSystem;
 
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "security_classification_enum")
     private SecurityClassification securityClassification;
 
     private String title;
@@ -81,7 +87,7 @@ public class TaskResource implements Serializable {
     private String assignee;
     private Boolean autoAssigned = false;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
     private WorkTypeResource workTypeResource;
     private String roleCategory;
@@ -102,6 +108,7 @@ public class TaskResource implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Type(type = PGSQL_ENUM)
+    @Column(columnDefinition = "business_context_enum")
     private BusinessContext businessContext;
 
     private String terminationReason;

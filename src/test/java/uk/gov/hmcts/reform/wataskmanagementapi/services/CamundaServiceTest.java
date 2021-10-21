@@ -64,6 +64,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 @ExtendWith(MockitoExtension.class)
@@ -299,7 +301,8 @@ class CamundaServiceTest extends CamundaHelpers {
         void unclaimTask_should_succeed() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            camundaService.unclaimTask(taskId, mockedVariables);
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(UNASSIGNED.value());
+            camundaService.unclaimTask(taskId, taskHasUnassigned);
 
             verify(camundaServiceApi)
                 .addLocalVariablesToTask(
@@ -319,11 +322,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void unclaimTask_should_throw_a_task_unclaim_exception_when_state_update_fails() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(UNASSIGNED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
-            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, mockedVariables))
+            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, taskHasUnassigned))
                 .isInstanceOf(TaskUnclaimException.class)
                 .hasNoCause()
                 .hasMessage("Task Unclaim Error: Task unclaim failed. "
@@ -334,11 +337,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void unclaimTask_should_throw_a_task_unclaim_exception_when_unclaim_task_fails() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(UNASSIGNED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).unclaimTask(any(), any());
 
-            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, mockedVariables))
+            assertThatThrownBy(() -> camundaService.unclaimTask(taskId, taskHasUnassigned))
                 .isInstanceOf(TaskUnclaimException.class)
                 .hasNoCause()
                 .hasMessage("Task Unclaim Error: Task unclaim partially succeeded. "
@@ -353,7 +356,8 @@ class CamundaServiceTest extends CamundaHelpers {
         void assignTask_should_succeed() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            camundaService.assignTask(taskId, IDAM_USER_ID, mockedVariables);
+            boolean isTaskAssigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
+            camundaService.assignTask(taskId, IDAM_USER_ID, isTaskAssigned);
 
             verify(camundaServiceApi)
                 .addLocalVariablesToTask(
@@ -373,11 +377,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void assignTask_should_throw_a_task_assign_exception_when_state_update_fails() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean isTaskAssigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
-            assertThatThrownBy(() -> camundaService.assignTask(taskId, IDAM_USER_ID, mockedVariables))
+            assertThatThrownBy(() -> camundaService.assignTask(taskId, IDAM_USER_ID, isTaskAssigned))
                 .isInstanceOf(TaskAssignException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign Error: Task assign failed. "
@@ -388,11 +392,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void assignTask_should_throw_a_task_assign_exception_when_assign_task_fails() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean isTaskAssigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).assignTask(any(), any(), any());
 
-            assertThatThrownBy(() -> camundaService.assignTask(taskId, IDAM_USER_ID, mockedVariables))
+            assertThatThrownBy(() -> camundaService.assignTask(taskId, IDAM_USER_ID, isTaskAssigned))
                 .isInstanceOf(TaskAssignException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign Error: Task assign partially succeeded. "
@@ -407,7 +411,8 @@ class CamundaServiceTest extends CamundaHelpers {
         void completeTask_should_succeed() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            camundaService.completeTask(taskId, mockedVariables);
+            boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals(COMPLETED.value());
+            camundaService.completeTask(taskId, taskHasCompleted);
 
             verify(camundaServiceApi)
                 .addLocalVariablesToTask(
@@ -427,11 +432,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void completeTask_should_throw_a_task_assign_exception_when_state_update_fails() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals(COMPLETED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
-            assertThatThrownBy(() -> camundaService.completeTask(taskId, mockedVariables))
+            assertThatThrownBy(() -> camundaService.completeTask(taskId, taskHasCompleted))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete failed. "
@@ -442,11 +447,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void completeTask_should_throw_a_task_assign_exception_when_assign_task_fails() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals(COMPLETED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).completeTask(any(), any(), any());
 
-            assertThatThrownBy(() -> camundaService.completeTask(taskId, mockedVariables))
+            assertThatThrownBy(() -> camundaService.completeTask(taskId, taskHasCompleted))
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
@@ -612,10 +617,11 @@ class CamundaServiceTest extends CamundaHelpers {
         void should_complete_and_assign_task() {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             camundaService.assignAndCompleteTask(
                 taskId,
                 IDAM_USER_ID,
-                mockedVariables
+                taskHasUnassigned
             );
 
             verifyTaskStateUpdateWasCalled(taskId, ASSIGNED);
@@ -629,11 +635,11 @@ class CamundaServiceTest extends CamundaHelpers {
 
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
             mockedVariables.put("taskState", new CamundaVariable(ASSIGNED.value(), "String"));
-
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             camundaService.assignAndCompleteTask(
                 taskId,
                 IDAM_USER_ID,
-                mockedVariables
+                taskHasUnassigned
             );
 
             Map<String, CamundaValue<String>> modifications = Map.of(
@@ -654,7 +660,7 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void should_throw_a_task_assign_and_complete_exception_when_addLocalVariablesToTask_fails() {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).addLocalVariablesToTask(
                 eq(BEARER_SERVICE_TOKEN),
                 eq(taskId),
@@ -662,11 +668,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    IDAM_USER_ID,
-                    mockedVariables
-                ))
+                                   camundaService.assignAndCompleteTask(
+                                       taskId,
+                                       IDAM_USER_ID,
+                                       taskHasUnassigned
+                                   ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "
@@ -679,7 +685,7 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void should_throw_a_task_assign_and_complete_exception_when_assignTask_fails() {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).assignTask(
                 eq(BEARER_SERVICE_TOKEN),
                 eq(taskId),
@@ -687,11 +693,11 @@ class CamundaServiceTest extends CamundaHelpers {
             );
 
             assertThatThrownBy(() ->
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    IDAM_USER_ID,
-                    mockedVariables
-                ))
+                                   camundaService.assignAndCompleteTask(
+                                       taskId,
+                                       IDAM_USER_ID,
+                                       taskHasUnassigned
+                                   ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: Unable to assign the Task to the current user.");
@@ -701,16 +707,16 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void should_throw_a_task_assign_and_complete_exception_when_completing_task_fails() {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-
+            boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals(ASSIGNED.value());
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).completeTask(BEARER_SERVICE_TOKEN, taskId, new CompleteTaskVariables());
 
             assertThatThrownBy(() ->
-                camundaService.assignAndCompleteTask(
-                    taskId,
-                    IDAM_USER_ID,
-                    mockedVariables
-                ))
+                                   camundaService.assignAndCompleteTask(
+                                       taskId,
+                                       IDAM_USER_ID,
+                                       taskHasUnassigned
+                                   ))
                 .isInstanceOf(TaskAssignAndCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Assign and Complete Error: "

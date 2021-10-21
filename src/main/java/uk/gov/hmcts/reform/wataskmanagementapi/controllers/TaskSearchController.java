@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -31,18 +35,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
 
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
+@SuppressWarnings({"PMD.ExcessiveImports"})
 public class TaskSearchController extends BaseController {
 
     private static final Logger LOG = getLogger(TaskSearchController.class);
     private final TaskManagementService taskManagementService;
     private final AccessControlService accessControlService;
-
+    private final CftQueryService cftQueryService;
+    private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Value("${config.search.defaultMaxResults}")
     private int defaultMaxResults;
@@ -50,11 +58,15 @@ public class TaskSearchController extends BaseController {
 
     @Autowired
     public TaskSearchController(TaskManagementService taskManagementService,
-                                AccessControlService accessControlService
+                                AccessControlService accessControlService,
+                                CftQueryService cftQueryService,
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
     ) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
+        this.cftQueryService = cftQueryService;
+        this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -73,6 +85,7 @@ public class TaskSearchController extends BaseController {
         @RequestParam(required = false, name = "max_results") Optional<Integer> maxResults,
         @RequestBody SearchTaskRequest searchTaskRequest
     ) {
+
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -80,11 +93,27 @@ public class TaskSearchController extends BaseController {
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
 
+        boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
+        );
+
+        if (isFeatureEnabled) {
+            List<PermissionTypes> permissionsRequired = singletonList(READ);
+            GetTasksResponse<Task> tasksResponse = cftQueryService.getAllTasks(
+                firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
+                searchTaskRequest, accessControlResponse, permissionsRequired
+            );
+            return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.noCache())
+                .body(tasksResponse);
+        }
         List<Task> tasks = taskManagementService.searchWithCriteria(
             searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
             accessControlResponse
         );
-
         if (tasks.isEmpty()) {
             return ResponseEntity
                 .ok()

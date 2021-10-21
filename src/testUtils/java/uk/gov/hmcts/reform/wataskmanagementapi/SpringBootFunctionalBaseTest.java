@@ -22,9 +22,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
@@ -70,6 +72,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected Common common;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
+    protected RestApiActions launchDarklyActions;
     @Autowired
     protected AuthorizationHeadersProvider authorizationHeadersProvider;
     @Autowired
@@ -86,17 +89,23 @@ public abstract class SpringBootFunctionalBaseTest {
     private IdamTokenGenerator systemUserIdamToken;
     @Autowired
     private IdamTokenGenerator waTestLawFirmIdamToken;
+    @Autowired
+    protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    @Autowired
+    protected CFTTaskDatabaseService cftTaskDatabaseService;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
+    @Value("${launch_darkly.url}")
+    private String launchDarklyUrl;
 
     @Before
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
-
+        launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
         documentManagementFiles.prepare();
 
         given = new GivensBuilder(

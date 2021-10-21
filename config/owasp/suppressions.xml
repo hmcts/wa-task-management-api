@@ -8,11 +8,12 @@
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
   </suppress>
-  <suppress until="2021-09-25">
-    <notes>A vulnerability in all versions of Nim-lang allows unauthenticated attackers to write files to
-      arbitrary directories via a crafted zip file with dot-slash characters included in the name of the
-      crafted file
-    </notes>
+  <suppress until="2030-01-01">
+    <notes><![CDATA[
+     Suppressing as it's a false positive (see: https://github.com/jeremylong/DependencyCheck/issues/3594)
+   ]]></notes>
+    <gav regex="true">^com.nimbusds:lang-tag-*.*</gav>
+    <cpe>cpe:/a:nim-lang:nim-lang</cpe>
     <cve>CVE-2020-23171</cve>
   </suppress>
 </suppressions>

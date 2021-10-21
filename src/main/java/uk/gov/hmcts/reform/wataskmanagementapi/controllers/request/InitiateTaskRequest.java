@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -21,7 +22,8 @@ public class InitiateTaskRequest {
     private final List<TaskAttribute> taskAttributes;
 
     @JsonCreator
-    public InitiateTaskRequest(InitiateTaskOperation operation, List<TaskAttribute> taskAttributes) {
+    public InitiateTaskRequest(@JsonProperty("operation") InitiateTaskOperation operation,
+                               @JsonProperty("taskAttributes") List<TaskAttribute> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;
     }

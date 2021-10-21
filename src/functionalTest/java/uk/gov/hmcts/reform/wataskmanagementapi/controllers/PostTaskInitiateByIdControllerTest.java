@@ -15,8 +15,10 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -33,7 +35,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -57,6 +59,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             authenticationHeaders
         );
 
+        result.prettyPrint();
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
@@ -83,7 +86,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                         + "(Typically this will be in CCD.)"))
             .body("task_role_resources[0].task_role_id", notNullValue())
-            .body("task_role_resources[0].role_name", equalTo("senior-tribunal-caseworker"))
+            .body("task_role_resources[0].task_id", equalTo(taskId))
+            .body("task_role_resources[0].role_name",
+                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker")))
             .body("task_role_resources[0].read", equalTo(true))
             .body("task_role_resources[0].own", equalTo(true))
             .body("task_role_resources[0].execute", equalTo(false))
@@ -91,15 +96,21 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[0].refer", equalTo(true))
             .body("task_role_resources[0].authorizations", equalTo(emptyList()))
             .body("task_role_resources[0].auto_assignable", equalTo(false))
+            .body("task_role_resources[0].role_category",
+                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())))
             .body("task_role_resources[1].task_role_id", notNullValue())
-            .body("task_role_resources[1].role_name", equalTo("tribunal-caseworker"))
+            .body("task_role_resources[1].task_id", equalTo(taskId))
+            .body("task_role_resources[1].role_name",
+                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker")))
             .body("task_role_resources[1].read", equalTo(true))
             .body("task_role_resources[1].own", equalTo(true))
             .body("task_role_resources[1].execute", equalTo(false))
             .body("task_role_resources[1].cancel", equalTo(true))
             .body("task_role_resources[1].refer", equalTo(true))
             .body("task_role_resources[1].authorizations", equalTo(emptyList()))
-            .body("task_role_resources[1].auto_assignable", equalTo(false));
+            .body("task_role_resources[1].auto_assignable", equalTo(false))
+            .body("task_role_resources[1].role_category",
+                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())));
 
 
         assertions.taskVariableWasUpdated(
@@ -111,7 +122,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_409_if_task_already_initiated() {
+    public void should_return_a_503_if_task_already_initiated() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -144,12 +155,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         // If the first call succeeded the second call should throw a conflict
         // taskId unique constraint is violated
         resultSecondCall.then().assertThat()
-            .statusCode(HttpStatus.CONFLICT.value())
+            .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
             .body("type", equalTo(
                 "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
             .body("title", equalTo("Database Conflict Error"))
-            .body("status", equalTo(409))
+            .body("status", equalTo(503))
             .body("detail", equalTo(
                 "Database Conflict Error: The action could not be completed because "
                 + "there was a conflict in the database."));
@@ -178,7 +189,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 
     @Test
@@ -203,7 +214,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 
     @Test
@@ -227,7 +238,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-            .contentType(APPLICATION_JSON_VALUE);
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE);
     }
 }
 

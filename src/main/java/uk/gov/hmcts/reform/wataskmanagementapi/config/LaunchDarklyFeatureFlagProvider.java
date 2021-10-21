@@ -18,16 +18,19 @@ public class LaunchDarklyFeatureFlagProvider {
         this.ldClient = ldClient;
     }
 
-    public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {
+    public boolean getBooleanValue(FeatureFlag featureFlag, String userId, String email) {
         requireNonNull(featureFlag, "featureFlag must not be null");
         requireNonNull(userId, "userId must not be null");
         log.info("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
-        return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), false);
+        return ldClient.boolVariation(featureFlag.getKey(),
+            createLaunchDarklyUser(userId, email),
+            false);
     }
 
-    private LDUser createLaunchDarklyUser(String userId) {
+    private LDUser createLaunchDarklyUser(String userId, String email) {
         return new LDUser.Builder("wa-task-management-api")
             .name(userId)
+            .email(email)
             .firstName("Work Allocation")
             .lastName("Task Management")
             .build();

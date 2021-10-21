@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -16,15 +17,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAtt
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,7 +71,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
+@Slf4j
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
@@ -78,9 +83,12 @@ public class CFTTaskMapper {
     }
 
     public TaskResource mapToTaskResource(String taskId, List<TaskAttribute> taskAttributes) {
-
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
         Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> attribute.getValue() != null)
+            .filter(attribute -> {
+                log.debug("filtering out null attributes: attribute({})", attribute);
+                return attribute != null && attribute.getValue() != null;
+            })
             .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
 
         List<NoteResource> notes = extractWarningNotes(attributes);
@@ -132,11 +140,13 @@ public class CFTTaskMapper {
             .forEach((key, value) -> mapVariableToTaskResourceProperty(taskResource, key, value));
 
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
-        taskResource.setTaskRoleResources(mapPermissions(permissions));
+        taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
         return taskResource;
     }
 
-    private Set<TaskRoleResource> mapPermissions(List<PermissionsDmnEvaluationResponse> permissions) {
+    private Set<TaskRoleResource> mapPermissions(
+        List<PermissionsDmnEvaluationResponse> permissions, TaskResource taskResource
+    ) {
 
         return permissions.stream().map(permission -> {
 
@@ -162,6 +172,11 @@ public class CFTTaskMapper {
                 autoAssignable = Boolean.TRUE.equals(permission.getAutoAssignable().getValue());
             }
 
+            String roleCategory = null;
+            if (permission.getRoleCategory() != null && permission.getRoleCategory().getValue() != null) {
+                roleCategory = permission.getRoleCategory().getValue();
+            }
+
             return new TaskRoleResource(
                 roleName,
                 permissionsFound.contains(PermissionTypes.READ),
@@ -170,9 +185,12 @@ public class CFTTaskMapper {
                 permissionsFound.contains(PermissionTypes.MANAGE),
                 permissionsFound.contains(PermissionTypes.CANCEL),
                 permissionsFound.contains(PermissionTypes.REFER),
-                authorisations,
+                authorisations.toArray(new String[0]),
                 assignmentPriority,
-                autoAssignable
+                autoAssignable,
+                roleCategory,
+                taskResource.getTaskId(),
+                ZonedDateTime.now().toOffsetDateTime()
             );
         }).collect(Collectors.toSet());
     }
@@ -286,12 +304,23 @@ public class CFTTaskMapper {
                         warning.getWarningCode(),
                         "WARNING",
                         null,
-                        OffsetDateTime.now(),
                         warning.getWarningText()
                     )).collect(Collectors.toList());
             }
         }
         return notes;
+    }
+
+    private WarningValues mapNoteResourceToWarnings(List<NoteResource> notes) {
+
+        if (notes != null) {
+            List<Warning> warnings = notes.stream()
+                .filter(noteResource -> "WARNING".equals(noteResource.getNoteType()))
+                .map(noteResource -> new Warning(noteResource.getCode(), noteResource.getContent()))
+                .collect(Collectors.toList());
+            return new WarningValues(warnings);
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -323,6 +352,33 @@ public class CFTTaskMapper {
         Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return value == null ? Optional.empty() : Optional.of((T) value);
+    }
+
+
+    public Task mapToTask(TaskResource taskResource) {
+        return new Task(taskResource.getTaskId(),
+            taskResource.getTaskName(),
+            taskResource.getTaskType(),
+            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
+            taskResource.getTaskSystem().getValue(),
+            taskResource.getSecurityClassification().getSecurityClassification(),
+            taskResource.getTitle(),
+            taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getAssignee(),
+            taskResource.getAutoAssigned(),
+            taskResource.getExecutionTypeCode().getExecutionName(),
+            taskResource.getJurisdiction(),
+            taskResource.getRegion(),
+            taskResource.getLocation(),
+            taskResource.getLocationName(),
+            taskResource.getCaseTypeId(),
+            taskResource.getCaseId(),
+            taskResource.getRoleCategory(),
+            taskResource.getCaseName(),
+            taskResource.getHasWarnings(),
+            mapNoteResourceToWarnings(taskResource.getNotes()),
+            taskResource.getCaseCategory());
     }
 }
 
