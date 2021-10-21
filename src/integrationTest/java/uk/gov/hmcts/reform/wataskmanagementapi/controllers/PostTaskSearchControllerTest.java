@@ -55,6 +55,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
@@ -226,7 +227,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
         when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)).thenReturn(true);
+
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -234,12 +237,12 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ));
 
         mockMvc.perform(
-            post("/task")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isOk(),
@@ -271,7 +274,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         //enable R2 flag
         when(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid())).thenReturn(true);
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -279,12 +283,12 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ));
 
         mockMvc.perform(
-            post("/task")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isBadRequest(),
@@ -308,22 +312,22 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
 
         mockMvc.perform(
-            post("/task")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                         + "  \"search_parameters\": [\n"
-                         + "    {\n"
-                         + "      \"key\": \"someInvalidKey\",\n"
-                         + "      \"operator\": \"IN\",\n"
-                         + "      \"values\": [\n"
-                         + "        \"aValue\"\n"
-                         + "      ]\n"
-                         + "    }\n"
-                         + "  ]\n"
-                         + "}\n")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"someInvalidKey\",\n"
+                             + "      \"operator\": \"IN\",\n"
+                             + "      \"values\": [\n"
+                             + "        \"aValue\"\n"
+                             + "      ]\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isBadRequest(),
@@ -343,22 +347,22 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
 
         mockMvc.perform(
-            post("/task")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content("{\n"
-                         + "  \"search_parameters\": [\n"
-                         + "    {\n"
-                         + "      \"key\": \"workType\",\n"
-                         + "      \"operator\": \"INVALID\",\n"
-                         + "      \"values\": [\n"
-                         + "        \"aValue\"\n"
-                         + "      ]\n"
-                         + "    }\n"
-                         + "  ]\n"
-                         + "}\n")
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"workType\",\n"
+                             + "      \"operator\": \"INVALID\",\n"
+                             + "      \"values\": [\n"
+                             + "        \"aValue\"\n"
+                             + "      ]\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isBadRequest(),
