@@ -122,7 +122,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
         // create some tasks
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
@@ -177,7 +176,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results() {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -209,7 +207,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_warnings() {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -241,7 +238,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_all_tasks_without_pagination() {
         //creating 3 tasks
         String[] taskStates = {TaskState.ASSIGNED.value(), TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value()};
@@ -279,7 +275,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_limited_tasks_with_pagination() {
         //creating 3 tasks
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
@@ -316,7 +311,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_empty_search_results_with_negative_firstResult_pagination() {
         //creating 1 task
         String[] taskStates = {TaskState.ASSIGNED.value()};
@@ -353,7 +347,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_empty_search_results_with_negative_maxResults_pagination() {
         //creating 1 task
         String[] taskStates = {TaskState.UNASSIGNED.value()};
@@ -390,7 +383,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_empty_search_results_with_negative_pagination() {
         //creating 1 task
         String[] taskStates = {TaskState.UNCONFIGURED.value()};
@@ -427,7 +419,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results_based_on_state_unassigned() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -457,7 +448,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results_based_on_jurisdiction_and_location_filters() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
@@ -495,7 +485,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_empty_search_results_location_did_not_match() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
@@ -529,7 +518,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results_based_on_caseId_location_filters() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
@@ -566,7 +554,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_state_filters() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
@@ -607,7 +594,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_multiple_state_filters() {
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
@@ -652,7 +638,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_empty_search_results_user_jurisdiction_permission_did_not_match() {
 
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
@@ -692,7 +677,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_return_a_200_with_search_results_and_correct_properties() {
         String[] taskStates = {TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value(), TaskState.CONFIGURED.value()};
 
@@ -752,7 +736,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    @Ignore
     public void should_have_consistent_unassigned_state_in_camunda_and_cft_db() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -795,7 +778,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
      * Terminate task with state CANCELLED will remove cftTaskState from Camunda history table.
      */
     @Test
-    @Ignore
     public void should_have_consistent_cancelled_state() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -832,7 +814,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
      * Terminate task with state COMPLETED will remove cftTaskState from Camunda history table.
      */
     @Test
-    @Ignore
     public void should_have_consistent_completed_state() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
