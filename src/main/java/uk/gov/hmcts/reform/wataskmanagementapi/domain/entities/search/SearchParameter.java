@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
@@ -42,10 +43,7 @@ public class SearchParameter {
     )
     private List<String> values;
 
-    private SearchParameter() {
-        //Default constructor for deserialization
-    }
-
+    @JsonCreator
     public SearchParameter(SearchParameterKey key, SearchOperator operator, List<String> values) {
         this.key = key;
         this.operator = operator;
