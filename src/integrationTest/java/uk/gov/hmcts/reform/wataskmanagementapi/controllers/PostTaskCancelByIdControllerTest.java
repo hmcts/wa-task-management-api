@@ -49,6 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
@@ -92,6 +93,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(IDAM_AUTHORIZATION_TOKEN);
         when(mockedUserInfo.getUid())
             .thenReturn(IDAM_USER_ID);
+        when(mockedUserInfo.getEmail())
+            .thenReturn(IDAM_USER_EMAIL);
         when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
         mockServices = new ServiceMocks(
@@ -115,7 +118,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
         )).thenReturn(true);
 
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());

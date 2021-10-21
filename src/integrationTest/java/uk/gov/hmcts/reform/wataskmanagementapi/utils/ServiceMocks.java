@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 public class ServiceMocks {
 
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
+    public static final String IDAM_USER_EMAIL = "wa-ft-test@test.com";
     public static final String IDAM_AUTHORIZATION_TOKEN = "Bearer IDAM_AUTH_TOKEN";
     public static final String SERVICE_AUTHORIZATION_TOKEN = "Bearer SERVICE_AUTHORIZATION_TOKEN";
     private final ObjectMapper objectMapper = new ObjectMapper();

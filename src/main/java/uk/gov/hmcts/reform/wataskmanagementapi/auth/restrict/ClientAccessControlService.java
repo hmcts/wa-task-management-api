@@ -50,7 +50,8 @@ public class ClientAccessControlService {
 
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.PRIVILEGED_ACCESS_FEATURE,
-            accessControlResponse.getUserInfo().getUid()
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
         );
 
         if (isFeatureEnabled) {

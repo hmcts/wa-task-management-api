@@ -66,7 +66,7 @@ public class TaskRoleResource implements Serializable {
     private Boolean autoAssignable;
     private String roleCategory;
 
-    @Column(name = "task_id")
+    @Column(name = "task_id", nullable = false)
     @EqualsAndHashCode.Include()
     private String taskId;
 

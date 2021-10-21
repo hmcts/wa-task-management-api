@@ -61,6 +61,22 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
         assertEquals(UNCONFIGURED, updatedTaskResource.get().getState());
     }
 
+    @Test
+    void should_succeed_and_find_a_task_by_id_with_no_lock() {
+
+        TaskResource taskResource = createAndSaveTask();
+
+        Optional<TaskResource> updatedTaskResource =
+            cftTaskDatabaseService.findByIdOnly(taskResource.getTaskId());
+
+        assertNotNull(updatedTaskResource);
+        assertTrue(updatedTaskResource.isPresent());
+        assertEquals(taskResource.getTaskId(), updatedTaskResource.get().getTaskId());
+        assertEquals(taskResource.getTaskName(), updatedTaskResource.get().getTaskName());
+        assertEquals(taskResource.getTaskType(), updatedTaskResource.get().getTaskType());
+        assertEquals(UNCONFIGURED, updatedTaskResource.get().getState());
+    }
+
     private TaskResource createAndSaveTask() {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),

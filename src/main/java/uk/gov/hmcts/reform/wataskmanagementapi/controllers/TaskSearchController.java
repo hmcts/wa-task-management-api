@@ -95,7 +95,8 @@ public class TaskSearchController extends BaseController {
 
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
-            accessControlResponse.getUserInfo().getUid()
+            accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail()
         );
 
         if (isFeatureEnabled) {
