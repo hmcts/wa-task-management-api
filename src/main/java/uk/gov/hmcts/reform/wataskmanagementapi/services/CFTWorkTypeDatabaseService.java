@@ -25,9 +25,9 @@ public class CFTWorkTypeDatabaseService {
      * @param workTypeId          the work type id.
      * @return A mapped optional of work type {@link WorkType}
      */
-    public Optional<WorkType> getWorkType(String workTypeId) {
+    public Optional<WorkType> findById(String workTypeId) {
         Optional<WorkTypeResource> workTypeResource = workTypeResourceRepository.findById(workTypeId);
-        if (!workTypeResource.isPresent()) {
+        if (workTypeResource.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(new WorkType(workTypeResource.get().getId(),workTypeResource.get().getLabel()));

@@ -115,11 +115,105 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
 
+
+
         Predicate predicate = RoleAssignmentFilter.buildQueryForExcluded(
             root,
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes());
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
+    }
+
+    @Test
+    public void buildQueryForExcludedWithoutMatchingGrantType() {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
+        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+            criteriaBuilder,
+            null,
+            Boolean.TRUE);
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
+        lenient().when(inObject.value(any())).thenReturn(values);
+
+        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
+
+        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
+
+        final Map<String, String> excludeddAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder()
+            .roleName("senior-tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .attributes(excludeddAttributes)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        List<Optional<RoleAssignment>> roleAssignmentList = new ArrayList<>();
+        roleAssignmentList.add(Optional.of(roleAssignment));
+
+        Predicate predicate = RoleAssignmentFilter.buildQueryForExcluded(
+            root,
+            taskRoleResources,
+            criteriaBuilder,
+            roleAssignmentList
+        );
+        assertNotNull(predicate);
+        assertEquals(inObject, predicate);
+    }
+
+    @Test
+    public void buildQueryForExcludedWithMatchingGrantType() {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
+        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+            criteriaBuilder,
+            null,
+            Boolean.TRUE);
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
+        lenient().when(inObject.value(any())).thenReturn(values);
+
+        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
+
+        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
+
+        final Map<String, String> excludeddAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        RoleAssignment roleAssignment = RoleAssignment.builder()
+            .roleName("senior-tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .attributes(excludeddAttributes)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        List<Optional<RoleAssignment>> roleAssignmentList = new ArrayList<>();
+        roleAssignmentList.add(Optional.of(roleAssignment));
+
+        Predicate predicate = RoleAssignmentFilter.buildQueryForExcluded(
+            root,
+            taskRoleResources,
+            criteriaBuilder,
+            roleAssignmentList
+        );
         assertNotNull(predicate);
         assertEquals(inObject, predicate);
     }
