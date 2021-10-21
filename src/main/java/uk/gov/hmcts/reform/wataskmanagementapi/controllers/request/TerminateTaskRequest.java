@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -18,7 +17,7 @@ public class TerminateTaskRequest {
     private final TerminateInfo terminateInfo;
 
     @JsonCreator
-    public TerminateTaskRequest(@JsonProperty("terminateInfo") TerminateInfo terminateInfo) {
+    public TerminateTaskRequest(TerminateInfo terminateInfo) {
         this.terminateInfo = terminateInfo;
     }
 
