@@ -85,7 +85,7 @@ public class TaskManagerCompleteTaskProviderTest {
     }
 
     @State({"complete a task using taskId and assign and complete completion options"})
-    public void claimTaskByIdWithCompletionOptions() {
+    public void completeTaskByIdWithCompletionOptions() {
         setInitMockWithPrivilegedAccess();
     }
 
