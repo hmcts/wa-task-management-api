@@ -742,11 +742,12 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
         ));
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
