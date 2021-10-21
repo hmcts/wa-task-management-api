@@ -657,6 +657,8 @@ public class TaskManagementService {
             taskResource = configureTask(taskResource);
             taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
             updateCftTaskState(taskResource.getTaskId(), taskResource);
+
+            log.debug("Saving task:::::::::{}", taskResource.getWorkTypeResource());
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
             log.error("Error when initiating task(id={})", taskId, e);

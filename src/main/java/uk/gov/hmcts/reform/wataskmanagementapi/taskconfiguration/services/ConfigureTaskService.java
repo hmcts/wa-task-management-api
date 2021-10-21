@@ -119,6 +119,7 @@ public class ConfigureTaskService {
             .map(configurator -> configurator.getConfigurationVariables(task))
             .forEach(result -> combineResults(result, configurationResults));
 
+        log.debug("TaskConfigurationResults::::::::::{}", configurationResults);
         return configurationResults;
     }
 

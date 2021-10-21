@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 import io.restassured.RestAssured;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import static java.util.Collections.emptyMap;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")

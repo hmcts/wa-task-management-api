@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import io.restassured.RestAssured;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.http.MediaType;
 import static net.serenitybdd.rest.SerenityRest.expect;
 import static org.hamcrest.Matchers.containsString;
 
+@Ignore
 public class WelcomeTest extends SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")

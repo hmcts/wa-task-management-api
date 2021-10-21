@@ -2,10 +2,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import io.restassured.http.Header;
 import io.restassured.response.Response;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 
+@Ignore
 public class SwaggerTest extends SpringBootFunctionalBaseTest {
 
     private static final String SWAGGER_URL = "/swagger-ui/index.html";
