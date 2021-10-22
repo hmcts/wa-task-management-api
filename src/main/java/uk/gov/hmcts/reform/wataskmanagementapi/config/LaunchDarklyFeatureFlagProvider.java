@@ -21,10 +21,12 @@ public class LaunchDarklyFeatureFlagProvider {
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId, String email) {
         requireNonNull(featureFlag, "featureFlag must not be null");
         requireNonNull(userId, "userId must not be null");
-        log.info("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
-        return ldClient.boolVariation(featureFlag.getKey(),
+        log.info("Attempting to retrieve feature flag '{}' with email '{}'", featureFlag.getKey(), email);
+        boolean result =  ldClient.boolVariation(featureFlag.getKey(),
             createLaunchDarklyUser(userId, email),
             false);
+        log.info("Feature flag '{}' with email '{}' has evaluated to '{}'", featureFlag.getKey(), email, result);
+        return result;
     }
 
     private LDUser createLaunchDarklyUser(String userId, String email) {
