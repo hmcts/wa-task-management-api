@@ -120,7 +120,15 @@ launchDarkly:
 logging:
   level:
     root: INFO
-    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
+    org.springframework:
+      dao: debug
+      transaction: debug
+      jdbc.core.JdbcTemplate: info
+      org.hibernate:
+        SQL: debug
+        type.descriptor.sql.BasicBinder: debug
+        engine: debug
+    uk.gov.hmcts.reform: DEBUG
     org.zalando.logbook: TRACE
 
 logbook:
