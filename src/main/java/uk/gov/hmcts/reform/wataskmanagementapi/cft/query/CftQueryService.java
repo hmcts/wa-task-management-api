@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@Slf4j
 public class CftQueryService {
 
     private final CFTTaskMapper cftTaskMapper;
@@ -53,8 +55,11 @@ public class CftQueryService {
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
         final List<TaskResource> taskResources = pages.toList();
+        log.debug("taskResource list query result: {}", taskResources);
 
-        return mapToTask(taskResources, pages.getTotalElements());
+        GetTasksResponse<Task> response = mapToTask(taskResources, pages.getTotalElements());
+        log.debug("response query: {}", response);
+        return response;
     }
 
     private GetTasksResponse<Task> mapToTask(List<TaskResource> taskResources, long totalNumberOfTasks) {

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
@@ -15,6 +17,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
     "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
 @ApiModel("Task")
+@ToString
+@EqualsAndHashCode
 public class Task {
     @ApiModelProperty(
         required = true,
