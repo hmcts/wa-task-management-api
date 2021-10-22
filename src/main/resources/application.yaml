@@ -84,6 +84,8 @@ spring:
       hibernate:
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+        show_sql: true
+        format_sql: true
   flyway:
     enabled: true
     baselineOnMigrate: true

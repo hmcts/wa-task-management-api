@@ -60,7 +60,7 @@ public final class TaskResourceSpecification {
         return searchByCaseId(List.of(searchEventAndCase.getCaseId()))
             .and(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .and(searchByTaskTypes(taskTypes))
-            .and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
+            //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 

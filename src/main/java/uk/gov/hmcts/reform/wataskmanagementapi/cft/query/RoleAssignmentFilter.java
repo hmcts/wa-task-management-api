@@ -85,7 +85,7 @@ public final class RoleAssignmentFilter {
             for (PermissionTypes type : permissionsRequired) {
                 permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
             }
-            final Predicate permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
+            final Predicate permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
 
             query.distinct(true);
 

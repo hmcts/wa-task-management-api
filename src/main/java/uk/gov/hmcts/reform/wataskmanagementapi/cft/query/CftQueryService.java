@@ -65,7 +65,10 @@ public class CftQueryService {
 
         final List<TaskResource> taskResources = pages.toList();
 
-        return mapToTask(taskResources, pages.getTotalElements());
+        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
+        ).collect(Collectors.toList());
+
+        return new GetTasksResponse<>(tasks, pages.getTotalElements());
     }
 
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
@@ -100,14 +103,10 @@ public class CftQueryService {
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
-        return new GetTasksCompletableResponse<>(taskRequiredForEvent, null);
-    }
-
-    private GetTasksResponse<Task> mapToTask(List<TaskResource> taskResources, long totalNumberOfTasks) {
         final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
         ).collect(Collectors.toList());
 
-        return new GetTasksResponse<>(tasks, totalNumberOfTasks);
+        return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
 
     public Optional<TaskResource> getTask(String taskId,
