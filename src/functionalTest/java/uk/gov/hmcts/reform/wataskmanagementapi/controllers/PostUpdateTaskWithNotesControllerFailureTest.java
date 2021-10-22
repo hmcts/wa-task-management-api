@@ -4,20 +4,15 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootFunctionalBaseTest {
 
