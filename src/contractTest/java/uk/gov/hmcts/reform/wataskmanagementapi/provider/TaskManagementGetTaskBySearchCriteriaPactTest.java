@@ -23,9 +23,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
-import uk.gov.hmcts.reform.wataskmanagementapi.provider.model.TaskWithWorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -154,7 +154,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             false,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            "routine work"
+            "routine_work"
         );
     }
 
@@ -183,7 +183,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             false,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            "routine work"
+            "routine_work"
         );
     }
 
@@ -216,7 +216,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             true,
             new WarningValues(warnings),
             "Some Case Management Category",
-            "routine work"
+            "routine_work"
         );
     }
 
@@ -249,7 +249,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             true,
             new WarningValues(warnings),
             "Some Case Management Category",
-            "routine work"
+            "routine_work"
         );
     }
 
