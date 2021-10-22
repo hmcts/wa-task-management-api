@@ -28,7 +28,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
 
     @Test
     @PactTestFor(pactMethod = "executeCompleteTaskById204")
-    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
+    void testCompleteTaskByTaskId204Test(MockServer mockServer) throws IOException {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -40,7 +40,7 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
 
     @Test
     @PactTestFor(pactMethod = "executeCompleteTaskById204WithAssignAndComplete")
-    void testClaimTaskByTaskId204WithAssignAndCompleteTest(MockServer mockServer) throws IOException {
+    void testCompleteTaskByTaskId204WithAssignAndCompleteTest(MockServer mockServer) throws IOException {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
