@@ -10,12 +10,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -73,6 +75,40 @@ class AccessControlServiceTest {
         AccessControlResponse expectedAccessResponse = new AccessControlResponse(
             UserInfo.builder().uid("some user id").build(),
             Collections.singletonList(RoleAssignment.builder().build())
+        );
+        assertThat(actualAccessResponse)
+            .isEqualTo(expectedAccessResponse);
+
+    }
+
+    @Test
+    void get_roles_should_thrown_a_no_role_assignments_found_exception_when_role_assignment_returns_empty_list() {
+        final UserInfo mockedUserInfo = mock(UserInfo.class);
+        final String idamToken = "someToken";
+        when(mockedUserInfo.getUid()).thenReturn("id");
+        when(idamService.getUserInfo(idamToken)).thenReturn(mockedUserInfo);
+        when(roleAssignmentService.getRolesForUser("id", idamToken))
+            .thenReturn(Collections.emptyList());
+
+        assertThrows(
+            NoRoleAssignmentsFoundException.class,
+            () -> accessControlService.getRoles(idamToken)
+        );
+    }
+
+    @Test
+    void get_roles_given_user_id_should_return_empty_list() {
+        when(roleAssignmentService.getRolesForUser("some user id", "Bearer user token"))
+            .thenReturn(Collections.emptyList());
+
+        AccessControlResponse actualAccessResponse = accessControlService.getRolesGivenUserId(
+            "some user id",
+            "Bearer user token"
+        );
+
+        AccessControlResponse expectedAccessResponse = new AccessControlResponse(
+            UserInfo.builder().uid("some user id").build(),
+            Collections.emptyList()
         );
         assertThat(actualAccessResponse)
             .isEqualTo(expectedAccessResponse);
