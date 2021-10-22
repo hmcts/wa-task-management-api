@@ -5,8 +5,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -31,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 
 @ExtendWith(MockitoExtension.class)
 class GetTaskTest extends CamundaHelpers {
@@ -53,13 +57,19 @@ class GetTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
+    @Mock
+    CftQueryService cftQueryService;
     TaskManagementService taskManagementService;
     String taskId;
 
     @Test
     void getTask_should_succeed_and_return_mapped_task() {
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
 
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
         Task mockedMappedTask = mock(Task.class);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -68,9 +78,16 @@ class GetTaskTest extends CamundaHelpers {
             roleAssignment,
             singletonList(READ)
         )).thenReturn(true);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
+        ).thenReturn(false);
         when(camundaService.getMappedTask(taskId, mockedVariables)).thenReturn(mockedMappedTask);
 
-        Task response = taskManagementService.getTask(taskId, roleAssignment);
+        Task response = taskManagementService.getTask(taskId, accessControlResponse);
 
         assertNotNull(response);
         assertEquals(mockedMappedTask, response);
@@ -78,8 +95,11 @@ class GetTaskTest extends CamundaHelpers {
 
     @Test
     void getTask_should_throw_role_assignment_verification_exception_when_has_access_returns_false() {
-
+        AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
+        final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+        when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
         when(permissionEvaluatorService.hasAccess(
@@ -87,8 +107,13 @@ class GetTaskTest extends CamundaHelpers {
             roleAssignment,
             singletonList(READ)
         )).thenReturn(false);
-
-        assertThatThrownBy(() -> taskManagementService.getTask(taskId, roleAssignment))
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
+        ).thenReturn(false);
+        assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
             .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
@@ -105,7 +130,8 @@ class GetTaskTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
+            taskAutoAssignmentService,
+            cftQueryService
         );
 
         taskId = UUID.randomUUID().toString();

@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -30,7 +31,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -44,14 +44,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -60,6 +56,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
@@ -91,6 +88,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private PermissionEvaluatorService permissionEvaluatorService;
     @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @SpyBean
+    private CftQueryService cftQueryService;
     @SpyBean
     private CFTTaskMapper cftTaskMapper;
     @Autowired
@@ -129,12 +128,14 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
+            taskAutoAssignmentService,
+            cftQueryService
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
             RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
             )
         ).thenReturn(true);
 
@@ -154,27 +155,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     }
 
     @Test
-    void given_initiate_task_is_called_when_error_then_only_skeleton_is_persisted_in_db() {
-        when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
-            .thenThrow(new RuntimeException("some error"));
-
-        assertThrows(RuntimeException.class,
-            () -> taskManagementService.initiateTask(taskId, initiateTaskRequest));
-
-        assertEquals(1, taskResourceRepository.count());
-
-        Optional<TaskResource> find = taskResourceRepository.findById(taskId);
-        assertTrue(find.isPresent());
-        assertEquals(UNCONFIGURED, find.get().getState());
-
-        verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-        verify(cftTaskDatabaseService).saveTask(argThat((task) -> task.getTaskId().equals(taskId)));
-        verify(cftTaskDatabaseService).findByIdOnly(taskId);
-        verify(cftTaskDatabaseService).findByIdAndObtainPessimisticWriteLock(taskId);
-        verifyNoMoreInteractions(cftTaskDatabaseService);
-    }
-
-    @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
@@ -187,21 +167,13 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             cftTaskDatabaseService
         );
 
-        inOrder.verify(cftTaskDatabaseService).findByIdOnly(taskId);
         inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-
-        //Skeleton
-        inOrder.verify(cftTaskDatabaseService).saveTask(taskResourceCaptor.capture());
-        inOrder.verify(cftTaskDatabaseService).findByIdAndObtainPessimisticWriteLock(taskId);
         inOrder.verify(configureTaskService).configureCFTTask(
             taskResourceCaptor.capture(),
             eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME))
         );
-
         inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(testTaskResource);
-
         inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.ASSIGNED);
-
         inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
         //verify task is in the DB
@@ -244,7 +216,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             .until(() -> expectedFailureCalls(
                 futureResults,
                 1,
-                "ConstraintViolationException"
+                "503, Database Conflict Error"
             ) && expectedSucceededCalls(futureResults, 1));
     }
 

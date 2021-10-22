@@ -66,7 +66,7 @@ public class TaskRoleResource implements Serializable {
     private Boolean autoAssignable;
     private String roleCategory;
 
-    @Column(name = "task_id")
+    @Column(name = "task_id", nullable = false)
     @EqualsAndHashCode.Include()
     private String taskId;
 
@@ -103,6 +103,32 @@ public class TaskRoleResource implements Serializable {
             assignmentPriority,
             autoAssignable,
             null,
+            null,
+            null);
+    }
+
+    public TaskRoleResource(String roleName,
+                            Boolean read,
+                            Boolean own,
+                            Boolean execute,
+                            Boolean manage,
+                            Boolean cancel,
+                            Boolean refer,
+                            String[] authorizations,
+                            Integer assignmentPriority,
+                            Boolean autoAssignable,
+                            String roleCategory) {
+        this(roleName,
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            roleCategory,
             null,
             null);
     }

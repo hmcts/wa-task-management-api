@@ -27,7 +27,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 
 @ToString
 @Getter
@@ -88,7 +87,7 @@ public class TaskResource implements Serializable {
     private String assignee;
     private Boolean autoAssigned = false;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
     private WorkTypeResource workTypeResource;
     private String roleCategory;

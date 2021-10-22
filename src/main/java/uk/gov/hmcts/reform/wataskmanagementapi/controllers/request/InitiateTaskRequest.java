@@ -21,7 +21,8 @@ public class InitiateTaskRequest {
     private final List<TaskAttribute> taskAttributes;
 
     @JsonCreator
-    public InitiateTaskRequest(InitiateTaskOperation operation, List<TaskAttribute> taskAttributes) {
+    public InitiateTaskRequest(InitiateTaskOperation operation,
+                               List<TaskAttribute> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;
     }
