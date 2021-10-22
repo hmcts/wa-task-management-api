@@ -46,7 +46,6 @@ public class CftQueryService {
         try {
             page = PageRequest.of(firstResult, maxResults, sort);
         } catch (IllegalArgumentException exp) {
-            log.debug(String.format("remove here getAllTasks exception : %s", exp.getMessage()));
             return new GetTasksResponse<>(Collections.emptyList(), 0);
         }
 
