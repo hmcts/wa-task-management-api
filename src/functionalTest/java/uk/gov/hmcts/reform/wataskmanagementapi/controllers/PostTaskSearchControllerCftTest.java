@@ -481,7 +481,8 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))),
+            singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
         ));
 
         common.setupOrganisationalRoleAssignmentWithOutEndDate(authenticationHeaders);
@@ -489,7 +490,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED  + "?first_result=0&max_results=2",
             searchTaskRequest,
             authenticationHeaders
         );
