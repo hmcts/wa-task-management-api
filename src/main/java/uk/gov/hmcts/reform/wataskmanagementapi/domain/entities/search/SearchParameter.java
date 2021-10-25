@@ -26,13 +26,13 @@ public class SearchParameter {
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
-    private SearchParameterKey key;
+    private final SearchParameterKey key;
 
     @ApiModelProperty(allowableValues = "IN", example = "IN")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
-    private SearchOperator operator;
+    private final SearchOperator operator;
 
     @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = false)
     @NotNull(
@@ -41,7 +41,7 @@ public class SearchParameter {
     @NotEmpty(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
-    private List<String> values;
+    private final List<String> values;
 
     @JsonCreator
     public SearchParameter(SearchParameterKey key, SearchOperator operator, List<String> values) {
