@@ -3,8 +3,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
@@ -26,16 +29,18 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
-
+    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
-                                            ObjectMapper objectMapper) {
+                                            ObjectMapper objectMapper,
+                                            LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
-    }
+            this.featureFlagProvider = featureFlagProvider;
+        }
 
     /**
      * Obtains a list of process variables that are related to the ccd case data.
@@ -55,7 +60,10 @@ public class CaseConfigurationProviderService {
 
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
-            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString, taskTypeId);
+            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction,
+                caseType,
+                caseDataString,
+                setTaskTypeBasedOnReleaseVersion(taskTypeId));
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString);
@@ -76,7 +84,16 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResults,
             permissionsDmnResults
         );
+    }
 
+    private String setTaskTypeBasedOnReleaseVersion(String taskTypeId) {
+        boolean isR2On = featureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+            StringUtils.EMPTY,
+            StringUtils.EMPTY);
+        if (isR2On) {
+            return taskTypeId;
+        }
+        return StringUtils.EMPTY;
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,

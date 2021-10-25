@@ -5,10 +5,15 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
@@ -16,10 +21,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
@@ -32,6 +42,8 @@ class CaseConfigurationProviderServiceTest {
     private DmnEvaluationService dmnEvaluationService;
     @Mock
     private AuthTokenGenerator authTokenGenerator;
+    @Mock
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Spy
     private ObjectMapper objectMapper;
@@ -47,12 +59,39 @@ class CaseConfigurationProviderServiceTest {
         caseConfigurationProviderService = new CaseConfigurationProviderService(
             ccdDataService,
             dmnEvaluationService,
-            objectMapper
-        );
+            objectMapper,
+            featureFlagProvider);
 
         when(caseDetails.getCaseType()).thenReturn("Asylum");
         when(caseDetails.getJurisdiction()).thenReturn("IA");
         when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        lenient().when(featureFlagProvider.getBooleanValue(eq(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE), any(), any()))
+            .thenReturn(true);
+    }
+
+    public static Stream<Arguments> scenarioProvider() {
+        return Stream.of(
+            Arguments.of(true, "some task id"),
+            Arguments.of(false, "")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("scenarioProvider")
+    void given_r2_feature_flag_value_when_evaluate_configuration_dmn_then_taskTypeId_is_as_expected(
+        boolean featureFlag,
+        String expectedTaskTypeId) {
+        when(featureFlagProvider.getBooleanValue(eq(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE), any(), any()))
+            .thenReturn(featureFlag);
+        when(ccdDataService.getCaseData("some case id")).thenReturn(caseDetails);
+
+        caseConfigurationProviderService.getCaseRelatedConfiguration("some case id", expectedTaskTypeId);
+
+        verify(dmnEvaluationService).evaluateTaskConfigurationDmn(eq("IA"),
+            eq("Asylum"),
+            eq("{}"),
+            eq(expectedTaskTypeId));
     }
 
     @Test
