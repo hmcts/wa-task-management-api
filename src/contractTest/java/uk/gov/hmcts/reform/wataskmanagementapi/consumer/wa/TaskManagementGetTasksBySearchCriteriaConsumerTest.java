@@ -117,7 +117,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
             .willRespondWith()
             .status(HttpStatus.OK.value())
-            .body(createResponseWithWorkTypeForGetTask())
+            .body(createResponseForGetTask())
             .toPact();
     }
 
@@ -153,7 +153,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
             .willRespondWith()
             .status(HttpStatus.OK.value())
-            .body(createResponseWithWorkTypeForGetTaskWithWarnings())
+            .body(createResponseForGetTaskWithWarnings())
             .toPact();
     }
 
@@ -170,7 +170,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("security_classification", "PUBLIC")
                         .stringType("task_title", "Review the appeal")
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type", "routine_work")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
                         .booleanType("auto_assigned", true)
@@ -184,36 +183,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
-                )).build();
-    }
-
-    private DslPart createResponseWithWorkTypeForGetTask() throws JsonProcessingException {
-        return newJsonBody(
-            o -> o
-                .minArrayLike("tasks", 1, 1,
-                    task -> task
-                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
-                        .stringType("name", "Review the appeal")
-                        .stringType("type", "ReviewTheAppeal")
-                        .stringType("task_state", "assigned")
-                        .stringType("task_system", "SELF")
-                        .stringType("security_classification", "PUBLIC")
-                        .stringType("task_title", "Review the appeal")
-                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("assignee", "10bac6bf-80a7-4c81-b2db-516aba826be6")
-                        .booleanType("auto_assigned", true)
-                        .stringType("execution_type", "Case Management Task")
-                        .stringType("jurisdiction", "IA")
-                        .stringType("region", "1")
-                        .stringType("location", "765324")
-                        .stringType("location_name", "Taylor House")
-                        .stringType("case_type_id", "Asylum")
-                        .stringType("case_id", "1617708245335311")
-                        .stringType("case_category", "refusalOfHumanRights")
-                        .stringType("work_type", "routine_work")
-                        .stringType("case_name", "Bob Smith")
-                        .booleanType("warnings", false)
+                        .stringType("case_management_category", "Some Case Management Category")
+                        .stringType("work_type", "access_requests")
                 )).build();
     }
 
@@ -230,8 +201,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("security_classification", "PUBLIC")
                         .stringType("task_title", "Review the appeal")
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type", "routine_work")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        //.stringType("assignee", null)
                         .booleanType("auto_assigned", true)
                         .stringType("execution_type", "Case Management Task")
                         .stringType("jurisdiction", "IA")
@@ -249,41 +220,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                                 .stringType("warningText", "Text1")
                             )
                         )
-                )).build();
-    }
-
-    private DslPart createResponseWithWorkTypeForGetTaskWithWarnings() throws JsonProcessingException {
-        return newJsonBody(
-            o -> o
-                .minArrayLike("tasks", 1, 1,
-                    task -> task
-                        .stringType("id", "fda422de-b381-43ff-94ea-eea5790188a3")
-                        .stringType("name", "Review the appeal")
-                        .stringType("type", "ReviewTheAppeal")
-                        .stringType("task_state", "assigned")
-                        .stringType("task_system", "SELF")
-                        .stringType("security_classification", "PUBLIC")
-                        .stringType("task_title", "Review the appeal")
-                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type", "routine_work")
-                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .booleanType("auto_assigned", true)
-                        .stringType("execution_type", "Case Management Task")
-                        .stringType("jurisdiction", "IA")
-                        .stringType("region", "1")
-                        .stringType("location", "765324")
-                        .stringType("location_name", "Taylor House")
-                        .stringType("case_type_id", "Asylum")
-                        .stringType("case_id", "1617708245308495")
-                        .stringType("case_category", "refusalOfHumanRights")
-                        .stringType("case_name", "Bob Smith")
-                        .booleanType("warnings", true)
-                        .object("warning_list", values -> values
-                            .minArrayLike("values", 1, value -> value
-                                .stringType("warningCode", "Code1")
-                                .stringType("warningText", "Text1")
-                            )
-                        )
+                        .stringType("case_management_category", "Some Case Management Category")
+                        .stringType("work_type", "access_requests")
                 )).build();
     }
 
@@ -325,14 +263,14 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "            ]\n"
                + "        },\n"
                + "        {\n"
-               + "            \"key\": \"work_type\",\n"
+               + "            \"key\": \"workType\",\n"
                + "            \"operator\": \"IN\",\n"
                + "            \"values\": [\n"
-               + "                \"hearing_work\",\n"
-               + "                \"upper_tribunal\",\n"
                + "                \"routine_work\",\n"
                + "                \"decision_making_work\",\n"
+               + "                \"hearing_work\",\n"
                + "                \"applications\",\n"
+               + "                \"upper_tribunal\",\n"
                + "                \"priority\",\n"
                + "                \"error_management\",\n"
                + "                \"access_requests\"\n"

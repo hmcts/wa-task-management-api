@@ -31,6 +31,11 @@ public class WorkTypeResource implements Serializable {
         this.label = label;
     }
 
+    public WorkTypeResource(String id) {
+        this.id = id;
+        this.label = "";
+    }
+
     public String getId() {
         return id;
     }

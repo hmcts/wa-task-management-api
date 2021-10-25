@@ -4,6 +4,7 @@ import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
@@ -41,29 +42,31 @@ public class DmnEvaluationService {
         );
     }
 
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public List<ConfigurationDmnEvaluationResponse> evaluateTaskConfigurationDmn(String jurisdiction,
                                                                                  String caseType,
-                                                                                 String caseData) {
+                                                                                 String caseData,
+                                                                                 String taskTypeId) {
         String decisionTableKey = WA_TASK_CONFIGURATION.getTableKey(jurisdiction, caseType);
         return performEvaluateConfigurationDmnAction(
             decisionTableKey,
             jurisdiction,
-            caseData
+            caseData,
+            taskTypeId
         );
     }
 
 
     private List<ConfigurationDmnEvaluationResponse> performEvaluateConfigurationDmnAction(String decisionTableKey,
                                                                                            String jurisdiction,
-                                                                                           String caseData) {
+                                                                                           String caseData,
+                                                                                           String taskTypeId) {
         try {
             return camundaServiceApi.evaluateConfigurationDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
-                new DmnRequest<>(
-                    new DecisionTableRequest(jsonValue(caseData))
-                )
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), CamundaValue.stringValue(taskTypeId)))
             );
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);

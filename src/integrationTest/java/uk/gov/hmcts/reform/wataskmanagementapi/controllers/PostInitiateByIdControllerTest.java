@@ -165,6 +165,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -290,6 +291,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -399,6 +401,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -426,16 +429,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
                 Collections.singletonList(RoleAssignment.builder()
-                                              .id("someId")
-                                              .actorIdType(ActorIdType.IDAM)
-                                              .actorId(IDAM_USER_ID)
-                                              .roleName("tribunal-caseworker")
-                                              .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                              .grantType(GrantType.SPECIFIC)
-                                              .roleType(RoleType.ORGANISATION)
-                                              .classification(Classification.PUBLIC)
-                                              .authorisations(asList("IA"))
-                                              .build())));
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId(IDAM_USER_ID)
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(asList("IA"))
+                    .build())));
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),

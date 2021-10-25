@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResourc
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -95,7 +96,7 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
-
+        WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
             read(attributes, TASK_NAME, null),
@@ -112,7 +113,7 @@ public class CFTTaskMapper {
             read(attributes, TASK_ASSIGNEE, null),
             read(attributes, TASK_AUTO_ASSIGNED, false),
             executionTypeResource,
-            read(attributes, TASK_WORK_TYPE, null),
+            workTypeResource,
             read(attributes, TASK_ROLE_CATEGORY, null),
             read(attributes, TASK_HAS_WARNINGS, false),
             read(attributes, TASK_ASSIGNMENT_EXPIRY, null),
@@ -130,6 +131,10 @@ public class CFTTaskMapper {
             read(attributes, TASK_ROLES, null),
             read(attributes, TASK_CASE_CATEGORY, null)
         );
+    }
+
+    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
+        return new WorkTypeResource(read(attributes, TASK_WORK_TYPE, null));
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -266,6 +271,10 @@ public class CFTTaskMapper {
                 case CASE_MANAGEMENT_CATEGORY:
                     taskResource.setCaseCategory((String) value);
                     break;
+                case WORK_TYPE:
+                    WorkTypeResource workTypeResource = new WorkTypeResource((String) value);
+                    taskResource.setWorkTypeResource(workTypeResource);
+                    break;
                 default:
                     break;
             }
@@ -363,8 +372,8 @@ public class CFTTaskMapper {
             taskResource.getTaskSystem().getValue(),
             taskResource.getSecurityClassification().getSecurityClassification(),
             taskResource.getTitle(),
-            taskResource.getCreated().toZonedDateTime(),
-            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
             taskResource.getAssignee(),
             taskResource.getAutoAssigned(),
             taskResource.getExecutionTypeCode().getExecutionName(),
@@ -378,7 +387,10 @@ public class CFTTaskMapper {
             taskResource.getCaseName(),
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
-            taskResource.getCaseCategory());
+            taskResource.getCaseCategory(),
+            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId()
+        );
     }
+
 }
 

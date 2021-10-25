@@ -125,6 +125,10 @@ public class Task {
         notes = "A value describing the category of the case, for IA, it has the same value as the AppealType field")
     private String caseManagementCategory;
 
+    @ApiModelProperty(required = true,
+        notes = "A value describing the work tyoe of the case, for IA")
+    private String workType;
+
     private Task() {
         //Hidden constructor
         super();
@@ -152,7 +156,8 @@ public class Task {
                 String caseName,
                 Boolean hasWarnings,
                 WarningValues warningList,
-                String caseManagementCategory
+                String caseManagementCategory,
+                String workType
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -179,6 +184,7 @@ public class Task {
         this.hasWarnings = hasWarnings;
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
+        this.workType = workType;
     }
 
     public String getLocation() {
@@ -271,6 +277,10 @@ public class Task {
 
     public String getCaseManagementCategory() {
         return caseManagementCategory;
+    }
+
+    public String getWorkType() {
+        return workType;
     }
 
 }

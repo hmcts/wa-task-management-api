@@ -24,8 +24,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -35,6 +38,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
@@ -59,19 +63,27 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
     private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
+    private static final Map<String, String> TASK_TYPE_WORK_TYPE_MAP = new HashMap<>() {
+        {
+            put("arrangeOfflinePayment", "routine_work");
+            put("followUpOverdueReasonsForAppeal", "decision_making_work");
+        }
+    };
 
     private Headers authenticationHeaders;
 
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider
+            .getTribunalCaseworkerR2Authorization("wa-ft-test-r2-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -728,11 +740,12 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+        
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
         ));
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
@@ -831,6 +844,163 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_every_items_have_same_work_type_when_search_by_work_type() {
+        String taskType = "followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId1 = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+                singletonList(TASK_TYPE_WORK_TYPE_MAP.get(taskType))),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", greaterThanOrEqualTo(1))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId1))
+            .body("tasks.work_type", everyItem(is(TASK_TYPE_WORK_TYPE_MAP.get(taskType))))
+            .body("total_records", greaterThanOrEqualTo(1));
+    }
+
+    @Test
+    public void should_return_every_items_work_type_in_search_parameter_when_search_by_multiple_work_types() {
+        //initiate first task
+        String taskType = "followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId1 = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
+
+        //initiate second task
+        taskType = "arrangeOfflinePayment";
+        TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
+        String taskId2 = taskVariables2.getTaskId();
+
+        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
+
+        //search by all work types
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariables.getCaseId(), taskVariables2.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", greaterThanOrEqualTo(2))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", contains(taskVariables2.getCaseId(), taskVariables.getCaseId()))
+            .body("tasks.id", contains(taskId2, taskId1))
+            .body("tasks.work_type", hasItems(
+                TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
+                TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
+            )
+            .body("total_records", greaterThanOrEqualTo(2));
+    }
+
+    @Test
+    public void should_return_empty_list_when_search_by_work_type_not_exists() {
+        //initiate first task
+        String taskType = "followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId1 = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
+
+        //initiate second task
+        taskType = "arrangeOfflinePayment";
+        TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
+        String taskId2 = taskVariables2.getTaskId();
+
+        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+    }
+
+    @Test
+    public void should_return_every_items_work_type_in_search_parameter_when_search_by_work_types_and_case_id() {
+        //initiate first task
+        String taskType = "followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId1 = taskVariables.getTaskId();
+        
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
+
+        //initiate second task
+        taskType = "arrangeOfflinePayment";
+        TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
+        String taskId2 = taskVariables2.getTaskId();
+
+        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
+
+        //search by all work types and caseIds
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                asList(taskVariables.getCaseId(), taskVariables2.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(2))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItems(taskVariables.getCaseId(), taskVariables2.getCaseId()))
+            .body("tasks.id", hasItems(taskId1, taskId2))
+            .body("tasks.work_type", hasItems(
+                TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
+                TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
+            )
+            .body("total_records", equalTo(2));
+    }
+
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
         for (String state : states) {
@@ -850,7 +1020,38 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
                           + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_TYPE, "arrangeOfflinePayment"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, caseId),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
+            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_WARNINGS, warnings),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+        ));
+
+        Response result = restApiActions.post(
+            TASK_ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
+    }
+
+    private void insertTaskInCftTaskDb(String caseId, String taskId, String taskType) {
+        Objects.requireNonNull(taskType, "please provide a taskType");
+
+        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, caseId),
             new TaskAttribute(TASK_TITLE, "A test task"),
@@ -898,4 +1099,5 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("size()", is(0));
     }
+
 }

@@ -37,7 +37,8 @@ public class TaskTest {
             "some-case",
             false,
             new WarningValues(Arrays.asList(new Warning("123","some warning"),new Warning("456","some more warning"))),
-            "some-case-management-category"
+            "some-case-management-category",
+            "someWorkType"
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");

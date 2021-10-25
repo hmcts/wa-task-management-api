@@ -7,6 +7,7 @@ public enum RoleAttributeDefinition {
     PRIMARY_LOCATION("primaryLocation"),
     BASE_LOCATION("baseLocation"),
     CASE_TYPE("caseType"),
+    WORK_TYPE("workType"),
     REGION("region"),
     WORK_TYPES("workTypes");
 

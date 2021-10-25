@@ -86,8 +86,10 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
-        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
-
+        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(
+            someCaseId,
+            "some task type id"
+        );
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
     }
 
@@ -96,11 +98,15 @@ class CaseConfigurationProviderServiceTest {
         String someCaseId = "someCaseId";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}"))
-            .thenReturn(asList(
-                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
-                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2"))
-            ));
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn(
+            "IA",
+            "Asylum",
+            "{}",
+            "some task type id"
+        )).thenReturn(asList(
+            new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+            new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2"))
+        ));
 
         Map<String, Object> expectedMappedData = Map.of(
             "name1", "value1",
@@ -110,7 +116,10 @@ class CaseConfigurationProviderServiceTest {
             "caseTypeId", "Asylum"
         );
 
-        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(someCaseId);
+        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(
+            someCaseId,
+            "some task type id"
+        );
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 

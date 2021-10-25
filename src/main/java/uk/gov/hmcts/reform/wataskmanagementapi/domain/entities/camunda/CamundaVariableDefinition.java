@@ -27,6 +27,7 @@ public enum CamundaVariableDefinition {
     HAS_WARNINGS("hasWarnings"),
     WARNING_LIST("warningList"),
     CFT_TASK_STATE("cftTaskState"),
+    WORK_TYPE("workType"),
     CASE_MANAGEMENT_CATEGORY("caseManagementCategory");
 
     private final String value;

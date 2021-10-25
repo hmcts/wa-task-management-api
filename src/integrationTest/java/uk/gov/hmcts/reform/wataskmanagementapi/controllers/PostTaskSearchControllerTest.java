@@ -19,6 +19,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
@@ -45,6 +47,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
@@ -59,6 +63,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private ServiceMocks mockServices;
 
@@ -149,6 +155,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         final String userToken = "user_token";
 
         mockServices.mockUserInfo();
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID, IDAM_USER_EMAIL
+            )
+        ).thenReturn(false);
 
         // create role assignments with IA, Organisation and SCSS , Case
         RoleAssignmentResource accessControlResponse = new RoleAssignmentResource(
@@ -176,20 +187,20 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ));
 
         mockMvc.perform(
-            post("/task")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchTaskRequest))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
             ).andDo(print())
             .andExpect(
-            ResultMatcher.matchAll(
-                status().isOk(),
-                jsonPath("total_records").value(1),
-                jsonPath("$.tasks").isNotEmpty(),
-                jsonPath("$.tasks.length()").value(1),
-                jsonPath("$.tasks[0].jurisdiction").value("SSCS")
-            ));
+                ResultMatcher.matchAll(
+                    status().isOk(),
+                    jsonPath("total_records").value(1),
+                    jsonPath("$.tasks").isNotEmpty(),
+                    jsonPath("$.tasks.length()").value(1),
+                    jsonPath("$.tasks[0].jurisdiction").value("SSCS")
+                ));
     }
 
 

@@ -90,6 +90,7 @@ public class TaskResource implements Serializable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "work_type", referencedColumnName = "work_type_id")
     private WorkTypeResource workTypeResource;
+
     private String roleCategory;
     private Boolean hasWarnings = false;
 

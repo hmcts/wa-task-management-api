@@ -181,7 +181,7 @@ public class CftQueryServiceUnitTest {
 
         GetTasksResponse<Task> taskResourceList
             = cftQueryService.getAllTasks(
-                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+            -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
 
         assertNotNull(taskResourceList);
@@ -333,7 +333,8 @@ public class CftQueryServiceUnitTest {
             "Bob Smith",
             true,
             null,
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "someWorkType"
         );
     }
 }
