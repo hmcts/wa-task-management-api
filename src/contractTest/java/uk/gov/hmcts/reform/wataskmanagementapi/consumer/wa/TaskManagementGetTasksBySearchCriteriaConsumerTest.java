@@ -279,4 +279,5 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "    ]\n"
                + "}";
     }
+    
 }
