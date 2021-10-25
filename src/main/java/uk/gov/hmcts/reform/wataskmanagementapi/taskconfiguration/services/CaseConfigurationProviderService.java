@@ -39,8 +39,8 @@ public class CaseConfigurationProviderService {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
-            this.featureFlagProvider = featureFlagProvider;
-        }
+        this.featureFlagProvider = featureFlagProvider;
+    }
 
     /**
      * Obtains a list of process variables that are related to the ccd case data.
@@ -63,7 +63,7 @@ public class CaseConfigurationProviderService {
             dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction,
                 caseType,
                 caseDataString,
-                setTaskTypeBasedOnReleaseVersion(taskTypeId));
+                getTaskTypeBasedOnReleaseVersion(taskTypeId));
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString);
@@ -86,7 +86,7 @@ public class CaseConfigurationProviderService {
         );
     }
 
-    private String setTaskTypeBasedOnReleaseVersion(String taskTypeId) {
+    private String getTaskTypeBasedOnReleaseVersion(String taskTypeId) {
         boolean isR2On = featureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
             StringUtils.EMPTY,
             StringUtils.EMPTY);
