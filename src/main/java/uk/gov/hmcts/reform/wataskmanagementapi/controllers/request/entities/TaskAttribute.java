@@ -18,7 +18,8 @@ public class TaskAttribute {
     private final Object value;
 
     @JsonCreator
-    public TaskAttribute(TaskAttributeDefinition name, Object value) {
+    public TaskAttribute(TaskAttributeDefinition name,
+                         Object value) {
         this.name = name;
         this.value = value;
     }

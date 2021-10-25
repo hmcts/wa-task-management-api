@@ -21,6 +21,10 @@ public class CFTTaskDatabaseService {
         return tasksRepository.findById(taskId);
     }
 
+    public Optional<TaskResource> findByIdOnly(String taskId) {
+        return tasksRepository.getByTaskId(taskId);
+    }
+
     public TaskResource saveTask(TaskResource task) {
         return tasksRepository.save(task);
     }

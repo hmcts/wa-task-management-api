@@ -2,14 +2,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
-import java.time.OffsetDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -21,25 +18,18 @@ public class NoteResource implements Serializable {
 
     private String code;
     private String noteType;
-    private String user;
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private OffsetDateTime created;
+    private String userId;
     private String content;
 
     private NoteResource() {
-
+        // required for runtime proxy generation in Hibernate
     }
 
     @JsonCreator
-    public NoteResource(@JsonProperty("code") String code,
-                        @JsonProperty("noteType") String noteType,
-                        @JsonProperty("user") String user,
-                        @JsonProperty("created") OffsetDateTime created,
-                        @JsonProperty("content") String content) {
+    public NoteResource(String code, String noteType, String userId, String content) {
         this.code = code;
         this.noteType = noteType;
-        this.user = user;
-        this.created = created;
+        this.userId = userId;
         this.content = content;
     }
 }

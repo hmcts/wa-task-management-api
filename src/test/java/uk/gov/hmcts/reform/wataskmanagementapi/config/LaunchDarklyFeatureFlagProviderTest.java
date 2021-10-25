@@ -33,6 +33,7 @@ class LaunchDarklyFeatureFlagProviderTest {
             .name("some user id")
             .firstName("Work Allocation")
             .lastName("Task Management")
+            .email("test@test.com")
             .build();
     }
 
@@ -49,16 +50,19 @@ class LaunchDarklyFeatureFlagProviderTest {
         when(ldClient.boolVariation(FeatureFlag.TEST_KEY.getKey(), expectedLdUser, defaultValue))
             .thenReturn(boolVariationReturn);
 
-        assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(FeatureFlag.TEST_KEY, "some user id"))
+        assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.TEST_KEY, "some user id", "test@test.com"))
             .isEqualTo(expectedFlagValue);
     }
 
     @ParameterizedTest
     @CsvSource(value = {
-        "NULL, some user id, featureFlag must not be null",
-        "PRIVILEGED_ACCESS_FEATURE, NULL, userId must not be null"}, nullValues = "NULL")
-    void getBooleanValue_edge_case_scenarios(FeatureFlag featureFlag, String userId, String expectedMessage) {
-        assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, userId))
+        "NULL, some user id, test@test.com, featureFlag must not be null",
+        "PRIVILEGED_ACCESS_FEATURE, NULL, test@test.com, userId must not be null"}, nullValues = "NULL")
+    void getBooleanValue_edge_case_scenarios(
+        FeatureFlag featureFlag, String userId, String email, String expectedMessage
+    ) {
+        assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, userId, email))
             .isInstanceOf(NullPointerException.class)
             .hasMessage(expectedMessage);
     }

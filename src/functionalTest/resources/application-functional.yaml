@@ -1,6 +1,10 @@
 targets:
   instance: ${TEST_URL:http://localhost:8087}
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
+launch_darkly:
+  url: ${LAUNCH_DARKLY_URL:https://app.launchdarkly.com/api/v2/flags/Work-Allocation/}
+  accessToken: ${LAUNCH_DARKLY_ACCESS_TOKEN:token}
 core_case_data:
   api:
     url: ${CCD_URL:http://ccd-data-store-api}

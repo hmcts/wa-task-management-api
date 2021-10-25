@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -57,6 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
@@ -75,9 +77,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @Autowired
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
-    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
-    @MockBean
     private CFTTaskMapper cftTaskMapper;
+    @MockBean
+    private CftQueryService cftQueryService;
     @Autowired
     private TaskManagementService taskManagementService;
     private String taskId;
@@ -117,14 +119,15 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftWorkTypeDatabaseService
+            cftQueryService
         );
 
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
             RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
             )
         ).thenReturn(true);
 

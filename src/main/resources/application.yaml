@@ -109,7 +109,7 @@ feign:
       default:
         connectTimeout: 30000
         readTimeout: 30000
-        loggerLevel: basic
+        loggerLevel: FULL
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
@@ -126,3 +126,7 @@ logging:
 logbook:
   include: /task/**
 
+caffeine:
+  timeout:
+    duration: 30
+    unit: MINUTES
