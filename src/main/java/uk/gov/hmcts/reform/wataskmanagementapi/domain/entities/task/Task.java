@@ -125,7 +125,7 @@ public class Task {
         notes = "A value describing the category of the case, for IA, it has the same value as the AppealType field")
     private String caseManagementCategory;
     @ApiModelProperty(required = true,
-        notes = "A value describing the work tyoe of the case, for IA")
+        notes = "A value describing the work type of the case, for IA")
     private String workType;
 
     private Task() {
