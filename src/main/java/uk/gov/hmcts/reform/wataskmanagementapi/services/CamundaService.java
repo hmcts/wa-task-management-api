@@ -143,10 +143,7 @@ public class CamundaService {
         }
     }
 
-    public void unclaimTask(String taskId,
-                            Map<String, CamundaVariable> variables) {
-        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-        boolean taskHasUnassigned = TaskState.UNASSIGNED.value().equals(taskState);
+    public void unclaimTask(String taskId, boolean taskHasUnassigned) {
 
         try {
             performUnclaimTaskAction(taskId, taskHasUnassigned);
@@ -159,16 +156,12 @@ public class CamundaService {
 
     public void assignTask(String taskId,
                            String assigneeUserId,
-                           Map<String, CamundaVariable> variables) {
-
-        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-        boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
-
+                           boolean isTaskStateAssigned) {
         try {
             performAssignTaskAction(
                 taskId,
                 assigneeUserId,
-                taskStateIsAssignedAlready
+                isTaskStateAssigned
             );
         } catch (CamundaTaskStateUpdateException ex) {
             throw new TaskAssignException(TASK_ASSIGN_UNABLE_TO_UPDATE_STATE);
@@ -178,11 +171,7 @@ public class CamundaService {
     }
 
     public void completeTask(String taskId,
-                             Map<String, CamundaVariable> variables) {
-        // Check that task state was not already completed
-        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-        boolean taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
-
+                             boolean taskHasCompleted) {
         try {
             performCompleteTaskAction(taskId, taskHasCompleted);
         } catch (CamundaTaskStateUpdateException ex) {
@@ -211,10 +200,9 @@ public class CamundaService {
 
     public void assignAndCompleteTask(String taskId,
                                       String userId,
-                                      Map<String, CamundaVariable> variables
+                                      boolean taskStateIsAssignedAlready
     ) {
-        String taskState = getVariableValue(variables.get(TASK_STATE.value()), String.class);
-        boolean taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
+
         try {
             performAssignTaskAction(
                 taskId,

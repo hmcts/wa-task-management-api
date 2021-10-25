@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
@@ -48,6 +49,8 @@ class SearchForCompletableTest extends CamundaHelpers {
     PermissionEvaluatorService permissionEvaluatorService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    CftQueryService cftQueryService;
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
@@ -302,7 +305,8 @@ class SearchForCompletableTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
+            taskAutoAssignmentService,
+            cftQueryService
         );
 
         taskId = UUID.randomUUID().toString();

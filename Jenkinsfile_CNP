@@ -26,6 +26,8 @@ def secrets = [
                 secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
                 secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
 
+                secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
+
         ],
         's2s-${env}': [
                 secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
@@ -40,7 +42,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
      envVariable: envVar
     ]
 }
-
+def branchesToSync = ['demo']
 withPipeline(type, product, component) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
@@ -84,4 +86,7 @@ withPipeline(type, product, component) {
     onPR() {
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
+
+    // Sync environment specific branches with master branch
+    syncBranchesWithMaster(branchesToSync)
 }

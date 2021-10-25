@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -29,6 +30,7 @@ import java.util.UUID;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -46,6 +48,8 @@ class UnclaimTaskTest extends CamundaHelpers {
     PermissionEvaluatorService permissionEvaluatorService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
+    @Mock
+    CftQueryService cftQueryService;
     @Mock
     CFTTaskMapper cftTaskMapper;
     @Mock
@@ -76,8 +80,8 @@ class UnclaimTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         taskManagementService.unclaimTask(taskId, accessControlResponse);
-
-        verify(camundaService, times(1)).unclaimTask(taskId, mockedVariables);
+        boolean taskHasUnassigned = mockedVariables.get("taskState").getValue().equals("UNASSIGNED");
+        verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
     }
 
     @Test
@@ -107,7 +111,7 @@ class UnclaimTaskTest extends CamundaHelpers {
             .hasNoCause()
             .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
 
-        verify(camundaService, times(0)).unclaimTask(any(), any());
+        verify(camundaService, times(0)).unclaimTask(any(), anyBoolean());
     }
 
     @BeforeEach
@@ -120,7 +124,8 @@ class UnclaimTaskTest extends CamundaHelpers {
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
-            taskAutoAssignmentService
+            taskAutoAssignmentService,
+            cftQueryService
         );
 
         taskId = UUID.randomUUID().toString();

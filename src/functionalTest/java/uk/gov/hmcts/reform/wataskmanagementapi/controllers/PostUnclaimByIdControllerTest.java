@@ -19,7 +19,6 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -30,7 +29,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -81,7 +80,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -101,7 +100,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -122,7 +121,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -130,7 +129,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
+        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization(
+            "wa-ft-test-");
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
         given.iClaimATaskWithIdAndAuthorization(
@@ -153,7 +153,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             .body("detail", equalTo(
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -161,7 +161,8 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization();
+        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization(
+            "wa-ft-test-");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "senior-tribunal-caseworker");
@@ -180,7 +181,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -217,7 +218,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
                 "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     private TestVariables setupScenario() {

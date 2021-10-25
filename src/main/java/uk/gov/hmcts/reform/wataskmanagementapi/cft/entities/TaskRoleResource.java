@@ -5,15 +5,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.UUID;
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -59,17 +57,16 @@ public class TaskRoleResource implements Serializable {
     private Boolean refer;
 
     @ToString.Exclude
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "task_role_authorizations", joinColumns = @JoinColumn(name = "task_role_id"))
-    @Column(name = "authorizations")
-    private List<String> authorizations;
+    @Type(type = "string-array")
+    @Column(columnDefinition = "text[]")
+    private String[] authorizations;
 
     private Integer assignmentPriority;
     @Column(columnDefinition = "boolean default false")
     private Boolean autoAssignable;
     private String roleCategory;
 
-    @Column(name = "task_id")
+    @Column(name = "task_id", nullable = false)
     @EqualsAndHashCode.Include()
     private String taskId;
 
@@ -92,7 +89,7 @@ public class TaskRoleResource implements Serializable {
                             Boolean manage,
                             Boolean cancel,
                             Boolean refer,
-                            List<String> authorizations,
+                            String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable) {
         this(roleName,
@@ -110,6 +107,32 @@ public class TaskRoleResource implements Serializable {
             null);
     }
 
+    public TaskRoleResource(String roleName,
+                            Boolean read,
+                            Boolean own,
+                            Boolean execute,
+                            Boolean manage,
+                            Boolean cancel,
+                            Boolean refer,
+                            String[] authorizations,
+                            Integer assignmentPriority,
+                            Boolean autoAssignable,
+                            String roleCategory) {
+        this(roleName,
+            read,
+            own,
+            execute,
+            manage,
+            cancel,
+            refer,
+            authorizations,
+            assignmentPriority,
+            autoAssignable,
+            roleCategory,
+            null,
+            null);
+    }
+
     @SuppressWarnings("squid:S00107")
     public TaskRoleResource(String roleName,
                             Boolean read,
@@ -118,7 +141,7 @@ public class TaskRoleResource implements Serializable {
                             Boolean manage,
                             Boolean cancel,
                             Boolean refer,
-                            List<String> authorizations,
+                            String[] authorizations,
                             Integer assignmentPriority,
                             Boolean autoAssignable,
                             String roleCategory,
@@ -131,7 +154,7 @@ public class TaskRoleResource implements Serializable {
         this.manage = manage;
         this.cancel = cancel;
         this.refer = refer;
-        this.authorizations = authorizations;
+        this.authorizations = authorizations.clone();
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;
         this.roleCategory = roleCategory;
@@ -171,8 +194,8 @@ public class TaskRoleResource implements Serializable {
         this.refer = refer;
     }
 
-    public void setAuthorizations(List<String> authorizations) {
-        this.authorizations = authorizations;
+    public void setAuthorizations(String[] authorizations) {
+        this.authorizations = authorizations.clone();
     }
 
     public void setAssignmentPriority(Integer assignmentPriority) {

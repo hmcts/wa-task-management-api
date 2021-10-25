@@ -67,14 +67,16 @@ class CaseConfigurationProviderServiceTest {
                     stringValue("Read,Refer,Own,Manage,Cancel"),
                     null,
                     null,
-                    null
+                    null,
+                    stringValue("LEGAL_OPERATIONS")
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("seniorTribunalCaseworker"),
                     stringValue("Read,Refer,Own,Manage,Cancel"),
                     null,
                     null,
-                    null
+                    null,
+                    stringValue("LEGAL_OPERATIONS")
                 )
             ));
 

@@ -34,6 +34,8 @@ def secrets = [
     secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
     secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
 
+    secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
+
   ],
   's2s-${env}': [
     secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),

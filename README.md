@@ -135,4 +135,3 @@ and then using it to publish your tests:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
