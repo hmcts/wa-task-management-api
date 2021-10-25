@@ -502,7 +502,7 @@ class CFTTaskMapperTest {
         assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
         assertEquals("someTitle", task.getTaskTitle());
         assertEquals("someAssignee", task.getAssignee());
-        assertEquals(false, task.getAutoAssigned());
+        assertEquals(false, task.isAutoAssigned());
         assertEquals("Manual", task.getExecutionType());
         assertEquals("someJurisdiction", task.getJurisdiction());
         assertEquals("00000", task.getCaseId());
@@ -512,7 +512,7 @@ class CFTTaskMapperTest {
         assertEquals("someRegion", task.getRegion());
         assertEquals("someStaffLocationId", task.getLocation());
         assertEquals("someStaffLocationName", task.getLocationName());
-        assertEquals(false, task.getWarnings());
+        assertEquals(false, task.getHasWarnings());
         assertNull(task.getWarningList());
         assertEquals("someCaseCategory", task.getCaseManagementCategory());
     }

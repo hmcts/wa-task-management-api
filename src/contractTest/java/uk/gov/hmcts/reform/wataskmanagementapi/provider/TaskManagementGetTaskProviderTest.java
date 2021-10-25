@@ -143,7 +143,9 @@ public class TaskManagementGetTaskProviderTest {
             "Bob Smith",
             false,
             new WarningValues(Collections.emptyList()),
-            "Case Management Category");
+            "Case Management Category",
+            "hearing_work"
+        );
     }
 
     private Task createTaskWithWarnings() {
@@ -174,7 +176,9 @@ public class TaskManagementGetTaskProviderTest {
             "Bob Smith",
             false,
             warningValues,
-            "Case Management Category");
+            "Case Management Category",
+            "hearing_work"
+            );
     }
 
 }

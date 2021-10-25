@@ -124,6 +124,9 @@ public class Task {
     @ApiModelProperty(required = false,
         notes = "A value describing the category of the case, for IA, it has the same value as the AppealType field")
     private String caseManagementCategory;
+    @ApiModelProperty(required = true,
+        notes = "A value describing the work tyoe of the case, for IA")
+    private String workType;
 
     private Task() {
         //Hidden constructor
@@ -152,7 +155,8 @@ public class Task {
                 String caseName,
                 Boolean hasWarnings,
                 WarningValues warningList,
-                String caseManagementCategory
+                String caseManagementCategory,
+                String workType
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -179,26 +183,7 @@ public class Task {
         this.hasWarnings = hasWarnings;
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public String getExecutionType() {
-        return executionType;
-    }
-
-    public String getJurisdiction() {
-        return jurisdiction;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public Boolean getAutoAssigned() {
-        return autoAssigned;
+        this.workType = workType;
     }
 
     public String getId() {
@@ -245,6 +230,22 @@ public class Task {
         return locationName;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public String getExecutionType() {
+        return executionType;
+    }
+
+    public String getJurisdiction() {
+        return jurisdiction;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
     public String getCaseTypeId() {
         return caseTypeId;
     }
@@ -261,7 +262,11 @@ public class Task {
         return caseName;
     }
 
-    public Boolean getWarnings() {
+    public boolean isAutoAssigned() {
+        return autoAssigned;
+    }
+
+    public Boolean getHasWarnings() {
         return hasWarnings;
     }
 
@@ -273,5 +278,8 @@ public class Task {
         return caseManagementCategory;
     }
 
+    public String getWorkType() {
+        return workType;
+    }
 }
 

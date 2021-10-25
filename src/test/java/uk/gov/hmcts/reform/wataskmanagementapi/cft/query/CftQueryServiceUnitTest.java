@@ -333,7 +333,8 @@ public class CftQueryServiceUnitTest {
             "Bob Smith",
             true,
             null,
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "hearing_work"
         );
     }
 }

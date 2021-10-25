@@ -37,7 +37,8 @@ public class TaskTest {
             "some-case",
             false,
             new WarningValues(Arrays.asList(new Warning("123","some warning"),new Warning("456","some more warning"))),
-            "some-case-management-category"
+            "some-case-management-category",
+            "hearing_work"
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -59,8 +60,8 @@ public class TaskTest {
         Assertions.assertThat(task.getCaseId()).isEqualTo("some-caseId");
         Assertions.assertThat(task.getCaseCategory()).isEqualTo("some-cat");
         Assertions.assertThat(task.getCaseName()).isEqualTo("some-case");
-        Assertions.assertThat(task.getAutoAssigned()).isTrue();
-        Assertions.assertThat(task.getWarnings()).isFalse();
+        Assertions.assertThat(task.isAutoAssigned()).isTrue();
+        Assertions.assertThat(task.getHasWarnings()).isFalse();
         Assertions.assertThat(task.getWarningList().getValues().size()).isEqualTo(2);
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
