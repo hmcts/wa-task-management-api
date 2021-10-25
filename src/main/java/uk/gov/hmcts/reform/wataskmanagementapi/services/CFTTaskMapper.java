@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -9,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResourc
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -196,10 +198,8 @@ public class CFTTaskMapper {
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
-
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent()) {
-
             switch (enumKey.get()) {
                 case AUTO_ASSIGNED:
                     taskResource.setAutoAssigned((Boolean) value);
@@ -266,12 +266,15 @@ public class CFTTaskMapper {
                 case CASE_MANAGEMENT_CATEGORY:
                     taskResource.setCaseCategory((String) value);
                     break;
+                case WORK_TYPE:
+                    WorkTypeResource workTypeResource = new WorkTypeResource((String) value, StringUtils.EMPTY);
+                    taskResource.setWorkTypeResource(workTypeResource);
+                    break;
                 default:
                     break;
             }
         }
     }
-
 
     private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
         String executionTypeName = read(attributes, TASK_EXECUTION_TYPE_NAME, null);

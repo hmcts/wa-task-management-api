@@ -35,7 +35,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -46,7 +46,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task")
@@ -65,7 +65,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .and()
             .body("task_id", equalTo(taskId))
             .body("task_name", equalTo("aTaskName"))
-            .body("task_type", equalTo("aTaskType"))
+            .body("task_type", equalTo("followUpOverdueReasonsForAppeal"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
@@ -110,7 +110,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[1].authorizations", equalTo(emptyList()))
             .body("task_role_resources[1].auto_assignable", equalTo(false))
             .body("task_role_resources[1].role_category",
-                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())));
+                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())))
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"));
 
 
         assertions.taskVariableWasUpdated(
