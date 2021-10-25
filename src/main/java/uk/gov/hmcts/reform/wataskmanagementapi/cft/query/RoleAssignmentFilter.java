@@ -319,7 +319,7 @@ public final class RoleAssignmentFilter {
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
         }
-        return false;
+        return true;
     }
 
     private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
@@ -331,6 +331,6 @@ public final class RoleAssignmentFilter {
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
-        return false;
+        return true;
     }
 }

@@ -128,7 +128,7 @@ public class CftQueryServiceTest {
 
         //then
         Assertions.assertThat(allTasks.getTasks())
-            .isEmpty();
+            .hasSize(scenario.expectedSize);
     }
 
     @Test
@@ -1080,7 +1080,7 @@ public class CftQueryServiceTest {
             .maxResults(10)
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignments)
-            .expectedSize(0)
+            .expectedSize(4)
             .expectedTaskDetails(Lists.newArrayList()
             ).build();
 
