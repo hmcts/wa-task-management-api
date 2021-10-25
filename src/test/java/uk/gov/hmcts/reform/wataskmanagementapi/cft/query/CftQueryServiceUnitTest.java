@@ -40,6 +40,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
@@ -50,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
@@ -94,6 +96,32 @@ public class CftQueryServiceUnitTest {
 
         assertNotNull(taskResourceList);
         assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
+    }
+
+    @Test
+    void shouldGetTask() {
+        final AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        String taskId = "taskId";
+        TaskResource expectedTask = new TaskResource(
+            taskId,
+            "takeName",
+            "taskType",
+            UNCONFIGURED,
+            "caseId"
+        );
+
+        when(taskResourceRepository.findOne(any())).thenReturn(Optional.of(expectedTask));
+        Optional<TaskResource> returnedTask =
+            cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+
+        assertNotNull(returnedTask);
+        assertEquals(expectedTask, returnedTask.get());
     }
 
     @Test
