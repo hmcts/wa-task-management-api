@@ -82,6 +82,7 @@ spring:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
+        format_sql: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
@@ -116,19 +117,9 @@ launchDarkly:
   connectionTimeout: 5000
   socketTimeout: 5000
 
-
 logging:
   level:
-    root: INFO
-    org.springframework:
-      dao: debug
-      transaction: debug
-      jdbc.core.JdbcTemplate: info
-      org.hibernate:
-        SQL: debug
-        type.descriptor.sql.BasicBinder: debug
-        engine: debug
-    uk.gov.hmcts.reform: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: ${SQL_BASIC_BINDER:info}
     org.zalando.logbook: TRACE
 
 logbook:
