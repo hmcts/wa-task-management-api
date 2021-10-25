@@ -115,7 +115,7 @@ public class Task {
 
     @ApiModelProperty(required = false,
         notes = "boolean to show if a warning is applied to task by a service task in a subprocess")
-    private Boolean hasWarnings;
+    private Boolean warnings;
 
     @ApiModelProperty(required = false,
         notes = "A list of values containing a warning code and warning text")
@@ -153,7 +153,7 @@ public class Task {
                 String caseId,
                 String caseCategory,
                 String caseName,
-                Boolean hasWarnings,
+                Boolean warnings,
                 WarningValues warningList,
                 String caseManagementCategory,
                 String workType
@@ -180,7 +180,7 @@ public class Task {
         this.jurisdiction = jurisdiction;
         this.region = region;
         this.location = location;
-        this.hasWarnings = hasWarnings;
+        this.warnings = warnings;
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
         this.workType = workType;
@@ -266,8 +266,8 @@ public class Task {
         return autoAssigned;
     }
 
-    public Boolean getHasWarnings() {
-        return hasWarnings;
+    public Boolean getWarnings() {
+        return warnings;
     }
 
     public WarningValues getWarningList() {

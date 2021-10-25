@@ -135,7 +135,7 @@ class TaskMapperTest {
         assertEquals("someAssignee", result.getAssignee());
         assertEquals("someCaseName", result.getCaseName());
         assertEquals("someClassification", result.getSecurityClassification());
-        assertEquals(false, result.getHasWarnings());
+        assertEquals(false, result.getWarnings());
         assertNotNull(result.getWarningList());
         assertEquals("someCaseManagementCategory", result.getCaseManagementCategory());
 

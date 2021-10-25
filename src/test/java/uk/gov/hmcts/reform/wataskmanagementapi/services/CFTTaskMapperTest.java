@@ -512,7 +512,7 @@ class CFTTaskMapperTest {
         assertEquals("someRegion", task.getRegion());
         assertEquals("someStaffLocationId", task.getLocation());
         assertEquals("someStaffLocationName", task.getLocationName());
-        assertEquals(false, task.getHasWarnings());
+        assertEquals(false, task.getWarnings());
         assertNull(task.getWarningList());
         assertEquals("someCaseCategory", task.getCaseManagementCategory());
     }

@@ -77,7 +77,7 @@ class CreateTaskVariableTest {
         Assertions.assertThat(task.getCaseCategory()).isNull();
         Assertions.assertThat(task.getCaseName()).isNull();
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
-        Assertions.assertThat(task.getHasWarnings()).isFalse();
+        Assertions.assertThat(task.getWarnings()).isFalse();
         Assertions.assertThat(task.getWarningList()).isNotNull();
         Assertions.assertThat(task.getCaseManagementCategory()).isNotNull();
 
