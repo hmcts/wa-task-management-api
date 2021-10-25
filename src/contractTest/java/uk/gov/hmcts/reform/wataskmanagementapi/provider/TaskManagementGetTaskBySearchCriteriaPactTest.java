@@ -42,7 +42,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//todo: arrange here
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 //Uncomment this and comment the @PacBroker line to test WorkTypeConsumerTest local consumer.
@@ -152,7 +151,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             false,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            "someWorkType"
+            "hearing_work"
         );
     }
 
@@ -185,7 +184,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             true,
             new WarningValues(warnings),
             "Some Case Management Category",
-            "someWorkType"
+            "hearing_work"
         );
     }
 

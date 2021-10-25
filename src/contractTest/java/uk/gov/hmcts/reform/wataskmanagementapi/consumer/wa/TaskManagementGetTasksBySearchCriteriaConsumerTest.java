@@ -263,7 +263,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "            ]\n"
                + "        },\n"
                + "        {\n"
-               + "            \"key\": \"workType\",\n"
+               + "            \"key\": \"work_type\",\n"
                + "            \"operator\": \"IN\",\n"
                + "            \"values\": [\n"
                + "                \"routine_work\",\n"
@@ -279,5 +279,5 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "    ]\n"
                + "}";
     }
-    
+
 }

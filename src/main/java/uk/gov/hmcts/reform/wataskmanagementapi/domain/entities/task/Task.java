@@ -126,7 +126,7 @@ public class Task {
     private String caseManagementCategory;
 
     @ApiModelProperty(required = true,
-        notes = "A value describing the work tyoe of the case, for IA")
+        notes = "A value describing the work type of the case, for IA")
     private String workType;
 
     private Task() {
