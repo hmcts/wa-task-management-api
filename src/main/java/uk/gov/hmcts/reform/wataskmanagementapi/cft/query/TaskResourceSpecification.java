@@ -226,7 +226,7 @@ public final class TaskResourceSpecification {
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
         }
-        return false;
+        return true;
     }
 
     private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
@@ -238,6 +238,6 @@ public final class TaskResourceSpecification {
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
-        return false;
+        return true;
     }
 }
