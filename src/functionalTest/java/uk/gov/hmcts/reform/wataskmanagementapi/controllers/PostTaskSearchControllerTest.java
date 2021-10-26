@@ -47,7 +47,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-mvp-ft-test-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
