@@ -883,7 +883,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_search_by_work_type_and_retur_a_task_with_same_work_type() {
+    public void should_search_by_work_type_and_return_a_task_with_same_work_type() {
         String taskType = "followUpOverdueReasonsForAppeal";
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables.getTaskId();
@@ -1038,10 +1038,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             )
             .body("total_records", equalTo(2));
     }
-
-    //todo: add some test cases for searchforCompleteable
-    //todo: add some test cases for getTask
-
 
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();

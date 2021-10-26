@@ -174,8 +174,8 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
-            new TaskAttribute(TASK_NAME, "Review The Appeal")
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal")
         ));
 
         Response result = restApiActions.post(

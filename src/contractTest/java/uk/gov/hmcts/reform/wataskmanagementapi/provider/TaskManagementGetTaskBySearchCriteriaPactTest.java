@@ -141,7 +141,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             false,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            "someWorkType"
+            "decision_making_work"
         );
     }
 
@@ -174,7 +174,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             true,
             new WarningValues(warnings),
             "Some Case Management Category",
-            "someWorkType"
+            "decision_making_work"
         );
     }
 
