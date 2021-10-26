@@ -128,7 +128,7 @@ public final class TaskResourceSpecification {
             for (PermissionTypes type : permissionsRequired) {
                 permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
             }
-            final Predicate permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
+            final Predicate permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
             query.distinct(true);
 
             return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded),
@@ -240,7 +240,7 @@ public final class TaskResourceSpecification {
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
         }
-        return false;
+        return true;
     }
 
     private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
@@ -252,6 +252,6 @@ public final class TaskResourceSpecification {
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
-        return false;
+        return true;
     }
 }

@@ -95,13 +95,17 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("location_name", equalTo("Taylor House"))
             .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body("execution_type_code.description",
+            .body(
+                "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"))
+                        + "(Typically this will be in CCD.)")
+            )
             .body("task_role_resources[0].task_role_id", notNullValue())
             .body("task_role_resources[0].task_id", equalTo(taskId))
-            .body("task_role_resources[0].role_name",
-                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker")))
+            .body(
+                "task_role_resources[0].role_name",
+                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))
+            )
             .body("task_role_resources[0].read", equalTo(true))
             .body("task_role_resources[0].own", equalTo(true))
             .body("task_role_resources[0].execute", equalTo(false))
@@ -109,12 +113,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[0].refer", equalTo(true))
             .body("task_role_resources[0].authorizations", equalTo(emptyList()))
             .body("task_role_resources[0].auto_assignable", equalTo(false))
-            .body("task_role_resources[0].role_category",
-                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())))
+            .body(
+                "task_role_resources[0].role_category",
+                anyOf(is("LEGAL_OPERATIONS"), is(nullValue()))
+            )
             .body("task_role_resources[1].task_role_id", notNullValue())
             .body("task_role_resources[1].task_id", equalTo(taskId))
-            .body("task_role_resources[1].role_name",
-                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker")))
+            .body(
+                "task_role_resources[1].role_name",
+                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))
+            )
             .body("task_role_resources[1].read", equalTo(true))
             .body("task_role_resources[1].own", equalTo(true))
             .body("task_role_resources[1].execute", equalTo(false))
@@ -122,14 +130,15 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[1].refer", equalTo(true))
             .body("task_role_resources[1].authorizations", equalTo(emptyList()))
             .body("task_role_resources[1].auto_assignable", equalTo(false))
-            .body("task_role_resources[1].role_category",
+            .body(
+                "task_role_resources[1].role_category",
                 anyOf(is("LEGAL_OPERATIONS"), is(nullValue())));
-
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
-            "unassigned");
+            "unassigned"
+        );
 
         common.cleanUpTask(taskId);
     }

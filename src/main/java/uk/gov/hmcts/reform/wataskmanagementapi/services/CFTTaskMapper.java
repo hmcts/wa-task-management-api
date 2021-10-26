@@ -329,7 +329,7 @@ public class CFTTaskMapper {
                 .collect(Collectors.toList());
             return new WarningValues(warnings);
         }
-        return null;
+        return new WarningValues();
     }
 
     @SuppressWarnings("unchecked")
