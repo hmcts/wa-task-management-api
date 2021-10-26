@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -290,18 +291,6 @@ public class Common {
         );
     }
 
-    private String toJsonString(Map<String, String> attributes) {
-        String json = null;
-
-        try {
-            json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return json;
-    }
-
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
@@ -357,6 +346,18 @@ public class Common {
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json"
         );
+    }
+
+    private String toJsonString(Map<String, String> attributes) {
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(attributes);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 
     private void postRoleAssignment(String caseId,
@@ -416,11 +417,12 @@ public class Common {
                 clearAllRoleAssignments(headers);
             }
 
-            caseRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
-            );
+            //Combine results to avoid parallel calls to role-assignment
+            List<RoleAssignment> allRoles = new ArrayList<>();
+            allRoles.addAll(caseRoleAssignments);
+            allRoles.addAll(organisationalRoleAssignments);
 
-            organisationalRoleAssignments.forEach(assignment ->
+            allRoles.forEach(assignment ->
                 roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
             );
         }
