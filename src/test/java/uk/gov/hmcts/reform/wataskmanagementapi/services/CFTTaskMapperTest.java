@@ -32,11 +32,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
@@ -465,6 +465,42 @@ class CFTTaskMapperTest {
         );
     }
 
+    private List<TaskAttribute> getDefaultAttributesWithoutDueDate() {
+        return asList(new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_CATEGORY, "someCaseCategory"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_ID, "00000"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_NAME, "someCaseName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_TYPE_ID, "someCaseType"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CREATED, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_DUE_DATE, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_DESCRIPTION, "someCamundaTaskDescription"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_HAS_WARNINGS, false),
+            new TaskAttribute(TaskAttributeDefinition.TASK_JURISDICTION, "someJurisdiction"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION, "someStaffLocationId"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION_NAME, "someStaffLocationName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "someCamundaTaskName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_REGION, "someRegion"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "PUBLIC"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_STATE, CFTTaskState.UNCONFIGURED),
+            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "SELF"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TITLE, "someTitle"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, "someTaskType"),
+            //Unmapped
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_MAJOR_PRIORITY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_MINOR_PRIORITY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ROLES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ROLE_CATEGORY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+        );
+    }
+
 
     private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
 
@@ -475,6 +511,16 @@ class CFTTaskMapperTest {
         attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, values));
 
         return attributes;
+    }
+
+    @Test
+    void should_check_due_and_create_default_values() {
+        List<TaskAttribute> attributes = getDefaultAttributesWithoutDueDate();
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+        assertNull(task.getDueDate());
+        assertNull(task.getCreatedDate());
     }
 
     @Test
@@ -512,8 +558,11 @@ class CFTTaskMapperTest {
         assertEquals("someRegion", task.getRegion());
         assertEquals("someStaffLocationId", task.getLocation());
         assertEquals("someStaffLocationName", task.getLocationName());
+        assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(false, task.getWarnings());
-        assertNull(task.getWarningList());
+        assertEquals(emptyList(), task.getWarningList().getValues());
         assertEquals("someCaseCategory", task.getCaseManagementCategory());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
     }
 }
