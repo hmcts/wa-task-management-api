@@ -130,3 +130,4 @@ caffeine:
   timeout:
     duration: 30
     unit: MINUTES
+

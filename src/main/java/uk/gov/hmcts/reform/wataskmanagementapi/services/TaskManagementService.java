@@ -115,6 +115,7 @@ public class TaskManagementService {
     public Task getTask(String taskId, AccessControlResponse accessControlResponse) {
         List<PermissionTypes> permissionsRequired = singletonList(READ);
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
+
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
@@ -259,13 +260,12 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
-            String taskState = task.getState().getValue();
-            boolean isTaskStateAssigned = taskState.equals(CFTTaskState.ASSIGNED.getValue());
+
             //Perform Camunda updates
             camundaService.assignTask(
                 taskId,
                 assigneeAccessControlResponse.getUserInfo().getUid(),
-                isTaskStateAssigned);
+                false);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 

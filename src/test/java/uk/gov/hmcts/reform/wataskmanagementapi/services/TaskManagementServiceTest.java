@@ -773,7 +773,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftQueryService.getTask(taskId, assigneeAccessControlResponse, asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
 
-            when(taskResource.getState()).thenReturn(CFTTaskState.ASSIGNED);
+            when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
