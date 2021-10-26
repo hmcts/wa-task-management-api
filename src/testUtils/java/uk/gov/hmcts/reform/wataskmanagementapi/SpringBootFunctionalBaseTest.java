@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProv
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.LaunchDarklyClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
@@ -62,7 +63,6 @@ public abstract class SpringBootFunctionalBaseTest {
         "There was a problem fetching the variables for task with id: %s";
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
         "Could not complete task with id: %s as task was not previously assigned";
-
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private static final String ENDPOINT_HISTORY_TASK = "history/task";
@@ -99,6 +99,8 @@ public abstract class SpringBootFunctionalBaseTest {
     private String testUrl;
     @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
+    @Autowired
+    protected LaunchDarklyClient launchDarklyClient;
 
     @Before
     public void setUpGivens() throws IOException {
