@@ -845,7 +845,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_every_items_have_same_work_type_when_search_by_work_type() {
+    public void should_search_by_work_type_and_retur_a_task_with_same_work_type() {
         String taskType = "followUpOverdueReasonsForAppeal";
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables.getTaskId();
@@ -878,7 +878,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_every_items_work_type_in_search_parameter_when_search_by_multiple_work_types() {
+    public void should_search_by_multiple_work_types_and_return_tasks_for_each_work_type() {
         //initiate first task
         String taskType = "followUpOverdueReasonsForAppeal";
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
@@ -957,12 +957,12 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_every_items_work_type_in_search_parameter_when_search_by_work_types_and_case_id() {
+    public void should_search_by_case_ids_and_multiple_work_types_and_return_tasks_for_each_work_type() {
         //initiate first task
         String taskType = "followUpOverdueReasonsForAppeal";
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables.getTaskId();
-        
+
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
@@ -1000,6 +1000,10 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             )
             .body("total_records", equalTo(2));
     }
+
+    //todo: add some test cases for searchforCompleteable
+    //todo: add some test cases for getTask
+
 
     private List<TestVariables> createMultipleTasks(String[] states) {
         List<TestVariables> tasksCreated = new ArrayList<>();
