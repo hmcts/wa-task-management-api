@@ -33,7 +33,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedNationalBusinessCentreTaskRoleResource;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedTaskSupervisorTaskRoleResource;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.taskinitiation.TaskRoleResourcesHelper.getExpectedTribunalCaseWorkerTaskRoleResource;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.Common.REASON_COMPLETED;
 
 public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
 
@@ -47,7 +46,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization();
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("prefix");
         common.clearAllRoleAssignments(authenticationHeaders);
 
         taskVariables = common.setupTaskAndRetrieveIds();
@@ -96,7 +95,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             "unassigned"
         );
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -131,7 +130,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             "unassigned"
         );
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -168,7 +167,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             "unassigned"
         );
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -202,7 +201,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             "unassigned"
         );
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
     @Test
@@ -237,7 +236,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             "unassigned"
         );
 
-        common.cleanUpTask(taskId, REASON_COMPLETED);
+        common.cleanUpTask(taskId);
     }
 
 

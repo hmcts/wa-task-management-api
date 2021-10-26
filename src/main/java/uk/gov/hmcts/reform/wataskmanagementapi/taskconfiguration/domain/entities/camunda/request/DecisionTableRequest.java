@@ -5,24 +5,22 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 
+import java.util.Map;
+
 @EqualsAndHashCode
 @ToString
 public class DecisionTableRequest {
 
     private CamundaValue<String> caseData;
-    private CamundaValue<String> taskType;
+    private Map<String, Object> taskAttributes;
 
     private DecisionTableRequest() {
         //No-op constructor for deserialization
     }
 
-    public DecisionTableRequest(CamundaValue<String> caseData) {
+    public DecisionTableRequest(CamundaValue<String> caseData, Map<String, Object> taskAttributes) {
         this.caseData = caseData;
-    }
-
-    public DecisionTableRequest(CamundaValue<String> caseData, CamundaValue<String> taskType) {
-        this.caseData = caseData;
-        this.taskType = taskType;
+        this.taskAttributes = taskAttributes;
     }
 
     @JsonProperty("caseData")
@@ -30,7 +28,8 @@ public class DecisionTableRequest {
         return caseData;
     }
 
-    public CamundaValue<String> getTaskType() {
-        return taskType;
+    @JsonProperty("taskAttributes")
+    public Map<String, Object> getTaskAttributes() {
+        return taskAttributes;
     }
 }

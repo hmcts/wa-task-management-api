@@ -60,12 +60,8 @@ class CaseConfigurationProviderServiceTest {
         String someCaseId = "someCaseId";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn(
-            "IA",
-            "Asylum",
-            "{}",
-            null
-        ))
+        Map<String, Object> taskAttributes = Map.of();
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}", taskAttributes))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunalCaseworker"),
@@ -91,10 +87,8 @@ class CaseConfigurationProviderServiceTest {
         expectedMappedData.put("securityClassification", "PUBLIC");
         expectedMappedData.put("jurisdiction", "IA");
         expectedMappedData.put("caseTypeId", "Asylum");
-        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(
-            someCaseId,
-            null
-        );
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
     }
@@ -102,9 +96,11 @@ class CaseConfigurationProviderServiceTest {
     @Test
     void gets_fields_to_map() {
         String someCaseId = "someCaseId";
+        String taskTypeId = "taskType";
+        Map<String, Object> taskAttributes = Map.of("taskTypeId", taskTypeId);
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}"))
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributes))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2"))
@@ -118,10 +114,8 @@ class CaseConfigurationProviderServiceTest {
             "caseTypeId", "Asylum"
         );
 
-        TaskConfigurationResults mappedData = caseConfigurationProviderService.getCaseRelatedConfiguration(
-            someCaseId,
-            null
-        );
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 

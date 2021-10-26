@@ -434,7 +434,7 @@ class TaskConfigurationControllerTest extends SpringBootIntegrationBaseTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString())))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(caseDetails.toString()), Map.of()))
         )).thenReturn(
             singletonList(new ConfigurationDmnEvaluationResponse(stringValue("name"), stringValue("value1")))
         );

@@ -46,10 +46,40 @@ class CaseRelatedVariablesConfiguratorTest {
     @Test
     void should_get_values_from_map_case_details_service() {
         String caseId = "ccd_id_123";
+        String taskTypeId = "taskType";
+
+        Map<String, Object> taskAttributes = Map.of("taskTypeId", taskTypeId);
+        TaskToConfigure testTaskToConfigure = new TaskToConfigure(
+            "taskId",
+            taskTypeId,
+            caseId,
+            "taskName",
+            taskAttributes
+        );
+
+        Map<String, Object> expectedValues = Map.of(
+            SECURITY_CLASSIFICATION.value(), "PUBLIC",
+            JURISDICTION.value(), "IA",
+            CASE_TYPE_ID.value(), "Asylum"
+        );
+
+        when(caseConfigurationProviderService.getCaseRelatedConfiguration(caseId, taskAttributes))
+            .thenReturn(new TaskConfigurationResults(expectedValues));
+
+        TaskConfigurationResults actual = caseRelatedVariablesConfigurator
+            .getConfigurationVariables(testTaskToConfigure);
+
+        assertThat(actual.getProcessVariables(), is(expectedValues));
+    }
+
+    @Test
+    void should_get_values_from_map_case_details_service_when_taskAttributes_are_null() {
+        String caseId = "ccd_id_123";
+        String taskTypeId = "taskType";
 
         TaskToConfigure testTaskToConfigure = new TaskToConfigure(
             "taskId",
-            "taskType",
+            taskTypeId,
             caseId,
             "taskName"
         );

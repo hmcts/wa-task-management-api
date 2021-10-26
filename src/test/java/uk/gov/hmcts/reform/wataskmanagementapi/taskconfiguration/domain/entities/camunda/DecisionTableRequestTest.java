@@ -5,6 +5,8 @@ import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
@@ -27,15 +29,15 @@ class DecisionTableRequestTest {
     void equalIsWellImplemented() {
         DecisionTableRequest obj1 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            CamundaValue.stringValue("some task type")
+            Map.of("caseTypeId", "some task type")
         );
         DecisionTableRequest obj2 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            CamundaValue.stringValue("some task type")
+            Map.of("caseTypeId","some task type")
         );
         DecisionTableRequest obj3 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            CamundaValue.stringValue("some task type3")
+            Map.of("caseTypeId","some task type3")
         );
 
         assertEquals(obj1, obj2);

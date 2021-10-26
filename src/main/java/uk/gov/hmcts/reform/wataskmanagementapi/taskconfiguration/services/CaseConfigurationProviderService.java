@@ -41,10 +41,10 @@ public class CaseConfigurationProviderService {
      * Obtains a list of process variables that are related to the ccd case data.
      *
      * @param caseId the ccd case id
-     * @param taskTypeId task type id
+     * @param taskAttributes taskAttributes
      * @return a map with the process variables configuration
      */
-    public TaskConfigurationResults getCaseRelatedConfiguration(String caseId, String taskTypeId) {
+    public TaskConfigurationResults getCaseRelatedConfiguration(String caseId, Map<String, Object> taskAttributes) {
         // Obtain case from ccd
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
@@ -55,10 +55,10 @@ public class CaseConfigurationProviderService {
 
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
-            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString);
+            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString, taskAttributes);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
-            dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString, taskTypeId);
+            dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString, taskAttributes);
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
             taskConfigurationDmnResults,
