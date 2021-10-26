@@ -63,7 +63,6 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
-
     }
 
 
