@@ -73,7 +73,6 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
     )
     public RequestResponsePact executeCompleteTaskById204WithAssignAndComplete(PactDslWithProvider builder) {
 
-
         return builder
             .given("complete a task using taskId and assign and complete completion options")
             .uponReceiving("taskId to complete a task")

@@ -5,9 +5,7 @@ import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvide
 import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
-import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,6 +60,16 @@ public class TaskManagerCompleteTaskProviderTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @State({"complete a task using taskId"})
+    public void completeTaskById() {
+        setInitMockWithoutPrivilegedAccess();
+    }
+
+    @State({"complete a task using taskId and assign and complete completion options"})
+    public void completeTaskByIdWithCompletionOptions() {
+        setInitMockWithPrivilegedAccess();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -85,16 +93,7 @@ public class TaskManagerCompleteTaskProviderTest {
         testTarget.setMessageConverters((
             new MappingJackson2HttpMessageConverter(
                 objectMapper
-            )));    }
-
-    @State({"complete a task using taskId"})
-    public void completeTaskById() {
-        setInitMockWithoutPrivilegedAccess();
-    }
-
-    @State({"complete a task using taskId and assign and complete completion options"})
-    public void completeTaskByIdWithCompletionOptions() {
-        setInitMockWithPrivilegedAccess();
+            )));
     }
 
     private void setInitMockWithoutPrivilegedAccess() {
@@ -105,9 +104,10 @@ public class TaskManagerCompleteTaskProviderTest {
     }
 
     private void setInitMockWithPrivilegedAccess() {
-        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(),any());
+        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
+        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
-        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
+
     }
 }
