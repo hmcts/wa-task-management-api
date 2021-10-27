@@ -163,11 +163,12 @@ public class CFTTaskMapper {
             taskResource.getLocationName(),
             taskResource.getCaseTypeId(),
             taskResource.getCaseId(),
-            taskResource.getRoleCategory(),
+            taskResource.getCaseCategory(),
             taskResource.getCaseName(),
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
-            taskResource.getCaseCategory());
+            taskResource.getCaseCategory()
+            );
     }
 
     private Set<TaskRoleResource> mapPermissions(
