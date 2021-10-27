@@ -84,20 +84,14 @@ public class AuthorizationHeadersProvider {
 
 
     public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
-
-        String key = "Caseworker A";
-
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
+        TestAccount caseworker = getIdamCredentials(emailPrefix);
+        return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
     public Header getCaseworkerBAuthorizationOnly(String emailPrefix) {
-
-        String key = "Caseworker B";
-
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
+        TestAccount caseworker = getIdamCredentials(emailPrefix);
+        return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
@@ -106,7 +100,7 @@ public class AuthorizationHeadersProvider {
         String username = System.getenv("TEST_WA_LAW_FIRM_USERNAME");
         String password = System.getenv("TEST_WA_LAW_FIRM_PASSWORD");
 
-        return getAuthorization("LawFirm", username, password);
+        return getAuthorization( username, password);
 
     }
 
@@ -122,18 +116,18 @@ public class AuthorizationHeadersProvider {
         return new Headers(getServiceAuthorizationHeader());
     }
 
-    private Header getAuthorization(String key, String username, String password) {
+    private Header getAuthorization(String username, String password) {
 
         MultiValueMap<String, String> body = createIdamRequest(username, password);
 
         String accessToken = tokens.computeIfAbsent(
-            key,
+            username,
             user -> "Bearer " + idamWebApi.token(body).getAccessToken()
         );
         return new Header(AUTHORIZATION, accessToken);
     }
 
-    private TestAccount getIdamCredentials(String key, String emailPrefix) {
+    private TestAccount getIdamCredentials(String emailPrefix) {
 
         return generateIdamTestAccount(emailPrefix);
     }
