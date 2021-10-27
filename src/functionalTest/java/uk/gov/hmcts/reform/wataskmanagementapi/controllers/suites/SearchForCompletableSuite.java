@@ -13,8 +13,9 @@ public class SearchForCompletableSuite {
     @Test
     public void runInParallel() {
         Class[] cls = {PostTaskForSearchCompletionControllerTest.class};
-// Parallel all methods in all classes
-        Result result = JUnitCore.runClasses(new ParallelComputer(true, true), cls);
+
+        // Parallel among classes
+        Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
 
         String failures = "";
 

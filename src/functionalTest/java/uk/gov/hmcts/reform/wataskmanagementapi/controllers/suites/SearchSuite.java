@@ -14,8 +14,9 @@ public class SearchSuite {
     @Test
     public void runInParallel() {
         Class[] cls = {PostTaskSearchControllerCftTest.class, PostTaskSearchControllerTest.class};
-// Parallel all methods in all classes
-        Result result = JUnitCore.runClasses(new ParallelComputer(true, true), cls);
+        // Parallel among classes
+        Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
+
 
         String failures = "";
 
