@@ -68,6 +68,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         );
 
         result.prettyPrint();
+        //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
@@ -78,8 +79,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
             .body("title", equalTo("aTaskName"))
-            .body("created_date", equalTo(formattedCreatedDate))
-            .body("due_date", equalTo(formattedDueDate))
+            .body("created", equalTo(formattedCreatedDate))
+            .body("due_date_time", equalTo(formattedDueDate))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))

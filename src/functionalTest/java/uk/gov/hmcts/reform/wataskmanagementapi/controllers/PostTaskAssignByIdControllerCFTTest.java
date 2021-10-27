@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
@@ -148,6 +149,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
@@ -179,6 +181,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {

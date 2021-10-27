@@ -168,7 +168,7 @@ public class CFTTaskMapper {
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory()
-            );
+        );
     }
 
     private Set<TaskRoleResource> mapPermissions(
