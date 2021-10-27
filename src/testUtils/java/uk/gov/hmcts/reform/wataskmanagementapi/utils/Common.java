@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
@@ -383,7 +384,7 @@ public class Common {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
 
-        RoleAssignmentResource response = null;
+        RoleAssignmentResource response;
 
         //Retrieve All role assignments
         response = roleAssignmentServiceApi.getRolesForUser(userId, userToken, serviceToken);
@@ -414,8 +415,14 @@ public class Common {
             allRoles.addAll(caseRoleAssignments);
             allRoles.addAll(organisationalRoleAssignments);
 
-            allRoles.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+            allRoles.forEach(assignment -> {
+                    roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             );
         }
     }
