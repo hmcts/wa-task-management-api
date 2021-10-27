@@ -82,16 +82,21 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,

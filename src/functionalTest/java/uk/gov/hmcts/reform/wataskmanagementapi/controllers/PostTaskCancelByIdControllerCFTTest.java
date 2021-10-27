@@ -23,7 +23,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
@@ -172,12 +174,19 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
     private void initiateTask(TestVariables testVariables) {
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
             new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
             new TaskAttribute(TASK_NAME, "Review The Appeal"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(
