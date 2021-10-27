@@ -11,12 +11,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskCancelByIdCon
 import static org.junit.Assert.assertTrue;
 
 public class CancelByIdSuite {
+
     @Test
     public void runInParallel() {
         Class[] cls = {PostTaskCancelByIdControllerCFTTest.class, PostTaskCancelByIdControllerTest.class};
         // Parallel among classes
         Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
-
 
         String failures = "";
 
