@@ -83,7 +83,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -108,7 +108,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -116,7 +116,6 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
 
     }
-
 
 
     @Test
@@ -399,8 +398,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private void initiateTaskWithWarnings(TestVariables taskVariables) {
         WarningValues warningValues = new WarningValues(
-            asList(new Warning("Code1","Text1"),
-                   new Warning("Code2","Text2")));
+            asList(new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -412,21 +411,21 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_SYSTEM,"SELF"),
+            new TaskAttribute(TASK_SYSTEM, "SELF"),
             new TaskAttribute(TASK_SECURITY_CLASSIFICATION, SecurityClassification.PUBLIC),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
             new TaskAttribute(TASK_LOCATION_NAME, "aLocationName"),
             new TaskAttribute(TASK_LOCATION, "aLocation"),
-            new TaskAttribute(TASK_EXECUTION_TYPE_NAME,"Manual"),
-            new TaskAttribute(TASK_JURISDICTION,"IA"),
+            new TaskAttribute(TASK_EXECUTION_TYPE_NAME, "Manual"),
+            new TaskAttribute(TASK_JURISDICTION, "IA"),
             new TaskAttribute(TASK_REGION_NAME, "aRegion"),
-            new TaskAttribute(TASK_CASE_TYPE_ID,"aTaskCaseTypeId"),
-            new TaskAttribute(TASK_CASE_CATEGORY,"Protection"),
-            new TaskAttribute(TASK_CASE_NAME,"aCaseName"),
-            new TaskAttribute(TASK_AUTO_ASSIGNED,true),
-            new TaskAttribute(TASK_HAS_WARNINGS,true),
-            new TaskAttribute(TASK_WARNINGS,warningValues)
+            new TaskAttribute(TASK_CASE_TYPE_ID, "aTaskCaseTypeId"),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_CASE_NAME, "aCaseName"),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_WARNINGS, warningValues)
         ));
 
         Response result = restApiActions.post(
