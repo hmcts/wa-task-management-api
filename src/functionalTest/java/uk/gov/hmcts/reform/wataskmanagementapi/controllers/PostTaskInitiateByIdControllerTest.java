@@ -42,7 +42,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
         common.clearAllRoleAssignments(authenticationHeaders);
     }
 
@@ -130,9 +130,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[1].refer", equalTo(true))
             .body("task_role_resources[1].authorizations", equalTo(emptyList()))
             .body("task_role_resources[1].auto_assignable", equalTo(false))
-            .body(
-                "task_role_resources[1].role_category",
-                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())));
+            .body("task_role_resources[1].role_category",
+                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())))
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"));
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
