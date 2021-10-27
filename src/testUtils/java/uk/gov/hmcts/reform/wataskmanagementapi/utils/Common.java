@@ -199,8 +199,8 @@ public class Common {
     }
 
     public void clearAllRoleAssignments(Headers headers) {
-        //UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-        //clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
     }
 
     public void setupOrganisationalRoleAssignment(Headers headers, String roleName) {

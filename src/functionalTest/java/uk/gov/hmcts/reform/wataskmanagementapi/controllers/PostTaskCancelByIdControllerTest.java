@@ -26,9 +26,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test

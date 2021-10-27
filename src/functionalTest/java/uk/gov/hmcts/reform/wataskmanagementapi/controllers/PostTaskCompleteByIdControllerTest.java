@@ -30,9 +30,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test
