@@ -24,6 +24,8 @@ import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
@@ -64,7 +66,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
                 .and()
                 .contentType(APPLICATION_JSON_VALUE)
                 .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                         .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                    .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
                 .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
                 .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
                 .body("message", equalTo(String.format(
@@ -136,7 +138,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -215,7 +217,9 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
             new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
-            new TaskAttribute(TASK_NAME, "Review The Appeal")
+            new TaskAttribute(TASK_NAME, "Review The Appeal"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(

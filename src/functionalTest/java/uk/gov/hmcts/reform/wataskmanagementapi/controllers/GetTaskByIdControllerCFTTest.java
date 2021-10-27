@@ -381,7 +381,9 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(
@@ -399,6 +401,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         WarningValues warningValues = new WarningValues(
             asList(new Warning("Code1","Text1"),
                    new Warning("Code2","Text2")));
+
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);

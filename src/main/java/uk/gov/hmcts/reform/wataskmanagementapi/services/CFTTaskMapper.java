@@ -144,6 +144,32 @@ public class CFTTaskMapper {
         return taskResource;
     }
 
+    public Task mapToTask(TaskResource taskResource) {
+        return new Task(taskResource.getTaskId(),
+            taskResource.getTaskName(),
+            taskResource.getTaskType(),
+            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
+            taskResource.getTaskSystem().getValue(),
+            taskResource.getSecurityClassification().getSecurityClassification(),
+            taskResource.getTitle(),
+            taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getAssignee(),
+            taskResource.getAutoAssigned(),
+            taskResource.getExecutionTypeCode().getExecutionName(),
+            taskResource.getJurisdiction(),
+            taskResource.getRegion(),
+            taskResource.getLocation(),
+            taskResource.getLocationName(),
+            taskResource.getCaseTypeId(),
+            taskResource.getCaseId(),
+            taskResource.getRoleCategory(),
+            taskResource.getCaseName(),
+            taskResource.getHasWarnings(),
+            mapNoteResourceToWarnings(taskResource.getNotes()),
+            taskResource.getCaseCategory());
+    }
+
     private Set<TaskRoleResource> mapPermissions(
         List<PermissionsDmnEvaluationResponse> permissions, TaskResource taskResource
     ) {
@@ -272,7 +298,6 @@ public class CFTTaskMapper {
         }
     }
 
-
     private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
         String executionTypeName = read(attributes, TASK_EXECUTION_TYPE_NAME, null);
 
@@ -352,33 +377,6 @@ public class CFTTaskMapper {
         Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
 
         return value == null ? Optional.empty() : Optional.of((T) value);
-    }
-
-
-    public Task mapToTask(TaskResource taskResource) {
-        return new Task(taskResource.getTaskId(),
-            taskResource.getTaskName(),
-            taskResource.getTaskType(),
-            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
-            taskResource.getTaskSystem().getValue(),
-            taskResource.getSecurityClassification().getSecurityClassification(),
-            taskResource.getTitle(),
-            taskResource.getCreated() == null ? null : taskResource.getCreated().toZonedDateTime(),
-            taskResource.getDueDateTime() == null ? null : taskResource.getDueDateTime().toZonedDateTime(),
-            taskResource.getAssignee(),
-            taskResource.getAutoAssigned(),
-            taskResource.getExecutionTypeCode().getExecutionName(),
-            taskResource.getJurisdiction(),
-            taskResource.getRegion(),
-            taskResource.getLocation(),
-            taskResource.getLocationName(),
-            taskResource.getCaseTypeId(),
-            taskResource.getCaseId(),
-            taskResource.getRoleCategory(),
-            taskResource.getCaseName(),
-            taskResource.getHasWarnings(),
-            mapNoteResourceToWarnings(taskResource.getNotes()),
-            taskResource.getCaseCategory());
     }
 }
 

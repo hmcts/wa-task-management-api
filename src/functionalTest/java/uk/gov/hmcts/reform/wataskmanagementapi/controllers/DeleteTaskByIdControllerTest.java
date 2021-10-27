@@ -22,6 +22,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
@@ -125,7 +127,9 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
             new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
-            new TaskAttribute(TASK_NAME, "Review The Appeal")
+            new TaskAttribute(TASK_NAME, "Review The Appeal"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(

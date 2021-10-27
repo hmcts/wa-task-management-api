@@ -22,6 +22,8 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -47,7 +49,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(
@@ -68,6 +72,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
             .body("title", equalTo("aTaskName"))
+            .body("created_date", equalTo("2021-10-27T13:26:46+0100"))
+            .body("due_date", equalTo("2021-10-29T13:26:46+0100"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -138,7 +144,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
         //First call
         Response resultFirstCall = restApiActions.post(
@@ -184,7 +192,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
         //First call
         Response result = restApiActions.post(
@@ -209,7 +219,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someInvalidCaseID"),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(
@@ -233,7 +245,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(

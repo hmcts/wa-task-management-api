@@ -896,7 +896,9 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
+            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
         ));
 
         Response result = restApiActions.post(
