@@ -110,6 +110,18 @@ public class AuthorizationHeadersProvider {
 
     }
 
+    public UserInfo getUserInfo(String userToken) {
+        return userInfo.computeIfAbsent(
+            userToken,
+            user -> idamWebApi.userInfo(userToken)
+        );
+
+    }
+
+    public Headers getServiceAuthorizationHeadersOnly() {
+        return new Headers(getServiceAuthorizationHeader());
+    }
+
     private Header getAuthorization(String key, String username, String password) {
 
         MultiValueMap<String, String> body = createIdamRequest(username, password);
@@ -123,10 +135,7 @@ public class AuthorizationHeadersProvider {
 
     private TestAccount getIdamCredentials(String key, String emailPrefix) {
 
-        return accounts.computeIfAbsent(
-            key,
-            user -> generateIdamTestAccount(emailPrefix)
-        );
+        return generateIdamTestAccount(emailPrefix);
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -163,17 +172,5 @@ public class AuthorizationHeadersProvider {
 
         log.info("Test account created successfully");
         return new TestAccount(email, password);
-    }
-
-    public UserInfo getUserInfo(String userToken) {
-        return userInfo.computeIfAbsent(
-            userToken,
-            user -> idamWebApi.userInfo(userToken)
-        );
-
-    }
-
-    public Headers getServiceAuthorizationHeadersOnly() {
-        return new Headers(getServiceAuthorizationHeader());
     }
 }

@@ -23,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -39,11 +38,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Slf4j
 public class Common {
 
-    public static final String REASON_COMPLETED = "completed";
-    public static final String REASON_DELETED = "deleted";
-    public static final String PENDING_TERMINATION = "pendingTermination";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    private static final String ENDPOINT_HISTORY_TASK = "history/task";
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -383,11 +378,19 @@ public class Common {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
 
-        RoleAssignmentResource response;
+        RoleAssignmentResource response = null;
 
-        //Retrieve All role assignments
-        response = roleAssignmentServiceApi.getRolesForUser(userId, userToken, serviceToken);
+        try {
+            //Retrieve All role assignments
+            response = roleAssignmentServiceApi.getRolesForUser(userId, userToken, serviceToken);
 
+        } catch (FeignException ex) {
+            if (ex.status() == HttpStatus.NOT_FOUND.value()) {
+                System.out.println("No roles found, nothing to delete.");
+            } else {
+                ex.printStackTrace();
+            }
+        }
 
         if (response != null) {
             //Delete All role assignments
@@ -409,19 +412,12 @@ public class Common {
                 clearAllRoleAssignments(headers);
             }
 
-            //Combine results to avoid parallel calls to role-assignment
-            List<RoleAssignment> allRoles = new ArrayList<>();
-            allRoles.addAll(caseRoleAssignments);
-            allRoles.addAll(organisationalRoleAssignments);
+            caseRoleAssignments.forEach(assignment ->
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+            );
 
-            allRoles.forEach(assignment -> {
-                    roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken);
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+            organisationalRoleAssignments.forEach(assignment ->
+                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
             );
         }
     }
