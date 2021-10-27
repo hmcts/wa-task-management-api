@@ -385,17 +385,9 @@ public class Common {
 
         RoleAssignmentResource response = null;
 
-        try {
-            //Retrieve All role assignments
-            response = roleAssignmentServiceApi.getRolesForUser(userId, userToken, serviceToken);
+        //Retrieve All role assignments
+        response = roleAssignmentServiceApi.getRolesForUser(userId, userToken, serviceToken);
 
-        } catch (FeignException ex) {
-            if (ex.status() == HttpStatus.NOT_FOUND.value()) {
-                System.out.println("No roles found, nothing to delete.");
-            } else {
-                ex.printStackTrace();
-            }
-        }
 
         if (response != null) {
             //Delete All role assignments
