@@ -5,18 +5,21 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskCancelByIdControllerCFTTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskCancelByIdControllerTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.SearchForCompletableSuite;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.SearchSuite;
 
 import static org.junit.Assert.assertTrue;
 
-public class CancelByIdSuite {
-
+public class TaskSearchSuite {
     @Test
     public void runInParallel() {
-        Class[] cls = {PostTaskCancelByIdControllerCFTTest.class, PostTaskCancelByIdControllerTest.class};
+        Class[] cls = {
+            SearchSuite.class,
+            SearchForCompletableSuite.class,
+        };
         // Parallel among classes
         Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
+
 
         String failures = "";
 

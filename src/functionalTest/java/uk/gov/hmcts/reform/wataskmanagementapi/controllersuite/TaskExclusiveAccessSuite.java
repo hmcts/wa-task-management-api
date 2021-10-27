@@ -5,15 +5,16 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskCompleteByIdControllerCFTTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskCompleteByIdControllerTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.InitiateByIdSuite;
 
 import static org.junit.Assert.assertTrue;
 
-public class CompleteByIdSuite {
+public class TaskExclusiveAccessSuite {
     @Test
     public void runInParallel() {
-        Class[] cls = {PostTaskCompleteByIdControllerTest.class, PostTaskCompleteByIdControllerCFTTest.class};
+        Class[] cls = {
+            InitiateByIdSuite.class,
+        };
         // Parallel among classes
         Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
 

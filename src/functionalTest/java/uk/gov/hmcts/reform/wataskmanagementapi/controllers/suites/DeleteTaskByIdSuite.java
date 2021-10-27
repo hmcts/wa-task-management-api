@@ -1,22 +1,21 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllersuite;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites;
 
 import org.junit.Test;
 import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskSearchControllerCftTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskSearchControllerTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.DeleteTaskByIdControllerCFTTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.DeleteTaskByIdControllerTest;
 
 import static org.junit.Assert.assertTrue;
 
-public class SearchSuite {
+public class DeleteTaskByIdSuite {
     @Test
     public void runInParallel() {
-        Class[] cls = {PostTaskSearchControllerCftTest.class, PostTaskSearchControllerTest.class};
+        Class[] cls = {DeleteTaskByIdControllerTest.class, DeleteTaskByIdControllerCFTTest.class};
         // Parallel among classes
         Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
-
 
         String failures = "";
 
