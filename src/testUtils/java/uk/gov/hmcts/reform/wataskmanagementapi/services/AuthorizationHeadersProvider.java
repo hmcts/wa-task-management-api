@@ -100,7 +100,7 @@ public class AuthorizationHeadersProvider {
         String username = System.getenv("TEST_WA_LAW_FIRM_USERNAME");
         String password = System.getenv("TEST_WA_LAW_FIRM_PASSWORD");
 
-        return getAuthorization( username, password);
+        return getAuthorization(username, password);
 
     }
 
