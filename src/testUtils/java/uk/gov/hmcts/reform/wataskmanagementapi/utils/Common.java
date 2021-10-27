@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
@@ -416,7 +415,7 @@ public class Common {
             allRoles.addAll(organisationalRoleAssignments);
 
             allRoles.forEach(assignment -> {
-                    roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                    roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken);
                     try {
                         Thread.sleep(2000);
                     } catch (InterruptedException e) {
