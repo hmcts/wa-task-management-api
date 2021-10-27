@@ -995,6 +995,34 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
+    public void should_return_empty_list_when_search_by_work_type_exists_and_case_id_not_exists() {
+        String taskType = "followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId1 = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId1, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+                singletonList(TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))),
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("dummyCaseId"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(0));
+    }
+
+    @Test
     public void should_search_by_case_ids_and_multiple_work_types_and_return_tasks_for_each_work_type() {
         //initiate first task
         String taskType = "followUpOverdueReasonsForAppeal";
