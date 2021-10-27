@@ -885,6 +885,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                           + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
@@ -896,9 +897,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
         ));
 
         Response result = restApiActions.post(

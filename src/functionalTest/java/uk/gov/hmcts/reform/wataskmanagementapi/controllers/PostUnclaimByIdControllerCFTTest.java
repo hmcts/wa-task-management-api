@@ -64,15 +64,12 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo(String.format(
-                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID,
-                nonExistentTaskId
-            )));
+            .body("detail", equalTo("Task Not Found Error: The task could not be found."));
+
     }
 
     @Test
@@ -129,14 +126,18 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = setupScenario();
         String taskId = taskVariables.getTaskId();
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(
@@ -180,14 +181,18 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = setupScenario();
         String taskId = taskVariables.getTaskId();
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(
@@ -231,16 +236,21 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     public void should_return_a_403_when_unclaiming_a_task_by_id_with_different_tribunal_caseworker_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,
@@ -283,16 +293,20 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,
@@ -332,16 +346,21 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         TestVariables taskVariables = setupScenario();
         String taskId = taskVariables.getTaskId();
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, "2021-10-27T13:26:46+0100"),
-            new TaskAttribute(TASK_DUE_DATE, "2021-10-29T13:26:46+0100")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,

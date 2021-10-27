@@ -59,15 +59,11 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo(String.format(
-                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
-                nonExistentTaskId
-            )));
+            .body("detail", equalTo("Task Not Found Error: The task could not be found."));
 
     }
 

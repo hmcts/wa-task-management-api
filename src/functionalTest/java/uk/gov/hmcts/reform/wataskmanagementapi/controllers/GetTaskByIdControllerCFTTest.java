@@ -73,12 +73,12 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             authenticationHeaders
         );
+
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
