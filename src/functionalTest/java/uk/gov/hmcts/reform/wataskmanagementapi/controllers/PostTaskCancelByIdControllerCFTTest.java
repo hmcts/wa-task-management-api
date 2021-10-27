@@ -107,7 +107,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-")
+            authenticationHeaders
         );
 
         result.then().assertThat()
