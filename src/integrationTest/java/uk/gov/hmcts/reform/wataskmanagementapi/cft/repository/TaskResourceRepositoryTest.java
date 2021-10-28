@@ -65,7 +65,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "some task id",
             "some task name",
             "some task type",
-            CFTTaskState.ASSIGNED
+            CFTTaskState.ASSIGNED,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+
         );
 
         executorService.execute(() -> {
@@ -78,7 +80,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "other task id",
             "other task name",
             "other task type",
-            CFTTaskState.ASSIGNED
+            CFTTaskState.ASSIGNED,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
 
         assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId()));
