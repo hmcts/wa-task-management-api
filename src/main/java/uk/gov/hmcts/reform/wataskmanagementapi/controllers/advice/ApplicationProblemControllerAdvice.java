@@ -41,33 +41,6 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
 
 
-    @ExceptionHandler({
-        GenericForbiddenException.class,
-        RoleAssignmentVerificationException.class,
-        TaskAssignAndCompleteException.class,
-        TaskAssignException.class,
-        TaskClaimException.class,
-        TaskCompleteException.class,
-        TaskUnclaimException.class,
-        TaskCancelException.class,
-        DatabaseConflictException.class,
-        GenericServerErrorException.class,
-        TaskNotFoundException.class
-    })
-    protected ResponseEntity<Problem> handleApplicationProblemExceptions(
-        AbstractThrowableProblem ex
-    ) {
-        log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(ex.getStatus().getStatusCode())
-            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
-    }
-
     @ExceptionHandler(FeignException.ServiceUnavailable.class)
     public ResponseEntity<ThrowableProblem> handleFeignServiceUnavailableException(FeignException ex) {
         log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
@@ -103,6 +76,33 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
                 .withTitle(title)
                 .withDetail(detail.getDetail())
                 .withStatus(statusType)
+                .build());
+    }
+
+    @ExceptionHandler({
+        GenericForbiddenException.class,
+        RoleAssignmentVerificationException.class,
+        TaskAssignAndCompleteException.class,
+        TaskAssignException.class,
+        TaskClaimException.class,
+        TaskCompleteException.class,
+        TaskUnclaimException.class,
+        TaskCancelException.class,
+        DatabaseConflictException.class,
+        GenericServerErrorException.class,
+        TaskNotFoundException.class
+    })
+    protected ResponseEntity<Problem> handleApplicationProblemExceptions(
+        AbstractThrowableProblem ex
+    ) {
+        log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(ex.getStatus().getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+            .body(Problem.builder()
+                .withType(ex.getType())
+                .withTitle(ex.getTitle())
+                .withDetail(ex.getMessage())
+                .withStatus(ex.getStatus())
                 .build());
     }
 

@@ -107,6 +107,7 @@ test {
 }
 
 task functional(type: Test) {
+  exclude '**/controllers/**'
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs

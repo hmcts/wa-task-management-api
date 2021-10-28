@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ServerErrorException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -42,7 +41,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         this.systemDateProvider = systemDateProvider;
     }
 
-    @ExceptionHandler({ResourceNotFoundException.class, TaskNotFoundException.class})
+    @ExceptionHandler({ResourceNotFoundException.class})
     protected ResponseEntity<ErrorMessage> handleResourceNotFoundException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.NOT_FOUND);
     }
