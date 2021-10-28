@@ -467,41 +467,45 @@ class CFTTaskMapperTest {
             skeletonTask,
             new TaskConfigurationResults(mappedValues));
 
-
-        assertEquals("SOME_TASK_ID", taskResource.getTaskId());
-        assertEquals("someCamundaTaskName", taskResource.getTaskName());
-        assertEquals("someTaskType", taskResource.getTaskType());
-        assertEquals(UNCONFIGURED, taskResource.getState());
-        assertEquals(TaskSystem.SELF, taskResource.getTaskSystem());
-        assertEquals(SecurityClassification.PUBLIC, taskResource.getSecurityClassification());
-        assertEquals("someTitle", taskResource.getTitle());
-        assertNull(taskResource.getDescription());
-        assertNull(taskResource.getNotes());
-        assertNull(taskResource.getMajorPriority());
-        assertNull(taskResource.getMinorPriority());
-        assertNull(taskResource.getAssignee());
-        assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource().getId());
-        assertEquals(null, taskResource.getRoleCategory());
-        assertNull(taskResource.getRoleCategory());
-        assertEquals(false, taskResource.getHasWarnings());
-        assertNull(taskResource.getAssignmentExpiry());
-        assertEquals("someCaseId", taskResource.getCaseId());
-        assertEquals("someCaseTypeId", taskResource.getCaseTypeId());
-        assertEquals("Bob Smith", taskResource.getCaseName());
-        assertEquals("IA", taskResource.getJurisdiction());
-        assertEquals("1", taskResource.getRegion());
-        assertNull(taskResource.getRegionName());
-        assertEquals("someStaffLocationId", taskResource.getLocation());
-        assertEquals("someStaffLocationName", taskResource.getLocationName());
-        assertEquals("someCaseCategory", taskResource.getCaseCategory());
-        assertNull(taskResource.getBusinessContext());
-        assertNull(taskResource.getTerminationReason());
-        assertEquals(new ExecutionTypeResource(
-            ExecutionType.MANUAL,
-            ExecutionType.MANUAL.getName(),
-            ExecutionType.MANUAL.getDescription()
-        ), taskResource.getExecutionTypeCode());
+        assertEquals(emptySet(), taskResource.getTaskRoleResources());
+    }
+
+    @Test
+    void should_map_configuration_attributes_when_work_type_id_is_null() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
+        mappedValues.put(TASK_TYPE.value(), "someTaskType");
+        mappedValues.put(AUTO_ASSIGNED.value(), false);
+        mappedValues.put(JURISDICTION.value(), "IA");
+        mappedValues.put(CASE_NAME.value(), "Bob Smith");
+        mappedValues.put(CASE_TYPE_ID.value(), "someCaseTypeId");
+        mappedValues.put(EXECUTION_TYPE.value(), "MANUAL");
+        mappedValues.put(LOCATION.value(), "someStaffLocationId");
+        mappedValues.put(LOCATION_NAME.value(), "someStaffLocationName");
+        mappedValues.put(REGION.value(), "1");
+        mappedValues.put(SECURITY_CLASSIFICATION.value(), "PUBLIC");
+        mappedValues.put(TASK_SYSTEM.value(), "SELF");
+        mappedValues.put(TITLE.value(), "someTitle");
+        mappedValues.put(HAS_WARNINGS.value(), false);
+        mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
+        mappedValues.put(WORK_TYPE.value(), null);
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues));
+
+
+        assertNotNull(taskResource.getWorkTypeResource());
+        assertNull(taskResource.getWorkTypeResource().getId());
         assertEquals(emptySet(), taskResource.getTaskRoleResources());
     }
 
