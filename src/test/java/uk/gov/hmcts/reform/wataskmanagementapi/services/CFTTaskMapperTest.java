@@ -431,12 +431,15 @@ class CFTTaskMapperTest {
 
     @Test
     void should_throw_exception_when_security_classification_enum_is_not_mapped() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         List<TaskAttribute> attributes = asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
             new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "SELF"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "someInvalidEnumValue")
-
+            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "someInvalidEnumValue"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
