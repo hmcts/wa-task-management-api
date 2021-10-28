@@ -4,6 +4,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -62,10 +63,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
-        //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerR2Authorization("wa-ft-test-r2-");
-        common.clearAllRoleAssignments(authenticationHeaders);
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
 
     }
 
@@ -75,18 +73,18 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             authenticationHeaders
         );
+
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -111,7 +109,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -119,7 +117,6 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
 
     }
-
 
 
     @Test
@@ -155,6 +152,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
@@ -309,6 +307,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
@@ -413,13 +412,20 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
 
     private void initiateTask(TestVariables taskVariables) {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
@@ -433,8 +439,9 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private void initiateTaskWithWarnings(TestVariables taskVariables) {
         WarningValues warningValues = new WarningValues(
-            asList(new Warning("Code1","Text1"),
-                   new Warning("Code2","Text2")));
+            asList(new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")));
+
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);

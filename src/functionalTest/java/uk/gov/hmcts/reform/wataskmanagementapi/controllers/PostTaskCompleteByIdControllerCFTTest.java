@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
@@ -42,9 +45,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test
@@ -63,15 +64,11 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo(String.format(
-                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_TASK_WITH_ID,
-                nonExistentTaskId
-            )));
+            .body("detail", equalTo("Task Not Found Error: The task could not be found."));
 
     }
 
@@ -82,14 +79,21 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskId,
@@ -124,6 +128,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
@@ -144,7 +149,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(String.format(
@@ -198,7 +203,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -207,6 +212,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
 
@@ -274,6 +280,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
@@ -406,15 +413,11 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-            .body("message", equalTo(String.format(
-                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
-                nonExistentTaskId
-            )));
+            .body("detail", equalTo("Task Not Found Error: The task could not be found."));
 
     }
 
@@ -509,7 +512,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -518,6 +521,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() {
@@ -589,6 +593,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
+    @Ignore
     @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_permission_region_did_not_match_and_assign_and_complete_true() {
@@ -639,10 +644,18 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     private void initiateTask(TestVariables testVariables) {
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "reviewTheAppeal"),
+            new TaskAttribute(TASK_NAME, "Review The Appeal"),
+            new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal")
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(

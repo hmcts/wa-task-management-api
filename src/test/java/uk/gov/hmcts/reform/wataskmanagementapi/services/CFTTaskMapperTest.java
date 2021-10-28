@@ -38,6 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
@@ -76,7 +79,12 @@ class CFTTaskMapperTest {
     @Test
     void given_null_attribute_when_mapToTaskResource_then_dont_throw_exception() {
         List<TaskAttribute> attributes = new ArrayList<>();
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"));
+        attributes.add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
         attributes.add(null);
         assertDoesNotThrow(() -> {
             cftTaskMapper.mapToTaskResource(taskId, attributes);
@@ -251,7 +259,6 @@ class CFTTaskMapperTest {
         assertEquals(false, taskResource.getAutoAssigned());
         assertNotNull(taskResource.getWorkTypeResource());
         assertEquals("someWorkType", taskResource.getWorkTypeResource().getId());
-        assertEquals(null, taskResource.getRoleCategory());
         assertNull(taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
@@ -395,15 +402,34 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("ExecutionTypeName value: 'someExecutionType' could not be mapped to ExecutionType enum")
             .hasNoCause();
+    }
 
+    @Test
+    void should_throw_exception_when_no_due_date() {
+
+        List<TaskAttribute> attributes = asList(
+            new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+        );
+
+        assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("TASK_DUE_DATE must not be null")
+            .hasNoCause();
     }
 
     @Test
     void should_throw_exception_when_task_system_enum_is_not_mapped() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         List<TaskAttribute> attributes = asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "someTaskSystem")
+            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "someTaskSystem"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
@@ -417,12 +443,15 @@ class CFTTaskMapperTest {
 
     @Test
     void should_throw_exception_when_security_classification_enum_is_not_mapped() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         List<TaskAttribute> attributes = asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
             new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "SELF"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "someInvalidEnumValue")
-
+            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "someInvalidEnumValue"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
@@ -471,6 +500,49 @@ class CFTTaskMapperTest {
         assertNotNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getWorkTypeResource().getId());
         assertEquals(emptySet(), taskResource.getTaskRoleResources());
+    }
+
+    @Test
+    void should_map_task_resource_to_task() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+
+        List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertEquals("SOME_TASK_ID", task.getId());
+        assertEquals("someCamundaTaskName", task.getName());
+        assertEquals("someTaskType", task.getType());
+        assertEquals(
+            ZonedDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            task.getDueDate()
+        );
+        assertEquals(UNCONFIGURED.getValue().toLowerCase(Locale.ROOT), task.getTaskState());
+        assertEquals(TaskSystem.SELF.getValue(), task.getTaskSystem());
+        assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
+        assertEquals("someTitle", task.getTaskTitle());
+        assertEquals("someAssignee", task.getAssignee());
+        assertEquals(false, task.getAutoAssigned());
+        assertEquals("Manual", task.getExecutionType());
+        assertEquals("someJurisdiction", task.getJurisdiction());
+        assertEquals("00000", task.getCaseId());
+        assertEquals("someCaseType", task.getCaseTypeId());
+        assertEquals("someCaseName", task.getCaseName());
+        assertEquals("someJurisdiction", task.getJurisdiction());
+        assertEquals("someRegion", task.getRegion());
+        assertEquals("someStaffLocationId", task.getLocation());
+        assertEquals("someStaffLocationName", task.getLocationName());
+        assertEquals("someCaseCategory", taskResource.getCaseCategory());
+        assertEquals(false, task.getWarnings());
+        assertEquals(emptyList(), task.getWarningList().getValues());
+        assertEquals("someCaseCategory", task.getCaseManagementCategory());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {
@@ -546,7 +618,6 @@ class CFTTaskMapperTest {
         );
     }
 
-
     private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
 
         List<TaskAttribute> defaultAttributes = getDefaultAttributes(createdDate, dueDate);
@@ -556,58 +627,5 @@ class CFTTaskMapperTest {
         attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, values));
 
         return attributes;
-    }
-
-    @Test
-    void should_check_due_and_create_default_values() {
-        List<TaskAttribute> attributes = getDefaultAttributesWithoutDueDate();
-
-        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
-        Task task = cftTaskMapper.mapToTask(taskResource);
-        assertNull(task.getDueDate());
-        assertNull(task.getCreatedDate());
-    }
-
-    @Test
-    void should_map_task_resource_to_task() {
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-
-        List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
-
-        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
-        Task task = cftTaskMapper.mapToTask(taskResource);
-
-        assertEquals("SOME_TASK_ID", task.getId());
-        assertEquals("someCamundaTaskName", task.getName());
-        assertEquals("someTaskType", task.getType());
-        assertEquals(
-            ZonedDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
-            task.getDueDate()
-        );
-        assertEquals(UNCONFIGURED.getValue().toLowerCase(Locale.ROOT), task.getTaskState());
-        assertEquals(TaskSystem.SELF.getValue(), task.getTaskSystem());
-        assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
-        assertEquals("someTitle", task.getTaskTitle());
-        assertEquals("someAssignee", task.getAssignee());
-        assertEquals(false, task.getAutoAssigned());
-        assertEquals("Manual", task.getExecutionType());
-        assertEquals("someJurisdiction", task.getJurisdiction());
-        assertEquals("00000", task.getCaseId());
-        assertEquals("someCaseType", task.getCaseTypeId());
-        assertEquals("someCaseName", task.getCaseName());
-        assertEquals("someJurisdiction", task.getJurisdiction());
-        assertEquals("someRegion", task.getRegion());
-        assertEquals("someStaffLocationId", task.getLocation());
-        assertEquals("someStaffLocationName", task.getLocationName());
-        assertEquals("someCaseCategory", taskResource.getCaseCategory());
-        assertEquals(false, task.getWarnings());
-        assertEquals(emptyList(), task.getWarningList().getValues());
-        assertEquals("someCaseCategory", task.getCaseManagementCategory());
-        assertNotNull(task.getDueDate());
-        assertNotNull(task.getCreatedDate());
     }
 }

@@ -22,14 +22,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
@@ -41,9 +37,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Before
     public void setUp() {
-        //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
-        common.clearAllRoleAssignments(authenticationHeaders);
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
     }
 
     @Test
@@ -52,17 +46,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, false),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(
@@ -73,16 +68,19 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         );
 
         result.prettyPrint();
+        //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
             .body("task_name", equalTo("aTaskName"))
-            .body("task_type", equalTo("followUpOverdueReasonsForAppeal"))
+            .body("task_type", equalTo("aTaskType"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
             .body("title", equalTo("aTaskName"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -150,18 +148,21 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
+
         //First call
         Response resultFirstCall = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -203,16 +204,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         String taskId = UUID.randomUUID().toString();
 
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
         //First call
         Response result = restApiActions.post(
@@ -233,19 +236,19 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someInvalidCaseID"),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -263,19 +266,19 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
-            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             UUID.randomUUID().toString(),

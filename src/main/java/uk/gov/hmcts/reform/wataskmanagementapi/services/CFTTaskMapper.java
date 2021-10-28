@@ -97,6 +97,9 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
+
+        Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+
         WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
@@ -382,7 +385,7 @@ public class CFTTaskMapper {
             taskResource.getLocationName(),
             taskResource.getCaseTypeId(),
             taskResource.getCaseId(),
-            taskResource.getRoleCategory(),
+            taskResource.getCaseCategory(),
             taskResource.getCaseName(),
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
