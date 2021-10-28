@@ -765,14 +765,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=2",
+            ENDPOINT_BEING_TESTED,
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(2)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.name", everyItem(notNullValue()))
             .body("tasks.type", everyItem(notNullValue()))
