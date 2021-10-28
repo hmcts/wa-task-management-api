@@ -18,8 +18,7 @@ public class CompletionOptions {
     private final boolean assignAndComplete;
 
     @JsonCreator
-    public CompletionOptions(@JsonProperty("assignAndComplete")
-                                 @JsonAlias("assign_and_complete") boolean assignAndComplete) {
+    public CompletionOptions(boolean assignAndComplete) {
         this.assignAndComplete = assignAndComplete;
     }
 
