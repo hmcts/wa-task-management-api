@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllersuite;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites;
 
 import org.junit.Test;
 import org.junit.experimental.ParallelComputer;
@@ -13,9 +13,9 @@ public class InitiateByIdSuite {
     @Test
     public void runInParallel() {
         Class[] cls = {PostTaskInitiateByIdControllerTest.class};
-        // Parallel among classes
-        Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
 
+        // Parallel all methods in all classes
+        Result result = JUnitCore.runClasses(new ParallelComputer(true, true), cls);
 
         String failures = "";
 

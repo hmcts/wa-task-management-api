@@ -78,7 +78,6 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         initiateTask(taskVariables);
 
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
