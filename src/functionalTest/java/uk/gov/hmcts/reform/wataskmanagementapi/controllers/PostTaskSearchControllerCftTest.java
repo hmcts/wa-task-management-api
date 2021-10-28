@@ -70,9 +70,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test
@@ -483,14 +481,14 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
-        ));
+            ));
 
         common.setupOrganisationalRoleAssignmentWithOutEndDate(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED  + "?first_result=0&max_results=2",
+            ENDPOINT_BEING_TESTED,
             searchTaskRequest,
             authenticationHeaders
         );
@@ -888,18 +886,24 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                           + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, caseId),
             new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
             new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, true)
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(

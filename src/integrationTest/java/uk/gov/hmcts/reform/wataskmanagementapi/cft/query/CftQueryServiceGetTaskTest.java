@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeD
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -30,8 +31,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 
 @ActiveProfiles("integration")
@@ -115,7 +118,7 @@ public class CftQueryServiceGetTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE", "IA"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -128,7 +131,15 @@ public class CftQueryServiceGetTaskTest {
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+        Set<TaskRoleResource> taskRoleResourceSet = task.get().getTaskRoleResources();
+        Assertions.assertThat(taskRoleResourceSet).isNotEmpty();
+        taskRoleResourceSet.stream().forEach(taskRoleResource -> {
+            assertArrayEquals(new String[]{"DIVORCE", "IA"}, taskRoleResource.getAuthorizations());
+            Assertions.assertThat(taskRoleResource.getAssignmentPriority()).isEqualTo(8);
+            Assertions.assertThat(taskRoleResource.getAutoAssignable()).isTrue();
+        });
     }
+
 
     @Test
     void should_return_empty_task_resource_when_task_is_null() {

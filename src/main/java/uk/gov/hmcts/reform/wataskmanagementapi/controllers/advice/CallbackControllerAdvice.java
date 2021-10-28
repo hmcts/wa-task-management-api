@@ -41,7 +41,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         this.systemDateProvider = systemDateProvider;
     }
 
-    @ExceptionHandler(ResourceNotFoundException.class)
+    @ExceptionHandler({ResourceNotFoundException.class})
     protected ResponseEntity<ErrorMessage> handleResourceNotFoundException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.NOT_FOUND);
     }

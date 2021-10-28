@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskClaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 
@@ -39,32 +40,6 @@ import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 @RequestMapping(produces = APPLICATION_PROBLEM_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
 public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
 
-
-    @ExceptionHandler({
-        GenericForbiddenException.class,
-        RoleAssignmentVerificationException.class,
-        TaskAssignAndCompleteException.class,
-        TaskAssignException.class,
-        TaskClaimException.class,
-        TaskCompleteException.class,
-        TaskUnclaimException.class,
-        TaskCancelException.class,
-        DatabaseConflictException.class,
-        GenericServerErrorException.class
-    })
-    protected ResponseEntity<Problem> handleApplicationProblemExceptions(
-        AbstractThrowableProblem ex
-    ) {
-        log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
-        return ResponseEntity.status(ex.getStatus().getStatusCode())
-            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
-            .body(Problem.builder()
-                .withType(ex.getType())
-                .withTitle(ex.getTitle())
-                .withDetail(ex.getMessage())
-                .withStatus(ex.getStatus())
-                .build());
-    }
 
     @ExceptionHandler(FeignException.ServiceUnavailable.class)
     public ResponseEntity<ThrowableProblem> handleFeignServiceUnavailableException(FeignException ex) {
@@ -101,6 +76,33 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice {
                 .withTitle(title)
                 .withDetail(detail.getDetail())
                 .withStatus(statusType)
+                .build());
+    }
+
+    @ExceptionHandler({
+        GenericForbiddenException.class,
+        RoleAssignmentVerificationException.class,
+        TaskAssignAndCompleteException.class,
+        TaskAssignException.class,
+        TaskClaimException.class,
+        TaskCompleteException.class,
+        TaskUnclaimException.class,
+        TaskCancelException.class,
+        DatabaseConflictException.class,
+        GenericServerErrorException.class,
+        TaskNotFoundException.class
+    })
+    protected ResponseEntity<Problem> handleApplicationProblemExceptions(
+        AbstractThrowableProblem ex
+    ) {
+        log.error(EXCEPTION_OCCURRED, ex.getMessage(), ex);
+        return ResponseEntity.status(ex.getStatus().getStatusCode())
+            .header(CONTENT_TYPE, APPLICATION_PROBLEM_JSON_VALUE)
+            .body(Problem.builder()
+                .withType(ex.getType())
+                .withTitle(ex.getTitle())
+                .withDetail(ex.getMessage())
+                .withStatus(ex.getStatus())
                 .build());
     }
 
