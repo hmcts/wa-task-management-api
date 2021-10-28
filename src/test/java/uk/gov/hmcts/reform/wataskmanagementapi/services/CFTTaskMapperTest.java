@@ -78,7 +78,12 @@ class CFTTaskMapperTest {
     @Test
     void given_null_attribute_when_mapToTaskResource_then_dont_throw_exception() {
         List<TaskAttribute> attributes = new ArrayList<>();
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"));
+        attributes.add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
         attributes.add(null);
         assertDoesNotThrow(() -> {
             cftTaskMapper.mapToTaskResource(taskId, attributes);
