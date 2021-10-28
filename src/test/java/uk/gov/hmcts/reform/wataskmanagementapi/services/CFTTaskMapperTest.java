@@ -38,6 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
@@ -390,11 +393,31 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_throw_exception_when_no_due_date() {
+
+        List<TaskAttribute> attributes = asList(
+            new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+        );
+
+        assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage("TASK_DUE_DATE must not be null")
+            .hasNoCause();
+    }
+
+    @Test
     void should_throw_exception_when_task_system_enum_is_not_mapped() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         List<TaskAttribute> attributes = asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "someTaskSystem")
+            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "someTaskSystem"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+
         );
 
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
