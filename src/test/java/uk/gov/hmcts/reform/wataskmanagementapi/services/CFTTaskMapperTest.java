@@ -249,6 +249,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertNull(taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
+        assertNotNull(taskResource.getWorkTypeResource());
         assertEquals("someWorkType", taskResource.getWorkTypeResource().getId());
         assertEquals(null, taskResource.getRoleCategory());
         assertNull(taskResource.getRoleCategory());
@@ -466,43 +467,6 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
             new TaskConfigurationResults(mappedValues));
-
-        assertNull(taskResource.getWorkTypeResource().getId());
-        assertEquals(emptySet(), taskResource.getTaskRoleResources());
-    }
-
-    @Test
-    void should_map_configuration_attributes_when_work_type_id_is_null() {
-        TaskResource skeletonTask = new TaskResource(
-            taskId,
-            "someCamundaTaskName",
-            "someTaskType",
-            UNCONFIGURED,
-            "someCaseId"
-        );
-
-        HashMap<String, Object> mappedValues = new HashMap<>();
-        mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
-        mappedValues.put(TASK_TYPE.value(), "someTaskType");
-        mappedValues.put(AUTO_ASSIGNED.value(), false);
-        mappedValues.put(JURISDICTION.value(), "IA");
-        mappedValues.put(CASE_NAME.value(), "Bob Smith");
-        mappedValues.put(CASE_TYPE_ID.value(), "someCaseTypeId");
-        mappedValues.put(EXECUTION_TYPE.value(), "MANUAL");
-        mappedValues.put(LOCATION.value(), "someStaffLocationId");
-        mappedValues.put(LOCATION_NAME.value(), "someStaffLocationName");
-        mappedValues.put(REGION.value(), "1");
-        mappedValues.put(SECURITY_CLASSIFICATION.value(), "PUBLIC");
-        mappedValues.put(TASK_SYSTEM.value(), "SELF");
-        mappedValues.put(TITLE.value(), "someTitle");
-        mappedValues.put(HAS_WARNINGS.value(), false);
-        mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
-        mappedValues.put(WORK_TYPE.value(), null);
-
-        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
-            skeletonTask,
-            new TaskConfigurationResults(mappedValues));
-
 
         assertNotNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getWorkTypeResource().getId());
