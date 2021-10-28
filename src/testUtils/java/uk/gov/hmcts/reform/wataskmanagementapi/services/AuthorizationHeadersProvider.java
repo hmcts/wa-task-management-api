@@ -72,18 +72,6 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-    //todo: check here
-    /*public Headers getTribunalCaseworkerR2Authorization(String emailPrefix) {
-     *//*
-     * This user is used to assign role assignments to on a per test basis.
-     * A clean up before assigning new role assignments is needed.
-     *//*
-        return new Headers(
-            getCaseworkerR2AuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }*/
-
     public Headers getLawFirmAuthorization() {
         /*
          * This user is used to create cases in ccd
@@ -106,16 +94,6 @@ public class AuthorizationHeadersProvider {
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
-
-    //todo: check here
-    /*public Header getCaseworkerR2AuthorizationOnly(String emailPrefix) {
-
-        String key = "Caseworker R2";
-
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
-
-    }*/
 
     public Header getLawFirmAuthorizationOnly() {
 
