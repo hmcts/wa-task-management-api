@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -176,7 +177,8 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             id,
             "taskName",
             "taskType",
-            UNCONFIGURED
+            UNCONFIGURED,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
         taskResourceRepository.save(taskResource);
     }

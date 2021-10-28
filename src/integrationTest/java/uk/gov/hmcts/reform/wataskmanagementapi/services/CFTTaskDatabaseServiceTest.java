@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,8 +35,9 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
             taskId,
             "someTaskName",
             "someTaskType",
-            UNCONFIGURED
-        );
+            UNCONFIGURED,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
+            );
 
         TaskResource updatedTaskResource = cftTaskDatabaseService.saveTask(taskResource);
         assertNotNull(updatedTaskResource);
@@ -82,7 +84,8 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
             UUID.randomUUID().toString(),
             "someTaskName",
             "someTaskType",
-            UNCONFIGURED
+            UNCONFIGURED,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
 
         return taskResourceRepository.save(taskResource);

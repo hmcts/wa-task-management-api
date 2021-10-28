@@ -96,6 +96,8 @@ public class CFTTaskMapper {
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
 
+        Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+
         return new TaskResource(
             taskId,
             read(attributes, TASK_NAME, null),
