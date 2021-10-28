@@ -263,7 +263,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(2))
+            .body("tasks.size()", lessThanOrEqualTo(2))
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
