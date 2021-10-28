@@ -54,7 +54,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 
 @Slf4j
-public class PostTaskForSearchCompletionControllerCftTest extends SpringBootFunctionalBaseTest {
+public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
     private static final String TASK_INITIATION_END_POINT = "task/{task-id}";

@@ -5,7 +5,7 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskSearchControllerCftTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskSearchControllerCFTTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskSearchControllerTest;
 
 import static org.junit.Assert.assertTrue;
@@ -13,7 +13,7 @@ import static org.junit.Assert.assertTrue;
 public class SearchSuite {
     @Test
     public void runInParallel() {
-        Class[] cls = {PostTaskSearchControllerCftTest.class, PostTaskSearchControllerTest.class};
+        Class[] cls = {PostTaskSearchControllerCFTTest.class, PostTaskSearchControllerTest.class};
         // Parallel among classes
         Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
 

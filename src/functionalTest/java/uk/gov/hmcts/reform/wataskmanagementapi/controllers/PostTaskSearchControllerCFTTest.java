@@ -60,7 +60,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 
-public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTest {
+public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
     private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
