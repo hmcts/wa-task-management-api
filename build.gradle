@@ -106,16 +106,24 @@ test {
   failFast = true
 }
 
+//task functional(type: Test) {
+//  exclude '**/controllers/suites/**'
+//  exclude '**/controllersuite/**'
+//  description = "Runs functional tests"
+//  group = "Verification"
+//  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+//  classpath = sourceSets.functionalTest.runtimeClasspath
+//  maxParallelForks = 5
+//}
+//todo:rollback
 task functional(type: Test) {
-  exclude '**/controllers/suites/**'
+  exclude '**/controllers/**'
   exclude '**/controllersuite/**'
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  //maxParallelForks = 5
 }
-
 task integration(type: Test) {
   description = "Runs integration tests"
   group = "Verification"
