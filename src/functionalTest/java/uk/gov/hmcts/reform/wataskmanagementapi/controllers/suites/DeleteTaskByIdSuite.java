@@ -5,15 +5,14 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.DeleteTaskByIdControllerCFTTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.DeleteTaskByIdControllerTest;
 
 import static org.junit.Assert.assertTrue;
 
 public class DeleteTaskByIdSuite {
-    @Value("${RUN_TESTS_IN_PARALLEL:false}")
-    boolean shouldRunTestInParallel;
+    boolean shouldRunTestInParallel = Boolean.parseBoolean(System.getenv("RUN_TESTS_IN_PARALLEL"));
+
 
     @Test
     public void runInParallel() {

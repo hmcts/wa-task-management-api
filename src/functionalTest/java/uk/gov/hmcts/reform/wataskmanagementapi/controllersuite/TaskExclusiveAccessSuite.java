@@ -5,14 +5,13 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.InitiateByIdSuite;
 
 import static org.junit.Assert.assertTrue;
 
 public class TaskExclusiveAccessSuite {
-    @Value("${RUN_TESTS_IN_PARALLEL:false}")
-    boolean shouldRunTestInParallel;
+    boolean shouldRunTestInParallel = Boolean.parseBoolean(System.getenv("RUN_TESTS_IN_PARALLEL"));
 
     @Test
     public void runInParallel() {

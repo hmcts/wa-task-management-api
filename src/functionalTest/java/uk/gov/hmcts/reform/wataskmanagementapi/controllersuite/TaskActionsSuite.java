@@ -5,7 +5,6 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.AssignByIdSuite;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.CancelByIdSuite;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.ClaimByIdSuite;
@@ -17,11 +16,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.UnclaimSuite;
 import static org.junit.Assert.assertTrue;
 
 public class TaskActionsSuite {
-    @Value("${RUN_TESTS_IN_PARALLEL:false}")
-    boolean shouldRunTestInParallel;
+
+    boolean shouldRunTestInParallel = Boolean.parseBoolean(System.getenv("RUN_TESTS_IN_PARALLEL"));
 
     @Test
     public void runInParallel() {
+
+        System.out.println("======================");
+        System.out.println(shouldRunTestInParallel);
+        System.out.println("======================");
         Class[] cls = {
             AssignByIdSuite.class,
             CancelByIdSuite.class,
