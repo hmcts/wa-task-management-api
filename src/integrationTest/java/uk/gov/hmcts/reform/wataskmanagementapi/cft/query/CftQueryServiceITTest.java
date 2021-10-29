@@ -54,7 +54,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/data.sql")
-public class CftQueryServiceTest {
+public class CftQueryServiceITTest {
 
     private List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
@@ -90,7 +90,7 @@ public class CftQueryServiceTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
             accessControlResponse, permissionsRequired
         );
@@ -121,7 +121,7 @@ public class CftQueryServiceTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
             accessControlResponse, permissionsRequired
         );
@@ -143,7 +143,7 @@ public class CftQueryServiceTest {
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+        GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
 
@@ -151,21 +151,21 @@ public class CftQueryServiceTest {
         Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
 
-        allTasks = cftQueryService.getAllTasks(
+        allTasks = cftQueryService.searchForTasks(
             0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
         );
         //then
         Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
 
-        allTasks = cftQueryService.getAllTasks(
+        allTasks = cftQueryService.searchForTasks(
             1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
         //then
         Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
 
-        allTasks = cftQueryService.getAllTasks(
+        allTasks = cftQueryService.searchForTasks(
             -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
         //then

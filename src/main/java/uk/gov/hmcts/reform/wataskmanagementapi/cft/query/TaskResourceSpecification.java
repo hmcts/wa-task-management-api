@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -20,6 +21,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByState;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskId;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods", "PMD.LawOfDemeter"})
@@ -57,7 +60,9 @@ public final class TaskResourceSpecification {
         SearchEventAndCase searchEventAndCase, AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired, List<String> taskTypes) {
 
-        return searchByCaseId(List.of(searchEventAndCase.getCaseId()))
+        final String caseId = searchEventAndCase.getCaseId();
+        List<String> caseIdList = caseId == null ? Collections.emptyList() : List.of(caseId);
+        return searchByCaseId(caseIdList)
             .and(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .and(searchByTaskTypes(taskTypes))
             //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
@@ -119,15 +124,6 @@ public final class TaskResourceSpecification {
         }
 
         return (root, query, builder) -> builder.conjunction();
-    }
-
-    private static Specification<TaskResource> searchByTaskId(String taskId) {
-        return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
-    }
-
-    private static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {
-        return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
-            .value(taskTypes);
     }
 
     private static EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {

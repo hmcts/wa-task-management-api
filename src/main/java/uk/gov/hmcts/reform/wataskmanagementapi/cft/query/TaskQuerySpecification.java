@@ -45,4 +45,13 @@ public final class TaskQuerySpecification {
             .value(users);
     }
 
+    public static Specification<TaskResource> searchByTaskId(String taskId) {
+        return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
+    }
+
+    public static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {
+        return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
+            .value(taskTypes);
+    }
+
 }

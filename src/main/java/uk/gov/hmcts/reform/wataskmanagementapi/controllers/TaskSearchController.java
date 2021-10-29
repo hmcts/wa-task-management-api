@@ -104,7 +104,7 @@ public class TaskSearchController extends BaseController {
 
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = singletonList(READ);
-            GetTasksResponse<Task> tasksResponse = cftQueryService.getAllTasks(
+            GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
                 firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
                 searchTaskRequest, accessControlResponse, permissionsRequired
             );

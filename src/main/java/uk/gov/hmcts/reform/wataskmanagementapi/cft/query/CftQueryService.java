@@ -43,7 +43,7 @@ public class CftQueryService {
         this.taskResourceRepository = taskResourceRepository;
     }
 
-    public GetTasksResponse<Task> getAllTasks(
+    public GetTasksResponse<Task> searchForTasks(
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
