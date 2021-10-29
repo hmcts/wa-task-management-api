@@ -35,14 +35,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_complete_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
-@PactFolder("pacts")
-/*@PactBroker(
+//@PactFolder("pacts")
+@PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
     port = "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
-)*/
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagerCompleteTaskProviderTest {

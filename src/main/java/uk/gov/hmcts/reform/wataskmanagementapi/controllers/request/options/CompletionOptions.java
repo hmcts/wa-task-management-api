@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
