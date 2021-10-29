@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -224,9 +225,17 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 
+        roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.BASIC)
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+
+        roleAssignments.add(roleAssignment);
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             roleAssignments
