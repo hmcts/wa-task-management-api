@@ -106,14 +106,23 @@ test {
   failFast = true
 }
 
+//task functional(type: Test) {
+//  exclude '**/controllers/suites/**'
+//  exclude '**/controllersuite/**'
+//  description = "Runs functional tests"
+//  group = "Verification"
+//  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+//  classpath = sourceSets.functionalTest.runtimeClasspath
+//  maxParallelForks = 5
+//}
+//todo:rollback
 task functional(type: Test) {
-  exclude '**/controllers/suites/**'
+  exclude '**/controllers/**'
   exclude '**/controllersuite/**'
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
-  maxParallelForks = 5
 }
 
 task integration(type: Test) {
@@ -261,16 +270,16 @@ repositories {
 }
 
 def versions = [
-    junit           : '5.7.2',
-    junitPlatform   : '1.7.2',
-    reformLogging   : '5.1.5',
-    springfoxSwagger: '3.0.0',
-    serenity        : '2.2.12',
-    gradlePitest    : '1.5.1',
-    pitest          : '1.5.2',
-    sonarPitest     : '0.5',
-    pactVersion     : '4.1.7',
-    logbook         : '2.6.2'
+  junit           : '5.7.2',
+  junitPlatform   : '1.7.2',
+  reformLogging   : '5.1.5',
+  springfoxSwagger: '3.0.0',
+  serenity        : '2.2.12',
+  gradlePitest    : '1.5.1',
+  pitest          : '1.5.2',
+  sonarPitest     : '0.5',
+  pactVersion     : '4.1.7',
+  logbook         : '2.6.2'
 ]
 
 ext.libraries = [
