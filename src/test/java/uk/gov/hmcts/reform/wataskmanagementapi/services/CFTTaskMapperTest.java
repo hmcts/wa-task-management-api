@@ -520,7 +520,25 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_map_task_resource_to_task_when_due_date_is_null() {
+    void should_map_task_resource_to_task_when_work_type_not_exists() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes = getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertNull(task.getWorkType());
+
+        assertNotNull(taskResource.getWorkTypeResource());
+        assertNull(taskResource.getWorkTypeResource().getId());
+    }
+
+    @Test
+    void should_throw_exception_when_map_task_resource_to_task_and_due_date_is_null() {
         List<TaskAttribute> attributes = getDefaultAttributesWithoutDueDate();
 
         AssertionsForClassTypes.assertThatThrownBy(() -> cftTaskMapper.mapToTaskResource(taskId, attributes))
@@ -544,6 +562,24 @@ class CFTTaskMapperTest {
         Task task = cftTaskMapper.mapToTask(taskResource);
         assertNotNull(task.getDueDate());
         assertNull(task.getCreatedDate());
+    }
+
+    @Test
+    void should_map_task_resource_to_task_when_due_date_is_null() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        assertNotNull(taskResource.getDueDateTime());
+
+        //given
+        taskResource.setDueDateTime(null);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+        assertNull(task.getDueDate());
     }
 
     @Test
@@ -695,6 +731,42 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, "someWorkType"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+        );
+    }
+
+    private List<TaskAttribute> getDefaultAttributesWithoutWithWorkType(String createdDate, String dueDate) {
+        return asList(
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_CATEGORY, "someCaseCategory"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_ID, "00000"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_NAME, "someCaseName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_TYPE_ID, "someCaseType"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CREATED, createdDate),
+            new TaskAttribute(TaskAttributeDefinition.TASK_DUE_DATE, dueDate),
+            new TaskAttribute(TaskAttributeDefinition.TASK_DESCRIPTION, "someCamundaTaskDescription"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_HAS_WARNINGS, false),
+            new TaskAttribute(TaskAttributeDefinition.TASK_JURISDICTION, "someJurisdiction"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION, "someStaffLocationId"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION_NAME, "someStaffLocationName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "someCamundaTaskName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_REGION, "someRegion"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "PUBLIC"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_STATE, CFTTaskState.UNCONFIGURED),
+            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "SELF"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TITLE, "someTitle"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, "someTaskType"),
+            //Unmapped
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_MAJOR_PRIORITY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_MINOR_PRIORITY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ROLES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ROLE_CATEGORY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
         );
     }
