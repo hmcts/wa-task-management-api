@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.InitiateByIdSu
 import static org.junit.Assert.assertTrue;
 
 public class TaskExclusiveAccessSuite {
-    @Value("${run.parallel}")
+    @Value("${RUN_TESTS_IN_PARALLEL:false}")
     boolean shouldRunTestInParallel;
 
     @Test

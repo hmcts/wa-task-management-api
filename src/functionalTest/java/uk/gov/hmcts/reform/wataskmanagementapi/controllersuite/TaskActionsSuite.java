@@ -17,7 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.UnclaimSuite;
 import static org.junit.Assert.assertTrue;
 
 public class TaskActionsSuite {
-    @Value("${run.parallel}")
+    @Value("${RUN_TESTS_IN_PARALLEL:false}")
     boolean shouldRunTestInParallel;
 
     @Test
