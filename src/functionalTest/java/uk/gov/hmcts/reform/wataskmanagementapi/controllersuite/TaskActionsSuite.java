@@ -22,9 +22,6 @@ public class TaskActionsSuite {
     @Test
     public void runInParallel() {
 
-        System.out.println("======================");
-        System.out.println(shouldRunTestInParallel);
-        System.out.println("======================");
         Class[] cls = {
             AssignByIdSuite.class,
             CancelByIdSuite.class,
