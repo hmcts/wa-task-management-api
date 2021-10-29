@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
+@Slf4j
 @Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class RoleAssignmentService {
@@ -43,6 +45,7 @@ public class RoleAssignmentService {
                 serviceAuthTokenGenerator.generate()
             );
         } catch (FeignException ex) {
+            log.error("Error when retrieving roles for user '{}'", idamUserId, ex);
             throw new UnAuthorizedException(
                 "User did not have sufficient permissions to perform this action", ex);
         }
