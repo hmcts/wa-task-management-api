@@ -128,6 +128,7 @@ public class RoleAssignmentTestUtils {
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
+            .endTime(LocalDateTime.now().minusYears(1))
             .build();
         roleAssignments.add(roleAssignment);
 

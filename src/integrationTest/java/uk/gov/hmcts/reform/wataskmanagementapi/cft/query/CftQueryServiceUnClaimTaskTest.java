@@ -233,7 +233,7 @@ public class CftQueryServiceUnClaimTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
+        permissionsRequired.add(PermissionTypes.CANCEL);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();

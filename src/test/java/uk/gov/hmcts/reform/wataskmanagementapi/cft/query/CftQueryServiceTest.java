@@ -111,6 +111,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
+
+            verify(taskResourceRepository, times(1)).findAll(any(), any(Pageable.class));
         }
 
         @Test
@@ -146,6 +148,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", task.getId());
             assertNotNull(task.getCreatedDate());
             assertNotNull(task.getDueDate());
+
+            verify(taskResourceRepository, times(1)).findAll(any(), any(Pageable.class));
         }
 
         @Test
@@ -238,6 +242,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             assertNotNull(returnedTask);
             assertEquals(expectedTask, returnedTask.get());
+
+            verify(taskResourceRepository, times(1)).findOne(any());
         }
 
         @Test
@@ -361,6 +367,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertNotNull(response);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", response.getTasks().get(0).getId());
             assertTrue(response.isTaskRequiredForEvent());
+
+            verify(taskResourceRepository, times(1)).findAll(any());
         }
 
         @Test
