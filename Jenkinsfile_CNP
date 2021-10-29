@@ -60,16 +60,22 @@ withPipeline(type, product, component) {
     env.PACT_BROKER_SCHEME = "https"
     env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
 
-    env.RUN_TESTS_IN_PARALLEL = true;
-
     after('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
     }
 
+    before('functionalTest:preview') {
+        env.RUN_TESTS_IN_PARALLEL = true
+    }
+
     after('functionalTest:preview') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+    }
+
+    before('functionalTest:aat') {
+        env.RUN_TESTS_IN_PARALLEL = true
     }
 
     after('functionalTest:aat') {
