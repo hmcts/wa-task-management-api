@@ -107,11 +107,13 @@ test {
 }
 
 task functional(type: Test) {
-  exclude '**/controllers/**'
+  exclude '**/controllers/suites/**'
+  exclude '**/controllersuite/**'
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+  maxParallelForks = 5
 }
 
 task integration(type: Test) {
