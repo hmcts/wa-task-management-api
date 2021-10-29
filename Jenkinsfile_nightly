@@ -68,6 +68,7 @@ withNightlyPipeline(type, product, component) {
   env.PACT_BROKER_PORT = "443"
   env.PACT_BROKER_SCHEME = "https"
   env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
+  env.RUN_TESTS_IN_PARALLEL = true;
 
   enableSecurityScan()
   enableMutationTest()

@@ -5,18 +5,23 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
+import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.InitiateByIdSuite;
 
 import static org.junit.Assert.assertTrue;
 
 public class TaskExclusiveAccessSuite {
+    @Value("${run.parallel}")
+    boolean shouldRunTestInParallel;
+
     @Test
     public void runInParallel() {
         Class[] cls = {
             InitiateByIdSuite.class,
         };
-        // Parallel among classes
-        Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
+        Result result = shouldRunTestInParallel ?
+            JUnitCore.runClasses(ParallelComputer.classes(), cls) : JUnitCore.runClasses(cls);
+
 
 
         String failures = "";
