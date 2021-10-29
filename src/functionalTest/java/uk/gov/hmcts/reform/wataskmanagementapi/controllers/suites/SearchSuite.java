@@ -17,7 +17,6 @@ public class SearchSuite {
         // Parallel among classes
         Result result = JUnitCore.runClasses(ParallelComputer.classes(), cls);
 
-
         String failures = "";
 
         if (!result.wasSuccessful()) {

@@ -5,17 +5,22 @@ import org.junit.experimental.ParallelComputer;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
+import org.springframework.beans.factory.annotation.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.PostTaskInitiateByIdControllerTest;
 
 import static org.junit.Assert.assertTrue;
 
 public class InitiateByIdSuite {
+    @Value("${RUN_TESTS_IN_PARALLEL:false}")
+    boolean shouldRunTestInParallel;
+
     @Test
     public void runInParallel() {
         Class[] cls = {PostTaskInitiateByIdControllerTest.class};
 
-        // Parallel all methods in all classes
-        Result result = JUnitCore.runClasses(new ParallelComputer(true, true), cls);
+        Result result = shouldRunTestInParallel
+            ? JUnitCore.runClasses(ParallelComputer.methods(), cls)
+            : JUnitCore.runClasses(cls);
 
         String failures = "";
 
