@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -62,8 +63,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
@@ -121,9 +124,15 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName")
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+
         ));
 
         mockMvc.perform(
@@ -194,10 +203,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ExecutorService executorService = new ScheduledThreadPoolExecutor(2);
         executorService.execute(() -> {
             try {
+                ZonedDateTime createdDate = ZonedDateTime.now();
+                ZonedDateTime dueDate = createdDate.plusDays(1);
+                String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
                 InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
                     new TaskAttribute(TASK_TYPE, "aTaskType"),
                     new TaskAttribute(TASK_NAME, "aTaskName"),
-                    new TaskAttribute(TASK_CASE_ID, "someCaseId")
+                    new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+                    new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+
                 ));
                 mockMvc.perform(
                     post(ENDPOINT_BEING_TESTED)
@@ -217,10 +232,15 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         TimeUnit.SECONDS.sleep(1); // to ensure second call does not start before first call above
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "some other task type"),
             new TaskAttribute(TASK_NAME, "soe other task name"),
-            new TaskAttribute(TASK_CASE_ID, "some other task case id")
+            new TaskAttribute(TASK_CASE_ID, "some other task case id"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+
         ));
 
         mockMvc.perform(
@@ -252,10 +272,15 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
             .thenThrow(new RuntimeException("some error"));
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         mockMvc.perform(
@@ -316,10 +341,15 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         mockMvc.perform(
@@ -426,23 +456,28 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
                 Collections.singletonList(RoleAssignment.builder()
-                                              .id("someId")
-                                              .actorIdType(ActorIdType.IDAM)
-                                              .actorId(IDAM_USER_ID)
-                                              .roleName("tribunal-caseworker")
-                                              .roleCategory(RoleCategory.LEGAL_OPERATIONS)
-                                              .grantType(GrantType.SPECIFIC)
-                                              .roleType(RoleType.ORGANISATION)
-                                              .classification(Classification.PUBLIC)
-                                              .authorisations(asList("IA"))
-                                              .build())));
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId(IDAM_USER_ID)
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(asList("IA"))
+                    .build())));
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_CASE_ID, "someCaseId")
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
+
         mockMvc.perform(
                 post(ENDPOINT_BEING_TESTED)
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
