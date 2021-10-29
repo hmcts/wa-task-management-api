@@ -19,8 +19,10 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -42,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search_completable")
+//@PactFolder("pacts")
 @PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
@@ -173,14 +176,35 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     private void setInitMockForSearchByCompletableTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(userInfo.getEmail()).thenReturn("test@test.com");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail())
+        ).thenReturn(false);
+
         when(taskManagementService.searchForCompletableTasks(any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
     }
 
     private void setInitMockForSearchByCompletableTaskWithWarnings() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(userInfo.getEmail()).thenReturn("test@test.com");
+        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
+            accessControlResponse.getUserInfo().getEmail())
+        ).thenReturn(false);
+
         when(taskManagementService.searchForCompletableTasks(any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
