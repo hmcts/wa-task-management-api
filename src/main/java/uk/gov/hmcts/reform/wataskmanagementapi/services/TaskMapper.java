@@ -93,7 +93,6 @@ public class TaskMapper {
             hasWarnings,
             warningList,
             caseManagementCategory
-
         );
     }
 
