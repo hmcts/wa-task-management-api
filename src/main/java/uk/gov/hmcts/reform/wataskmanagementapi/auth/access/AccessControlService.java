@@ -33,6 +33,7 @@ public class AccessControlService {
 
         //Safe-guard
         if (roleAssignments.isEmpty()) {
+            log.error("No Role Assignments for user '{}'", userInfo.getUid());
             throw new NoRoleAssignmentsFoundException(
                 "User did not have sufficient permissions to perform this action"
             );
