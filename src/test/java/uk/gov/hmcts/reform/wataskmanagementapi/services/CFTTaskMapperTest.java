@@ -526,7 +526,8 @@ class CFTTaskMapperTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        List<TaskAttribute> attributes = getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
+        List<TaskAttribute> attributes =
+            getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Task task = cftTaskMapper.mapToTask(taskResource);
