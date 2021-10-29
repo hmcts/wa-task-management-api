@@ -19,7 +19,7 @@ public class AssignByIdSuite {
         Class[] cls = {PostTaskAssignByIdControllerCFTTest.class, PostTaskAssignByIdControllerTest.class};
 
         Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.methods(), cls)
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
             : JUnitCore.runClasses(cls);
 
         String failures = "";

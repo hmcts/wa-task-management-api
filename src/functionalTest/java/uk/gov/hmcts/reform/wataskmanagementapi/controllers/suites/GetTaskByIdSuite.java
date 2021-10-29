@@ -18,7 +18,7 @@ public class GetTaskByIdSuite {
     public void runInParallel() {
         Class[] cls = {GetTaskByIdControllerCFTTest.class, GetTaskByIdControllerTest.class};
         Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.methods(), cls)
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
             : JUnitCore.runClasses(cls);
 
         String failures = "";

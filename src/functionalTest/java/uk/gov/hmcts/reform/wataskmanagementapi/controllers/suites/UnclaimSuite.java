@@ -18,7 +18,7 @@ public class UnclaimSuite {
     public void runInParallel() {
         Class[] cls = {PostUnclaimByIdControllerCFTTest.class, PostUnclaimByIdControllerTest.class};
         Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.methods(), cls)
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
             : JUnitCore.runClasses(cls);
 
         String failures = "";

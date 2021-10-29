@@ -19,7 +19,7 @@ public class CancelByIdSuite {
         Class[] cls = {PostTaskCancelByIdControllerCFTTest.class, PostTaskCancelByIdControllerTest.class};
 
         Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.methods(), cls)
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
             : JUnitCore.runClasses(cls);
 
         String failures = "";

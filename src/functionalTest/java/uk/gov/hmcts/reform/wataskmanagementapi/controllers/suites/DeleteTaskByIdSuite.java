@@ -18,7 +18,7 @@ public class DeleteTaskByIdSuite {
     public void runInParallel() {
         Class[] cls = {DeleteTaskByIdControllerTest.class, DeleteTaskByIdControllerCFTTest.class};
         Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.methods(), cls)
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
             : JUnitCore.runClasses(cls);
 
         String failures = "";
