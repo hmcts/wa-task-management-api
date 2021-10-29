@@ -10,6 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import java.io.Serializable;
@@ -201,6 +204,32 @@ public class RoleAssignmentFilterTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             inActiveRoles()
+        );
+
+        // Classification as public
+        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse);
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    @Test
+    void shouldFilterWhenRoleBeginAndEndTimeAreNotGiven() {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.BASIC)
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
         );
 
         // Classification as public
