@@ -19,10 +19,10 @@ public class TaskExclusiveAccessSuite {
         Class[] cls = {
             InitiateByIdSuite.class,
         };
-        Result result = shouldRunTestInParallel ?
-            JUnitCore.runClasses(ParallelComputer.classes(), cls) : JUnitCore.runClasses(cls);
 
-
+        Result result = shouldRunTestInParallel
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
+            : JUnitCore.runClasses(cls);
 
         String failures = "";
 

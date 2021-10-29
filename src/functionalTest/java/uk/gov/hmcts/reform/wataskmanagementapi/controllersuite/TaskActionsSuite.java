@@ -32,8 +32,9 @@ public class TaskActionsSuite {
             UnclaimSuite.class
         };
 
-        Result result = shouldRunTestInParallel ?
-            JUnitCore.runClasses(ParallelComputer.classes(), cls) : JUnitCore.runClasses(cls);
+        Result result = shouldRunTestInParallel
+            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
+            : JUnitCore.runClasses(cls);
 
         String failures = "";
 
