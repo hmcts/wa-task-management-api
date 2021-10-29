@@ -530,12 +530,14 @@ class CFTTaskMapperTest {
             getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        taskResource.setWorkTypeResource(null);
+
         Task task = cftTaskMapper.mapToTask(taskResource);
 
         assertNull(task.getWorkType());
 
-        assertNotNull(taskResource.getWorkTypeResource());
-        assertNull(taskResource.getWorkTypeResource().getId());
+        AssertionsForClassTypes.assertThatThrownBy(() -> taskResource.getWorkTypeResource().getId())
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
