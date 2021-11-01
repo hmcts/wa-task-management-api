@@ -17,8 +17,6 @@ import static org.junit.Assert.assertTrue;
 
 public class TaskActionsSuite {
 
-    boolean shouldRunTestInParallel = Boolean.parseBoolean(System.getenv("RUN_TESTS_IN_PARALLEL"));
-
     @Test
     public void runInParallel() {
 
@@ -32,9 +30,7 @@ public class TaskActionsSuite {
             UnclaimSuite.class
         };
 
-        Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
-            : JUnitCore.runClasses(cls);
+        Result result = JUnitCore.runClasses(cls);
 
         String failures = "";
 

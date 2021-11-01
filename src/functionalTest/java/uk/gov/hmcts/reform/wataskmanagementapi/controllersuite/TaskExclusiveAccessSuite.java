@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.suites.InitiateByIdSu
 import static org.junit.Assert.assertTrue;
 
 public class TaskExclusiveAccessSuite {
-    boolean shouldRunTestInParallel = Boolean.parseBoolean(System.getenv("RUN_TESTS_IN_PARALLEL"));
 
     @Test
     public void runInParallel() {
@@ -18,9 +17,7 @@ public class TaskExclusiveAccessSuite {
             InitiateByIdSuite.class,
         };
 
-        Result result = shouldRunTestInParallel
-            ? JUnitCore.runClasses(ParallelComputer.classes(), cls)
-            : JUnitCore.runClasses(cls);
+        Result result = JUnitCore.runClasses(cls);
 
         String failures = "";
 
