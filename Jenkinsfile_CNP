@@ -65,7 +65,7 @@ withPipeline(type, product, component) {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
     }
     before('functionalTest:preview') {
-        env.MAX_FT_TESTS_PARALLEL_FORKS = 5
+        env.MAX_FT_TESTS_PARALLEL_FORKS = 4
     }
 
     after('functionalTest:preview') {
@@ -74,7 +74,7 @@ withPipeline(type, product, component) {
     }
 
     before('functionalTest:aat') {
-        env.MAX_FT_TESTS_PARALLEL_FORKS = 5
+        env.MAX_FT_TESTS_PARALLEL_FORKS = 4
     }
     after('functionalTest:aat') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
