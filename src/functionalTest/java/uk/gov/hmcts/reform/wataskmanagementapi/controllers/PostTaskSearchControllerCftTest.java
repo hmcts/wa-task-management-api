@@ -34,7 +34,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.contains;
@@ -103,7 +102,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -127,7 +126,13 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(
+                    CASE_ID,
+                    SearchOperator.IN,
+                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+            ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
@@ -149,7 +154,13 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         // Given query
         searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(
+                    CASE_ID,
+                    SearchOperator.IN,
+                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+            ),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
         );
 
@@ -183,17 +194,15 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -213,7 +222,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -221,8 +230,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1))
             .body("tasks.warnings", everyItem(notNullValue()))
             .body("tasks.warning_list.values", everyItem(notNullValue()));
@@ -231,7 +238,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_200_with_all_tasks_without_pagination() {
+    public void should_return_a_200_with_max_50_tasks_without_pagination_parameter() {
         //creating 3 tasks
         String[] taskStates = {TaskState.ASSIGNED.value(), TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value()};
 
@@ -425,14 +432,14 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
@@ -460,18 +467,16 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -498,18 +503,16 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -607,18 +610,17 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -647,7 +649,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -655,9 +657,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItems(tasksCreated.get(0).getTaskId(), tasksCreated.get(1).getTaskId()))
-            .body("tasks.case_id", hasItems(tasksCreated.get(0).getCaseId(), tasksCreated.get(1).getCaseId()))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(equalTo("IA")))
@@ -731,14 +731,14 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         tasksCreated.forEach(task -> insertTaskInCftTaskDb(task.getCaseId(), task.getTaskId()));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.name", everyItem(notNullValue()))
             .body("tasks.type", everyItem(notNullValue()))
