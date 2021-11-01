@@ -68,7 +68,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "some task type",
             CFTTaskState.ASSIGNED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
-
         );
 
         executorService.execute(() -> {
@@ -141,10 +140,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     private void checkTaskWasSaved(String taskId) {
-        assertEquals(
-            taskId,
-            taskResourceRepository.getByTaskId(taskId).orElseThrow().getTaskId()
-        );
+        assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
     }
 
     private TaskResource createTask(String taskId) {
