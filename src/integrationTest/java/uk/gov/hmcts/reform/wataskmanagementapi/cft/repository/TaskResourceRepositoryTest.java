@@ -85,6 +85,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         );
 
         assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId()));
+
+        await().timeout(10, TimeUnit.SECONDS);
         checkTaskWasSaved(taskResource.getTaskId());
         checkTaskWasSaved(otherTaskResource.getTaskId());
 
