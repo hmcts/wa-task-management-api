@@ -52,7 +52,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
@@ -74,7 +74,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .and()
             .body("task_id", equalTo(taskId))
             .body("task_name", equalTo("aTaskName"))
-            .body("task_type", equalTo("aTaskType"))
+            .body("task_type", equalTo("followUpOverdueReasonsForAppeal"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
