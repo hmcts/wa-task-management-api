@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -19,14 +20,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Collections.singletonList;
@@ -37,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -265,7 +270,8 @@ class TaskActionsControllerTest {
         NotesRequest notesRequest = new NotesRequest(List.of());
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
-
+        TaskResource taskResource = spy(TaskResource.class);
+        when(taskManagementService.getTaskById(taskId)).thenReturn(Optional.of(taskResource));
         when(taskManagementService.updateNotes(taskId, notesRequest)).thenReturn(any());
         ResponseEntity<Void> response = taskActionsController
             .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, taskId, notesRequest);
@@ -287,6 +293,37 @@ class TaskActionsControllerTest {
             .hasMessage("Forbidden: "
                         + "The action could not be completed because the "
                         + "client/user had insufficient rights to a resource.");
+
+        verify(taskManagementService, times(0))
+            .updateNotes(taskId, notesRequest);
+    }
+
+    @Test
+    void should_return_a_404_if_task_does_not_exist() {
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        NotesRequest notesRequest = new NotesRequest(List.of());
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        assertThatThrownBy(() -> taskActionsController
+            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, nonExistentTaskId, notesRequest))
+            .isInstanceOf(TaskNotFoundException.class)
+            .hasNoCause()
+            .hasMessage("Task Not Found Error: The task could not be found.");
+
+        verify(taskManagementService, times(0))
+            .updateNotes(taskId, notesRequest);
+    }
+
+    @Test
+    void should_return_a_400_when_mandatory_fields_are_missing() {
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        NotesRequest notesRequest = new NotesRequest(List.of());
+        assertThatThrownBy(() -> taskActionsController
+            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, nonExistentTaskId, null))
+            .isInstanceOf(BadRequestException.class)
+            .hasNoCause()
+            .hasMessage("Bad Request");
 
         verify(taskManagementService, times(0))
             .updateNotes(taskId, notesRequest);
