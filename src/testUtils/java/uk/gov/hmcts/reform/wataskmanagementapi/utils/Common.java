@@ -38,11 +38,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Slf4j
 public class Common {
 
-    public static final String REASON_COMPLETED = "completed";
-    public static final String REASON_DELETED = "deleted";
-    public static final String PENDING_TERMINATION = "pendingTermination";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    private static final String ENDPOINT_HISTORY_TASK = "history/task";
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -262,16 +258,32 @@ public class Common {
         );
     }
 
-    private String toJsonString(Map<String, String> attributes) {
-        String json = null;
+    public void setupOrganisationalRoleAssignmentWithOutEndDate(Headers headers) {
 
-        try {
-            json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
-        return json;
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", "IA"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/set-organisational-role-assignment-request-without-end-date.json"
+        );
     }
 
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
@@ -329,6 +341,18 @@ public class Common {
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json"
         );
+    }
+
+    private String toJsonString(Map<String, String> attributes) {
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(attributes);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 
     private void postRoleAssignment(String caseId,

@@ -97,6 +97,8 @@ public class CFTTaskMapper {
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
 
+        Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+
         return new TaskResource(
             taskId,
             read(attributes, TASK_NAME, null),
@@ -164,7 +166,7 @@ public class CFTTaskMapper {
             taskResource.getLocationName(),
             taskResource.getCaseTypeId(),
             taskResource.getCaseId(),
-            taskResource.getRoleCategory(),
+            taskResource.getCaseCategory(),
             taskResource.getCaseName(),
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
@@ -352,7 +354,7 @@ public class CFTTaskMapper {
                 .collect(Collectors.toList());
             return new WarningValues(warnings);
         }
-        return null;
+        return new WarningValues();
     }
 
     @SuppressWarnings("unchecked")

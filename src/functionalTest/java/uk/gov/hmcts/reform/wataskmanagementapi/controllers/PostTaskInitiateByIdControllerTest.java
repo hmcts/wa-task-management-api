@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -22,6 +23,8 @@ import static org.hamcrest.Matchers.is;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -34,9 +37,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test
@@ -45,11 +46,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(
@@ -60,6 +68,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         );
 
         result.prettyPrint();
+        //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
@@ -70,6 +79,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
             .body("title", equalTo("aTaskName"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -82,13 +93,17 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("location_name", equalTo("Taylor House"))
             .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body("execution_type_code.description",
+            .body(
+                "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"))
+                        + "(Typically this will be in CCD.)")
+            )
             .body("task_role_resources[0].task_role_id", notNullValue())
             .body("task_role_resources[0].task_id", equalTo(taskId))
-            .body("task_role_resources[0].role_name",
-                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker")))
+            .body(
+                "task_role_resources[0].role_name",
+                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))
+            )
             .body("task_role_resources[0].read", equalTo(true))
             .body("task_role_resources[0].own", equalTo(true))
             .body("task_role_resources[0].execute", equalTo(false))
@@ -96,12 +111,16 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[0].refer", equalTo(true))
             .body("task_role_resources[0].authorizations", equalTo(emptyList()))
             .body("task_role_resources[0].auto_assignable", equalTo(false))
-            .body("task_role_resources[0].role_category",
-                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())))
+            .body(
+                "task_role_resources[0].role_category",
+                anyOf(is("LEGAL_OPERATIONS"), is(nullValue()))
+            )
             .body("task_role_resources[1].task_role_id", notNullValue())
             .body("task_role_resources[1].task_id", equalTo(taskId))
-            .body("task_role_resources[1].role_name",
-                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker")))
+            .body(
+                "task_role_resources[1].role_name",
+                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))
+            )
             .body("task_role_resources[1].read", equalTo(true))
             .body("task_role_resources[1].own", equalTo(true))
             .body("task_role_resources[1].execute", equalTo(false))
@@ -109,14 +128,15 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_role_resources[1].refer", equalTo(true))
             .body("task_role_resources[1].authorizations", equalTo(emptyList()))
             .body("task_role_resources[1].auto_assignable", equalTo(false))
-            .body("task_role_resources[1].role_category",
+            .body(
+                "task_role_resources[1].role_category",
                 anyOf(is("LEGAL_OPERATIONS"), is(nullValue())));
-
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
             "cftTaskState",
-            "unassigned");
+            "unassigned"
+        );
 
         common.cleanUpTask(taskId);
     }
@@ -127,12 +147,21 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
+
         //First call
         Response resultFirstCall = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -174,10 +203,18 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         String taskId = UUID.randomUUID().toString();
 
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
         //First call
         Response result = restApiActions.post(
@@ -198,13 +235,19 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someInvalidCaseID"),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -222,13 +265,19 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "aTaskType"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
-
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             UUID.randomUUID().toString(),

@@ -5,7 +5,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 
 import java.net.URI;
 
-import static org.zalando.problem.Status.INTERNAL_SERVER_ERROR;
+import static org.zalando.problem.Status.NOT_FOUND;
 
 @SuppressWarnings("java:S110")
 public class TaskNotFoundException extends AbstractThrowableProblem {
@@ -16,6 +16,6 @@ public class TaskNotFoundException extends AbstractThrowableProblem {
     private static final String TITLE = "Task Not Found Error";
 
     public TaskNotFoundException(ErrorMessages message) {
-        super(TYPE, TITLE, INTERNAL_SERVER_ERROR, message.getDetail());
+        super(TYPE, TITLE, NOT_FOUND, message.getDetail());
     }
 }
