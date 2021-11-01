@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -67,7 +68,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "some task type",
             CFTTaskState.ASSIGNED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
-
         );
 
         executorService.execute(() -> {
@@ -95,28 +95,20 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         executorService.awaitTermination(13, TimeUnit.SECONDS);
     }
 
-    private void checkTaskWasSaved(String taskId) {
-        assertEquals(
-            taskId,
-            taskResourceRepository.getByTaskId(taskId).orElseThrow().getTaskId()
-        );
-    }
-
     @Test
     void given_task_is_saved_when_findById_then_task_has_expected_fields() {
         TaskResource str = createTask(taskId);
-        assertEquals(1, taskResourceRepository.count());
-        assertTrue(taskResourceRepository.findById(str.getTaskId()).isPresent());
 
-        WorkTypeResource workTypeResource = taskResourceRepository
-            .findById(str.getTaskId()).get().getWorkTypeResource();
+        final Optional<TaskResource> taskResourceOptional = taskResourceRepository.findById(str.getTaskId());
+        assertTrue(taskResourceOptional.isPresent());
+
+        TaskResource taskResource = taskResourceOptional.get();
+        WorkTypeResource workTypeResource = taskResource.getWorkTypeResource();
 
         assertEquals("routine_work", workTypeResource.getId());
         assertEquals("Routine work", workTypeResource.getLabel());
 
-        final Iterable<TaskResource> tasksIt = taskResourceRepository.findAll();
 
-        final TaskResource taskResource = tasksIt.iterator().next();
         final List<NoteResource> notes = taskResource.getNotes();
 
         assertAll(
@@ -149,12 +141,16 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    private void checkTaskWasSaved(String taskId) {
+        assertTrue(taskResourceRepository.getByTaskId(taskId).isPresent());
+    }
+
     private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
             new NoteResource("someCode",
-                             "noteTypeVal",
-                             "userVal",
-                             "someContent"
+                "noteTypeVal",
+                "userVal",
+                "someContent"
             ));
         return new TaskResource(
             taskId,
