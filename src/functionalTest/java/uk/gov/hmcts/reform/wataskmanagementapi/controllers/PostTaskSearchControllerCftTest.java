@@ -182,8 +182,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -211,8 +209,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1))
             .body("tasks.warnings", everyItem(notNullValue()))
             .body("tasks.warning_list.values", everyItem(notNullValue()));
@@ -458,10 +454,8 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -496,10 +490,8 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -608,7 +600,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -647,7 +639,6 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
             .body("tasks.id", hasItems(tasksCreated.get(0).getTaskId(), tasksCreated.get(1).getTaskId()))
-            .body("tasks.case_id", hasItems(tasksCreated.get(0).getCaseId(), tasksCreated.get(1).getCaseId()))
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(equalTo("IA")))
