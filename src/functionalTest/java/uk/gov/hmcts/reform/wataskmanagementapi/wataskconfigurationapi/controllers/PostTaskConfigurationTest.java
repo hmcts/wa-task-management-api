@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -37,15 +38,13 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_task_configuration_then_expect_task_is_auto_assigned() throws Exception {
         caseId = createCcdCase();
-        createTaskMessage = createBasicMessageForTask()
-            .withCaseId(caseId)
-            .build();
 
+        createTaskMessage = createBasicMessageForTask("arrangeOfflinePayment", caseId).build();
         taskId = createTask(createTaskMessage);
         log.info("task found [{}]", taskId);
 
         Map<String, Object> requiredProcessVariables = Map.of(
-            TASK_ID.value(), "reviewTheAppeal",
+            TASK_ID.value(), "arrangeOfflinePayment",
             CASE_ID.value(), caseId,
             TASK_NAME.value(), "task name"
         );
@@ -69,7 +68,8 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("case_id", equalTo(caseId))
             .body("assignee", notNullValue())
             .body("configuration_variables", notNullValue())
-            .body("configuration_variables.taskType", equalTo("reviewTheAppeal"))
+            .body("configuration_variables.taskType", equalTo("arrangeOfflinePayment"))
+            .body("configuration_variables.workType", equalTo("routine_work"))
             .body("configuration_variables.jurisdiction", equalTo("IA"))
             .body("configuration_variables.caseTypeId", equalTo("Asylum"))
             .body("configuration_variables.taskState", equalTo("assigned"))
@@ -83,7 +83,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_task_configuration_then_expect_task_is_unassigned() throws Exception {
         caseId = createCcdCase();
-        createTaskMessage = createBasicMessageForTask()
+        createTaskMessage = createBasicMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
             .withCaseId(caseId)
             .build();
         taskId = createTask(createTaskMessage);
