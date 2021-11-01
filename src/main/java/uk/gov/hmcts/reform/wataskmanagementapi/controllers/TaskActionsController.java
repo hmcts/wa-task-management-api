@@ -20,26 +20,33 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.Optional;
+
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.GENERIC_FORBIDDEN_ERROR;
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
-@SuppressWarnings({"PMD.ExcessiveImports"})
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity"})
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
@@ -229,6 +236,7 @@ public class TaskActionsController extends BaseController {
         @ApiResponse(code = 204, message = "Updated Task with notes", response = Object.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 404, message = NOT_FOUND),
         @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
     })
@@ -241,9 +249,18 @@ public class TaskActionsController extends BaseController {
         @RequestBody NotesRequest notesRequest
     ) {
 
+        if (notesRequest == null) {
+            throw new BadRequestException("Bad Request");
+        }
+
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
             throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
+
+        Optional<TaskResource> optionalTaskResource = taskManagementService.getTaskById(taskId);
+        if (optionalTaskResource.isEmpty()) {
+            throw new TaskNotFoundException(ErrorMessages.TASK_NOT_FOUND_ERROR);
         }
 
         taskManagementService.updateNotes(taskId, notesRequest);
@@ -257,7 +274,7 @@ public class TaskActionsController extends BaseController {
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)
     public ResponseEntity<ErrorMessage> handleNoRoleAssignmentsException(Exception ex) {
         LOG.warn("No role assignments found");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        return status(HttpStatus.UNAUTHORIZED)
             .cacheControl(CacheControl.noCache())
             .body(new ErrorMessage(
                 ex,
