@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 
 import java.util.List;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,7 +34,7 @@ class DmnEvaluationServiceTest {
 
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
     private static final String TASK_TYPE_ID = "taskType";
-    private static final Map<String, Object> TASK_ATTRIBUTES = Map.of("taskTypeId", TASK_TYPE_ID);
+    private static final String TASK_ATTRIBUTES = "{ \"taskTypeId\": " + TASK_TYPE_ID + "}";
     DmnEvaluationService dmnEvaluationService;
     @Mock
     private CamundaServiceApi camundaServiceApi;
@@ -73,7 +72,7 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), TASK_ATTRIBUTES))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -109,7 +108,7 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), TASK_ATTRIBUTES))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         )).thenThrow(FeignException.class);
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -140,7 +139,7 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), TASK_ATTRIBUTES))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -168,7 +167,7 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), TASK_ATTRIBUTES))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         )).thenThrow(FeignException.class);
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -183,10 +182,10 @@ class DmnEvaluationServiceTest {
     @NotNull
     private String getCcdData() {
         return "{"
-               + "\"jurisdiction\": \"ia\","
-               + "\"case_type_id\": \"Asylum\","
-               + "\"security_classification\": \"PUBLIC\","
-               + "\"data\": {}"
-               + "}";
+            + "\"jurisdiction\": \"ia\","
+            + "\"case_type_id\": \"Asylum\","
+            + "\"security_classification\": \"PUBLIC\","
+            + "\"data\": {}"
+            + "}";
     }
 }

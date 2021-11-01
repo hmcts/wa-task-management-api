@@ -12,13 +12,13 @@ import java.util.Map;
 public class DecisionTableRequest {
 
     private CamundaValue<String> caseData;
-    private Map<String, Object> taskAttributes;
+    private CamundaValue<String> taskAttributes;
 
     private DecisionTableRequest() {
         //No-op constructor for deserialization
     }
 
-    public DecisionTableRequest(CamundaValue<String> caseData, Map<String, Object> taskAttributes) {
+    public DecisionTableRequest(CamundaValue<String> caseData, CamundaValue<String> taskAttributes) {
         this.caseData = caseData;
         this.taskAttributes = taskAttributes;
     }
@@ -29,7 +29,7 @@ public class DecisionTableRequest {
     }
 
     @JsonProperty("taskAttributes")
-    public Map<String, Object> getTaskAttributes() {
+    public CamundaValue<String> getTaskAttributes() {
         return taskAttributes;
     }
 }

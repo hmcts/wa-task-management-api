@@ -61,7 +61,7 @@ class CaseConfigurationProviderServiceTest {
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
         Map<String, Object> taskAttributes = Map.of();
-        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}", taskAttributes))
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}", "{}"))
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunalCaseworker"),
@@ -97,10 +97,11 @@ class CaseConfigurationProviderServiceTest {
     void gets_fields_to_map() {
         String someCaseId = "someCaseId";
         String taskTypeId = "taskType";
+        String taskAttributesString = "{\"taskTypeId\": " + taskTypeId + "}";
         Map<String, Object> taskAttributes = Map.of("taskTypeId", taskTypeId);
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
-        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributes))
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", "{}", taskAttributesString))
             .thenReturn(asList(
                 new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2"))

@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
@@ -34,7 +33,7 @@ public class DmnEvaluationService {
     public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
                                                                              String caseType,
                                                                              String caseData,
-                                                                             Map<String, Object> taskAttributes) {
+                                                                             String taskAttributes) {
         String decisionTableKey = WA_TASK_PERMISSIONS.getTableKey(jurisdiction, caseType);
         return performEvaluatePermissionsDmnAction(
             decisionTableKey,
@@ -47,7 +46,7 @@ public class DmnEvaluationService {
     public List<ConfigurationDmnEvaluationResponse> evaluateTaskConfigurationDmn(String jurisdiction,
                                                                                  String caseType,
                                                                                  String caseData,
-                                                                                 Map<String, Object> taskAttributes) {
+                                                                                 String taskAttributes) {
         String decisionTableKey = WA_TASK_CONFIGURATION.getTableKey(jurisdiction, caseType);
         return performEvaluateConfigurationDmnAction(
             decisionTableKey,
@@ -62,14 +61,14 @@ public class DmnEvaluationService {
         String decisionTableKey,
         String jurisdiction,
         String caseData,
-        Map<String, Object> taskAttributes) {
+        String taskAttributes) {
         try {
             return camundaServiceApi.evaluateConfigurationDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
                 new DmnRequest<>(
-                    new DecisionTableRequest(jsonValue(caseData), taskAttributes)
+                    new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes))
                 )
             );
         } catch (FeignException e) {
@@ -85,13 +84,17 @@ public class DmnEvaluationService {
         String decisionTableKey,
         String jurisdiction,
         String caseData,
-        Map<String, Object> taskAttributes) {
+        String taskAttributes) {
         try {
+            DmnRequest<DecisionTableRequest> evaluateDmnRequest = new DmnRequest<>(new DecisionTableRequest(jsonValue(
+                caseData), jsonValue(taskAttributes)));
+            log.info(evaluateDmnRequest.toString());
+
             return camundaServiceApi.evaluatePermissionsDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
-                new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), taskAttributes))
+                evaluateDmnRequest
             );
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);

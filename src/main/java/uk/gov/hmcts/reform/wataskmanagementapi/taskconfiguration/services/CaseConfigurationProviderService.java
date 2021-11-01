@@ -51,14 +51,15 @@ public class CaseConfigurationProviderService {
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
 
-        String caseDataString = extractCaseDataAsString(caseDetails.getData());
+        String caseDataString = writeValueAsString(caseDetails.getData());
+        String taskAttributesString = writeValueAsString(taskAttributes);
 
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
-            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString, taskAttributes);
+            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString, taskAttributesString);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
-            dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString, taskAttributes);
+            dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString, taskAttributesString);
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
             taskConfigurationDmnResults,
@@ -103,7 +104,7 @@ public class CaseConfigurationProviderService {
         return caseConfigurationVariables;
     }
 
-    private String extractCaseDataAsString(Map<String, Object> data) {
+    private String writeValueAsString(Map<String, Object> data) {
         try {
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {

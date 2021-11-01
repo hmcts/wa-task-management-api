@@ -29,15 +29,15 @@ class DecisionTableRequestTest {
     void equalIsWellImplemented() {
         DecisionTableRequest obj1 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            Map.of("caseTypeId", "some task type")
+            CamundaValue.stringValue("{\"caseTypeId\": \"some task type\"}")
         );
         DecisionTableRequest obj2 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            Map.of("caseTypeId","some task type")
+            CamundaValue.stringValue("{\"caseTypeId\": \"some task type\"}")
         );
         DecisionTableRequest obj3 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            Map.of("caseTypeId","some task type3")
+            CamundaValue.stringValue("{\"caseTypeId\": \"some task type3\"}")
         );
 
         assertEquals(obj1, obj2);

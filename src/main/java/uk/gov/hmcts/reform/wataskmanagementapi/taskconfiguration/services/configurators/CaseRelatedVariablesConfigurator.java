@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.configurators;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
@@ -10,6 +11,7 @@ import java.util.Objects;
 
 @Component
 @Order(3)
+@Slf4j
 public class CaseRelatedVariablesConfigurator implements TaskConfigurator {
 
     private final CaseConfigurationProviderService caseConfigurationProviderService;
@@ -26,6 +28,7 @@ public class CaseRelatedVariablesConfigurator implements TaskConfigurator {
             task.getId()
         ));
 
+        log.info(task.toString());
         return caseConfigurationProviderService.getCaseRelatedConfiguration(task.getCaseId(), task.getTaskAttributes());
     }
 }
