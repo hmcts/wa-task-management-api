@@ -107,7 +107,7 @@ test {
 }
 
 task functional(type: Test) {
-  maxParallelForks = 3
+  maxParallelForks = System.getenv('MAX_FT_TESTS_PARALLEL_FORKS') ? System.getenv('MAX_FT_TESTS_PARALLEL_FORKS') : 1
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
