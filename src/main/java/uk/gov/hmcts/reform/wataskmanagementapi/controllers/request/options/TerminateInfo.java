@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -18,7 +17,7 @@ public class TerminateInfo {
     private final TerminateReason terminateReason;
 
     @JsonCreator
-    public TerminateInfo(@JsonProperty("terminateReason") TerminateReason terminateReason) {
+    public TerminateInfo(TerminateReason terminateReason) {
         this.terminateReason = terminateReason;
     }
 
