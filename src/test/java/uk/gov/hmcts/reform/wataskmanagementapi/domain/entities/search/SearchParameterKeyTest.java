@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SearchParameterKeyTest {
 
-
     @Test
     void simpleEnumExampleOutsideClassTest() {
         final String locationEnum = SearchParameterKey.LOCATION.value();
@@ -26,7 +25,6 @@ class SearchParameterKeyTest {
         assertEquals("taskType", taskTypeEnum);
         assertEquals("caseId", caseIdEnum);
         assertEquals("workType", workTypeEnum);
-
     }
 
     @Test
