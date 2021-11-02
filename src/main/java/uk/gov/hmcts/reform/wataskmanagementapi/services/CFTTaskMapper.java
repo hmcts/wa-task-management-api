@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -227,10 +228,8 @@ public class CFTTaskMapper {
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
-
         Optional<CamundaVariableDefinition> enumKey = CamundaVariableDefinition.from(key);
         if (enumKey.isPresent()) {
-
             switch (enumKey.get()) {
                 case AUTO_ASSIGNED:
                     taskResource.setAutoAssigned((Boolean) value);
@@ -298,7 +297,7 @@ public class CFTTaskMapper {
                     taskResource.setCaseCategory((String) value);
                     break;
                 case WORK_TYPE:
-                    WorkTypeResource workTypeResource = new WorkTypeResource((String) value);
+                    WorkTypeResource workTypeResource = new WorkTypeResource((String) value, StringUtils.EMPTY);
                     taskResource.setWorkTypeResource(workTypeResource);
                     break;
                 default:
