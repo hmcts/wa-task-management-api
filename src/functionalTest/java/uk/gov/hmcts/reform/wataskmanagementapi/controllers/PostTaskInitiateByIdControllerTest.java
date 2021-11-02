@@ -99,7 +99,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("task_role_resources.size()", equalTo(3))
             .body("work_type_resource.id", equalTo("decision_making_work"))
             .body("work_type_resource.label", equalTo("Decision-making work"));
 
@@ -112,7 +111,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                    "execute", false,
                    "cancel", true,
                    "task_id", taskId,
-                   "authorizations", List.of("IA"),
+                   "authorizations", List.of(),
                    "auto_assignable", false
             )
         );
@@ -126,7 +125,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                    "execute", false,
                    "cancel", true,
                    "task_id", taskId,
-                   "authorizations", List.of("IA"),
+                   "authorizations", List.of(),
                    "auto_assignable", false
             )
         );
