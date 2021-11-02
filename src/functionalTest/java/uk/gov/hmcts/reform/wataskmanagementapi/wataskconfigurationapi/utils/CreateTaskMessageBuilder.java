@@ -8,7 +8,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static java.time.ZonedDateTime.now;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
@@ -38,11 +37,11 @@ public class CreateTaskMessageBuilder {
         return new CreateTaskMessage(messageName, processVariables);
     }
 
-    public static CreateTaskMessageBuilder createBasicMessageForTask() {
+    public static CreateTaskMessageBuilder createBasicMessageForTask(String taskTypeId, String caseId) {
         HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
-        processVariables.put("caseId", stringValue(UUID.randomUUID().toString()));
+        processVariables.put("caseId", stringValue(caseId));
         processVariables.put("hasWarnings", new CamundaValue<>(false, "boolean"));
-        processVariables.put("taskId", stringValue("wa-task-configuration-api-task"));
+        processVariables.put("taskId", stringValue(taskTypeId));
         processVariables.put("group", stringValue("TCW"));
         processVariables.put(
             "dueDate",

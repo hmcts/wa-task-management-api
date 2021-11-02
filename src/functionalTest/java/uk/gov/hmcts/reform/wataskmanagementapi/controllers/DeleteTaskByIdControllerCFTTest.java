@@ -28,22 +28,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
-public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
+public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
+    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private Headers authenticationHeaders;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
     }
 
     @Test
     public void should_succeed_when_terminate_reason_is_cancelled() {
-        TestVariables testVariables = common.setupTaskAndRetrieveIds();
-        initiateTask(testVariables);
-        claimAndCancelTask(testVariables);
-        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        initiateTask(taskVariables);
+
+        claimAndCancelTask(taskVariables);
+        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -53,7 +55,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         Response result = restApiActions.delete(
             ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
+            taskVariables.getTaskId(),
             terminateTaskRequest,
             authenticationHeaders
         );
@@ -61,7 +63,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", null);
+        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
     }
 
 
@@ -89,6 +91,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", null);
+
     }
 
     private void checkHistoryVariable(String taskId, String variable, String value) {
@@ -138,7 +141,7 @@ public class DeleteTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         ));
 
         Response result = restApiActions.post(
-            "task/{task-id}",
+            TASK_INITIATION_ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             req,
             authenticationHeaders

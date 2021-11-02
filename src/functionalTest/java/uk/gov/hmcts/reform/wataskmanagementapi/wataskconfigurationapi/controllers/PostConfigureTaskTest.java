@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -32,18 +33,18 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     @Test
     public void given_configure_task_then_expect_task_state_is_assigned() throws Exception {
         caseId = createCcdCase();
-        createTaskMessage = createBasicMessageForTask()
-            .withCaseId(caseId)
-            .build();
-        taskId = createTask(createTaskMessage);
-        log.info("task found [{}]", taskId);
+
+        String taskTypeId = "followUpOverdueReasonsForAppeal";
+        createTaskMessage = createBasicMessageForTask(taskTypeId, caseId).build();
+        this.taskId = createTask(createTaskMessage);
+        log.info("task found [{}]", this.taskId);
 
         log.info("Creating roles...");
         roleAssignmentHelper.setRoleAssignments(caseId);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            taskId,
+            this.taskId,
             new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
         );
         result.prettyPeek();
@@ -54,14 +55,15 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
         Response camundaResult = camundaApiActions.get(
             "/task/{task-id}/variables",
-            taskId,
+            this.taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
         camundaResult.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("taskType.value", is("wa-task-configuration-api-task"))
+            .body("taskType.value", is(taskTypeId))
+            .body("workType.value", is("decision_making_work"))
             .body("caseName.value", is("Bob Smith"))
             .body("appealType.value", is("Protection"))
             .body("region.value", is("1"))
@@ -81,7 +83,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     @Test
     public void given_configure_task_then_expect_task_state_is_unassigned() throws IOException {
         caseId = createCcdCase();
-        createTaskMessage = createBasicMessageForTask()
+        createTaskMessage = createBasicMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
             .withCaseId(caseId)
             .build();
         taskId = createTask(createTaskMessage);
