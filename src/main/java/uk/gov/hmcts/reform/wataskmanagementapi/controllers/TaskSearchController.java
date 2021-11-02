@@ -148,10 +148,6 @@ public class TaskSearchController extends BaseController {
             accessControlResponse
         );
 
-        LOG.debug("searchWithCriteriaForAutomaticCompletion searchEventAndCase: {} - accessControlResponse: {} "
-                  + "- response: {}",
-            searchEventAndCase, accessControlResponse, response);
-
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

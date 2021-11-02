@@ -116,18 +116,11 @@ launchDarkly:
   connectionTimeout: 5000
   socketTimeout: 5000
 
-
 logging:
   level:
-    root: DEBUG
-    uk.gov.hmcts.reform.wataskmanagementapi.*: DEBUG
+    root: INFO
+    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
     org.zalando.logbook: TRACE
-
-#logging:
-#  level:
-#    root: INFO
-#    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
-#    org.zalando.logbook: TRACE
 
 logbook:
   include: /task/**
