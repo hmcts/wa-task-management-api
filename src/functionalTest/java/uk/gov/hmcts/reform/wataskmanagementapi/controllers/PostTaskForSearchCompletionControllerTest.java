@@ -110,7 +110,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "followUpOverdueReasonsForAppeal",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
@@ -188,8 +188,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "followUpOverdueReasonsForAppeal",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_TYPE, "Review The Appeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
@@ -215,7 +215,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].task_state", equalTo("unassigned"))
             .body("tasks[0].case_id", equalTo(taskVariables.getCaseId()))
             .body("tasks[0].id", equalTo(taskId))
-            .body("tasks[0].type", equalTo("followUpOverdueReasonsForAppeal"))
+            .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"));
 
@@ -267,7 +267,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].task_state", equalTo("assigned"))
             .body("tasks[0].case_id", equalTo(caseId))
             .body("tasks[0].id", equalTo(taskId2))
-            .body("tasks[0].type", equalTo("followUpOverdueReasonsForAppeal"))
+            .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(false));
@@ -326,7 +326,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks[0].task_state", equalTo("assigned"))
             .body("tasks[0].case_id", equalTo(caseId))
             .body("tasks[0].id", equalTo(taskId2))
-            .body("tasks[0].type", equalTo("followUpOverdueReasonsForAppeal"))
+            .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(true));
@@ -593,8 +593,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "followUpOverdueReasonsForAppeal",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_TYPE, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
@@ -612,8 +612,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
-            CamundaVariableDefinition.TASK_ID, "followUpOverdueReasonsForAppeal",
-            CamundaVariableDefinition.TASK_TYPE, "followUpOverdueReasonsForAppeal",
+            CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
+            CamundaVariableDefinition.TASK_TYPE, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );

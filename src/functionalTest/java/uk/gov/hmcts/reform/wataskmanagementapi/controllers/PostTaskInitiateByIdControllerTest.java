@@ -78,7 +78,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("aTaskName"))
+            .body("title", equalTo("follow Up Overdue Reasons For Appeal"))
             .body("created", notNullValue())
             .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
