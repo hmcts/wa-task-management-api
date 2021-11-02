@@ -118,7 +118,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         );
 
         assertPermissions(
-            getTaskResource(result, "tribunal-caseworker"),
+            getTaskResource(result, "senior-tribunal-caseworker"),
             Map.of("read", true,
                    "refer", true,
                    "own", true,
