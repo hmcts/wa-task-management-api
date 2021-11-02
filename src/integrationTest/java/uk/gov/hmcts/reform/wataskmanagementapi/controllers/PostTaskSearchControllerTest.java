@@ -307,7 +307,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.violations").isNotEmpty(),
                     jsonPath("$.violations.[0].field").value("invalid_value"),
                     jsonPath("$.violations.[0].message")
-                        .value("workType must be one of [hearing_work, upper_tribunal, routine_work, "
+                        .value("work_type must be one of [hearing_work, upper_tribunal, routine_work, "
                                + "routine_work, decision_making_work, applications, priority, access_requests, "
                                + "error_management]")));
     }
@@ -356,7 +356,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .content("{\n"
                              + "  \"search_parameters\": [\n"
                              + "    {\n"
-                             + "      \"key\": \"workType\",\n"
+                             + "      \"key\": \"work_type\",\n"
                              + "      \"operator\": \"INVALID\",\n"
                              + "      \"values\": [\n"
                              + "        \"aValue\"\n"
