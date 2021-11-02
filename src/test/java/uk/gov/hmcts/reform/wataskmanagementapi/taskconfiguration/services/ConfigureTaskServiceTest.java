@@ -237,7 +237,7 @@ class ConfigureTaskServiceTest {
     public static Stream<Arguments> scenarioProvider() {
         return Stream.of(
             Arguments.of(true, TASK_TO_CONFIGURE.toBuilder()
-                .taskAttributes(Map.of("taskTypeId", "taskTypeId")).build()),
+                .taskAttributes(Map.of("taskType", "taskType")).build()),
             Arguments.of(false, TASK_TO_CONFIGURE)
         );
     }
@@ -260,8 +260,7 @@ class ConfigureTaskServiceTest {
         when(featureFlagProvider.getBooleanValue(eq(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE), any(), any()))
             .thenReturn(featureFlag);
 
-        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(Map.of("taskTypeId", "taskTypeId"));
-
+        when(cftTaskMapper.getTaskAttributes(any(TaskResource.class))).thenReturn(Map.of("taskType", "taskType"));
 
         TaskResource skeletonMappedTask = mock(TaskResource.class);
 

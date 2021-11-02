@@ -27,7 +27,6 @@ public class CaseConfigurationProviderService {
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
 
-
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
@@ -40,7 +39,7 @@ public class CaseConfigurationProviderService {
     /**
      * Obtains a list of process variables that are related to the ccd case data.
      *
-     * @param caseId the ccd case id
+     * @param caseId         the ccd case id
      * @param taskAttributes taskAttributes
      * @return a map with the process variables configuration
      */
@@ -56,10 +55,20 @@ public class CaseConfigurationProviderService {
 
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
-            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction, caseType, caseDataString, taskAttributesString);
+            dmnEvaluationService.evaluateTaskConfigurationDmn(
+                jurisdiction,
+                caseType,
+                caseDataString,
+                taskAttributesString
+            );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
-            dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString, taskAttributesString);
+            dmnEvaluationService.evaluateTaskPermissionsDmn(
+                jurisdiction,
+                caseType,
+                caseDataString,
+                taskAttributesString
+            );
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
             taskConfigurationDmnResults,
@@ -77,7 +86,6 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResults,
             permissionsDmnResults
         );
-
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,

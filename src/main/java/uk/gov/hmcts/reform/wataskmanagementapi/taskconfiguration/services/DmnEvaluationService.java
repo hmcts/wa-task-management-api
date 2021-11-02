@@ -30,6 +30,7 @@ public class DmnEvaluationService {
         this.serviceAuthTokenGenerator = serviceAuthTokenGenerator;
     }
 
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public List<PermissionsDmnEvaluationResponse> evaluateTaskPermissionsDmn(String jurisdiction,
                                                                              String caseType,
                                                                              String caseData,
@@ -43,6 +44,7 @@ public class DmnEvaluationService {
         );
     }
 
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public List<ConfigurationDmnEvaluationResponse> evaluateTaskConfigurationDmn(String jurisdiction,
                                                                                  String caseType,
                                                                                  String caseData,
@@ -67,9 +69,7 @@ public class DmnEvaluationService {
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
-                new DmnRequest<>(
-                    new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes))
-                )
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);
@@ -86,15 +86,11 @@ public class DmnEvaluationService {
         String caseData,
         String taskAttributes) {
         try {
-            DmnRequest<DecisionTableRequest> evaluateDmnRequest = new DmnRequest<>(new DecisionTableRequest(jsonValue(
-                caseData), jsonValue(taskAttributes)));
-            log.info(evaluateDmnRequest.toString());
-
             return camundaServiceApi.evaluatePermissionsDmnTable(
                 serviceAuthTokenGenerator.generate(),
                 decisionTableKey,
                 jurisdiction.toLowerCase(Locale.ROOT),
-                evaluateDmnRequest
+                new DmnRequest<>(new DecisionTableRequest(jsonValue(caseData), jsonValue(taskAttributes)))
             );
         } catch (FeignException e) {
             log.error("Case Configuration : Could not evaluate from decision table '{}'", decisionTableKey);

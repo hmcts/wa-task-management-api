@@ -35,6 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -190,7 +191,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 taskId,
                 "taskName",
                 "taskType",
-                UNCONFIGURED
+                UNCONFIGURED,
+                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             );
             taskResourceRepository.save(taskResource);
         });

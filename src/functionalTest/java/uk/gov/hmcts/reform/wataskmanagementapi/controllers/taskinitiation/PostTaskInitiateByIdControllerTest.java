@@ -47,7 +47,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     private static final Stream<String> nationalBusinessCentreTasks
         = Stream.of("arrangeOfflinePayment", "markCaseAsPaid", "addListingDate");
 
-    private static final Stream<String> hearingCentreTasks = Stream.of("allocateHearingJudge", "uploadHearingRecording");
+    private static final Stream<String> hearingCentreTasks
+        = Stream.of("allocateHearingJudge", "uploadHearingRecording");
 
     private static final Stream<String> judgeTasks =
         Stream.of("reviewHearingBundle", "generateDraftDecisionAndReasons", "uploadDecision",
@@ -456,7 +457,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-                                      assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }
@@ -510,12 +511,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("location", equalTo("765324"))
             .body("location_name", equalTo("Taylor House"))
             .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
             .body(
                 "execution_type_code.description",
-                equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
-            );
+                equalTo(
+                    "The task requires a case management event to be executed by the user."
+                        + " (Typically this will be in CCD.)")
+            )
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"));
 
         if (isR2FeatureEnabled()) {
 

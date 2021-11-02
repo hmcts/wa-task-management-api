@@ -38,11 +38,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Slf4j
 public class Common {
 
-    public static final String REASON_COMPLETED = "completed";
-    public static final String REASON_DELETED = "deleted";
-    public static final String PENDING_TERMINATION = "pendingTermination";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    private static final String ENDPOINT_HISTORY_TASK = "history/task";
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
@@ -290,18 +286,6 @@ public class Common {
         );
     }
 
-    private String toJsonString(Map<String, String> attributes) {
-        String json = null;
-
-        try {
-            json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
-        return json;
-    }
-
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
@@ -357,6 +341,18 @@ public class Common {
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json"
         );
+    }
+
+    private String toJsonString(Map<String, String> attributes) {
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(attributes);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
     }
 
     private void postRoleAssignment(String caseId,
