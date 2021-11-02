@@ -107,11 +107,12 @@ test {
 }
 
 task functional(type: Test) {
-  exclude '**/controllers/**'
+  maxParallelForks = (System.getenv('MAX_FT_TESTS_PARALLEL_FORKS') ? System.getenv('MAX_FT_TESTS_PARALLEL_FORKS') : 1) as int
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+
 }
 
 task integration(type: Test) {
