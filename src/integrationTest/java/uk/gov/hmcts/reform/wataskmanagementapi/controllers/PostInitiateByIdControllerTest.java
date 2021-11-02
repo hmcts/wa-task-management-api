@@ -129,8 +129,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
         ));
@@ -209,8 +209,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
                 InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-                    new TaskAttribute(TASK_TYPE, "aTaskType"),
-                    new TaskAttribute(TASK_NAME, "aTaskName"),
+                    new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                    new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
                     new TaskAttribute(TASK_CASE_ID, "someCaseId"),
                     new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
@@ -237,7 +237,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "some other task type"),
+            new TaskAttribute(TASK_TYPE, "markCaseAsPaid"),
             new TaskAttribute(TASK_NAME, "soe other task name"),
             new TaskAttribute(TASK_CASE_ID, "some other task case id"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
@@ -258,7 +258,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);
         assertTrue(actualTask.isPresent());
-        assertEquals("aTaskType", actualTask.get().getTaskType());
+        assertEquals("markCaseAsPaid", actualTask.get().getTaskType());
     }
 
     @Test
@@ -278,8 +278,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -348,8 +348,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -474,7 +474,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),

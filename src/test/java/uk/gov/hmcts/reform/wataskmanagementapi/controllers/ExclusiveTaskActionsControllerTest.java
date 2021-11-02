@@ -61,8 +61,8 @@ class ExclusiveTaskActionsControllerTest {
         InitiateTaskRequest req = new InitiateTaskRequest(
             INITIATION,
             asList(
-                new TaskAttribute(TASK_TYPE, "aTaskType"),
-                new TaskAttribute(TASK_NAME, "aTaskName")
+                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal")
             )
         );
 

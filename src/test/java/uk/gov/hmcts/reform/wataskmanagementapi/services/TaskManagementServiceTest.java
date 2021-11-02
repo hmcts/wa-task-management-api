@@ -88,8 +88,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 class TaskManagementServiceTest extends CamundaHelpers {
 
 
-    public static final String A_TASK_TYPE = "aTaskType";
-    public static final String A_TASK_NAME = "aTaskName";
+    public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
+    public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
     @Mock
     CamundaService camundaService;
     @Mock

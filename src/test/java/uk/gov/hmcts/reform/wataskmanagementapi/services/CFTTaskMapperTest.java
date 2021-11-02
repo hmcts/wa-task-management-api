@@ -562,13 +562,12 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getCreated());
         assertNotNull(taskResource.getDueDateTime());
 
-        Task task = cftTaskMapper.mapToTask(taskResource);
-        assertNotNull(task.getDueDate());
-        assertNull(task.getCreatedDate());
+        assertThatThrownBy(() -> cftTaskMapper.mapToTask(taskResource))
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    void should_map_task_resource_to_task_when_due_date_is_null() {
+    void should_throw_exception_map_task_resource_to_task_when_due_date_is_null() {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -581,8 +580,8 @@ class CFTTaskMapperTest {
 
         //given
         taskResource.setDueDateTime(null);
-        Task task = cftTaskMapper.mapToTask(taskResource);
-        assertNull(task.getDueDate());
+        assertThatThrownBy(() -> cftTaskMapper.mapToTask(taskResource))
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
