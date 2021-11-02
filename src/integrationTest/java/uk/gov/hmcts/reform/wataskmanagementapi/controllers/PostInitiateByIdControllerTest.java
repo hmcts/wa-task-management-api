@@ -258,7 +258,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);
         assertTrue(actualTask.isPresent());
-        assertEquals("markCaseAsPaid", actualTask.get().getTaskType());
+        assertEquals("followUpOverdueReasonsForAppeal", actualTask.get().getTaskType());
     }
 
     @Test
@@ -370,7 +370,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.state").value("UNASSIGNED"),
                 jsonPath("$.task_system").value("SELF"),
                 jsonPath("$.security_classification").value("PUBLIC"),
-                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.title").value("follow Up Overdue Reasons For Appeal"),
                 jsonPath("$.auto_assigned").value(false),
                 jsonPath("$.has_warnings").value("false"),
                 jsonPath("$.case_id").value("someCaseId"),
@@ -494,7 +494,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     content().contentType(APPLICATION_JSON_VALUE),
                     jsonPath("$.task_id").value(taskId),
                     jsonPath("$.task_name").value("aTaskName"),
-                    jsonPath("$.task_type").value("aTaskType"),
+                    jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
                     jsonPath("$.state").value("ASSIGNED"),
                     jsonPath("$.task_system").value("SELF"),
                     jsonPath("$.security_classification").value("PUBLIC"),
