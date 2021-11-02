@@ -73,7 +73,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("aTaskName"))
+            .body("task_name", equalTo("follow Up Overdue Reasons For Appeal"))
             .body("task_type", equalTo("followUpOverdueReasonsForAppeal"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
