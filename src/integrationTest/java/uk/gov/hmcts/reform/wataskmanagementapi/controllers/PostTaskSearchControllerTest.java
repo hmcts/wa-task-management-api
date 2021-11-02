@@ -648,7 +648,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .content("{\n"
                              + "  \"search_parameters\": [\n"
                              + "    {\n"
-                             + "      \"key\": \"work_types\",\n"
+                             + "      \"key\": \"workType\",\n"
                              + "      \"values\": [\n"
                              + "        \"hearing_work\",\n"
                              + "        \"upper_tribunal\",\n"
