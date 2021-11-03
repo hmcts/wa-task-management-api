@@ -904,12 +904,12 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", greaterThanOrEqualTo(1))
+            .body("tasks.size()", equalTo(1))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId))
             .body("tasks.work_type", everyItem(is(TASK_TYPE_WORK_TYPE_MAP.get(taskType))))
-            .body("total_records", greaterThanOrEqualTo(1));
+            .body("total_records", equalTo(1));
     }
 
     @Test
@@ -946,7 +946,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", greaterThanOrEqualTo(2))
+            .body("tasks.size()", equalTo(2))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", contains(taskVariables2.getCaseId(), taskVariables1.getCaseId()))
             .body("tasks.id", contains(taskId2, taskId1))
@@ -954,26 +954,19 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
                 TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
             )
-            .body("total_records", greaterThanOrEqualTo(2));
+            .body("total_records", equalTo(2));
     }
 
     @Test
     public void should_return_empty_list_when_search_by_work_type_not_exists() {
         //initiate first task
-        String taskType = "followUpOverdueReasonsForAppeal";
+        String taskType = "reviewTheAppeal";
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables1.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables1.getCaseId(), taskId1, taskType);
-
-        //initiate second task
-        taskType = "arrangeOfflinePayment";
-        TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
-        String taskId2 = taskVariables2.getTaskId();
-
-        insertTaskInCftTaskDb(taskVariables2.getCaseId(), taskId2, taskType);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))

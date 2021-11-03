@@ -189,7 +189,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
             CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
-            CamundaVariableDefinition.TASK_TYPE, "Review The Appeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
