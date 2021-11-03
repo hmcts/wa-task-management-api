@@ -11,7 +11,7 @@ public enum SearchParameterKey {
     TASK_ID("taskId"),
     TASK_TYPE("taskType"),
     CASE_ID("caseId"),
-    WORK_TYPE("workType");
+    WORK_TYPE("work_type"); //R2 should be snake_case only
 
     @JsonValue
     private final String id;

@@ -307,7 +307,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.violations").isNotEmpty(),
                     jsonPath("$.violations.[0].field").value("invalid_value"),
                     jsonPath("$.violations.[0].message")
-                        .value("workType must be one of [hearing_work, upper_tribunal, routine_work, "
+                        .value("work_type must be one of [hearing_work, upper_tribunal, routine_work, "
                                + "routine_work, decision_making_work, applications, priority, access_requests, "
                                + "error_management]")));
     }
@@ -361,6 +361,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_400_bad_request_when_invalid_search_parameter_key() throws Exception {
 
+
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -369,6 +370,39 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "  \"search_parameters\": [\n"
                              + "    {\n"
                              + "      \"key\": \"someInvalidKey\",\n"
+                             + "      \"operator\": \"IN\",\n"
+                             + "      \"values\": [\n"
+                             + "        \"aValue\"\n"
+                             + "      ]\n"
+                             + "    }\n"
+                             + "  ]\n"
+                             + "}\n")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Invalid request field: search_parameters.[0].key")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_invalid_camelCase_worktype_search_parameter_key() throws Exception {
+
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{\n"
+                             + "  \"search_parameters\": [\n"
+                             + "    {\n"
+                             + "      \"key\": \"workType\",\n"
                              + "      \"operator\": \"IN\",\n"
                              + "      \"values\": [\n"
                              + "        \"aValue\"\n"
@@ -401,7 +435,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .content("{\n"
                              + "  \"search_parameters\": [\n"
                              + "    {\n"
-                             + "      \"key\": \"workType\",\n"
+                             + "      \"key\": \"work_type\",\n"
                              + "      \"operator\": \"INVALID\",\n"
                              + "      \"values\": [\n"
                              + "        \"aValue\"\n"
@@ -693,7 +727,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .content("{\n"
                              + "  \"search_parameters\": [\n"
                              + "    {\n"
-                             + "      \"key\": \"workType\",\n"
+                             + "      \"key\": \"work_type\",\n"
                              + "      \"values\": [\n"
                              + "        \"hearing_work\",\n"
                              + "        \"upper_tribunal\",\n"

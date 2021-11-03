@@ -212,7 +212,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     private String extractErrors(HttpMessageNotReadableException exception) {
         String msg = null;
         Throwable cause = exception.getCause();
-
         if (cause instanceof JsonParseException) {
             JsonParseException jpe = (JsonParseException) cause;
             msg = jpe.getOriginalMessage();
@@ -231,7 +230,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 String fieldName = jme.getPath().stream()
                     .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
                     .collect(Collectors.joining("."));
-
                 msg = "Invalid request field: "
                       + fieldName
                       + ": "
@@ -240,7 +238,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         } else {
             msg = "Invalid request message";
         }
-
         return msg;
     }
 
