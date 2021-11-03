@@ -6,23 +6,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@Service
 public class CftQueryService {
+    public static final List<String> ALLOWED_WORK_TYPES = List.of(
+        "hearing_work", "upper_tribunal", "routine_work", "routine_work", "decision_making_work",
+        "applications", "priority", "access_requests", "error_management");
 
     private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
@@ -39,6 +48,8 @@ public class CftQueryService {
         AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired
     ) {
+        validateRequest(searchTaskRequest);
+
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         Pageable page;
         try {
@@ -57,13 +68,6 @@ public class CftQueryService {
         return mapToTask(taskResources, pages.getTotalElements());
     }
 
-    private GetTasksResponse<Task> mapToTask(List<TaskResource> taskResources, long totalNumberOfTasks) {
-        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
-        ).collect(Collectors.toList());
-
-        return new GetTasksResponse<>(tasks, totalNumberOfTasks);
-    }
-
     public Optional<TaskResource> getTask(String taskId,
                                           AccessControlResponse accessControlResponse,
                                           List<PermissionTypes> permissionsRequired
@@ -79,5 +83,40 @@ public class CftQueryService {
 
         return taskResourceRepository.findOne(taskResourceSpecification);
 
+    }
+
+    private void validateRequest(SearchTaskRequest searchTaskRequest) {
+        List<Violation> violations = new ArrayList<>();
+
+        //Validate work-type
+        List<SearchParameter> workType = searchTaskRequest.getSearchParameters().stream()
+            .filter(sp -> sp.getKey().equals(SearchParameterKey.WORK_TYPE))
+            .collect(Collectors.toList());
+
+        if (!workType.isEmpty()) {
+            //validate work type
+            SearchParameter workTypeParameter = workType.get(0);
+            List<String> values = workTypeParameter.getValues();
+            //Validate
+            values.forEach(value -> {
+                if (!ALLOWED_WORK_TYPES.contains(value)) {
+                    violations.add(new Violation(
+                        value,
+                        workTypeParameter.getKey() + " must be one of " + Arrays.toString(ALLOWED_WORK_TYPES.toArray())
+                    ));
+                }
+            });
+        }
+
+        if (!violations.isEmpty()) {
+            throw new CustomConstraintViolationException(violations);
+        }
+    }
+
+    private GetTasksResponse<Task> mapToTask(List<TaskResource> taskResources, long totalNumberOfTasks) {
+        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
+        ).collect(Collectors.toList());
+
+        return new GetTasksResponse<>(tasks, totalNumberOfTasks);
     }
 }

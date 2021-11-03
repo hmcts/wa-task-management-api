@@ -33,6 +33,7 @@ import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class ServiceMocks {
 
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
@@ -93,9 +94,10 @@ public class ServiceMocks {
         );
     }
 
-    public void mockUserInfo() {
+    public UserInfo mockUserInfo() {
         UserInfo mockedUserInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
         when(idamWebApi.userInfo(any())).thenReturn(mockedUserInfo);
+        return mockedUserInfo;
     }
 
     public void mockVariables() {
@@ -152,6 +154,64 @@ public class ServiceMocks {
         return allTestRoles;
     }
 
+
+    public List<RoleAssignment> createRoleAssignmentsWithWorkTypes(String workTypes) {
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "IA");
+        final RoleAssignment orgRoleAssignment = createBaseAssignment(
+            UUID.randomUUID().toString(),
+            "tribunal-caseworker",
+            RoleType.ORGANISATION,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+        allTestRoles.add(orgRoleAssignment);
+
+        // Role Assignment with SCSS and RoleType CASE
+        roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "SSCS");
+        roleAttributes.put(RoleAttributeDefinition.CASE_ID.value(), "caseId1");
+        final RoleAssignment caseRoleAssignment = createBaseAssignment(
+            UUID.randomUUID().toString(),
+            "tribunal-caseworker",
+            RoleType.CASE,
+            Classification.PUBLIC,
+            roleAttributes
+        );
+        allTestRoles.add(caseRoleAssignment);
+
+        return allTestRoles;
+    }
+
+    public List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,
+                                                                            Map<String, String> roleAttributes) {
+
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+            .forEach(roleType -> {
+                RoleAssignment roleAssignment = createBaseAssignment(
+                    UUID.randomUUID().toString(),
+                    "tribunal-caseworker",
+                    roleType,
+                    Classification.PUBLIC,
+                    roleAttributes
+                );
+                allTestRoles.add(roleAssignment);
+            }));
+        return allTestRoles;
+    }
+
+    public List<RoleAssignment> createTestRoleAssignments(List<String> roleNames) {
+
+        // Role attribute is IA
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+
+        return createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+    }
+
     private void mockRoleAssignments(RoleAssignmentServiceApi roleAssignmentServiceApi) {
         List<RoleAssignment> roleAssignments = createTestAssignments(
             asList("tribunal-caseworker", "senior-tribunal-caseworker"),
@@ -183,5 +243,4 @@ public class ServiceMocks {
             }));
         return allTestRoles;
     }
-
 }

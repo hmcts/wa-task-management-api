@@ -115,7 +115,7 @@ public class Task {
 
     @ApiModelProperty(required = false,
         notes = "boolean to show if a warning is applied to task by a service task in a subprocess")
-    private Boolean hasWarnings;
+    private Boolean warnings;
 
     @ApiModelProperty(required = false,
         notes = "A list of values containing a warning code and warning text")
@@ -124,6 +124,9 @@ public class Task {
     @ApiModelProperty(required = false,
         notes = "A value describing the category of the case, for IA, it has the same value as the AppealType field")
     private String caseManagementCategory;
+    @ApiModelProperty(required = true,
+        notes = "A value describing the work type of the case, for IA")
+    private String workType;
 
     private Task() {
         //Hidden constructor
@@ -150,9 +153,10 @@ public class Task {
                 String caseId,
                 String caseCategory,
                 String caseName,
-                Boolean hasWarnings,
+                Boolean warnings,
                 WarningValues warningList,
-                String caseManagementCategory
+                String caseManagementCategory,
+                String workType
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -176,29 +180,10 @@ public class Task {
         this.jurisdiction = jurisdiction;
         this.region = region;
         this.location = location;
-        this.hasWarnings = hasWarnings;
+        this.warnings = warnings;
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public String getExecutionType() {
-        return executionType;
-    }
-
-    public String getJurisdiction() {
-        return jurisdiction;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public Boolean getAutoAssigned() {
-        return autoAssigned;
+        this.workType = workType;
     }
 
     public String getId() {
@@ -245,6 +230,22 @@ public class Task {
         return locationName;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public String getExecutionType() {
+        return executionType;
+    }
+
+    public String getJurisdiction() {
+        return jurisdiction;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
     public String getCaseTypeId() {
         return caseTypeId;
     }
@@ -261,8 +262,12 @@ public class Task {
         return caseName;
     }
 
+    public boolean isAutoAssigned() {
+        return autoAssigned;
+    }
+
     public Boolean getWarnings() {
-        return hasWarnings;
+        return warnings;
     }
 
     public WarningValues getWarningList() {
@@ -273,5 +278,8 @@ public class Task {
         return caseManagementCategory;
     }
 
+    public String getWorkType() {
+        return workType;
+    }
 }
 
