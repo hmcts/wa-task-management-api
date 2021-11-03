@@ -29,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
 
 @Service
@@ -68,6 +69,7 @@ public class TaskMapper {
         Boolean hasWarnings = getVariableValue(variables.get(HAS_WARNINGS.value()), Boolean.class);
         WarningValues warningList = getVariableValue(variables.get(WARNING_LIST.value()), WarningValues.class);
         String caseManagementCategory = getVariableValue(variables.get(CASE_MANAGEMENT_CATEGORY.value()), String.class);
+        String workType = getVariableValue(variables.get(WORK_TYPE.value()), String.class);
 
         return new Task(
             id,
@@ -92,7 +94,8 @@ public class TaskMapper {
             caseName,
             hasWarnings,
             warningList,
-            caseManagementCategory
+            caseManagementCategory,
+            workType
         );
     }
 
