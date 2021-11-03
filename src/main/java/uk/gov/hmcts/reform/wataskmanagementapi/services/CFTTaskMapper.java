@@ -138,7 +138,8 @@ public class CFTTaskMapper {
     }
 
     private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        return new WorkTypeResource(read(attributes, TASK_WORK_TYPE, null));
+        String workType = read(attributes, TASK_WORK_TYPE, null);
+        return workType == null ? null : new WorkTypeResource(workType);
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,

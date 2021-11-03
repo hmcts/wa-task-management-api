@@ -122,7 +122,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource().getId());
+        assertEquals(null, taskResource.getWorkTypeResource());
         assertEquals(null, taskResource.getRoleCategory());
         assertNull(taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
@@ -184,7 +184,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource().getId());
+        assertEquals(null, taskResource.getWorkTypeResource());
         assertEquals(null, taskResource.getRoleCategory());
         assertNull(taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
@@ -515,8 +515,7 @@ class CFTTaskMapperTest {
 
         assertNull(task.getWorkType());
 
-        assertNotNull(taskResource.getWorkTypeResource());
-        assertNull(taskResource.getWorkTypeResource().getId());
+        assertNull(taskResource.getWorkTypeResource());
     }
 
     @Test
