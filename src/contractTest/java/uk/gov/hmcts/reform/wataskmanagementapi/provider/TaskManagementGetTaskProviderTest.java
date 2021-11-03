@@ -144,7 +144,7 @@ public class TaskManagementGetTaskProviderTest {
             false,
             new WarningValues(Collections.emptyList()),
             "Case Management Category",
-            "someWorkType"
+            "hearing_work"
         );
     }
 
@@ -177,7 +177,7 @@ public class TaskManagementGetTaskProviderTest {
             false,
             warningValues,
             "Case Management Category",
-            "someWorkType"
+            "hearing_work"
             );
     }
 

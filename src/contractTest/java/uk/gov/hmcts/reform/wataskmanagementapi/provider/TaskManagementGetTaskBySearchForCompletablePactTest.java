@@ -132,7 +132,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             true,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            "someWorkType"
+            "hearing_work"
         );
 
         return singletonList(task);
@@ -167,7 +167,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             true,
             warningValues,
             "Some Case Management Category",
-            "someWorkType"
+            "hearing_work"
         );
 
         return singletonList(taskWithWarnings);
