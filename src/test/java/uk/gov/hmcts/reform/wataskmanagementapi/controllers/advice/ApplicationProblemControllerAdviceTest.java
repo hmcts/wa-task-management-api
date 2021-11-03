@@ -10,15 +10,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.zalando.problem.Problem;
 import org.zalando.problem.ThrowableProblem;
+import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
+import javax.validation.ConstraintViolationException;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
 import static org.zalando.problem.Status.BAD_GATEWAY;
+import static org.zalando.problem.Status.BAD_REQUEST;
 import static org.zalando.problem.Status.SERVICE_UNAVAILABLE;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,7 +65,6 @@ class ApplicationProblemControllerAdviceTest {
         assertEquals(BAD_GATEWAY, response.getBody().getStatus());
     }
 
-
     @Test
     void should_handle_jdbc_connection_exception() {
 
@@ -73,6 +82,44 @@ class ApplicationProblemControllerAdviceTest {
         assertEquals("Service Unavailable", response.getBody().getTitle());
         assertEquals(ErrorMessages.DATABASE_IS_UNAVAILABLE.getDetail(), response.getBody().getDetail());
         assertEquals(SERVICE_UNAVAILABLE, response.getBody().getStatus());
+    }
+
+
+    @Test
+    void should_handle_custom_constraint_violation_exception() {
+
+        List<Violation> violationList = singletonList(new Violation("some.field", "some message"));
+        CustomConstraintViolationException exception = new CustomConstraintViolationException(violationList);
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleCustomConstraintViolation(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+            URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
+            response.getBody().getType()
+        );
+        assertEquals("Constraint Violation", response.getBody().getTitle());
+        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+    }
+
+    @Test
+    void should_handle_constraint_violation_exception() {
+        NativeWebRequest nativeWebRequest = mock(NativeWebRequest.class);
+        ConstraintViolationException constraintViolationException = new ConstraintViolationException(emptySet());
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleConstraintViolation(constraintViolationException, nativeWebRequest);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+            URI.create("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
+            response.getBody().getType()
+        );
+        assertEquals("Constraint Violation", response.getBody().getTitle());
+        assertEquals(BAD_REQUEST, response.getBody().getStatus());
     }
 
 
