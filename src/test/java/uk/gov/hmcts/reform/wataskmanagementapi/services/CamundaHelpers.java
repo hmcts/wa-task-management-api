@@ -49,7 +49,7 @@ public class CamundaHelpers {
             false,
             new WarningValues(Collections.emptyList()),
             "someCaseManagementCategory",
-            "someWorkType"
+            "hearing_work"
         );
     }
 

@@ -72,17 +72,6 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-    public Headers getTribunalCaseworkerR2Authorization(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        return new Headers(
-            getCaseworkerR2AuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }
-
     public Headers getLawFirmAuthorization() {
         /*
          * This user is used to create cases in ccd
@@ -95,29 +84,14 @@ public class AuthorizationHeadersProvider {
 
 
     public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
-
-        String key = "Caseworker A";
-
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
+        TestAccount caseworker = getIdamCredentials(emailPrefix);
+        return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
     public Header getCaseworkerBAuthorizationOnly(String emailPrefix) {
-
-        String key = "Caseworker B";
-
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
-
-    }
-
-    public Header getCaseworkerR2AuthorizationOnly(String emailPrefix) {
-
-        String key = "Caseworker R2";
-
-        TestAccount caseworker = getIdamCredentials(key, emailPrefix);
-        return getAuthorization(key, caseworker.getUsername(), caseworker.getPassword());
+        TestAccount caseworker = getIdamCredentials(emailPrefix);
+        return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
@@ -126,27 +100,36 @@ public class AuthorizationHeadersProvider {
         String username = System.getenv("TEST_WA_LAW_FIRM_USERNAME");
         String password = System.getenv("TEST_WA_LAW_FIRM_PASSWORD");
 
-        return getAuthorization("LawFirm", username, password);
+        return getAuthorization(username, password);
 
     }
 
-    private Header getAuthorization(String key, String username, String password) {
+    public UserInfo getUserInfo(String userToken) {
+        return userInfo.computeIfAbsent(
+            userToken,
+            user -> idamWebApi.userInfo(userToken)
+        );
+
+    }
+
+    public Headers getServiceAuthorizationHeadersOnly() {
+        return new Headers(getServiceAuthorizationHeader());
+    }
+
+    private Header getAuthorization(String username, String password) {
 
         MultiValueMap<String, String> body = createIdamRequest(username, password);
 
         String accessToken = tokens.computeIfAbsent(
-            key,
+            username,
             user -> "Bearer " + idamWebApi.token(body).getAccessToken()
         );
         return new Header(AUTHORIZATION, accessToken);
     }
 
-    private TestAccount getIdamCredentials(String key, String emailPrefix) {
+    private TestAccount getIdamCredentials(String emailPrefix) {
 
-        return accounts.computeIfAbsent(
-            key,
-            user -> generateIdamTestAccount(emailPrefix)
-        );
+        return generateIdamTestAccount(emailPrefix);
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -183,17 +166,5 @@ public class AuthorizationHeadersProvider {
 
         log.info("Test account created successfully");
         return new TestAccount(email, password);
-    }
-
-    public UserInfo getUserInfo(String userToken) {
-        return userInfo.computeIfAbsent(
-            userToken,
-            user -> idamWebApi.userInfo(userToken)
-        );
-
-    }
-
-    public Headers getServiceAuthorizationHeadersOnly() {
-        return new Headers(getServiceAuthorizationHeader());
     }
 }

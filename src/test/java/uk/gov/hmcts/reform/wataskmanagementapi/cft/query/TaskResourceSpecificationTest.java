@@ -30,12 +30,13 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskResourceSpecificationTest {
@@ -47,6 +48,7 @@ public class TaskResourceSpecificationTest {
     @Mock CriteriaBuilder.In<Object> inObject;
     @Mock CriteriaBuilder.In<Object> values;
     @Mock Path<Object> authorizations;
+    @Mock Path<Object> path;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -69,6 +71,8 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
         lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+        lenient().when(root.get(anyString())).thenReturn(path);
+        lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
     }
 
     @Test
@@ -217,6 +221,31 @@ public class TaskResourceSpecificationTest {
             accessControlResponse,
             permissionsRequired
         );
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    @Test
+    public void buildQueryForWorkType() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
+        ));
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentsWithGrantTypeBasic(Classification.PUBLIC)
+        );
+
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest,
+            accessControlResponse,
+            permissionsRequired);
+
         Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
         assertNotNull(predicate);

@@ -47,9 +47,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test
@@ -146,7 +144,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     public void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions() {
         final String caseId = given.iCreateACcdCase();
 
-        // create a 2 tasks for caseId
+        // create 2 tasks for caseId
         sendMessage(caseId);
         sendMessage(caseId);
 
@@ -191,7 +189,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
             CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
-            CamundaVariableDefinition.TASK_TYPE, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );

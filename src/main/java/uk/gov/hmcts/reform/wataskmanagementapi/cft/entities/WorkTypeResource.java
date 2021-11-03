@@ -26,13 +26,13 @@ public class WorkTypeResource implements Serializable {
         // required for runtime proxy generation in Hibernate
     }
 
+    public WorkTypeResource(String id) {
+        this(id, "");
+    }
+
     public WorkTypeResource(String id, String label) {
         this.id = id;
         this.label = label;
-    }
-
-    public WorkTypeResource(String id) {
-        this(id, "");
     }
 
     public String getId() {

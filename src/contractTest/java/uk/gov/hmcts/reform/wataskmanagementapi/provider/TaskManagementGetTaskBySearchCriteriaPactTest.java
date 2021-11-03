@@ -6,6 +6,7 @@ import au.com.dius.pact.provider.junitsupport.IgnoreNoPactsToVerify;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,14 +46,14 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 //Uncomment this and comment the @PacBroker line to test WorkTypeConsumerTest local consumer.
-//@PactFolder("pacts")
-@PactBroker(
+@PactFolder("pacts")
+/*@PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
     port = "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
-)
+)*/
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchCriteriaPactTest {

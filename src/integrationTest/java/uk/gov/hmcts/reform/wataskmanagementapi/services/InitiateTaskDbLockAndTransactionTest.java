@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
+import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,18 +55,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNC
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.IDAM_USER_ID;
 
 @Slf4j
 public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationBaseTest {
 
-    public static final String A_TASK_NAME = "aTaskName";
-    public static final String A_TASK_TYPE = "aTaskType";
+    public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+    public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
+
+    ZonedDateTime createdDate = ZonedDateTime.now();
+    ZonedDateTime dueDate = createdDate.plusDays(1);
+    String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
     private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
         InitiateTaskOperation.INITIATION,
@@ -73,9 +80,11 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
             new TaskAttribute(TASK_ASSIGNEE, SOME_ASSIGNEE),
             new TaskAttribute(TASK_CASE_ID, SOME_CASE_ID),
-            new TaskAttribute(TASK_NAME, A_TASK_NAME)
+            new TaskAttribute(TASK_NAME, A_TASK_NAME),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         )
     );
+
     @Autowired
     private TaskResourceRepository taskResourceRepository;
     @MockBean
@@ -133,9 +142,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
             )
         ).thenReturn(true);
 

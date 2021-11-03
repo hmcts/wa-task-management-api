@@ -12,7 +12,6 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -126,23 +125,6 @@ public class RestApiActions {
 
     public Response delete(String path, String resourceId, Object body, Headers headers) {
         return deleteWithBody(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
-    }
-
-    public void updateFeatureFlag(String featureFlag, boolean featureToggled) {
-
-        String accessToken = System.getenv("LAUNCH_DARKLY_ACCESS_TOKEN");
-
-        final Response response = given()
-            .log()
-            .all()
-            .contentType(APPLICATION_JSON_VALUE)
-            .accept(APPLICATION_JSON_VALUE)
-            .header(new Header("Authorization", accessToken))
-            .body(jsonBodyWithFeatureToggled(featureToggled))
-            .patch(featureFlag);
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.OK.value());
     }
 
     private Response postWithBody(String path,
@@ -260,6 +242,16 @@ public class RestApiActions {
         return "["
                +    " { "
                +        "\"op\": \"replace\", "
+               +        "\"path\": \"/environments/test/on\", "
+               +        "\"value\": " + featureToggled
+               +    "}\n"
+               + "]";
+    }
+
+    private String getFeatureToggledJsonBody(boolean featureToggled) {
+        return "["
+               +    " { "
+               +        "\"it\": \"test\", "
                +        "\"path\": \"/environments/test/on\", "
                +        "\"value\": " + featureToggled
                +    "}\n"

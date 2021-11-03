@@ -56,7 +56,7 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   system:
@@ -116,7 +116,6 @@ launchDarkly:
   connectionTimeout: 5000
   socketTimeout: 5000
 
-
 logging:
   level:
     root: INFO
@@ -130,3 +129,4 @@ caffeine:
   timeout:
     duration: 30
     unit: MINUTES
+
