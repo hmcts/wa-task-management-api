@@ -309,6 +309,7 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
 
   implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.27.Final'
+  implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.2.0.Final'
 
   compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   compile group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'

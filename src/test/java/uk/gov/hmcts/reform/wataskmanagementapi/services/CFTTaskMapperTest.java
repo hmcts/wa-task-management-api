@@ -483,7 +483,7 @@ class CFTTaskMapperTest {
         assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
         assertEquals("someTitle", task.getTaskTitle());
         assertEquals("someAssignee", task.getAssignee());
-        assertEquals(false, task.getAutoAssigned());
+        assertEquals(false, task.isAutoAssigned());
         assertEquals("Manual", task.getExecutionType());
         assertEquals("someJurisdiction", task.getJurisdiction());
         assertEquals("00000", task.getCaseId());
