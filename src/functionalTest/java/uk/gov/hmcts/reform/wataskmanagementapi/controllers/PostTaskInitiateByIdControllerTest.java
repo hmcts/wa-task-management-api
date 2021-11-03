@@ -166,7 +166,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         final List<Map<String, Object>> resources = new JsonPath(result.getBody().asString())
             .param("roleName", roleName)
             .get("task_role_resources.findAll { resource -> resource.role_name == roleName }");
-        return resources.get(0);
+        return resources.size() > 0 ? resources.get(0) : null;
     }
 
     @Test
