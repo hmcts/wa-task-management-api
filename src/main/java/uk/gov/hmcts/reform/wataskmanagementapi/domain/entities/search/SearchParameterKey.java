@@ -24,4 +24,8 @@ public enum SearchParameterKey {
     public String toString() {
         return id;
     }
+
+    public String value() {
+        return id;
+    }
 }

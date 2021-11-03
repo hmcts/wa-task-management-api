@@ -958,7 +958,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_empty_list_when_search_by_work_type_not_exists() {
+    public void should_return_400_when_search_by_invalid_work_type() {
         //initiate first task
         String taskType = "reviewTheAppeal";
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
@@ -979,9 +979,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
+            .statusCode(HttpStatus.BAD_REQUEST.value());
     }
 
     @Test
