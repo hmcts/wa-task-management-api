@@ -232,7 +232,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                     .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
                     .collect(Collectors.joining("."));
 
-
                 msg = "Invalid request field: "
                       + fieldName
                       + ": "

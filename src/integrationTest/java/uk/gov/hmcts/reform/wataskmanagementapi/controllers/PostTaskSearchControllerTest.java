@@ -313,8 +313,53 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_400_bad_request_when_invalid_search_parameter_key() throws Exception {
+    void should_return_400_bad_request_when_invalid_input_request() throws Exception {
 
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Unexpected end-of-input: expected close marker for Object "
+                               + "(start marker at [Source: (PushbackInputStream); line: 1, column: 1])")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_invalid_body_request() throws Exception {
+
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content("{this is invalid}")
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Unexpected character ('t' (code 116)): was expecting "
+                               + "double-quote to start field name")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_invalid_search_parameter_key() throws Exception {
 
         mockMvc.perform(
                 post("/task")
