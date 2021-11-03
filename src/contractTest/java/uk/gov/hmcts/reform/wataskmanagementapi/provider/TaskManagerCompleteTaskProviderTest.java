@@ -8,12 +8,14 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -56,6 +58,19 @@ public class TaskManagerCompleteTaskProviderTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @State({"complete a task using taskId"})
+    public void completeTaskById() {
+        setInitMockWithoutPrivilegedAccess();
+    }
+
+    @State({"complete a task using taskId and assign and complete completion options"})
+    public void completeTaskByIdWithCompletionOptions() {
+        setInitMockWithPrivilegedAccess();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -77,29 +92,26 @@ public class TaskManagerCompleteTaskProviderTest {
             context.setTarget(testTarget);
         }
 
-    }
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
-    @State({"complete a task using taskId"})
-    public void completeTaskById() {
-        setInitMockWithoutPrivilegedAccess();
-    }
-
-    @State({"complete a task using taskId and assign and complete completion options"})
-    public void claimTaskByIdWithCompletionOptions() {
-        setInitMockWithPrivilegedAccess();
     }
 
     private void setInitMockWithoutPrivilegedAccess() {
-        doNothing().when(taskManagementService).claimTask(any(), any());
+        doNothing().when(taskManagementService).completeTask(any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
     }
 
     private void setInitMockWithPrivilegedAccess() {
-        doNothing().when(taskManagementService).claimTask(any(), any());
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
+
+
     }
 }
