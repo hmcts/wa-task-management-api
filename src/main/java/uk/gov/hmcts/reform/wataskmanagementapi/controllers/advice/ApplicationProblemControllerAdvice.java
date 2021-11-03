@@ -204,7 +204,7 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 .withStatus(ex.getStatus())
                 .build());
     }
-  
+
     /**
      * Common handling of JSON parsing/mapping exceptions.Avoids having to return error
      * details with internal Java package/class names.
@@ -212,7 +212,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
     private String extractErrors(HttpMessageNotReadableException exception) {
         String msg = null;
         Throwable cause = exception.getCause();
-
         if (cause instanceof JsonParseException) {
             JsonParseException jpe = (JsonParseException) cause;
             msg = jpe.getOriginalMessage();
@@ -231,34 +230,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
                 String fieldName = jme.getPath().stream()
                     .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
                     .collect(Collectors.joining("."));
-
-    /**
-     * Common handling of JSON parsing/mapping exceptions.Avoids having to return error
-     * details with internal Java package/class names.
-     */
-    private String extractErrors(HttpMessageNotReadableException exception) {
-        String msg = null;
-        Throwable cause = exception.getCause();
-
-        if (cause instanceof JsonParseException) {
-            JsonParseException jpe = (JsonParseException) cause;
-            msg = jpe.getOriginalMessage();
-        } else if (cause instanceof MismatchedInputException) {
-            MismatchedInputException mie = (MismatchedInputException) cause;
-            if (mie.getPath() != null && !mie.getPath().isEmpty()) {
-                String fieldName = mie.getPath().stream()
-                    .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
-                    .collect(Collectors.joining("."));
-                msg = "Invalid request field: " + fieldName;
-            }
-        } else if (cause instanceof JsonMappingException) {
-            JsonMappingException jme = (JsonMappingException) cause;
-            msg = jme.getOriginalMessage();
-            if (jme.getPath() != null && !jme.getPath().isEmpty()) {
-                String fieldName = jme.getPath().stream()
-                    .map(ref -> ref.getFieldName() == null ? "[0]" : ref.getFieldName())
-                    .collect(Collectors.joining("."));
-
                 msg = "Invalid request field: "
                       + fieldName
                       + ": "
@@ -267,7 +238,6 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         } else {
             msg = "Invalid request message";
         }
-
         return msg;
     }
 
