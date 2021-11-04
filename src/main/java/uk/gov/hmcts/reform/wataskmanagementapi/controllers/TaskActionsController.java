@@ -36,7 +36,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.Optional;
-
 import javax.validation.Valid;
 
 import static org.slf4j.LoggerFactory.getLogger;
