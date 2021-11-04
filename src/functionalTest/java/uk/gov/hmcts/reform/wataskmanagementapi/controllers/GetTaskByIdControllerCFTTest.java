@@ -405,7 +405,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and()
             .body("task.id", equalTo(taskId))
-            .body("task.work_type", equalTo("decision_making_work"));
+            .body("task.work_type_id", equalTo("decision_making_work"));
 
         common.cleanUpTask(taskId);
     }

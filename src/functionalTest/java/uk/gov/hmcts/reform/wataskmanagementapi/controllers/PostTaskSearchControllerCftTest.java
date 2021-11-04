@@ -908,7 +908,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId))
-            .body("tasks.work_type", everyItem(is(TASK_TYPE_WORK_TYPE_MAP.get(taskType))))
+            .body("tasks.work_type_id", everyItem(is(TASK_TYPE_WORK_TYPE_MAP.get(taskType))))
             .body("total_records", equalTo(1));
     }
 
@@ -950,7 +950,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", contains(taskVariables2.getCaseId(), taskVariables1.getCaseId()))
             .body("tasks.id", contains(taskId2, taskId1))
-            .body("tasks.work_type", hasItems(
+            .body("tasks.work_type_id", hasItems(
                 TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
             )
@@ -1048,7 +1048,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItems(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
             .body("tasks.id", hasItems(taskId1, taskId2))
-            .body("tasks.work_type", hasItems(
+            .body("tasks.work_type_id", hasItems(
                 TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"),
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
             )

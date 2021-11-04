@@ -495,7 +495,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Task task = cftTaskMapper.mapToTask(taskResource);
 
-        assertEquals("someWorkType", task.getWorkType());
+        assertEquals("someWorkType", task.getWorkTypeId());
 
         assertNotNull(taskResource.getWorkTypeResource());
         assertEquals("someWorkType", taskResource.getWorkTypeResource().getId());
@@ -513,7 +513,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Task task = cftTaskMapper.mapToTask(taskResource);
 
-        assertNull(task.getWorkType());
+        assertNull(task.getWorkTypeId());
 
         assertNull(taskResource.getWorkTypeResource());
     }
@@ -533,7 +533,7 @@ class CFTTaskMapperTest {
 
         Task task = cftTaskMapper.mapToTask(taskResource);
 
-        assertNull(task.getWorkType());
+        assertNull(task.getWorkTypeId());
 
         AssertionsForClassTypes.assertThatThrownBy(() -> taskResource.getWorkTypeResource().getId())
             .isInstanceOf(NullPointerException.class);

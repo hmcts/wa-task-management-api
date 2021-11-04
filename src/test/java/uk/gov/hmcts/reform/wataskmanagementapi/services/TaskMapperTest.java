@@ -68,7 +68,7 @@ class TaskMapperTest {
         assertEquals("someAssignee", result.getAssignee());
         assertEquals("someCaseTypeId", result.getCaseTypeId());
         assertEquals("someClassification", result.getSecurityClassification());
-        assertEquals("someWorkType", result.getWorkType());
+        assertEquals("someWorkType", result.getWorkTypeId());
     }
 
     @Test
