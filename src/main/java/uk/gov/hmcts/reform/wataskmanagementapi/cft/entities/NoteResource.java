@@ -16,6 +16,7 @@ public class NoteResource implements Serializable {
 
     private static final long serialVersionUID = 1928058324454924191L;
 
+
     private String code;
     private String noteType;
     private String userId;
