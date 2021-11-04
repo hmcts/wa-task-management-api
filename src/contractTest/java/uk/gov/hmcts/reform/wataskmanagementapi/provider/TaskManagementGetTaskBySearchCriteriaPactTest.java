@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
     host = "${PACT_BROKER_URL:localhost}",
     port = "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
-        @VersionSelector(tag = "master")}
+        @VersionSelector(tag = "latest")}
 )
 //@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
