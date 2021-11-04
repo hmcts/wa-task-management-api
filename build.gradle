@@ -172,9 +172,8 @@ pitest {
   excludedClasses = [
     'uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.config.*',
     'uk.gov.hmcts.reform.wataskmanagementapi.config.*',
-    'uk.gov.hmcts.reform.wataskmanagementapi.Application',
+    'uk.gov.hmcts.reform.wataskmanagementapi.Application'
   ]
-
   threads = 10
   outputFormats = ['XML', 'HTML']
   timestampedReports = false
