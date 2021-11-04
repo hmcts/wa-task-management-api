@@ -184,7 +184,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
                         .stringType("case_management_category", "Some Case Management Category")
-                        .stringType("work_type", "access_requests")
+                        .stringType("work_type_id", "hearing_work")
                 )).build();
     }
 
@@ -220,7 +220,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                             )
                         )
                         .stringType("case_management_category", "Some Case Management Category")
-                        .stringType("work_type", "access_requests")
+                        .stringType("work_type_id", "access_requests")
                 )).build();
     }
 
