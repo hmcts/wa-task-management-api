@@ -24,7 +24,7 @@ class SearchParameterKeyTest {
         assertEquals("taskId", taskIdEnum);
         assertEquals("taskType", taskTypeEnum);
         assertEquals("caseId", caseIdEnum);
-        assertEquals("workType", workTypeEnum);
+        assertEquals("work_type", workTypeEnum);
     }
 
     @Test
