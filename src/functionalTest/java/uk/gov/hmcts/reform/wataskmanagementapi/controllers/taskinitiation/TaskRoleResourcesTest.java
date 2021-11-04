@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -23,6 +24,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
@@ -45,19 +48,23 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("prefix");
-        common.clearAllRoleAssignments(authenticationHeaders);
-
         taskVariables = common.setupTaskAndRetrieveIds();
         taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         initiateTaskRequest = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, ""),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task")
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
     }
 
@@ -101,7 +108,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
     @Test
     public void when_task_type_is_ReviewRespondentEvidence_then_expect_one_two_and_three_rules() {
         initiateTaskRequest.getTaskAttributes()
-            .set(0, new TaskAttribute(TASK_TYPE, "Review respondent evidence"));
+            .set(0, new TaskAttribute(TASK_TYPE, "reviewRespondentEvidence"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -115,7 +122,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_type", equalTo("Review respondent evidence"))
+            .body("task_type", equalTo("reviewRespondentEvidence"))
             .extract()
             .as(TaskResource.class);
 
@@ -136,7 +143,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
     @Test
     public void when_task_type_is_ArrangeOfflinePayment_then_expect_one_and_fourth_rules() {
         initiateTaskRequest.getTaskAttributes()
-            .set(0, new TaskAttribute(TASK_TYPE, "Arrange offline payment"));
+            .set(0, new TaskAttribute(TASK_TYPE, "arrangeOfflinePayment"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -150,7 +157,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_type", equalTo("Arrange offline payment"))
+            .body("task_type", equalTo("arrangeOfflinePayment"))
             .extract()
             .as(TaskResource.class);
 
@@ -173,7 +180,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
     @Test
     public void when_task_type_is_AllocateHearingJudge_then_expect_one_and_fifth_rules() {
         initiateTaskRequest.getTaskAttributes()
-            .set(0, new TaskAttribute(TASK_TYPE, "Allocate hearing judge"));
+            .set(0, new TaskAttribute(TASK_TYPE, "allocateHearingJudge"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -187,7 +194,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_type", equalTo("Allocate hearing judge"))
+            .body("task_type", equalTo("allocateHearingJudge"))
             .extract()
             .as(TaskResource.class);
 
@@ -207,7 +214,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
     @Test
     public void when_task_type_is_ReviewHearingBundle_then_expect_one_sixth_and_seventh_rules() {
         initiateTaskRequest.getTaskAttributes()
-            .set(0, new TaskAttribute(TASK_TYPE, "Review hearing bundle"));
+            .set(0, new TaskAttribute(TASK_TYPE, "reviewHearingBundle"));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -221,7 +228,7 @@ public class TaskRoleResourcesTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_type", equalTo("Review hearing bundle"))
+            .body("task_type", equalTo("reviewHearingBundle"))
             .extract()
             .as(TaskResource.class);
 

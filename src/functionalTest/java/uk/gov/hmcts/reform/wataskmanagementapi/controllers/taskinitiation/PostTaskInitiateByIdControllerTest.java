@@ -61,9 +61,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Before
     public void setUp() {
-        //Reset role assignments
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
-        common.clearAllRoleAssignments(authenticationHeaders);
     }
 
     @Test
@@ -95,6 +93,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             );
 
             result.prettyPrint();
+            //Note: this is the TaskResource.class
             result.then().assertThat()
                 .statusCode(HttpStatus.CREATED.value())
                 .and()
