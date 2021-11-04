@@ -213,6 +213,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", true)
+                        .stringType("work_type_id", "hearing_work")
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")
