@@ -21,7 +21,7 @@ public class SearchParameter {
 
     @ApiModelProperty(
         required = true,
-        allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, workType",
+        allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, work_type",
         example = "user")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."

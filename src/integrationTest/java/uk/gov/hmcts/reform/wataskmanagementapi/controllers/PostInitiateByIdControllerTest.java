@@ -129,8 +129,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
         ));
@@ -174,6 +174,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -208,8 +209,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
                 InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-                    new TaskAttribute(TASK_TYPE, "aTaskType"),
-                    new TaskAttribute(TASK_NAME, "aTaskName"),
+                    new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                    new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
                     new TaskAttribute(TASK_CASE_ID, "someCaseId"),
                     new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
 
@@ -236,7 +237,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         InitiateTaskRequest someOtherReq = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "some other task type"),
+            new TaskAttribute(TASK_TYPE, "markCaseAsPaid"),
             new TaskAttribute(TASK_NAME, "soe other task name"),
             new TaskAttribute(TASK_CASE_ID, "some other task case id"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
@@ -257,7 +258,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);
         assertTrue(actualTask.isPresent());
-        assertEquals("aTaskType", actualTask.get().getTaskType());
+        assertEquals("followUpOverdueReasonsForAppeal", actualTask.get().getTaskType());
     }
 
     @Test
@@ -277,8 +278,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -315,6 +316,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -346,8 +348,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -363,12 +365,12 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
                 jsonPath("$.task_id").value(taskId),
-                jsonPath("$.task_name").value("aTaskName"),
-                jsonPath("$.task_type").value("aTaskType"),
+                jsonPath("$.task_name").value("follow Up Overdue Reasons For Appeal"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
                 jsonPath("$.state").value("UNASSIGNED"),
                 jsonPath("$.task_system").value("SELF"),
                 jsonPath("$.security_classification").value("PUBLIC"),
-                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.title").value("follow Up Overdue Reasons For Appeal"),
                 jsonPath("$.auto_assigned").value(false),
                 jsonPath("$.has_warnings").value("false"),
                 jsonPath("$.case_id").value("someCaseId"),
@@ -429,6 +431,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
                 new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
                 new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
                 new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
             ));
 
@@ -471,7 +474,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
             new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId"),
@@ -491,7 +494,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     content().contentType(APPLICATION_JSON_VALUE),
                     jsonPath("$.task_id").value(taskId),
                     jsonPath("$.task_name").value("aTaskName"),
-                    jsonPath("$.task_type").value("aTaskType"),
+                    jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
                     jsonPath("$.state").value("ASSIGNED"),
                     jsonPath("$.task_system").value("SELF"),
                     jsonPath("$.security_classification").value("PUBLIC"),

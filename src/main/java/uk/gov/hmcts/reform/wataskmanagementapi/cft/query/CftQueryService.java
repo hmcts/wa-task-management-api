@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,11 +27,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@Slf4j
 @Service
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
-        "hearing_work", "upper_tribunal", "routine_work", "routine_work", "decision_making_work",
+        "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
         "applications", "priority", "access_requests", "error_management");
 
     private final CFTTaskMapper cftTaskMapper;

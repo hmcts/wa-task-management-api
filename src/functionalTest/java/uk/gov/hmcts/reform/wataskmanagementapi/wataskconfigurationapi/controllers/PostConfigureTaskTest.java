@@ -36,15 +36,15 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
         String taskTypeId = "followUpOverdueReasonsForAppeal";
         createTaskMessage = createBasicMessageForTask(taskTypeId, caseId).build();
-        this.taskId = createTask(createTaskMessage);
-        log.info("task found [{}]", this.taskId);
+        taskId = createTask(createTaskMessage);
+        log.info("task found [{}]", taskId);
 
         log.info("Creating roles...");
         roleAssignmentHelper.setRoleAssignments(caseId);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
-            this.taskId,
+            taskId,
             new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
         );
         result.prettyPeek();
@@ -55,7 +55,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
         Response camundaResult = camundaApiActions.get(
             "/task/{task-id}/variables",
-            this.taskId,
+            taskId,
             authorizationHeadersProvider.getServiceAuthorizationHeader()
         );
 
