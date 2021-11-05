@@ -115,6 +115,17 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .stringType("work_type", "hearing_work")
+                        .object("permissions", values ->
+                            values
+                                .array("values", value -> value
+                                    .stringValue("Read")
+                                    .stringValue("Own")
+                                    .stringValue("Execute")
+                                    .stringValue("Cancel")
+                                    .stringValue("Manage")
+                                    .stringValue("Refer")
+                                )
+                        )
                 )).build();
     }
 
@@ -150,6 +161,17 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                                 .stringType("warningCode", "Code1")
                                 .stringType("warningText", "Text1")
                             )
+                        )
+                        .object("permissions", values ->
+                            values
+                                .array("values", value -> value
+                                    .stringValue("Read")
+                                    .stringValue("Own")
+                                    .stringValue("Execute")
+                                    .stringValue("Cancel")
+                                    .stringValue("Manage")
+                                    .stringValue("Refer")
+                                )
                         )
                 )).build();
     }

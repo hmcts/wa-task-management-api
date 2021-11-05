@@ -122,6 +122,18 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
                         .stringType("work_type", "hearing_work")
+                        .object("permissions", values ->
+                            values
+                                .array("values", value -> value
+                                    .stringValue("Read")
+                                    .stringValue("Own")
+                                    .stringValue("Execute")
+                                    .stringValue("Cancel")
+                                    .stringValue("Manage")
+                                    .stringValue("Refer")
+
+                                )
+                        )
                 )).build();
     }
 
@@ -154,6 +166,17 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")
                                 .stringType("warningText", "Text1")
+                            )
+                        )
+                        .object("permissions", values ->
+                            values
+                            .array("values", value -> value
+                                .stringValue("Read")
+                                .stringValue("Own")
+                                .stringValue("Execute")
+                                .stringValue("Cancel")
+                                .stringValue("Manage")
+                                .stringValue("Refer")
                             )
                         )
                 )).build();

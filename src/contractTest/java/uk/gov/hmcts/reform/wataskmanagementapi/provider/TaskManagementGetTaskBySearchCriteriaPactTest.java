@@ -20,17 +20,20 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskSearchController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -141,7 +144,17 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             false,
             new WarningValues(emptyList()),
             "Some Case Management Category",
-            "hearing_work"
+            "hearing_work",
+            new TaskPermissions(
+                new HashSet<>(
+                    asList(
+                        PermissionTypes.READ,
+                        PermissionTypes.OWN,
+                        PermissionTypes.EXECUTE,
+                        PermissionTypes.CANCEL,
+                        PermissionTypes.MANAGE,
+                        PermissionTypes.REFER
+                    )))
         );
     }
 
@@ -174,7 +187,17 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             true,
             new WarningValues(warnings),
             "Some Case Management Category",
-            "hearing_work"
+            "hearing_work",
+            new TaskPermissions(
+                new HashSet<>(
+                    asList(
+                        PermissionTypes.READ,
+                        PermissionTypes.OWN,
+                        PermissionTypes.EXECUTE,
+                        PermissionTypes.CANCEL,
+                        PermissionTypes.MANAGE,
+                        PermissionTypes.REFER
+                    )))
         );
     }
 

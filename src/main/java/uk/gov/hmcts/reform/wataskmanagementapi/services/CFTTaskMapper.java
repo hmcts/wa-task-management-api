@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -29,6 +30,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -149,6 +151,7 @@ public class CFTTaskMapper {
     }
 
     public Task mapToTask(TaskResource taskResource) {
+        Set<PermissionTypes> permissionsUnion = extractUnionOfPermissions(taskResource.getTaskRoleResources());
         return new Task(taskResource.getTaskId(),
             taskResource.getTaskName(),
             taskResource.getTaskType(),
@@ -172,8 +175,35 @@ public class CFTTaskMapper {
             taskResource.getHasWarnings(),
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory(),
-            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId()
+            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
+            new TaskPermissions(permissionsUnion)
         );
+    }
+
+    private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
+
+        Set<PermissionTypes> permissionsFound = new HashSet<>();
+        taskRoleResources.forEach(taskRoleResource -> {
+            if (taskRoleResource.getRead()) {
+                permissionsFound.add(PermissionTypes.READ);
+            }
+            if (taskRoleResource.getManage()) {
+                permissionsFound.add(PermissionTypes.MANAGE);
+            }
+            if (taskRoleResource.getExecute()) {
+                permissionsFound.add(PermissionTypes.EXECUTE);
+            } 
+            if (taskRoleResource.getCancel()) {
+                permissionsFound.add(PermissionTypes.CANCEL);
+            }
+            if (taskRoleResource.getOwn()) {
+                permissionsFound.add(PermissionTypes.OWN);
+            }
+            if (taskRoleResource.getRefer()) {
+                permissionsFound.add(PermissionTypes.REFER);
+            }
+        });
+        return permissionsFound;
     }
 
     private Set<TaskRoleResource> mapPermissions(
