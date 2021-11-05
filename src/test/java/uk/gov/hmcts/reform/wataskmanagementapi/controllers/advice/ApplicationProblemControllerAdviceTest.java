@@ -69,8 +69,14 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_format_field_names() {
 
-        assertEquals("some_field_name", applicationProblemControllerAdvice.formatFieldName("someFieldName"));
-        assertEquals("some_field_name", applicationProblemControllerAdvice.formatFieldName("some_field_name"));
+        assertEquals(
+            "some_field_name",
+            applicationProblemControllerAdvice.formatFieldName("someFieldName")
+        );
+        assertEquals(
+            "some_field_name",
+            applicationProblemControllerAdvice.formatFieldName("some_field_name")
+        );
     }
 
     @Test
@@ -156,7 +162,8 @@ class ApplicationProblemControllerAdviceTest {
 
     @Test
     void should_handle_http_message_not_readable_exception() {
-        HttpMessageNotReadableException httpMessageNotReadableException = new HttpMessageNotReadableException("someMessage");
+        HttpMessageNotReadableException httpMessageNotReadableException =
+            new HttpMessageNotReadableException("someMessage");
 
         ResponseEntity<Problem> response = applicationProblemControllerAdvice
             .handleMessageNotReadable(httpMessageNotReadableException);
@@ -241,7 +248,10 @@ class ApplicationProblemControllerAdviceTest {
             response.getBody().getType()
         );
         assertEquals("Bad Request", response.getBody().getTitle());
-        assertEquals("Invalid request field: somefield.someNestedFieldName: someMessage", response.getBody().getDetail());
+        assertEquals(
+            "Invalid request field: somefield.someNestedFieldName: someMessage",
+            response.getBody().getDetail()
+        );
         assertEquals(BAD_REQUEST, response.getBody().getStatus());
     }
 
@@ -272,14 +282,18 @@ class ApplicationProblemControllerAdviceTest {
             .exception(new RoleAssignmentVerificationException(ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED))
             .expectedTitle("Role Assignment Verification")
             .expectedStatus(FORBIDDEN)
-            .expectedType(URI.create("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .expectedType(
+                URI.create(
+                    "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
             .build();
 
         GenericExceptionScenario taskAssignAndCompleteException = GenericExceptionScenario.builder()
             .exception(new TaskAssignAndCompleteException(ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN))
             .expectedTitle("Task Assign and Complete Error")
             .expectedStatus(INTERNAL_SERVER_ERROR)
-            .expectedType(URI.create("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"))
+            .expectedType(
+                URI.create(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"))
             .build();
 
 
