@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import feign.FeignException;
 import feign.Request;
 import feign.RequestTemplate;
@@ -13,6 +16,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.zalando.problem.AbstractThrowableProblem;
 import org.zalando.problem.Problem;
@@ -44,6 +48,7 @@ import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.zalando.problem.Status.BAD_GATEWAY;
 import static org.zalando.problem.Status.BAD_REQUEST;
 import static org.zalando.problem.Status.FORBIDDEN;
@@ -64,8 +69,14 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_format_field_names() {
 
-        assertEquals("some_field_name", applicationProblemControllerAdvice.formatFieldName("someFieldName"));
-        assertEquals("some_field_name", applicationProblemControllerAdvice.formatFieldName("some_field_name"));
+        assertEquals(
+            "some_field_name",
+            applicationProblemControllerAdvice.formatFieldName("someFieldName")
+        );
+        assertEquals(
+            "some_field_name",
+            applicationProblemControllerAdvice.formatFieldName("some_field_name")
+        );
     }
 
     @Test
@@ -149,6 +160,101 @@ class ApplicationProblemControllerAdviceTest {
         assertEquals(BAD_REQUEST, response.getBody().getStatus());
     }
 
+    @Test
+    void should_handle_http_message_not_readable_exception() {
+        HttpMessageNotReadableException httpMessageNotReadableException =
+            new HttpMessageNotReadableException("someMessage");
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleMessageNotReadable(httpMessageNotReadableException);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+            URI.create("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+            response.getBody().getType()
+        );
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("Invalid request message", response.getBody().getDetail());
+        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+    }
+
+    @Test
+    void should_handle_http_message_not_readable_exception_json_parse() {
+        HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
+        JsonParseException cause = mock(JsonParseException.class);
+        when(cause.getOriginalMessage()).thenReturn("someMessage");
+        when(httpMessageNotReadableException.getCause()).thenReturn(cause);
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleMessageNotReadable(httpMessageNotReadableException);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+            URI.create("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+            response.getBody().getType()
+        );
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("someMessage", response.getBody().getDetail());
+        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+    }
+
+
+    @Test
+    void should_handle_http_message_not_readable_exception_mismatch_input() {
+        HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
+        MismatchedInputException cause = mock(MismatchedInputException.class);
+        List<JsonMappingException.Reference> paths = List.of(
+            new JsonMappingException.Reference("someObject", "somefield"),
+            new JsonMappingException.Reference("someObject", "someNestedFieldName")
+        );
+        when(cause.getPath()).thenReturn(paths);
+        when(httpMessageNotReadableException.getCause()).thenReturn(cause);
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleMessageNotReadable(httpMessageNotReadableException);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+            URI.create("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+            response.getBody().getType()
+        );
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("Invalid request field: somefield.someNestedFieldName", response.getBody().getDetail());
+        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+    }
+
+    @Test
+    void should_handle_http_message_not_readable_exception_json_mapping() {
+        HttpMessageNotReadableException httpMessageNotReadableException = mock(HttpMessageNotReadableException.class);
+        JsonMappingException cause = mock(JsonMappingException.class);
+        when(cause.getOriginalMessage()).thenReturn("someMessage");
+        List<JsonMappingException.Reference> paths = List.of(
+            new JsonMappingException.Reference("someObject", "somefield"),
+            new JsonMappingException.Reference("someObject", "someNestedFieldName")
+        );
+        when(cause.getPath()).thenReturn(paths);
+        when(httpMessageNotReadableException.getCause()).thenReturn(cause);
+
+        ResponseEntity<Problem> response = applicationProblemControllerAdvice
+            .handleMessageNotReadable(httpMessageNotReadableException);
+
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals(
+            URI.create("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+            response.getBody().getType()
+        );
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals(
+            "Invalid request field: somefield.someNestedFieldName: someMessage",
+            response.getBody().getDetail()
+        );
+        assertEquals(BAD_REQUEST, response.getBody().getStatus());
+    }
+
     @ParameterizedTest
     @MethodSource("genericExceptionProvider")
     void should_handle_exceptions_in_handleApplicationProblemExceptions(GenericExceptionScenario scenario) {
@@ -176,14 +282,18 @@ class ApplicationProblemControllerAdviceTest {
             .exception(new RoleAssignmentVerificationException(ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED))
             .expectedTitle("Role Assignment Verification")
             .expectedStatus(FORBIDDEN)
-            .expectedType(URI.create("https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .expectedType(
+                URI.create(
+                    "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
             .build();
 
         GenericExceptionScenario taskAssignAndCompleteException = GenericExceptionScenario.builder()
             .exception(new TaskAssignAndCompleteException(ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN))
             .expectedTitle("Task Assign and Complete Error")
             .expectedStatus(INTERNAL_SERVER_ERROR)
-            .expectedType(URI.create("https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"))
+            .expectedType(
+                URI.create(
+                    "https://github.com/hmcts/wa-task-management-api/problem/task-assign-and-complete-error"))
             .build();
 
 
