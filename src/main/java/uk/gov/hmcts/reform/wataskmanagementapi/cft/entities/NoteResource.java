@@ -1,14 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 
 import java.io.Serializable;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
 @EqualsAndHashCode
 @ToString
@@ -25,7 +22,6 @@ public class NoteResource implements Serializable {
         // required for runtime proxy generation in Hibernate
     }
 
-    @JsonCreator
     public NoteResource(String code, String noteType, String userId, String content) {
         this.code = code;
         this.noteType = noteType;
