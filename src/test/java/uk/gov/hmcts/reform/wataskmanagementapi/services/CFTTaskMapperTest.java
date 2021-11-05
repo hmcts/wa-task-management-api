@@ -550,7 +550,7 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_map_task_resource_to_task_when_create_date_is_null() {
+    void should_throw_exception_when_map_to_task_and_create_date_is_null() {
         String formattedCreatedDate = null;
         ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -566,7 +566,7 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_throw_exception_map_task_resource_to_task_when_due_date_is_null() {
+    void should_throw_exception_when_map_to_task_and_due_date_is_null() {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
