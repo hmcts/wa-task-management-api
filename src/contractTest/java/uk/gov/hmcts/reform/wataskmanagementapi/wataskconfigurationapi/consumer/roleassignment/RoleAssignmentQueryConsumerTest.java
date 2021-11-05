@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -57,14 +57,6 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     @MockBean
     private IdamTokenGenerator idamTokenGenerator;
     private TaskConfigurationRoleAssignmentService roleAssignmentService;
-
-    @BeforeEach
-    void setUp() {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        when(idamTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
-
-        roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
-    }
 
     @Pact(provider = "am_roleAssignment_queryAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact generatePactFragmentForQueryRoleAssignments(PactDslWithProvider builder) throws JsonProcessingException {
@@ -101,6 +93,14 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
 
         assertThat(queryRoleAssignmentResponse.get(0).getActorId(), is(assigneeId));
 
+    }
+
+    @BeforeEach
+    void setUp() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
+        when(idamTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
+
+        roleAssignmentService = new TaskConfigurationRoleAssignmentService(roleAssignmentApi, authTokenGenerator, idamTokenGenerator);
     }
 
     private MultipleQueryRequest buildQueryRequest() {

@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import java.io.IOException;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -33,32 +33,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
 
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String WA_SEARCH_QUERY = "/task";
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQuery200")
-    void testSearchQuery200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
-    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQuery200(PactDslWithProvider builder) throws JsonProcessingException {
@@ -93,6 +67,32 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQuery200")
+    void testSearchQuery200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
+    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
     }
 
     private DslPart createResponseForGetTask() throws JsonProcessingException {

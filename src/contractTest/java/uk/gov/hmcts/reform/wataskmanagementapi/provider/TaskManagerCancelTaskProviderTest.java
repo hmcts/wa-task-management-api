@@ -56,6 +56,11 @@ public class TaskManagerCancelTaskProviderTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
 
+    @State({"cancel a task using taskId"})
+    public void cancelTaskById() {
+        setInitMock();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -77,11 +82,6 @@ public class TaskManagerCancelTaskProviderTest {
             context.setTarget(testTarget);
         }
 
-    }
-
-    @State({"cancel a task using taskId"})
-    public void cancelTaskById() {
-        setInitMock();
     }
 
     private void setInitMock() {

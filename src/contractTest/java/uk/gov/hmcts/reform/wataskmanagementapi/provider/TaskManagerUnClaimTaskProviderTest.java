@@ -57,6 +57,11 @@ public class TaskManagerUnClaimTaskProviderTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
 
+    @State({"unclaim a task using taskId"})
+    public void claimTaskById() {
+        setInitMock();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -78,11 +83,6 @@ public class TaskManagerUnClaimTaskProviderTest {
             context.setTarget(testTarget);
         }
 
-    }
-
-    @State({"unclaim a task using taskId"})
-    public void claimTaskById() {
-        setInitMock();
     }
 
     private void setInitMock() {

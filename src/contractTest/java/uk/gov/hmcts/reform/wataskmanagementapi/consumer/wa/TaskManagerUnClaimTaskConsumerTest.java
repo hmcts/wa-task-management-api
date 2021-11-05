@@ -26,19 +26,6 @@ public class TaskManagerUnClaimTaskConsumerTest extends SpringBootContractBaseTe
     private static final String WA_URL = "/task";
     private static final String WA_UNCLAIM_TASK_BY_ID = WA_URL + "/" + TASK_ID + "/" + "unclaim";
 
-    @Test
-    @PactTestFor(pactMethod = "executeUnClaimTaskById204")
-    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body("")
-            .post(mockServer.getUrl() + WA_UNCLAIM_TASK_BY_ID)
-            .then()
-            .statusCode(204);
-    }
-
     @Pact(provider = "wa_task_management_api_unclaim_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeUnClaimTaskById204(PactDslWithProvider builder) {
 
@@ -53,5 +40,18 @@ public class TaskManagerUnClaimTaskConsumerTest extends SpringBootContractBaseTe
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeUnClaimTaskById204")
+    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body("")
+            .post(mockServer.getUrl() + WA_UNCLAIM_TASK_BY_ID)
+            .then()
+            .statusCode(204);
     }
 }

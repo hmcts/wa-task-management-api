@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -29,6 +29,22 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends SpringBootContractBaseTest {
 
     private static final String RAS_CREATE_ROLE_ASSIGNMENT_URL = "/am/role-assignments";
+
+    @Pact(provider = "am_roleAssignment_createAssignment", consumer = "wa_task_management_api")
+    public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
+
+        return builder
+            .given("The assignment request is valid with one requested role and replaceExisting flag as true")
+            .uponReceiving("Provider receives a POST /am/role-assignments request from a WA API")
+            .path(RAS_CREATE_ROLE_ASSIGNMENT_URL)
+            .method(HttpMethod.POST.toString())
+            .body(createRoleAssignmentRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.CREATED.value())
+            .headers(getRoleAssignmentResponseHeaders())
+            .body(createRoleAssignmentResponse())
+            .toPact();
+    }
 
     @Test
     @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201")
@@ -51,22 +67,6 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
         assertThat(roleRequest.get("requestType"), equalTo("CREATE"));
         assertThat(roleRequest.get("replaceExisting"), equalTo(true));
 
-    }
-
-    @Pact(provider = "am_roleAssignment_createAssignment", consumer = "wa_task_management_api")
-    public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
-
-        return builder
-            .given("The assignment request is valid with one requested role and replaceExisting flag as true")
-            .uponReceiving("Provider receives a POST /am/role-assignments request from a WA API")
-            .path(RAS_CREATE_ROLE_ASSIGNMENT_URL)
-            .method(HttpMethod.POST.toString())
-            .body(createRoleAssignmentRequest(), String.valueOf(ContentType.JSON))
-            .willRespondWith()
-            .status(HttpStatus.CREATED.value())
-            .headers(getRoleAssignmentResponseHeaders())
-            .body(createRoleAssignmentResponse())
-            .toPact();
     }
 
     private String createRoleAssignmentRequest() {

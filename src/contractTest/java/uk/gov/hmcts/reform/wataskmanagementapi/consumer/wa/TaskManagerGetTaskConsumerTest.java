@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementPr
 import java.io.IOException;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -33,28 +33,6 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     private static final String TASK_ID = "704c8b1c-e89b-436a-90f6-953b1dc40157";
     private static final String WA_URL = "/task";
     private static final String WA_GET_TASK_BY_ID = WA_URL + "/" + TASK_ID;
-
-    @Test
-    @PactTestFor(pactMethod = "executeGetTaskById200")
-    void testGetTaskByTaskId200Test(MockServer mockServer) throws IOException {
-        Request.Get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
-            .addHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
-            .addHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .addHeader(AUTHORIZATION, AUTH_TOKEN)
-            .execute()
-            .returnResponse();
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeGetTaskByIdWithWarnings200")
-    void testGetTaskByTaskId200WithWarningsTest(MockServer mockServer) throws IOException {
-        Request.Get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
-            .addHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
-            .addHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .addHeader(AUTHORIZATION, AUTH_TOKEN)
-            .execute()
-            .returnResponse();
-    }
 
     @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetTaskById200(PactDslWithProvider builder) {
@@ -86,6 +64,28 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeGetTaskById200")
+    void testGetTaskByTaskId200Test(MockServer mockServer) throws IOException {
+        Request.Get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .addHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+            .addHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .addHeader(AUTHORIZATION, AUTH_TOKEN)
+            .execute()
+            .returnResponse();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeGetTaskByIdWithWarnings200")
+    void testGetTaskByTaskId200WithWarningsTest(MockServer mockServer) throws IOException {
+        Request.Get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .addHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+            .addHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .addHeader(AUTHORIZATION, AUTH_TOKEN)
+            .execute()
+            .returnResponse();
     }
 
     private DslPart createResponseForGetTask() {

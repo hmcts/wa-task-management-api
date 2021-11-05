@@ -60,26 +60,6 @@ public class WorkTypeProviderTest {
     @Mock
     private WorkTypesService workTypesService;
 
-    @TestTemplate
-    @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void pactVerificationTestTemplate(PactVerificationContext context) {
-        if (context != null) {
-            context.verifyInteraction();
-        }
-    }
-
-    @BeforeEach
-    void beforeCreate(PactVerificationContext context) {
-        MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new WorkTypesController(
-            accessControlService,
-            workTypesService
-        ));
-        if (context != null) {
-            context.setTarget(testTarget);
-        }
-    }
-
     @State({"retrieve all work types"})
     public void allWorkTypes() {
         List<WorkType> workTypes = new ArrayList<>();
@@ -108,6 +88,26 @@ public class WorkTypeProviderTest {
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
         when(workTypesService.getWorkTypes(any())).thenReturn(Collections.singletonList(workType.get()));
+    }
+
+    @TestTemplate
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
+    void pactVerificationTestTemplate(PactVerificationContext context) {
+        if (context != null) {
+            context.verifyInteraction();
+        }
+    }
+
+    @BeforeEach
+    void beforeCreate(PactVerificationContext context) {
+        MockMvcTestTarget testTarget = new MockMvcTestTarget();
+        testTarget.setControllers(new WorkTypesController(
+            accessControlService,
+            workTypesService
+        ));
+        if (context != null) {
+            context.setTarget(testTarget);
+        }
     }
 
 }

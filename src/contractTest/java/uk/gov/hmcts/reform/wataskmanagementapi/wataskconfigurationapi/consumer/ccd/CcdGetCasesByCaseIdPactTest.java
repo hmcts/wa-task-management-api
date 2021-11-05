@@ -45,14 +45,6 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
 
     private CcdDataService ccdDataService;
 
-    @BeforeEach
-    void setUp() {
-        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        when(systemTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
-        ccdDataService = new CcdDataService(ccdDataServiceApi, authTokenGenerator, systemTokenGenerator);
-    }
-
-
     @Pact(provider = "ccd_data_store_get_case_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
@@ -79,6 +71,13 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         assertThat(caseDetails.getSecurityClassification(), is("PRIVATE"));
         assertThat(caseDetails.getJurisdiction(), is("IA"));
         assertThat(caseDetails.getCaseType(), is("Asylum"));
+    }
+
+    @BeforeEach
+    void setUp() {
+        when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
+        when(systemTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
+        ccdDataService = new CcdDataService(ccdDataServiceApi, authTokenGenerator, systemTokenGenerator);
     }
 
     private PactDslJsonBody createCasesResponse() {

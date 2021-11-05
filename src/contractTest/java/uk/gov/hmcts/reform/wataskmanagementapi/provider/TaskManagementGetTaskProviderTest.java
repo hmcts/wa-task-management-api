@@ -67,6 +67,16 @@ public class TaskManagementGetTaskProviderTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
 
+    @State({"get a task using taskId"})
+    public void getTaskById() {
+        setInitMockTask();
+    }
+
+    @State({"get a task using taskId with warnings"})
+    public void getTaskByIdWithWarnings() {
+        setInitMockTaskWithWarnings();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -95,16 +105,6 @@ public class TaskManagementGetTaskProviderTest {
             )
         );
 
-    }
-
-    @State({"get a task using taskId"})
-    public void getTaskById() {
-        setInitMockTask();
-    }
-
-    @State({"get a task using taskId with warnings"})
-    public void getTaskByIdWithWarnings() {
-        setInitMockTaskWithWarnings();
     }
 
     private void setInitMockTask() {
@@ -178,7 +178,7 @@ public class TaskManagementGetTaskProviderTest {
             warningValues,
             "Case Management Category",
             "hearing_work"
-            );
+        );
     }
 
 }

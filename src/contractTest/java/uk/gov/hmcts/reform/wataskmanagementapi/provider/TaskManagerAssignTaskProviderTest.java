@@ -56,6 +56,11 @@ public class TaskManagerAssignTaskProviderTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
 
+    @State({"assign a task using taskId"})
+    public void assignTaskById() {
+        setInitMock();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -76,11 +81,6 @@ public class TaskManagerAssignTaskProviderTest {
         if (context != null) {
             context.setTarget(testTarget);
         }
-    }
-
-    @State({"assign a task using taskId"})
-    public void assignTaskById() {
-        setInitMock();
     }
 
     private void setInitMock() {

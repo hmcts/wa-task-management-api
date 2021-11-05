@@ -56,6 +56,11 @@ public class TaskManagerClaimTaskProviderTest {
     @Autowired
     private SystemDateProvider systemDateProvider;
 
+    @State({"claim a task using taskId"})
+    public void claimTaskById() {
+        setInitMock();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -77,11 +82,6 @@ public class TaskManagerClaimTaskProviderTest {
             context.setTarget(testTarget);
         }
 
-    }
-
-    @State({"claim a task using taskId"})
-    public void claimTaskById() {
-        setInitMock();
     }
 
     private void setInitMock() {

@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd.util;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import io.pactfoundation.consumer.dsl.LambdaDslObject;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 
 public final class PactDslBuilderForCaseDetailsList {
 
