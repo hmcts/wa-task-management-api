@@ -221,7 +221,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                             )
                         )
                         .stringType("case_management_category", "Some Case Management Category")
-                        .stringType("work_type_id", "access_requests")
                 )).build();
     }
 
