@@ -34,32 +34,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String WA_SEARCH_QUERY = "/task";
 
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQuery200")
-    void testSearchQuery200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
-    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQuery200(PactDslWithProvider builder) throws JsonProcessingException {
         return builder
@@ -95,6 +69,32 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .toPact();
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQuery200")
+    void testSearchQuery200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
+    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
     private DslPart createResponseForGetTask() throws JsonProcessingException {
         return newJsonBody(
             o -> o
@@ -122,18 +122,20 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
                         .stringType("work_type", "hearing_work")
-                        //.object("permissions", values ->
-                        //    values
-                        //        .array("values", value -> value
-                        //            .stringValue("Read")
-                        //            .stringValue("Own")
-                        //            .stringValue("Execute")
-                        //            .stringValue("Cancel")
-                        //            .stringValue("Manage")
-                        //            .stringValue("Refer")
-                        //
-                        //        )
-                        //)
+                    // Note: Array verification cannot be done since unorderedArray is introduced in v4 Specification
+                    // See: RWA-900
+                    //.object("permissions", values ->
+                    //    values
+                    //        .array("values", value -> value
+                    //            .stringValue("Read")
+                    //            .stringValue("Own")
+                    //            .stringValue("Execute")
+                    //            .stringValue("Cancel")
+                    //            .stringValue("Manage")
+                    //            .stringValue("Refer")
+                    //
+                    //        )
+                    //)
                 )).build();
     }
 
@@ -170,14 +172,14 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         )
                         .object("permissions", values ->
                             values
-                            .array("values", value -> value
-                                .stringValue("Read")
-                                .stringValue("Own")
-                                .stringValue("Execute")
-                                .stringValue("Cancel")
-                                .stringValue("Manage")
-                                .stringValue("Refer")
-                            )
+                                .array("values", value -> value
+                                    .stringValue("Read")
+                                    .stringValue("Own")
+                                    .stringValue("Execute")
+                                    .stringValue("Cancel")
+                                    .stringValue("Manage")
+                                    .stringValue("Refer")
+                                )
                         )
                 )).build();
     }

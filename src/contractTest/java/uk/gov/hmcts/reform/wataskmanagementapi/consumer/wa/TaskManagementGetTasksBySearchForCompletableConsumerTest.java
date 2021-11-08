@@ -34,32 +34,6 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     private static final String WA_URL = "/task";
     private static final String WA_SEARCH_FOR_COMPLETABLE = WA_URL + "/search-for-completable";
 
-    @Test
-    @PactTestFor(pactMethod = "executeSearchForCompletable200")
-    void testSearchForCompletable200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(creteSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchForCompletableWithWarnings200")
-    void testSearchForCompletableWithWarnings200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(creteSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
     @Pact(provider = "wa_task_management_api_search_completable", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchForCompletable200(PactDslWithProvider builder) {
         return builder
@@ -94,6 +68,32 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
             .toPact();
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeSearchForCompletable200")
+    void testSearchForCompletable200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(creteSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchForCompletableWithWarnings200")
+    void testSearchForCompletableWithWarnings200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(creteSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
@@ -122,17 +122,17 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", false)
                         .stringType("work_type", "hearing_work")
-                        //.object("permissions", values ->
-                        //    values
-                        //        .array("values", value -> value
-                        //            .stringValue("Read")
-                        //            .stringValue("Own")
-                        //            .stringValue("Execute")
-                        //            .stringValue("Cancel")
-                        //            .stringValue("Manage")
-                        //            .stringValue("Refer")
-                        //        )
-                        //)
+                    //.object("permissions", values ->
+                    //    values
+                    //        .array("values", value -> value
+                    //            .stringValue("Read")
+                    //            .stringValue("Own")
+                    //            .stringValue("Execute")
+                    //            .stringValue("Cancel")
+                    //            .stringValue("Manage")
+                    //            .stringValue("Refer")
+                    //        )
+                    //)
 
                 )).build();
     }
@@ -171,17 +171,19 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                 .stringType("warningText", "Text1")
                             )
                         )
-                        //.object("permissions", values ->
-                        //    values
-                        //        .array("values", value -> value
-                        //            .stringValue("Read")
-                        //            .stringValue("Own")
-                        //            .stringValue("Execute")
-                        //            .stringValue("Cancel")
-                        //            .stringValue("Manage")
-                        //            .stringValue("Refer")
-                        //        )
-                        //)
+                    // Note: Array verification cannot be done since unorderedArray is introduced in v4 Specification
+                    // See: RWA-900
+                    //.object("permissions", values ->
+                    //    values
+                    //        .array("values", value -> value
+                    //            .stringValue("Read")
+                    //            .stringValue("Own")
+                    //            .stringValue("Execute")
+                    //            .stringValue("Cancel")
+                    //            .stringValue("Manage")
+                    //            .stringValue("Refer")
+                    //        )
+                    //)
                 )).build();
     }
 

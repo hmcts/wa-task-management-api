@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search_completable")
+//@PactFolder("pacts")
 @PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
@@ -58,48 +59,15 @@ import static org.mockito.Mockito.when;
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     @Mock
+    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
     private AccessControlService accessControlService;
-
     @Mock
     private TaskManagementService taskManagementService;
-
     @Mock
     private CftQueryService cftQueryService;
-
-    @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
     @Autowired
     private ObjectMapper objectMapper;
-
-    @TestTemplate
-    @ExtendWith(PactVerificationInvocationContextProvider.class)
-    void pactVerificationTestTemplate(PactVerificationContext context) {
-        if (context != null) {
-            context.verifyInteraction();
-        }
-    }
-
-    @BeforeEach
-    void beforeCreate(PactVerificationContext context) {
-        MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskSearchController(
-            taskManagementService,
-            accessControlService,
-            cftQueryService,
-            launchDarklyFeatureFlagProvider
-        ));
-
-        if (context != null) {
-            context.setTarget(testTarget);
-        }
-
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
-
-    }
 
     @State({"appropriate tasks are returned by search for completable"})
     public void getTasksBySearchForCompletableCriteria() {
@@ -195,6 +163,35 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         );
 
         return singletonList(taskWithWarnings);
+    }
+
+    @TestTemplate
+    @ExtendWith(PactVerificationInvocationContextProvider.class)
+    void pactVerificationTestTemplate(PactVerificationContext context) {
+        if (context != null) {
+            context.verifyInteraction();
+        }
+    }
+
+    @BeforeEach
+    void beforeCreate(PactVerificationContext context) {
+        MockMvcTestTarget testTarget = new MockMvcTestTarget();
+        testTarget.setControllers(new TaskSearchController(
+            taskManagementService,
+            accessControlService,
+            cftQueryService,
+            launchDarklyFeatureFlagProvider
+        ));
+
+        if (context != null) {
+            context.setTarget(testTarget);
+        }
+
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
+
     }
 
     private void setInitMockForSearchByCompletableTask() {
