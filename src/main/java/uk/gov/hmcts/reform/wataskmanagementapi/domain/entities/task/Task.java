@@ -126,8 +126,8 @@ public class Task {
     private String caseManagementCategory;
 
     @ApiModelProperty(required = true,
-        notes = "A value describing the work type of the case, for IA")
-    private String workType;
+        notes = "A value containing the work type id for this task, for IA")
+    private String workTypeId;
 
     @ApiModelProperty(required = true,
         notes = "A value describing the work type of the case, for IA")
@@ -161,7 +161,7 @@ public class Task {
                 Boolean warnings,
                 WarningValues warningList,
                 String caseManagementCategory,
-                String workType,
+                String workTypeId,
                 TaskPermissions taskPermissions
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
@@ -189,8 +189,9 @@ public class Task {
         this.warnings = warnings;
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
-        this.workType = workType;
+        this.workTypeId = workTypeId;
         this.permissions = taskPermissions;
+
     }
 
     public String getId() {
@@ -285,8 +286,8 @@ public class Task {
         return caseManagementCategory;
     }
 
-    public String getWorkType() {
-        return workType;
+    public String getWorkTypeId() {
+        return workTypeId;
     }
 
     public TaskPermissions getPermissions() {

@@ -65,8 +65,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers.ID
 @Slf4j
 public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationBaseTest {
 
-    public static final String A_TASK_NAME = "aTaskName";
-    public static final String A_TASK_TYPE = "aTaskType";
+    public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+    public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
 
@@ -142,9 +142,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
             )
         ).thenReturn(true);
 

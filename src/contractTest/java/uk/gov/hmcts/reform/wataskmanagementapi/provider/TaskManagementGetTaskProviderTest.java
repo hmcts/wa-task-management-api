@@ -44,6 +44,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
+//Uncomment this and comment the @PactBroker line to test TaskManagementGetTaskProviderTest local consumer.
 //@PactFolder("pacts")
 @PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
@@ -207,4 +208,3 @@ public class TaskManagementGetTaskProviderTest {
     }
 
 }
-
