@@ -114,7 +114,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .booleanType("warnings", false)
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type", "hearing_work")
+                        .stringType("work_type_id", "hearing_work")
                     //.object("permissions", values ->
                     //    values
                     //        .array("values", value -> value
@@ -155,7 +155,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .booleanType("warnings", true)
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
-                        .stringType("work_type", "hearing_work")
+                        .stringType("work_type_id", "hearing_work")
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")
