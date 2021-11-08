@@ -56,7 +56,7 @@ public final class TaskQuerySpecification {
     }
 
     public static Specification<TaskResource> searchByWorkType(List<String> workTypes) {
-        return (root, query, builder) -> builder.in(root.get(WORK_TYPE))
+        return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get("id"))
             .value(workTypes);
     }
 

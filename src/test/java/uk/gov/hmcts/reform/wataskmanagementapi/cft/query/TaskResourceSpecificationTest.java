@@ -55,6 +55,7 @@ public class TaskResourceSpecificationTest {
     @Mock CriteriaBuilder.In<Object> inObject;
     @Mock CriteriaBuilder.In<Object> values;
     @Mock Path<Object> authorizations;
+    @Mock Path<Object> path;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -77,6 +78,8 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
         lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+        lenient().when(root.get(anyString())).thenReturn(path);
+        lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
     }
 
     @ParameterizedTest
@@ -176,7 +179,7 @@ public class TaskResourceSpecificationTest {
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("workType"))
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
         ));
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
@@ -187,7 +190,7 @@ public class TaskResourceSpecificationTest {
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
             new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
             new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("workType"))
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
         ));
 
         final SearchTaskRequestScenario allParameters =
