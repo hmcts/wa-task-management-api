@@ -61,8 +61,8 @@ class ExclusiveTaskActionsControllerTest {
         InitiateTaskRequest req = new InitiateTaskRequest(
             INITIATION,
             asList(
-                new TaskAttribute(TASK_TYPE, "aTaskType"),
-                new TaskAttribute(TASK_NAME, "aTaskName")
+                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal")
             )
         );
 
@@ -77,8 +77,8 @@ class ExclusiveTaskActionsControllerTest {
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(taskId, response.getBody().getTaskId());
-        assertEquals("aTaskName", response.getBody().getTaskName());
-        assertEquals("aTaskType", response.getBody().getTaskType());
+        assertEquals("follow Up Overdue Reasons For Appeal", response.getBody().getTaskName());
+        assertEquals("followUpOverdueReasonsForAppeal", response.getBody().getTaskType());
         assertEquals(UNCONFIGURED, response.getBody().getState());
     }
 
@@ -152,8 +152,8 @@ class ExclusiveTaskActionsControllerTest {
     private TaskResource createDummyTaskResource(String taskId) {
         return new TaskResource(
             taskId,
-            "aTaskName",
-            "aTaskType",
+            "follow Up Overdue Reasons For Appeal",
+            "followUpOverdueReasonsForAppeal",
             UNCONFIGURED
         );
     }

@@ -42,7 +42,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 @PactBroker(
@@ -228,4 +227,3 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
 }
-
