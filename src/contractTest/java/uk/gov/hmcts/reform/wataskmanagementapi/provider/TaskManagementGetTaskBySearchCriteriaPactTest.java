@@ -42,7 +42,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 @PactBroker(
@@ -140,7 +139,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "Bob Smith",
             false,
             new WarningValues(emptyList()),
-            "Some Case Management Category"
+            "Some Case Management Category",
+            "hearing_work"
         );
     }
 
@@ -172,7 +172,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "John Doe",
             true,
             new WarningValues(warnings),
-            "Some Case Management Category");
+            "Some Case Management Category",
+            "hearing_work"
+        );
     }
 
     private void setInitMockForSearchTask() {
@@ -225,4 +227,3 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
 }
-

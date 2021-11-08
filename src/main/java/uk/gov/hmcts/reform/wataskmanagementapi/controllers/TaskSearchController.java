@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import javax.validation.Valid;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -86,7 +87,7 @@ public class TaskSearchController extends BaseController {
         @RequestHeader("Authorization") String authToken,
         @RequestParam(required = false, name = "first_result") Optional<Integer> firstResult,
         @RequestParam(required = false, name = "max_results") Optional<Integer> maxResults,
-        @RequestBody SearchTaskRequest searchTaskRequest
+        @Valid @RequestBody SearchTaskRequest searchTaskRequest
     ) {
 
         //Safe-guard
@@ -95,39 +96,45 @@ public class TaskSearchController extends BaseController {
         }
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-
         if (isFeatureEnabled) {
+            //Release 2
             List<PermissionTypes> permissionsRequired = singletonList(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
-                firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
-                searchTaskRequest, accessControlResponse, permissionsRequired
+                firstResult.orElse(0),
+                maxResults.orElse(defaultMaxResults),
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired
             );
+
             return ResponseEntity
                 .ok()
                 .cacheControl(CacheControl.noCache())
                 .body(tasksResponse);
-        }
-        List<Task> tasks = taskManagementService.searchWithCriteria(
-            searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
-            accessControlResponse
-        );
-        if (tasks.isEmpty()) {
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(new GetTasksResponse<>(tasks, 0));
         } else {
-            final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
-            return ResponseEntity
-                .ok()
-                .cacheControl(CacheControl.noCache())
-                .body(new GetTasksResponse<>(tasks, taskCount));
+            //Release 1
+            List<Task> tasks = taskManagementService.searchWithCriteria(
+                searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
+                accessControlResponse
+            );
+
+            if (tasks.isEmpty()) {
+                return ResponseEntity
+                    .ok()
+                    .cacheControl(CacheControl.noCache())
+                    .body(new GetTasksResponse<>(tasks, 0));
+            } else {
+                final long taskCount = taskManagementService.getTaskCount(searchTaskRequest);
+                return ResponseEntity
+                    .ok()
+                    .cacheControl(CacheControl.noCache())
+                    .body(new GetTasksResponse<>(tasks, taskCount));
+            }
         }
     }
 
@@ -153,6 +160,7 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
+
         GetTasksCompletableResponse<Task> response;
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
@@ -164,6 +172,7 @@ public class TaskSearchController extends BaseController {
                 accessControlResponse
             );
         }
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

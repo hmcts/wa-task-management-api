@@ -43,7 +43,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
-
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskResourceSpecificationTest {
@@ -176,17 +176,24 @@ public class TaskResourceSpecificationTest {
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("workType"))
+        ));
+        final SearchTaskRequestScenario workType =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
+
+        searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
             new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
             new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
-            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser"))
+            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("workType"))
         ));
 
         final SearchTaskRequestScenario allParameters =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        return Stream.of(jurisdiction, state, location, caseId, user, allParameters);
+        return Stream.of(jurisdiction, state, location, caseId, user, workType, allParameters);
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {

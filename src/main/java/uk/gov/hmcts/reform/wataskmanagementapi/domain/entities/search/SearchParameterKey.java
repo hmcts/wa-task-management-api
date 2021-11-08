@@ -10,8 +10,8 @@ public enum SearchParameterKey {
     STATE("state"),
     TASK_ID("taskId"),
     TASK_TYPE("taskType"),
-    CASE_ID("caseId");
-
+    CASE_ID("caseId"),
+    WORK_TYPE("work_type"); //R2 should be snake_case only
 
     @JsonValue
     private final String id;
@@ -22,6 +22,10 @@ public enum SearchParameterKey {
 
     @Override
     public String toString() {
+        return id;
+    }
+
+    public String value() {
         return id;
     }
 }

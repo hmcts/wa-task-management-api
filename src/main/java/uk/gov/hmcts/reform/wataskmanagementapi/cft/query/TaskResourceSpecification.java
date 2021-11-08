@@ -24,6 +24,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods", "PMD.LawOfDemeter"})
 public final class TaskResourceSpecification {
@@ -32,6 +33,8 @@ public final class TaskResourceSpecification {
     public static final String TASK_ID = "taskId";
     public static final String TASK_TYPE = "taskType";
     public static final String CASE_ID = "caseId";
+    public static final String ROLE_NAME = "roleName";
+    public static final String WORK_TYPE = "workTypeResource";
 
     private TaskResourceSpecification() {
         // avoid creating object
@@ -74,7 +77,8 @@ public final class TaskResourceSpecification {
             .and(extractState(searchTaskRequest))
             .and(extractLocation(searchTaskRequest))
             .and(extractCaseId(searchTaskRequest))
-            .and(extractUser(searchTaskRequest));
+            .and(extractUser(searchTaskRequest))
+            .and(extractWorkType(searchTaskRequest));
     }
 
     private static Specification<TaskResource> extractState(SearchTaskRequest searchTaskRequest) {
@@ -121,6 +125,15 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
         if (keyMap.get(SearchParameterKey.USER) != null) {
             return searchByUser(keyMap.get(SearchParameterKey.USER).getValues());
+        }
+
+        return (root, query, builder) -> builder.conjunction();
+    }
+
+    private static Specification<TaskResource> extractWorkType(SearchTaskRequest searchTaskRequest) {
+        final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
+        if (keyMap.get(SearchParameterKey.WORK_TYPE) != null) {
+            return searchByWorkType(keyMap.get(SearchParameterKey.WORK_TYPE).getValues());
         }
 
         return (root, query, builder) -> builder.conjunction();

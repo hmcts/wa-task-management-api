@@ -1,11 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -15,10 +17,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,9 +35,13 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 
+@Slf4j
 @Service
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CftQueryService {
+    public static final List<String> ALLOWED_WORK_TYPES = List.of(
+        "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
+        "applications", "priority", "access_requests", "error_management");
 
     private final CamundaService camundaService;
     private final CFTTaskMapper cftTaskMapper;
@@ -50,6 +61,8 @@ public class CftQueryService {
         AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired
     ) {
+        validateRequest(searchTaskRequest);
+
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         Pageable page;
         try {
@@ -143,6 +156,34 @@ public class CftQueryService {
          * If they are of different sizes, it means there is an empty row and task is not required
          */
         return evaluateDmnResult.size() == taskTypes.size();
+    }
+
+    private void validateRequest(SearchTaskRequest searchTaskRequest) {
+        List<Violation> violations = new ArrayList<>();
+
+        //Validate work-type
+        List<SearchParameter> workType = searchTaskRequest.getSearchParameters().stream()
+            .filter(sp -> sp.getKey().equals(SearchParameterKey.WORK_TYPE))
+            .collect(Collectors.toList());
+
+        if (!workType.isEmpty()) {
+            //validate work type
+            SearchParameter workTypeParameter = workType.get(0);
+            List<String> values = workTypeParameter.getValues();
+            //Validate
+            values.forEach(value -> {
+                if (!ALLOWED_WORK_TYPES.contains(value)) {
+                    violations.add(new Violation(
+                        value,
+                        workTypeParameter.getKey() + " must be one of " + Arrays.toString(ALLOWED_WORK_TYPES.toArray())
+                    ));
+                }
+            });
+        }
+
+        if (!violations.isEmpty()) {
+            throw new CustomConstraintViolationException(violations);
+        }
     }
 
 }

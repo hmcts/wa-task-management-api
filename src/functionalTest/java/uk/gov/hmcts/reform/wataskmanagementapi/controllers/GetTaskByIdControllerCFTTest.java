@@ -378,6 +378,39 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_a_200_with_work_type() {
+
+        TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        initiateTaskWithWarnings(taskVariables);
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and()
+            .body("task.id", equalTo(taskId))
+            .body("task.work_type_id", equalTo("decision_making_work"));
+
+        common.cleanUpTask(taskId);
+    }
+
+
     private void initiateTask(TestVariables taskVariables) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
@@ -386,8 +419,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
@@ -415,8 +448,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_SYSTEM, "SELF"),

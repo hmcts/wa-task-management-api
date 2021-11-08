@@ -27,7 +27,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.either;
@@ -105,7 +104,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(
+                    CASE_ID,
+                    SearchOperator.IN,
+                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+            ),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
         );
 
@@ -127,12 +132,22 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         // Given query
         searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+            asList(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameter(
+                    CASE_ID,
+                    SearchOperator.IN,
+                    asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
+            ),
             singletonList(new SortingParameter(SortField.DUE_DATE_SNAKE_CASE, SortOrder.DESCENDANT))
         );
 
         // When
-        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, authenticationHeaders);
+        result = restApiActions
+            .post(
+                ENDPOINT_BEING_TESTED,
+                searchTaskRequest,
+                authenticationHeaders);
 
         // Then expect task2,task1 order
         actualCaseIdList = result.then().assertThat()
@@ -157,17 +172,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -184,7 +197,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -192,8 +205,6 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
             .body("total_records", greaterThanOrEqualTo(1))
             .body("tasks.warnings", everyItem(notNullValue()))
             .body("tasks.warning_list.values", everyItem(notNullValue()));
@@ -420,14 +431,14 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("assigned")))
             .body("total_records", greaterThanOrEqualTo(1));
@@ -453,18 +464,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -556,18 +565,17 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -595,7 +603,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
@@ -603,9 +611,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItems(tasksCreated.get(0).getTaskId(), tasksCreated.get(1).getTaskId()))
-            .body("tasks.case_id", hasItems(tasksCreated.get(0).getCaseId(), tasksCreated.get(1).getCaseId()))
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(equalTo("IA")))
@@ -675,14 +681,14 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             authenticationHeaders
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.name", everyItem(notNullValue()))
             .body("tasks.type", everyItem(notNullValue()))
@@ -718,8 +724,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
