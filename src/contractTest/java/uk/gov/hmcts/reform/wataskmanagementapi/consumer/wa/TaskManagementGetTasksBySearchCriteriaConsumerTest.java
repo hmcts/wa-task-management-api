@@ -122,20 +122,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
-                    // Note: Array verification cannot be done since unorderedArray is introduced in v4 Specification
-                    // See: RWA-900
-                    //.object("permissions", values ->
-                    //    values
-                    //        .array("values", value -> value
-                    //            .stringValue("Read")
-                    //            .stringValue("Own")
-                    //            .stringValue("Execute")
-                    //            .stringValue("Cancel")
-                    //            .stringValue("Manage")
-                    //            .stringValue("Refer")
-                    //
-                    //        )
-                    //)
                 )).build();
     }
 

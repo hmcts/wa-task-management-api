@@ -187,28 +187,29 @@ public class CFTTaskMapper {
     }
 
     private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
-
         Set<PermissionTypes> permissionsFound = new HashSet<>();
-        taskRoleResources.forEach(taskRoleResource -> {
-            if (taskRoleResource.getRead()) {
-                permissionsFound.add(PermissionTypes.READ);
-            }
-            if (taskRoleResource.getManage()) {
-                permissionsFound.add(PermissionTypes.MANAGE);
-            }
-            if (taskRoleResource.getExecute()) {
-                permissionsFound.add(PermissionTypes.EXECUTE);
-            }
-            if (taskRoleResource.getCancel()) {
-                permissionsFound.add(PermissionTypes.CANCEL);
-            }
-            if (taskRoleResource.getOwn()) {
-                permissionsFound.add(PermissionTypes.OWN);
-            }
-            if (taskRoleResource.getRefer()) {
-                permissionsFound.add(PermissionTypes.REFER);
-            }
-        });
+        if (taskRoleResources != null) {
+            taskRoleResources.forEach(taskRoleResource -> {
+                if (taskRoleResource.getRead()) {
+                    permissionsFound.add(PermissionTypes.READ);
+                }
+                if (taskRoleResource.getManage()) {
+                    permissionsFound.add(PermissionTypes.MANAGE);
+                }
+                if (taskRoleResource.getExecute()) {
+                    permissionsFound.add(PermissionTypes.EXECUTE);
+                }
+                if (taskRoleResource.getCancel()) {
+                    permissionsFound.add(PermissionTypes.CANCEL);
+                }
+                if (taskRoleResource.getOwn()) {
+                    permissionsFound.add(PermissionTypes.OWN);
+                }
+                if (taskRoleResource.getRefer()) {
+                    permissionsFound.add(PermissionTypes.REFER);
+                }
+            });
+        }
         return permissionsFound;
     }
 
