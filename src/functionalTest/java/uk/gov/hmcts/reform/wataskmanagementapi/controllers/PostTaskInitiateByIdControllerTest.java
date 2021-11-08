@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -53,9 +54,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "reviewHearingBundle"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_NAME, "review Hearing Bundle"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_TITLE, "review Hearing Bundle"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -73,12 +74,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("aTaskName"))
+            .body("task_name", equalTo("review Hearing Bundle"))
             .body("task_type", equalTo("reviewHearingBundle"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("aTaskName"))
+            .body("title", equalTo("review Hearing Bundle"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -96,7 +99,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("work_type", equalTo("hearing_work"))
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"))
             .body("task_role_resources.size()", equalTo(3));
 
         assertPermissions(
@@ -163,9 +167,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "allocateHearingJudge"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_NAME, "allocate Hearing Judge"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_TITLE, "allocate Hearing Judge"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -182,12 +186,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("aTaskName"))
+            .body("task_name", equalTo("allocate Hearing Judge"))
             .body("task_type", equalTo("allocateHearingJudge"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("aTaskName"))
+            .body("title", equalTo("allocate Hearing Judge"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -205,6 +209,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"))
             .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
@@ -258,9 +264,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "arrangeOfflinePayment"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_NAME, "arrange Offline Payment"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_TITLE, "arrange Offline Payment"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -277,12 +283,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("aTaskName"))
+            .body("task_name", equalTo("arrange Offline Payment"))
             .body("task_type", equalTo("arrangeOfflinePayment"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("aTaskName"))
+            .body("title", equalTo("arrange Offline Payment"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -300,7 +306,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("work_type", equalTo("routine_work"))
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"))
             .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
@@ -352,10 +359,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "reviewRespondentEvidence"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_TITLE, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -372,12 +379,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("aTaskName"))
-            .body("task_type", equalTo("reviewRespondentEvidence"))
+            .body("task_name", equalTo("follow Up Overdue Reasons For Appeal"))
+            .body("task_type", equalTo("followUpOverdueReasonsForAppeal"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("aTaskName"))
+            .body("title", equalTo("follow Up Overdue Reasons For Appeal"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -396,6 +403,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"))
             .body("task_role_resources.size()", equalTo(3));
 
         assertPermissions(
@@ -518,7 +527,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "The task requires a case management event to be executed by the user."
                         + " (Typically this will be in CCD.)")
             )
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"));
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body("work_type_resource.id", equalTo("decision_making_work"))
+            .body("work_type_resource.label", equalTo("Decision-making work"));
 
         Optional.ofNullable(getTaskResource(result, "task-supervisor"))
             .ifPresent(resource ->
@@ -591,8 +602,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
@@ -647,8 +658,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
@@ -678,8 +689,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, "someInvalidCaseID"),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
@@ -708,8 +719,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),

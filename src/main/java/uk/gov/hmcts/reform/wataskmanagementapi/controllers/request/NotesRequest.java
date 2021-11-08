@@ -8,6 +8,7 @@ import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 
 import java.util.List;
+import javax.validation.Valid;
 
 @ApiModel(
     value = "NotesRequest",
@@ -17,7 +18,7 @@ import java.util.List;
 @ToString
 public class NotesRequest {
 
-    private final List<NoteResource> noteResource;
+    private final List<@Valid NoteResource> noteResource;
 
     @JsonCreator
     public NotesRequest(@JsonProperty("notes") List<NoteResource> noteResource) {

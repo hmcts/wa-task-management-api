@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -102,6 +104,7 @@ public class CFTTaskMapper {
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
 
+        WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
             taskId,
             read(attributes, TASK_NAME, null),
@@ -118,7 +121,7 @@ public class CFTTaskMapper {
             read(attributes, TASK_ASSIGNEE, null),
             read(attributes, TASK_AUTO_ASSIGNED, false),
             executionTypeResource,
-            read(attributes, TASK_WORK_TYPE, null),
+            workTypeResource,
             read(attributes, TASK_ROLE_CATEGORY, null),
             read(attributes, TASK_HAS_WARNINGS, false),
             read(attributes, TASK_ASSIGNMENT_EXPIRY, null),
@@ -138,6 +141,11 @@ public class CFTTaskMapper {
         );
     }
 
+    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
+        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
+        return workTypeId == null ? null : new WorkTypeResource(workTypeId);
+    }
+
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
                                                    TaskConfigurationResults taskConfigurationResults) {
 
@@ -153,35 +161,6 @@ public class CFTTaskMapper {
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
         return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
         });
-    }
-
-    public Task mapToTask(TaskResource taskResource) {
-        return new Task(
-            taskResource.getTaskId(),
-            taskResource.getTaskName(),
-            taskResource.getTaskType(),
-            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
-            taskResource.getTaskSystem().getValue(),
-            taskResource.getSecurityClassification().getSecurityClassification(),
-            taskResource.getTitle(),
-            taskResource.getCreated().toZonedDateTime(),
-            taskResource.getDueDateTime().toZonedDateTime(),
-            taskResource.getAssignee(),
-            taskResource.getAutoAssigned(),
-            taskResource.getExecutionTypeCode().getExecutionName(),
-            taskResource.getJurisdiction(),
-            taskResource.getRegion(),
-            taskResource.getLocation(),
-            taskResource.getLocationName(),
-            taskResource.getCaseTypeId(),
-            taskResource.getCaseId(),
-            taskResource.getCaseCategory(),
-            taskResource.getCaseName(),
-            taskResource.getHasWarnings(),
-            mapNoteResourceToWarnings(taskResource.getNotes()),
-            taskResource.getCaseCategory(),
-            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId()
-        );
     }
 
     private Set<TaskRoleResource> mapPermissions(
@@ -394,5 +373,34 @@ public class CFTTaskMapper {
 
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
+
+    public Task mapToTask(TaskResource taskResource) {
+        return new Task(taskResource.getTaskId(),
+            taskResource.getTaskName(),
+            taskResource.getTaskType(),
+            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
+            taskResource.getTaskSystem().getValue(),
+            taskResource.getSecurityClassification().getSecurityClassification(),
+            taskResource.getTitle(),
+            taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getAssignee(),
+            taskResource.getAutoAssigned(),
+            taskResource.getExecutionTypeCode().getExecutionName(),
+            taskResource.getJurisdiction(),
+            taskResource.getRegion(),
+            taskResource.getLocation(),
+            taskResource.getLocationName(),
+            taskResource.getCaseTypeId(),
+            taskResource.getCaseId(),
+            taskResource.getCaseCategory(),
+            taskResource.getCaseName(),
+            taskResource.getHasWarnings(),
+            mapNoteResourceToWarnings(taskResource.getNotes()),
+            taskResource.getCaseCategory(),
+            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId()
+        );
+    }
+
 }
 

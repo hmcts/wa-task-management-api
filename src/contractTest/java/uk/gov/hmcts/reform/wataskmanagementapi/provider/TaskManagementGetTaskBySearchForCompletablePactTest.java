@@ -187,6 +187,5 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasksWithWarnings()));
     }
 
-
 }
 
