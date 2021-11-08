@@ -54,6 +54,7 @@ class TaskMapperTest {
         variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
         variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
         variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
+        variables.put("workType", new CamundaVariable("someWorkType", "String"));
 
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
         assertEquals("configured", result.getTaskState());
@@ -67,6 +68,7 @@ class TaskMapperTest {
         assertEquals("someAssignee", result.getAssignee());
         assertEquals("someCaseTypeId", result.getCaseTypeId());
         assertEquals("someClassification", result.getSecurityClassification());
+        assertEquals("someWorkType", result.getWorkTypeId());
     }
 
     @Test
@@ -113,7 +115,7 @@ class TaskMapperTest {
         );
         WarningValues warningValues = new WarningValues(
             Arrays.asList(new Warning("123", "some warning"),
-                          new Warning("456", "some more warning")));
+                new Warning("456", "some more warning")));
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
@@ -138,7 +140,6 @@ class TaskMapperTest {
         assertEquals(false, result.getWarnings());
         assertNotNull(result.getWarningList());
         assertEquals("someCaseManagementCategory", result.getCaseManagementCategory());
-
 
 
     }

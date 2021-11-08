@@ -124,9 +124,10 @@ public class Task {
     @ApiModelProperty(required = false,
         notes = "A value describing the category of the case, for IA, it has the same value as the AppealType field")
     private String caseManagementCategory;
+
     @ApiModelProperty(required = true,
-        notes = "A value describing the work type of the case, for IA")
-    private String workType;
+        notes = "A value containing the work type id for this task, for IA")
+    private String workTypeId;
 
     private Task() {
         //Hidden constructor
@@ -156,7 +157,7 @@ public class Task {
                 Boolean warnings,
                 WarningValues warningList,
                 String caseManagementCategory,
-                String workType
+                String workTypeId
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -183,7 +184,27 @@ public class Task {
         this.warnings = warnings;
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
-        this.workType = workType;
+        this.workTypeId = workTypeId;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getExecutionType() {
+        return executionType;
+    }
+
+    public String getJurisdiction() {
+        return jurisdiction;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public Boolean getAutoAssigned() {
+        return autoAssigned;
     }
 
     public String getId() {
@@ -230,22 +251,6 @@ public class Task {
         return locationName;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public String getExecutionType() {
-        return executionType;
-    }
-
-    public String getJurisdiction() {
-        return jurisdiction;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
     public String getCaseTypeId() {
         return caseTypeId;
     }
@@ -278,8 +283,9 @@ public class Task {
         return caseManagementCategory;
     }
 
-    public String getWorkType() {
-        return workType;
+    public String getWorkTypeId() {
+        return workTypeId;
     }
+
 }
 

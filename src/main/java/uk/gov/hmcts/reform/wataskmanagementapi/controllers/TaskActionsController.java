@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.Optional;
+import javax.validation.Valid;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -246,7 +247,7 @@ public class TaskActionsController extends BaseController {
     public ResponseEntity<Void> updatesTaskWithNotes(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
         @PathVariable(TASK_ID) String taskId,
-        @RequestBody NotesRequest notesRequest
+        @Valid @RequestBody NotesRequest notesRequest
     ) {
 
         if (notesRequest == null) {
