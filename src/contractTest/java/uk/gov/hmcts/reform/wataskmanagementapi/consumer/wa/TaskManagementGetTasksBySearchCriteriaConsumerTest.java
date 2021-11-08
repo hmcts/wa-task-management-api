@@ -122,18 +122,18 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
                         .stringType("work_type", "hearing_work")
-                        .object("permissions", values ->
-                            values
-                                .array("values", value -> value
-                                    .stringValue("Read")
-                                    .stringValue("Own")
-                                    .stringValue("Execute")
-                                    .stringValue("Cancel")
-                                    .stringValue("Manage")
-                                    .stringValue("Refer")
-
-                                )
-                        )
+                        //.object("permissions", values ->
+                        //    values
+                        //        .array("values", value -> value
+                        //            .stringValue("Read")
+                        //            .stringValue("Own")
+                        //            .stringValue("Execute")
+                        //            .stringValue("Cancel")
+                        //            .stringValue("Manage")
+                        //            .stringValue("Refer")
+                        //
+                        //        )
+                        //)
                 )).build();
     }
 

@@ -122,17 +122,17 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", false)
                         .stringType("work_type", "hearing_work")
-                        .object("permissions", values ->
-                            values
-                                .array("values", value -> value
-                                    .stringValue("Read")
-                                    .stringValue("Own")
-                                    .stringValue("Execute")
-                                    .stringValue("Cancel")
-                                    .stringValue("Manage")
-                                    .stringValue("Refer")
-                                )
-                        )
+                        //.object("permissions", values ->
+                        //    values
+                        //        .array("values", value -> value
+                        //            .stringValue("Read")
+                        //            .stringValue("Own")
+                        //            .stringValue("Execute")
+                        //            .stringValue("Cancel")
+                        //            .stringValue("Manage")
+                        //            .stringValue("Refer")
+                        //        )
+                        //)
 
                 )).build();
     }
@@ -171,17 +171,17 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                 .stringType("warningText", "Text1")
                             )
                         )
-                        .object("permissions", values ->
-                            values
-                                .array("values", value -> value
-                                    .stringValue("Read")
-                                    .stringValue("Own")
-                                    .stringValue("Execute")
-                                    .stringValue("Cancel")
-                                    .stringValue("Manage")
-                                    .stringValue("Refer")
-                                )
-                        )
+                        //.object("permissions", values ->
+                        //    values
+                        //        .array("values", value -> value
+                        //            .stringValue("Read")
+                        //            .stringValue("Own")
+                        //            .stringValue("Execute")
+                        //            .stringValue("Cancel")
+                        //            .stringValue("Manage")
+                        //            .stringValue("Refer")
+                        //        )
+                        //)
                 )).build();
     }
 
