@@ -96,6 +96,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
+            .body("work_type", equalTo("hearing_work"))
             .body("task_role_resources.size()", equalTo(3));
 
         assertPermissions(
@@ -299,6 +300,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
+            .body("work_type", equalTo("routine_work"))
             .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
@@ -388,6 +390,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("location_name", equalTo("Taylor House"))
             .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body("work-type", equalTo("decision_making_work"))
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
