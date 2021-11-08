@@ -20,6 +20,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -99,8 +100,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("work_type_resource.id", equalTo("decision_making_work"))
-            .body("work_type_resource.label", equalTo("Decision-making work"))
+            .body("work_type_resource.id", equalTo("hearing_work"))
+            .body("work_type_resource.label", equalTo("Hearing work"))
             .body("task_role_resources.size()", equalTo(3));
 
         assertPermissions(
@@ -209,8 +210,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("work_type_resource.id", equalTo("decision_making_work"))
-            .body("work_type_resource.label", equalTo("Decision-making work"))
+            .body("work_type_resource.id", nullValue())
+            .body("work_type_resource.label", nullValue())
             .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
@@ -306,8 +307,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("work_type_resource.id", equalTo("decision_making_work"))
-            .body("work_type_resource.label", equalTo("Decision-making work"))
+            .body("work_type_resource.id", equalTo("routine_work"))
+            .body("work_type_resource.label", equalTo("Routine work"))
             .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
@@ -397,7 +398,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("location_name", equalTo("Taylor House"))
             .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body("work-type", equalTo("decision_making_work"))
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
@@ -527,9 +527,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "The task requires a case management event to be executed by the user."
                         + " (Typically this will be in CCD.)")
             )
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body("work_type_resource.id", equalTo("decision_making_work"))
-            .body("work_type_resource.label", equalTo("Decision-making work"));
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"));
 
         Optional.ofNullable(getTaskResource(result, "task-supervisor"))
             .ifPresent(resource ->
