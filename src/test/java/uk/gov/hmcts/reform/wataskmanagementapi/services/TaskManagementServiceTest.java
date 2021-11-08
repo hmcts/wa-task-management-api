@@ -87,9 +87,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 @Slf4j
 class TaskManagementServiceTest extends CamundaHelpers {
 
-
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+
     @Mock
     CamundaService camundaService;
     @Mock
@@ -235,7 +235,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             Task mockedMappedTask = mock(Task.class);
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
@@ -259,7 +258,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void getTask_should_throw_task_not_found_exception_when_task_does_not_exist() {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -282,7 +280,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void getTask_should_throw_role_assignment_verification_exception_when_query_returns_empty_task() {
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
