@@ -44,6 +44,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
+//Uncomment this and comment the @PactBroker line to test WorkTypeConsumerTest local consumer.
+//@PactFolder("pacts")
 @PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
@@ -51,7 +53,6 @@ import static org.mockito.Mockito.when;
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
-//@PactFolder("pacts")
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
@@ -105,6 +106,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         setInitMockForSearchTask();
     }
 
+    @State({"appropriate tasks are returned by criteria with work-type"})
+    public void getTasksBySearchCriteriaWithWorkType() {
+        setInitMockForSearchTask();
+    }
+
     @State({"appropriate tasks are returned by criteria with no warnings"})
     public void getTasksBySearchCriteriaWithNoWarnings() {
         setInitMockForSearchTaskWithNoWarnings();
@@ -112,6 +118,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @State({"appropriate tasks are returned by criteria with warnings only"})
     public void getTasksBySearchCriteriaWithWarningsOnly() {
+        setInitMockForSearchTaskWithWarningsOnly();
+    }
+
+    @State({"appropriate tasks are returned by criteria with work-type with warnings only"})
+    public void getTasksBySearchCriteriaWithWorkTypeWithWarningsOnly() {
         setInitMockForSearchTaskWithWarningsOnly();
     }
 
