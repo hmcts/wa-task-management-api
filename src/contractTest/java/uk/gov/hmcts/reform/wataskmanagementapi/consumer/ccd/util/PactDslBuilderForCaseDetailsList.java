@@ -17,7 +17,7 @@ public final class PactDslBuilderForCaseDetailsList {
     public static DslPart buildStartEventForCaseWorkerPactDsl(String eventId) {
         return newJsonBody(o ->
             o.stringType("event_id", eventId)
-                .stringType("token", null)
+                .stringType("token", "")
                 .object("case_details", cd -> {
                     cd.numberType("id", 2000);
                     cd.stringMatcher("jurisdiction", ALPHABETIC_REGEX, "IA");
@@ -31,7 +31,7 @@ public final class PactDslBuilderForCaseDetailsList {
     public static DslPart buildStartForCaseWorkerPactDsl(String eventId) {
         return newJsonBody(
             o -> o.stringType("event_id", eventId)
-                .stringType("token", null)
+                .stringType("token", "")
                 .object("case_details", cd -> {
                     cd.stringMatcher("jurisdiction", ALPHABETIC_REGEX, "IA");
                     cd.stringMatcher("case_type_id", ALPHABETIC_REGEX, "Asylum");
@@ -73,12 +73,12 @@ public final class PactDslBuilderForCaseDetailsList {
             .stringType("currentCaseStateVisibleToLegalRepresentative", "appealStarted")
             .stringType("uploadAddendumEvidenceLegalRepActionAvailable", "No")
             .object("legalRepCompanyAddress", addr -> {
-                addr.stringType("AddressLine1", null);
-                addr.stringType("AddressLine2", null);
-                addr.stringType("AddressLine3", null);
-                addr.stringType("Country", null);
+                addr.stringType("AddressLine1", "");
+                addr.stringType("AddressLine2", "");
+                addr.stringType("AddressLine3", "");
+                addr.stringType("Country", "");
                 addr.stringType("PostCode", "");
-                addr.stringType("PostTown", null);
+                addr.stringType("PostTown", "");
             })
             .minArrayLike("uploadTheNoticeOfDecisionDocs", 1, 1,
                 docsUploaded ->

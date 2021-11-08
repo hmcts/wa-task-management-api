@@ -57,7 +57,7 @@ public class SubmitForCaseWorkerConsumerTest extends CcdConsumerTestBase {
 
     @Test
     @PactTestFor(pactMethod = "submitCaseWorkerDetails")
-    public void submitForCaseWorker() throws Exception {
+    public void submitForCaseWorker() {
 
         caseDataContent = createCaseDataContent(SUBMIT_APPEAL, caseDetailsMap);
         CaseDetails caseDetailsResponse = coreCaseDataApi.submitForCaseworker(
