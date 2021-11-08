@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -20,6 +21,7 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -120,6 +122,64 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
                     "Forbidden: The action could not be completed "
                     + "because the client/user had insufficient rights to a resource.")
             ));
+    }
+
+    @Test
+    void should_return_400_when_no_note_code_type() throws Exception {
+        mockServices.mockServiceAPIs();
+
+        NotesRequest notesRequest = new NotesRequest(
+            singletonList(
+                new NoteResource(null, "someNoteType", null, null)
+            )
+        );
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(notesRequest))
+        ).andExpect(
+            ResultMatcher.matchAll(
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
+                jsonPath("$.title").value("Constraint Violation"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.violations").isNotEmpty(),
+                jsonPath("$.violations.[0].field").value("note_resource[0].code"),
+                jsonPath("$.violations.[0].message")
+                    .value("Each note element must have 'code', 'note_type' fields present and populated.")));
+    }
+
+    @Test
+    void should_return_400_when_no_note_note_type() throws Exception {
+        mockServices.mockServiceAPIs();
+
+        NotesRequest notesRequest = new NotesRequest(
+            singletonList(
+                new NoteResource("someCodeType", null, null, null)
+            )
+        );
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(notesRequest))
+        ).andExpect(
+            ResultMatcher.matchAll(
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"),
+                jsonPath("$.title").value("Constraint Violation"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.violations").isNotEmpty(),
+                jsonPath("$.violations.[0].field").value("note_resource[0].note_type"),
+                jsonPath("$.violations.[0].message")
+                    .value("Each note element must have 'code', 'note_type' fields present and populated.")));
     }
 }
 

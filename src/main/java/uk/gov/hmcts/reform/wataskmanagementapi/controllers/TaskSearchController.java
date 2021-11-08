@@ -93,13 +93,11 @@ public class TaskSearchController extends BaseController {
         }
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-
         if (isFeatureEnabled) {
             //Release 2
             List<PermissionTypes> permissionsRequired = singletonList(READ);
@@ -157,6 +155,7 @@ public class TaskSearchController extends BaseController {
             searchEventAndCase,
             accessControlResponse
         );
+
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())

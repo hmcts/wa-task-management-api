@@ -90,7 +90,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
         log.info("task found [{}]", taskId);
 
         Map<String, Object> requiredProcessVariables = Map.of(
-            TASK_ID.value(), "reviewTheAppeal",
+            TASK_ID.value(), "followUpOverdueReasonsForAppeal",
             CASE_ID.value(), caseId,
             TASK_NAME.value(), "task name"
         );
@@ -109,7 +109,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("case_id", equalTo(caseId))
             .body("assignee", nullValue())
             .body("configuration_variables", notNullValue())
-            .body("configuration_variables.taskType", equalTo("reviewTheAppeal"))
+            .body("configuration_variables.taskType", equalTo("followUpOverdueReasonsForAppeal"))
             .body("configuration_variables.jurisdiction", equalTo("IA"))
             .body("configuration_variables.caseTypeId", equalTo("Asylum"))
             .body("configuration_variables.taskState", equalTo("unassigned"))

@@ -94,12 +94,27 @@ public class GivensBuilder {
     }
 
     public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings) {
-        Map<String, CamundaValue<?>> processVariables;
-        if (warnings) {
-            processVariables = createDefaultTaskVariablesWithWarnings(caseId);
-        } else {
-            processVariables = createDefaultTaskVariables(caseId);
-        }
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, warnings);
+
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables
+        );
+
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationHeadersProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
+    }
+
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, String taskType) {
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, taskType);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -223,6 +238,36 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId, String taskType) {
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("caseId", caseId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("region", "1")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("group", "TCW")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", taskType)
+            .withProcessVariable("taskType", taskType)
+            .withProcessVariable("taskCategory", "Case Progression")
+            .withProcessVariable("taskState", "unconfigured")
+            //for testing-purposes
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
+            .withProcessVariableBoolean("hasWarnings", false)
+            .withProcessVariable("warningList", (new WarningValues()).toString())
+            .withProcessVariable("caseManagementCategory", "Protection")
+            .build();
+
+        return processVariables.getProcessVariablesMap();
+    }
+
     public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(String caseId) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                         + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
@@ -254,7 +299,7 @@ public class GivensBuilder {
 
         return processVariables.getProcessVariablesMap();
     }
-
+    
     public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "SCSS")
@@ -323,10 +368,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                       .id(startCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(startCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 
@@ -356,10 +401,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                       .id(submitCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(submitCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 
@@ -410,6 +455,18 @@ public class GivensBuilder {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, boolean warnings) {
+        if (warnings) {
+            return createDefaultTaskVariablesWithWarnings(caseId);
+        } else {
+            return createDefaultTaskVariables(caseId);
+        }
+    }
+
+    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, String taskType) {
+        return createDefaultTaskVariables(caseId, taskType);
     }
 
     private class Modifications {

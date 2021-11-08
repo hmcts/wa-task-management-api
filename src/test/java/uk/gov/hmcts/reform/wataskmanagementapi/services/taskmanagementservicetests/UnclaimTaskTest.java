@@ -66,7 +66,8 @@ class UnclaimTaskTest extends CamundaHelpers {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
         CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
@@ -90,7 +91,8 @@ class UnclaimTaskTest extends CamundaHelpers {
         AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
         List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
         when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-        when(accessControlResponse.getUserInfo()).thenReturn(UserInfo.builder().uid(IDAM_USER_ID).build());
+        when(accessControlResponse.getUserInfo())
+            .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
         CamundaTask mockedUnmappedTask = createMockedUnmappedTask();
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
