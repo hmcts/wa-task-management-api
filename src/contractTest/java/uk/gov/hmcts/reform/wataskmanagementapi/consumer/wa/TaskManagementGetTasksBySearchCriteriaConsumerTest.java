@@ -156,6 +156,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .stringType("work_type_id", "hearing_work")
                         .object("permissions", values ->
                             values
                                 .array("values", value -> value

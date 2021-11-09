@@ -27,7 +27,7 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
 
     Optional<TaskResource> getByTaskId(String id);
 
-    @Modifying
+    @ModifyingTaskManagementGetTasksBySearchCriteriaConsumerTest.java
     @QueryHints({
         @QueryHint(name = "javax.persistence.lock.timeout", value = "0"),
         @QueryHint(name = "javax.persistence.query.timeout", value = "5000"),
