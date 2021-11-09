@@ -157,17 +157,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                             )
                         )
                         .stringType("work_type_id", "hearing_work")
-                        .object("permissions", values ->
-                            values
-                                .array("values", value -> value
-                                    .stringValue("Read")
-                                    .stringValue("Own")
-                                    .stringValue("Execute")
-                                    .stringValue("Cancel")
-                                    .stringValue("Manage")
-                                    .stringValue("Refer")
-                                )
-                        )
                 )).build();
     }
 
