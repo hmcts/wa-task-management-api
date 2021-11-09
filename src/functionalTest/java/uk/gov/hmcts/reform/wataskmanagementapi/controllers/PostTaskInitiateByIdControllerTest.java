@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -405,8 +404,22 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("work_type_resource.id", equalTo("decision_making_work"))
             .body("work_type_resource.label", equalTo("Decision-making work"))
-            .body("task_role_resources.size()", equalTo(3));
+            .body("task_role_resources.size()", equalTo(4));
 
+        assertPermissions(
+            getTaskResource(result, "senior-tribunal-caseworker"),
+            Map.of("read", true,
+                   "refer", true,
+                   "own", true,
+                   "manage", false,
+                   "execute", false,
+                   "cancel", false,
+                   "task_id", taskId,
+                   "authorizations", List.of("IA"),
+                   "role_category", "LEGAL_OPERATIONS",
+                   "auto_assignable", true
+            )
+        );
         assertPermissions(
             getTaskResource(result, "tribunal-caseworker"),
             Map.of("read", true,
@@ -469,7 +482,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         final List<Map<String, Object>> resources = new JsonPath(result.getBody().asString())
             .param("roleName", roleName)
             .get("task_role_resources.findAll { resource -> resource.role_name == roleName }");
-        return resources.size() > 0 ? resources.get(0) : null;
+        return resources.get(0);
     }
 
     @Test
@@ -527,56 +540,22 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                     "The task requires a case management event to be executed by the user."
                         + " (Typically this will be in CCD.)")
             )
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"));
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body("task_role_resources.size()", equalTo(1));
 
-        Optional.ofNullable(getTaskResource(result, "task-supervisor"))
-            .ifPresent(resource ->
-                           assertPermissions(
-                               resource,
-                               Map.of("read", true,
-                                      "refer", true,
-                                      "own", false,
-                                      "manage", true,
-                                      "execute", false,
-                                      "cancel", true,
-                                      "task_id", taskId,
-                                      "authorizations", List.of("IA"),
-                                      "auto_assignable", false
-                               )
-                           ));
-
-        Optional.ofNullable(getTaskResource(result, "tribunal-caseworker"))
-            .ifPresent(resource ->
-                           assertPermissions(
-                               resource,
-                               Map.of("read", true,
-                                      "refer", true,
-                                      "own", true,
-                                      "manage", true,
-                                      "execute", false,
-                                      "cancel", true,
-                                      "task_id", taskId,
-                                      "authorizations", List.of(),
-                                      "role_category", "LEGAL_OPERATIONS",
-                                      "auto_assignable", false
-                               )
-                           ));
-
-        Optional.ofNullable(getTaskResource(result, "senior-tribunal-caseworker"))
-            .ifPresent(resource -> assertPermissions(
-                resource,
-                Map.of("read", true,
-                       "refer", true,
-                       "own", true,
-                       "manage", true,
-                       "execute", false,
-                       "cancel", true,
-                       "task_id", taskId,
-                       "authorizations", List.of(),
-                       "role_category", "LEGAL_OPERATIONS",
-                       "auto_assignable", false
-                )
-            ));
+        assertPermissions(
+            getTaskResource(result, "task-supervisor"),
+            Map.of("read", true,
+                   "refer", true,
+                   "own", false,
+                   "manage", true,
+                   "execute", false,
+                   "cancel", true,
+                   "task_id", taskId,
+                   "authorizations", List.of("IA"),
+                   "auto_assignable", false
+            )
+        );
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
