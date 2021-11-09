@@ -5,7 +5,6 @@ import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -21,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -59,12 +59,8 @@ public class ConfigureTaskService {
         String caseId = (String) caseIdValue.getValue();
         String taskTypeId = (String) taskTypeIdValue.getValue();
 
-        TaskToConfigure taskToConfigure = new TaskToConfigure(
-            taskId,
-            taskTypeId,
-            caseId,
-            task.getName()
-        );
+        TaskToConfigure taskToConfigure
+            = getTaskToConfigure(new TaskToConfigure(taskId, taskTypeId, caseId, task.getName()));
 
         TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
@@ -82,8 +78,9 @@ public class ConfigureTaskService {
 
     }
 
-    public ConfigureTaskResponse getConfiguration(TaskToConfigure taskToConfigure) {
+    public ConfigureTaskResponse getConfiguration(TaskToConfigure inputTask) {
 
+        var taskToConfigure = getTaskToConfigure(inputTask);
         TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
         AutoAssignmentResult autoAssignmentResult = taskAutoAssignmentService
@@ -106,7 +103,7 @@ public class ConfigureTaskService {
     public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
         TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
         if (featureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+            RELEASE_2_ENDPOINTS_FEATURE,
             StringUtils.EMPTY,
             StringUtils.EMPTY
         )) {
@@ -162,4 +159,11 @@ public class ConfigureTaskService {
         }
     }
 
+    private TaskToConfigure getTaskToConfigure(TaskToConfigure taskToConfigure) {
+        return featureFlagProvider.getBooleanValue(RELEASE_2_ENDPOINTS_FEATURE, StringUtils.EMPTY, StringUtils.EMPTY)
+            ? taskToConfigure.toBuilder()
+            .taskAttributes(Map.of("taskType", taskToConfigure.getTaskTypeId()))
+            .build()
+            : taskToConfigure;
+    }
 }

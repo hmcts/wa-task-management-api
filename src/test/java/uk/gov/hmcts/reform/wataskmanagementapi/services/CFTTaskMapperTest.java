@@ -27,11 +27,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -241,7 +243,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues));
+            new TaskConfigurationResults(mappedValues)
+        );
 
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
@@ -329,7 +332,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses));
+            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses)
+        );
 
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
@@ -432,7 +436,7 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
+                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -454,9 +458,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                + "[PUBLIC, RESTRICTED, PRIVATE]")
+                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
+                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                    + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -476,7 +480,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues));
+            new TaskConfigurationResults(mappedValues)
+        );
 
         assertNotNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getWorkTypeResource().getId());
@@ -626,6 +631,21 @@ class CFTTaskMapperTest {
         assertNotNull(task.getCreatedDate());
     }
 
+    @Test
+    void should_convert_task_resource_to_map_object() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes = getDefaultAttributesWithWorkType(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
+
+        assertThat(taskAttributes).size().isEqualTo(32);
+    }
+
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {
         return asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
@@ -664,7 +684,8 @@ class CFTTaskMapperTest {
     }
 
     private List<TaskAttribute> getDefaultAttributesWithoutDueDate() {
-        return asList(new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
+        return asList(
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),
             new TaskAttribute(TaskAttributeDefinition.TASK_CASE_CATEGORY, "someCaseCategory"),
             new TaskAttribute(TaskAttributeDefinition.TASK_CASE_ID, "00000"),
@@ -777,7 +798,7 @@ class CFTTaskMapperTest {
         List<TaskAttribute> defaultAttributes = getDefaultAttributes(createdDate, dueDate);
         List<TaskAttribute> attributes = new ArrayList<>(defaultAttributes);
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
         attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, values));
 
         return attributes;

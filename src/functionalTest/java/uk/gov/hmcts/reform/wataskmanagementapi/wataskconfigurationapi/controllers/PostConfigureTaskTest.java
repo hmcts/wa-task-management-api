@@ -76,8 +76,10 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .body("caseTypeId.value", is("Asylum"))
             .body("title.value", is("task name"))
             .body("hasWarnings.value", is(false))
-            .body("tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"))
-            .body("senior-tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"));
+            .body("tribunal-caseworker.value", is("Read,Refer,Own"))
+            .body("senior-tribunal-caseworker.value", is("Read,Refer,Own"))
+            .body("task-supervisor.value", is("Read,Refer,Manage,Cancel"))
+            .body("case-manager.value", is("Read,Refer,Own"));
     }
 
     @Test
@@ -120,8 +122,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .body("jurisdiction.value", is("IA"))
             .body("caseTypeId.value", is("Asylum"))
             .body("title.value", is("task name"))
-            .body("tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"))
-            .body("senior-tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"));
+            .body("task-supervisor.value", is("Read,Refer,Manage,Cancel"));
     }
 
 }
