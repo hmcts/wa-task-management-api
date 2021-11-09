@@ -2904,6 +2904,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("updateNotes()")
     class UpdateNotes {
+
         @Test
         void should_succeed() {
             List<NoteResource> existingNotesList = new ArrayList<>();
@@ -2930,6 +2931,49 @@ class TaskManagementServiceTest extends CamundaHelpers {
             );
             mergedNotesList.add(noteResource);
             noteResource = new NoteResource("Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            mergedNotesList.add(noteResource);
+
+            TaskResource mergedTaskResource = new TaskResource(
+                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+
+            mergedTaskResource.setNotes(mergedNotesList);
+            when(cftTaskDatabaseService.saveTask(any()))
+                .thenReturn(mergedTaskResource);
+
+            final NoteResource newNoteResource = new NoteResource(
+                "Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
+
+            final TaskResource expected = taskManagementService.updateNotes("taskId", notesRequest);
+
+            assertEquals(expected, mergedTaskResource);
+            verify(cftTaskDatabaseService, times(1))
+                .findByIdAndObtainPessimisticWriteLock(any());
+            verify(cftTaskDatabaseService, times(1))
+                .saveTask(any());
+        }
+
+        @Test
+        void should_succeed_when_task_has_no_existing_notes() {
+            TaskResource taskResourceById = new TaskResource(
+                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(any()))
+                .thenReturn(Optional.of(taskResourceById));
+
+            List<NoteResource> mergedNotesList = new ArrayList<>();
+            NoteResource noteResource = new NoteResource("Warning Code",
                 "Warning",
                 "userId",
                 "Warning Description"

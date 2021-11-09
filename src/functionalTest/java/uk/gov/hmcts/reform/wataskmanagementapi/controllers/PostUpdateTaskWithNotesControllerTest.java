@@ -3,13 +3,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
@@ -55,10 +55,12 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
+        String notesRequest = addNotes();
+
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            new NotesRequest(Collections.emptyList()),
+            notesRequest,
             authenticationHeaders
         );
 
@@ -92,14 +94,31 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     }
 
     @Test
+    public void should_return_a_400_when_the_notes_is_empty() {
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        NotesRequest notesRequest = new NotesRequest(Collections.emptyList());
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            notesRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat().statusCode(HttpStatus.BAD_REQUEST.value());
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void given_a_task_with_note_when_new_note_is_added_then_return_all_notes() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        initiateTask(taskVariables, true);
 
-        NoteResource noteResource = new NoteResource(
-            "TA02", "WARNING", "userId", "Description2");
-        final NotesRequest notesRequest = new NotesRequest(List.of(noteResource));
+        String notesRequest = addNotes();
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -110,6 +129,13 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
         // validate the notes
         result = restApiActions.get(
             GET_TASK_ENDPOINT,
@@ -133,7 +159,67 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         Assertions.assertEquals(expectedWarnings, actualWarnings);
     }
 
-    private void initiateTask(TestVariables testVariables) {
+    @Test
+    public void given_a_task_when_new_note_is_added_then_return_all_notes() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        initiateTask(taskVariables, false);
+
+        String notesRequest = addNotes();
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            notesRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
+
+        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
+            authenticationHeaders,
+            Map.of(
+                "primaryLocation", "765324",
+                "jurisdiction", "IA"
+            )
+        );
+        // validate the notes
+        result = restApiActions.get(
+            GET_TASK_ENDPOINT,
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task.warnings", is(true));
+
+        final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
+            "task.warning_list.values");
+
+        List<Map<String, String>> expectedWarnings = Lists.list(
+            Map.of("warningCode", "TA02", "warningText", "Description2")
+        );
+        Assertions.assertEquals(expectedWarnings, actualWarnings);
+    }
+
+    @NotNull
+    private String addNotes() {
+        return "{\"notes\": "
+               +    "["
+               +        "{"
+               +            "\"code\": \"TA02\","
+               +            "\"note_type\": \"WARNING\","
+               +            "\"user_id\": \"some-user\","
+               +            "\"content\": \"Description2\""
+               +        "}"
+               +    "]"
+               + "}";
+    }
+
+    private void initiateTask(TestVariables testVariables, boolean hasWarnings) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -142,16 +228,27 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
         String warnings = "[{\"warningCode\":\"TA01\", \"warningText\":\"Description1\"}]";
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warnings)
-        ));
+        InitiateTaskRequest req;
+        if (hasWarnings) {
+            req = new InitiateTaskRequest(INITIATION, asList(
+                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+                new TaskAttribute(TASK_TITLE, "A test task"),
+                new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
+                new TaskAttribute(TASK_HAS_WARNINGS, true),
+                new TaskAttribute(TASK_WARNINGS, warnings)
+            ));
+        } else {
+            req = new InitiateTaskRequest(INITIATION, asList(
+                new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+                new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+                new TaskAttribute(TASK_TITLE, "A test task"),
+                new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)));
+        }
 
         Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,

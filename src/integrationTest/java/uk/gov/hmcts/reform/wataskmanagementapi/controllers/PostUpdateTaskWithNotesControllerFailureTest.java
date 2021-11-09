@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -79,13 +78,12 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
 
         when(taskManagementService.getTaskById(eq(taskId))).thenReturn(Optional.empty());
 
-        NotesRequest notesRequest = new NotesRequest(Collections.emptyList());
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(notesRequest))
+                .content(asJsonString(addNotes()))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -104,13 +102,12 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
 
         when(clientAccessControlService.hasExclusiveAccess(any()))
             .thenReturn(false);
-        NotesRequest notesRequest = new NotesRequest(Collections.emptyList());
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(notesRequest))
+                .content(asJsonString(addNotes()))
         ).andExpect(
             ResultMatcher.matchAll(
                 content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
@@ -180,6 +177,14 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
                 jsonPath("$.violations.[0].field").value("note_resource[0].note_type"),
                 jsonPath("$.violations.[0].message")
                     .value("Each note element must have 'code', 'note_type' fields present and populated.")));
+    }
+
+    private NotesRequest addNotes() {
+        return new NotesRequest(
+            singletonList(
+                new NoteResource("code", "someNoteType", "userId", "content")
+            )
+        );
     }
 }
 

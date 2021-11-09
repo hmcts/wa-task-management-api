@@ -250,7 +250,8 @@ public class TaskActionsController extends BaseController {
         @Valid @RequestBody NotesRequest notesRequest
     ) {
 
-        if (notesRequest == null) {
+        if (notesRequest == null || notesRequest.getNoteResource() == null
+            || notesRequest.getNoteResource().isEmpty()) {
             throw new BadRequestException("Bad Request");
         }
 
