@@ -2,9 +2,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.HashSet;
+
+import static java.util.Collections.singleton;
 
 public class TaskTest {
 
@@ -38,7 +42,8 @@ public class TaskTest {
             false,
             new WarningValues(Arrays.asList(new Warning("123","some warning"),new Warning("456","some more warning"))),
             "some-case-management-category",
-            "hearing_work"
+            "hearing_work",
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -66,6 +71,7 @@ public class TaskTest {
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
         Assertions.assertThat(task.getCaseManagementCategory()).isEqualTo("some-case-management-category");
+        Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.READ);
 
 
     }

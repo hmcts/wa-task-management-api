@@ -6,9 +6,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaOb
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
@@ -94,7 +96,9 @@ public class TaskMapper {
             hasWarnings,
             warningList,
             caseManagementCategory,
-            workType
+            workType,
+            //returning empty since this should only be used in R1 and task permissions is R2
+            new TaskPermissions(Collections.emptySet())
         );
     }
 
