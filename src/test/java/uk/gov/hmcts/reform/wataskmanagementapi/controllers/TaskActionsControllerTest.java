@@ -21,7 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
@@ -34,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -315,48 +313,6 @@ class TaskActionsControllerTest {
             .isInstanceOf(TaskNotFoundException.class)
             .hasNoCause()
             .hasMessage("Task Not Found Error: The task could not be found.");
-
-        verify(taskManagementService, times(0))
-            .updateNotes(taskId, notesRequest);
-    }
-
-    @Test
-    void should_return_a_400_when_mandatory_fields_are_missing() {
-        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        NotesRequest notesRequest = new NotesRequest(List.of());
-        assertThatThrownBy(() -> taskActionsController
-            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, nonExistentTaskId, null))
-            .isInstanceOf(BadRequestException.class)
-            .hasNoCause()
-            .hasMessage("Bad Request");
-
-        verify(taskManagementService, times(0))
-            .updateNotes(taskId, notesRequest);
-    }
-
-    @Test
-    void should_return_a_400_when_notes_is_empty() {
-        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        NotesRequest notesRequest = new NotesRequest(emptyList());
-        assertThatThrownBy(() -> taskActionsController
-            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, nonExistentTaskId, notesRequest))
-            .isInstanceOf(BadRequestException.class)
-            .hasNoCause()
-            .hasMessage("Bad Request");
-
-        verify(taskManagementService, times(0))
-            .updateNotes(taskId, notesRequest);
-    }
-
-    @Test
-    void should_return_a_400_when_notes_are_null() {
-        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        NotesRequest notesRequest = new NotesRequest(null);
-        assertThatThrownBy(() -> taskActionsController
-            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, nonExistentTaskId, notesRequest))
-            .isInstanceOf(BadRequestException.class)
-            .hasNoCause()
-            .hasMessage("Bad Request");
 
         verify(taskManagementService, times(0))
             .updateNotes(taskId, notesRequest);

@@ -27,7 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
@@ -249,11 +248,6 @@ public class TaskActionsController extends BaseController {
         @PathVariable(TASK_ID) String taskId,
         @Valid @RequestBody NotesRequest notesRequest
     ) {
-
-        if (notesRequest == null || notesRequest.getNoteResource() == null
-            || notesRequest.getNoteResource().isEmpty()) {
-            throw new BadRequestException("Bad Request");
-        }
 
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
         if (!hasAccess) {
