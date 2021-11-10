@@ -32,12 +32,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -209,7 +211,7 @@ public class CftQueryServiceUnitTest {
 
         GetTasksResponse<Task> taskResourceList
             = cftQueryService.getAllTasks(
-                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+            -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
 
         assertNotNull(taskResourceList);
@@ -217,73 +219,6 @@ public class CftQueryServiceUnitTest {
 
         verify(taskResourceRepository, times(0))
             .findAll(any(), any(Pageable.class));
-    }
-
-
-    private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(classification)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> specificAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(specificAttributes)
-            .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> stdAttributes = Map.of(
-            RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(stdAttributes)
-            .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> challengedAttributes = Map.of(
-            RoleAttributeDefinition.JURISDICTION.value(), "IA"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(challengedAttributes)
-            .authorisations(List.of("DIVORCE", "PROBATE"))
-            .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> excludeddAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(excludeddAttributes)
-            .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        return roleAssignments;
     }
 
     private TaskResource createTaskResource() {
@@ -362,7 +297,74 @@ public class CftQueryServiceUnitTest {
             true,
             null,
             "Some Case Management Category",
-            "hearing_work"
+            "hearing_work",
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
         );
+    }
+
+    private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(classification)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> specificAttributes = Map.of(
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.SPECIFIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> stdAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(stdAttributes)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> challengedAttributes = Map.of(
+            RoleAttributeDefinition.JURISDICTION.value(), "IA"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(challengedAttributes)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.CHALLENGED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> excludeddAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(excludeddAttributes)
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
     }
 }
