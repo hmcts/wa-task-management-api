@@ -34,32 +34,6 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     private static final String WA_URL = "/task";
     private static final String WA_SEARCH_FOR_COMPLETABLE = WA_URL + "/search-for-completable";
 
-    @Test
-    @PactTestFor(pactMethod = "executeSearchForCompletable200")
-    void testSearchForCompletable200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(creteSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchForCompletableWithWarnings200")
-    void testSearchForCompletableWithWarnings200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(creteSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
     @Pact(provider = "wa_task_management_api_search_completable", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchForCompletable200(PactDslWithProvider builder) {
         return builder
@@ -92,6 +66,32 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchForCompletable200")
+    void testSearchForCompletable200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(creteSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchForCompletableWithWarnings200")
+    void testSearchForCompletableWithWarnings200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(creteSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_FOR_COMPLETABLE)
+            .then()
+            .statusCode(HttpStatus.OK.value());
     }
 
     private DslPart createResponseForGetTask() {
@@ -151,8 +151,8 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
                         .booleanType("auto_assigned", true)
-                        .booleanType("warnings", true)
                         .stringType("work_type_id", "hearing_work")
+                        .booleanType("warnings", true)
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")

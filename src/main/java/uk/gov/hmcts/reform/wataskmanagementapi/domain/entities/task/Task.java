@@ -129,6 +129,10 @@ public class Task {
         notes = "A value containing the work type id for this task, for IA")
     private String workTypeId;
 
+    @ApiModelProperty(required = true,
+        notes = "A value describing the work type of the case, for IA")
+    private TaskPermissions permissions;
+
     private Task() {
         //Hidden constructor
         super();
@@ -157,7 +161,8 @@ public class Task {
                 Boolean warnings,
                 WarningValues warningList,
                 String caseManagementCategory,
-                String workTypeId
+                String workTypeId,
+                TaskPermissions taskPermissions
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -185,26 +190,8 @@ public class Task {
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
         this.workTypeId = workTypeId;
-    }
+        this.permissions = taskPermissions;
 
-    public String getLocation() {
-        return location;
-    }
-
-    public String getExecutionType() {
-        return executionType;
-    }
-
-    public String getJurisdiction() {
-        return jurisdiction;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public Boolean getAutoAssigned() {
-        return autoAssigned;
     }
 
     public String getId() {
@@ -251,6 +238,22 @@ public class Task {
         return locationName;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public String getExecutionType() {
+        return executionType;
+    }
+
+    public String getJurisdiction() {
+        return jurisdiction;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
     public String getCaseTypeId() {
         return caseTypeId;
     }
@@ -287,5 +290,8 @@ public class Task {
         return workTypeId;
     }
 
+    public TaskPermissions getPermissions() {
+        return permissions;
+    }
 }
 

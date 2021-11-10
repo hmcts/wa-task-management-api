@@ -34,58 +34,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String WA_SEARCH_QUERY = "/task";
 
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQuery200")
-    void testSearchQuery200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
-    void testSearchQueryWithWorkType200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseWithWorkTypeRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
-    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
-    void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseWithWorkTypeRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQuery200(PactDslWithProvider builder) throws JsonProcessingException {
         return builder
@@ -157,6 +105,58 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .toPact();
     }
 
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQuery200")
+    void testSearchQuery200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
+    void testSearchQueryWithWorkType200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithWorkTypeRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
+    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
+    void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithWorkTypeRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
     private DslPart createResponseForGetTask() throws JsonProcessingException {
         return newJsonBody(
             o -> o
@@ -220,6 +220,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                             )
                         )
                         .stringType("case_management_category", "Some Case Management Category")
+                        .stringType("work_type_id", "hearing_work")
                 )).build();
     }
 

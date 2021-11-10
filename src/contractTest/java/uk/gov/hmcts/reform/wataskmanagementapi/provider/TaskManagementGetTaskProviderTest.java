@@ -19,9 +19,11 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
@@ -30,8 +32,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -68,6 +72,16 @@ public class TaskManagementGetTaskProviderTest {
     @Mock
     private ClientAccessControlService clientAccessControlService;
 
+    @State({"get a task using taskId"})
+    public void getTaskById() {
+        setInitMockTask();
+    }
+
+    @State({"get a task using taskId with warnings"})
+    public void getTaskByIdWithWarnings() {
+        setInitMockTaskWithWarnings();
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -96,16 +110,6 @@ public class TaskManagementGetTaskProviderTest {
             )
         );
 
-    }
-
-    @State({"get a task using taskId"})
-    public void getTaskById() {
-        setInitMockTask();
-    }
-
-    @State({"get a task using taskId with warnings"})
-    public void getTaskByIdWithWarnings() {
-        setInitMockTaskWithWarnings();
     }
 
     private void setInitMockTask() {
@@ -145,7 +149,18 @@ public class TaskManagementGetTaskProviderTest {
             false,
             new WarningValues(Collections.emptyList()),
             "Case Management Category",
-            "hearing_work"
+            "hearing_work",
+            new TaskPermissions(
+                new HashSet<>(
+                    asList(
+                        PermissionTypes.READ,
+                        PermissionTypes.OWN,
+                        PermissionTypes.EXECUTE,
+                        PermissionTypes.CANCEL,
+                        PermissionTypes.MANAGE,
+                        PermissionTypes.REFER
+                    )))
+
         );
     }
 
@@ -178,8 +193,18 @@ public class TaskManagementGetTaskProviderTest {
             false,
             warningValues,
             "Case Management Category",
-            "hearing_work"
-            );
+            "hearing_work",
+            new TaskPermissions(
+                new HashSet<>(
+                    asList(
+                        PermissionTypes.READ,
+                        PermissionTypes.OWN,
+                        PermissionTypes.EXECUTE,
+                        PermissionTypes.CANCEL,
+                        PermissionTypes.MANAGE,
+                        PermissionTypes.REFER
+                    )))
+        );
     }
 
 }
