@@ -124,6 +124,20 @@ public class ServiceMocks {
         );
     }
 
+    public CamundaTask getCamundaTaskForSomeUser(String processInstanceId, String id) {
+        return new CamundaTask(
+            id,
+            "some-name",
+            "some-user",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "some-description",
+            "some-owner",
+            "formKey",
+            processInstanceId
+        );
+    }
+
     public List<RoleAssignment> createRoleAssignmentsWithSCSSandIA() {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         // Role Assignment with IA and RoleType Organisation

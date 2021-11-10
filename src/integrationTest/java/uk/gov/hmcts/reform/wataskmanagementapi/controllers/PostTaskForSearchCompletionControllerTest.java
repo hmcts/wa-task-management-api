@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
-import org.apache.commons.compress.utils.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,15 +15,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -120,8 +115,6 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         when(camundaServiceApi.searchWithCriteriaAndNoPagination(any(), any()))
             .thenReturn(camundaTasks);
 
-        mockCamundaVariables();
-
         when(camundaServiceApi.getAllVariables(any(), any()))
             .thenReturn(mockedAllVariables("processInstanceId", "IA", taskId));
 
@@ -157,8 +150,6 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         when(camundaServiceApi.searchWithCriteriaAndNoPagination(any(), any()))
             .thenReturn(camundaTasks);
 
-        mockCamundaVariables();
-
         when(camundaServiceApi.getAllVariables(any(), any()))
             .thenReturn(mockedAllVariables("processInstanceId", "SSCS", taskId));
 
@@ -174,35 +165,19 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
-    void should_return_a_200_and_task_list_when_idam_user_id_different_from_task_assignee() throws Exception {
+    void should_return_a_200_and_empty_list_when_idam_user_id_different_from_task_assignee() throws Exception {
         mockServices.mockUserInfo();
         mockServices.mockServiceAPIs();
 
-        List<CamundaTask> camundaTasks = Lists.newArrayList();
-        camundaTasks.add(
-            mockServices.getCamundaTask("processInstanceId", taskId)
+        List<CamundaTask> camundaTasksForSomeUser = List.of(
+            mockServices.getCamundaTaskForSomeUser("processInstanceId", taskId)
         );
-
-        CamundaTask camundaTaskWithDummyAssignee = new CamundaTask(
-            camundaTasks.get(0).getId(),
-            camundaTasks.get(0).getName(),
-            "someUser",
-            camundaTasks.get(0).getCreated(),
-            camundaTasks.get(0).getDue(),
-            camundaTasks.get(0).getDescription(),
-            camundaTasks.get(0).getOwner(),
-            camundaTasks.get(0).getFormKey(),
-            camundaTasks.get(0).getProcessInstanceId()
-        );
-        camundaTasks.remove(0);
-        camundaTasks.add(camundaTaskWithDummyAssignee);
 
         when(camundaServiceApi.getTaskCount(any(), any())).thenReturn(new CamundaTaskCount(1));
 
         when(camundaServiceApi.searchWithCriteriaAndNoPagination(any(), any()))
-            .thenReturn(camundaTasks);
+            .thenReturn(camundaTasksForSomeUser);
 
-        mockCamundaVariables();
 
         when(camundaServiceApi.getAllVariables(any(), any()))
             .thenReturn(mockedAllVariables("processInstanceId", "IA", taskId));
@@ -215,24 +190,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(1))
-            .andExpect(jsonPath("tasks[0].assignee").value("someUser"));
-    }
-    
-    private void mockCamundaVariables() {
-        Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
-
-        processVariables.put("tribunal-caseworker", new CamundaVariable("Read,Refer,Own", "string"));
-        processVariables.put("taskType", new CamundaVariable("a task type", "string"));
-        processVariables.put("jurisdiction", new CamundaVariable("IA", "string"));
-        processVariables.put("assignee", new CamundaVariable("IDAM_USER_ID", "string"));
-        processVariables.put("workType", new CamundaVariable("applications", "string"));
-
-        when(camundaServiceApi.getVariables(any(), any()))
-            .thenReturn(processVariables);
-
-        when(camundaServiceApi.evaluateDMN(any(), any(), any()))
-            .thenReturn(Collections.singletonList(processVariables));
+            .andExpect(jsonPath("tasks.size()").value(0));
     }
 
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
