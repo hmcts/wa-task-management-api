@@ -52,6 +52,24 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder)
+        throws JsonProcessingException {
+        return builder
+            .given("appropriate tasks are returned by criteria with work-type")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTask())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithWarnings200(PactDslWithProvider builder)
         throws JsonProcessingException {
         return builder
@@ -63,6 +81,24 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
             .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskWithWarnings())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWithWorkTypeWithWarnings200(PactDslWithProvider builder)
+        throws JsonProcessingException {
+        return builder
+            .given("appropriate tasks are returned by criteria with work-type with warnings only")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
@@ -83,6 +119,19 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
+    void testSearchQueryWithWorkType200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithWorkTypeRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
     @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
     void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
         SerenityRest
@@ -90,6 +139,19 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
+    void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithWorkTypeRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -121,6 +183,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
                         .booleanType("warnings", false)
+                        .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
                 )).build();
     }
@@ -156,6 +219,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
                 )).build();
     }
@@ -185,4 +249,34 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                   + "  }\n";
         return request;
     }
+
+    private String createSearchEventCaseWithWorkTypeRequest() {
+
+        return "{\n"
+               + "    \"search_parameters\": [\n"
+               + "        {\n"
+               + "            \"key\": \"jurisdiction\",\n"
+               + "            \"operator\": \"IN\",\n"
+               + "            \"values\": [\n"
+               + "                \"IA\"\n"
+               + "            ]\n"
+               + "        },\n"
+               + "        {\n"
+               + "            \"key\": \"work_type\",\n"
+               + "            \"operator\": \"IN\",\n"
+               + "            \"values\": [\n"
+               + "                \"routine_work\",\n"
+               + "                \"decision_making_work\",\n"
+               + "                \"hearing_work\",\n"
+               + "                \"applications\",\n"
+               + "                \"upper_tribunal\",\n"
+               + "                \"priority\",\n"
+               + "                \"error_management\",\n"
+               + "                \"access_requests\"\n"
+               + "            ]\n"
+               + "        }\n"
+               + "    ]\n"
+               + "}";
+    }
+
 }
