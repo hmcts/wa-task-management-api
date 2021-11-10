@@ -29,7 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
-import java.time.ZonedDateTime;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,8 +70,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     public static final String SOME_ASSIGNEE = "someAssignee";
     public static final String SOME_CASE_ID = "someCaseId";
 
-    ZonedDateTime createdDate = ZonedDateTime.now();
-    ZonedDateTime dueDate = createdDate.plusDays(1);
+    OffsetDateTime createdDate = OffsetDateTime.now();
+    OffsetDateTime dueDate = createdDate.plusDays(1);
     String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
     private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
@@ -148,8 +148,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             )
         ).thenReturn(true);
 
-        testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID);
-        assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID);
+        testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
+        assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
             .thenReturn(assignedTask);
