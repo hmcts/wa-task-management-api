@@ -35,9 +35,14 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
         @QueryHint(name = "org.hibernate.timeout", value = "5")
     })
     @Query(
-        value = "INSERT INTO {h-schema}tasks (task_id, created, due_date_time) VALUES (:task_id, :created, :due_date_time)",
+        value =
+            "INSERT INTO {h-schema}tasks (task_id, created, due_date_time) VALUES (:task_id, :created, :due_date_time)",
         nativeQuery = true)
     @Transactional
-    void insertAndLock(@Param("task_id") String taskId, @Param("created") OffsetDateTime created, @Param("due_date_time") OffsetDateTime dueDate);
+    void insertAndLock(
+        @Param("task_id") String taskId,
+        @Param("created") OffsetDateTime created,
+        @Param("due_date_time") OffsetDateTime dueDate
+    );
 
 }

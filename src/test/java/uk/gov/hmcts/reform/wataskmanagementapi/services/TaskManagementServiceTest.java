@@ -256,8 +256,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )
             ).thenReturn(true);
 
-            doReturn(mockedMappedTask).
-                when(cftTaskMapper).mapToTask(taskResource);
+            doReturn(mockedMappedTask)
+                .when(cftTaskMapper).mapToTask(taskResource);
 
             Task response = taskManagementService.getTask(taskId, accessControlResponse);
 
