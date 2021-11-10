@@ -174,7 +174,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
-    void should_return_a_200_and_empty_list_when_idam_user_id_different_from_task_assignee() throws Exception {
+    void should_return_a_200_and_task_list_when_idam_user_id_different_from_task_assignee() throws Exception {
         mockServices.mockUserInfo();
         mockServices.mockServiceAPIs();
 
@@ -215,9 +215,10 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(0));
+            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("tasks[0].assignee").value("someUser"));
     }
-
+    
     private void mockCamundaVariables() {
         Map<String, CamundaVariable> processVariables = new ConcurrentHashMap<>();
 
