@@ -15,15 +15,18 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -55,7 +58,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
     private SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
         "some-caseId",
-        "some-eventId",
+        "decideAnApplication",
         "ia",
         "asylum"
     );
@@ -75,7 +78,12 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     @DisplayName("Invalid DMN table")
     @Test
     void should_return_a_500_when_dmn_table_is_invalid() throws Exception {
-
+        searchEventAndCase = new SearchEventAndCase(
+            "some-caseId",
+            "some-eventId",
+            "ia",
+            "asylum"
+        );
         mockServices.mockServiceAPIs();
 
         FeignException mockFeignException = mock(FeignException.class);
@@ -105,6 +113,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     void should_return_a_200_when_dmn_table_is_valid() throws Exception {
         mockServices.mockUserInfo();
         mockServices.mockServiceAPIs();
+
         List<CamundaTask> camundaTasks = List.of(
             mockServices.getCamundaTask("processInstanceId", taskId)
         );
@@ -114,6 +123,14 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         when(camundaServiceApi.searchWithCriteriaAndNoPagination(any(), any()))
             .thenReturn(camundaTasks);
+
+        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "workType", new CamundaVariable("decision_making_work", "String")
+        ));
+        when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
+            .thenReturn(mockedResponse);
 
         when(camundaServiceApi.getAllVariables(any(), any()))
             .thenReturn(mockedAllVariables("processInstanceId", "IA", taskId));
@@ -126,7 +143,10 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
             .andExpect(status().isOk())
-            .andExpect(jsonPath("tasks.size()").value(0));
+            .andExpect(jsonPath("tasks.size()").value(1));
+
+        verify(camundaServiceApi, times(1))
+            .evaluateDMN(any(), any(), any());
     }
 
     @Test
@@ -134,9 +154,9 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         mockServices.mockUserInfo();
         mockServices.mockServiceAPIs();
 
-        searchEventAndCase = new SearchEventAndCase(
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "some-caseId",
-            "some-eventId",
+            "decideAnApplication",
             "SSCS",
             "aCaseType"
         );
@@ -191,6 +211,44 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("tasks.size()").value(0));
+    }
+
+    @Test
+    void should_return_a_200_and_task_list_when_idam_user_id_same_with_task_assignee() throws Exception {
+        mockServices.mockUserInfo();
+        mockServices.mockServiceAPIs();
+
+        List<CamundaTask> camundaTasks = List.of(
+            mockServices.getCamundaTask("processInstanceId", taskId)
+        );
+
+        when(camundaServiceApi.getTaskCount(any(), any()))
+            .thenReturn(new CamundaTaskCount(1));
+
+        when(camundaServiceApi.searchWithCriteriaAndNoPagination(any(), any()))
+            .thenReturn(camundaTasks);
+
+        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "workType", new CamundaVariable("decision_making_work", "String")
+        ));
+        when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
+            .thenReturn(mockedResponse);
+
+        when(camundaServiceApi.getAllVariables(any(), any()))
+            .thenReturn(mockedAllVariables("processInstanceId", "IA", taskId));
+
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(1))
+            .andExpect(jsonPath("tasks[0].assignee").value("IDAM_USER_ID"));
     }
 
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
