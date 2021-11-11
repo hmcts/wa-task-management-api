@@ -25,12 +25,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Arrays.asList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -172,7 +168,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         sendMessage(caseId);
         sendMessage(caseId);
 
-        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
+        final List<CamundaTask> tasksList = given.iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
 
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
@@ -257,7 +253,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         sendMessage(caseId);
         sendMessage(caseId);
 
-        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
+        final List<CamundaTask> tasksList = given.iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
 
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
@@ -317,7 +313,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         sendMessageWithWarnings(caseId);
         sendMessageWithWarnings(caseId);
 
-        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
+        final List<CamundaTask> tasksList = given.iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
 
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
@@ -609,37 +605,6 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .put(key.value(), new CamundaValue<>(variablesOverride.get(key), "String")));
 
         given.iCreateATaskWithCustomVariables(processVariables);
-    }
-
-    private List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value, int taskCount) {
-        String filter = "?processVariables=" + key + "_eq_" + value;
-
-        AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
-                    Response result = camundaApiActions.get(
-                        "/task" + filter,
-                        authorizationHeadersProvider.getServiceAuthorizationHeader()
-                    );
-
-                    result.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .body("size()", is(taskCount));
-
-                    response.set(
-                        result.then()
-                            .extract()
-                            .jsonPath().getList("", CamundaTask.class)
-                    );
-
-                    return true;
-                });
-
-        return response.get();
     }
 
     private void insertTaskInCftTaskDb(String caseId, String taskId, UserInfo userInfo, String taskType) {
