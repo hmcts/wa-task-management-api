@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -31,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -52,10 +54,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/data.sql")
-public class CftQueryServiceTest {
+public class CftQueryServiceITTest {
 
     private List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
+    @MockBean
+    private CamundaService camundaService;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
 
@@ -64,7 +68,7 @@ public class CftQueryServiceTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -86,7 +90,7 @@ public class CftQueryServiceTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
             accessControlResponse, permissionsRequired
         );
@@ -117,7 +121,7 @@ public class CftQueryServiceTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         //when
-        final GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+        final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResults, scenario.maxResults, scenario.searchTaskRequest,
             accessControlResponse, permissionsRequired
         );
@@ -139,7 +143,7 @@ public class CftQueryServiceTest {
             new SearchParameter(LOCATION, SearchOperator.IN, asList("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
-        GetTasksResponse<Task> allTasks = cftQueryService.getAllTasks(
+        GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
 
@@ -147,21 +151,21 @@ public class CftQueryServiceTest {
         Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
 
-        allTasks = cftQueryService.getAllTasks(
+        allTasks = cftQueryService.searchForTasks(
             0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
         );
         //then
         Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
 
-        allTasks = cftQueryService.getAllTasks(
+        allTasks = cftQueryService.searchForTasks(
             1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
         //then
         Assertions.assertThat(allTasks.getTasks())
             .isEmpty();
 
-        allTasks = cftQueryService.getAllTasks(
+        allTasks = cftQueryService.searchForTasks(
             -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
         );
         //then

@@ -1,27 +1,28 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.Builder;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
@@ -29,13 +30,19 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantType;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
@@ -75,235 +82,142 @@ public class TaskResourceSpecificationTest {
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
     }
 
-    @Test
-    public void buildQueryForBasicGrantTypes() {
+    @ParameterizedTest
+    @MethodSource({
+        "searchParameterForTaskQuery"
+    })
+    void shouldBuildTaskQuery(SearchTaskRequestScenario scenario) {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
 
+        final Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            scenario.searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    @Test
+    void shouldBuildSingleTaskQuery() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        final Specification<TaskResource> spec = TaskResourceSpecification.buildSingleTaskQuery(
+            "someTaskId", accessControlResponse, permissionsRequired);
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    @ParameterizedTest
+    @MethodSource({
+        "searchParameterForCompletable"
+    })
+    void shouldBuildSingleTaskQueryForCompletable(SearchTaskRequestScenario scenario) {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildQueryForCompletable(
+            scenario.searchEventAndCase, accessControlResponse, permissionsRequired, List.of("taskType"));
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        spec = TaskResourceSpecification.buildQueryForCompletable(
+            scenario.searchEventAndCase, accessControlResponse, permissionsRequired, emptyList());
+
+        predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentsWithGrantTypeBasic(Classification.PUBLIC)
-        );
+        final SearchTaskRequestScenario jurisdiction =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired);
-
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
-    }
-
-    @Test
-    public void buildQueryForNullSearchTask() {
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
-            .classification(Classification.RESTRICTED)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignments
-        );
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            null,
-            accessControlResponse,
-            permissionsRequired
-        );
-
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
-
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
-    }
-
-    @Test
-    public void buildQueryForNullSearchParameter() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(null);
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
-            .classification(Classification.RESTRICTED)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignments
-        );
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired
-        );
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
-    }
-
-
-    @Test
-    public void buildQueryForInactiveRole() {
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED"))
         ));
+        final SearchTaskRequestScenario state =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("inActiveRole")
-            .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().plusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignments
-        );
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired
-        );
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
-    }
-
-    @Test
-    public void buildQueryForBeginTimeAfterEndTime() {
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location"))
         ));
+        final SearchTaskRequestScenario location =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
-            .classification(Classification.RESTRICTED)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().plusYears(1))
-            .endTime(LocalDateTime.now().minusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId"))
+        ));
+        final SearchTaskRequestScenario caseId =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignments
-        );
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser"))
+        ));
+        final SearchTaskRequestScenario user =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired
-        );
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
-    }
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
+        ));
+        final SearchTaskRequestScenario workType =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-    @Test
-    public void buildQueryForWorkType() {
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+        searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
+            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
             new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
         ));
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentsWithGrantTypeBasic(Classification.PUBLIC)
-        );
+        final SearchTaskRequestScenario allParameters =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired);
-
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
+        return Stream.of(jurisdiction, state, location, caseId, user, workType, allParameters);
     }
 
-    @Test
-    public void buildQueryForInvalidBeginAndEndTime() {
+    private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            null, "eventId", "IA", "caseType");
+        SearchTaskRequestScenario withoutCaseId =
+            SearchTaskRequestScenario.builder().searchEventAndCase(searchEventAndCase).build();
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA"))
-        ));
+        searchEventAndCase = new SearchEventAndCase(
+            "caseId", "eventId", "IA", "caseType");
 
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
-            .classification(Classification.RESTRICTED)
-            .grantType(GrantType.BASIC)
-            .beginTime(null)
-            .endTime(null)
-            .build();
-        roleAssignments.add(roleAssignment);
+        SearchTaskRequestScenario withCaseId =
+            SearchTaskRequestScenario.builder().searchEventAndCase(searchEventAndCase).build();
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignments
-        );
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired
-        );
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
+        return Stream.of(withoutCaseId, withCaseId);
     }
 
-
-    private static List<RoleAssignment> roleAssignmentsWithGrantTypeBasic(Classification classification) {
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
-            .classification(classification)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(classification)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        return roleAssignments;
+    @Builder
+    private static class SearchTaskRequestScenario {
+        SearchTaskRequest searchTaskRequest;
+        SearchEventAndCase searchEventAndCase;
+        List<String> taskTypes;
     }
-
 }
