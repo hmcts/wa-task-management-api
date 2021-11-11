@@ -118,6 +118,21 @@ public class CamundaHelpers {
         return dmnResult;
     }
 
+    protected List<Map<String, CamundaVariable>> mockTaskCompletionDMNResponses() {
+        List<Map<String, CamundaVariable>> dmnResult = new ArrayList<>();
+        Map<String, CamundaVariable> response = Map.of(
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "taskType", new CamundaVariable("reviewTheAppeal", "String")
+        );
+        dmnResult.add(response);
+
+        response = Map.of(
+            "completionMode", new CamundaVariable("Auto", "String")
+        );
+        dmnResult.add(response);
+        return dmnResult;
+    }
+
     protected List<Map<String, CamundaVariable>> mockTaskCompletionDMNResponseWithEmptyRow() {
         List<Map<String, CamundaVariable>> dmnResult = new ArrayList<>();
         final Map<String, CamundaVariable> completionMode = Map.of(
