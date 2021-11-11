@@ -43,7 +43,7 @@ public class Common {
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
-    public final IdamService idamService;
+    private final IdamService idamService;
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
 
     private final ObjectMapper objectMapper = new ObjectMapper();

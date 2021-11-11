@@ -31,12 +31,9 @@ import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -144,8 +141,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
         String taskId = taskVariables.getTaskId();
 
-        String executePermission = "Manage";
-        common.overrideTaskPermissions(taskId, executePermission);
+        common.overrideTaskPermissions(taskId, "Manage");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -177,14 +173,10 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         sendMessage(caseId);
 
         final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 2);
-        if (tasksList.size() != 2) {
-            fail("2 tasks should be created for case id: " + caseId);
-        }
 
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
-        String executePermission = "Manage";
-        common.overrideTaskPermissions(taskId1, executePermission);
+        common.overrideTaskPermissions(taskId1, "Manage");
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         final String taskId2 = tasksList.get(1).getId();
@@ -377,69 +369,6 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         common.cleanUpTask(taskId2);
     }
 
-    @Ignore
-    @Test
-    public void should_return_a_200_and_retrieve_multiple_tasks_by_event_and_case_match_and_assignee() {
-        final String assigneeId = getAssigneeId(authenticationHeaders);
-
-        // create a caseId
-        final String caseId = given.iCreateACcdCase();
-
-        // create a 3 tasks for caseId
-        sendMessage(caseId);
-        sendMessage(caseId);
-        sendMessage(caseId);
-
-        final List<CamundaTask> tasksList = iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 3);
-
-        // No user assigned to this task
-        final String taskId1 = tasksList.get(0).getId();
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-        // assign user to taskId2
-        final String taskId2 = tasksList.get(1).getId();
-        restApiActions.post(
-            "task/{task-id}/assign",
-            taskId2,
-            new AssignTaskRequest(assigneeId),
-            authenticationHeaders
-        );
-
-        // assign user to taskId3
-        final String taskId3 = tasksList.get(2).getId();
-        restApiActions.post(
-            "task/{task-id}/assign",
-            taskId3,
-            new AssignTaskRequest(assigneeId),
-            authenticationHeaders
-        );
-
-        // search for completable
-        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            caseId, "requestRespondentEvidence", "IA", "Asylum");
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchEventAndCase,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("task_required_for_event ", is(false))
-            .body("tasks.size()", equalTo(2))
-            .body("tasks.id", hasItems(taskId2, taskId3))
-            .body("tasks.case_id", everyItem(is(caseId)))
-            .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_type_id", everyItem(is("Asylum")))
-            .body("tasks.task_state", everyItem(is("assigned")));
-
-        common.cleanUpTask(taskId1);
-        common.cleanUpTask(taskId2);
-        common.cleanUpTask(taskId3);
-    }
-
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -462,7 +391,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("task_required_for_event ", is(false))
+            .body("task_required_for_event", is(false))
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId);
