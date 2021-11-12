@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
