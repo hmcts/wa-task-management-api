@@ -114,7 +114,21 @@ public class ServiceMocks {
         return new CamundaTask(
             id,
             "some-name",
-            "some-assignee",
+            "IDAM_USER_ID",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "some-description",
+            "some-owner",
+            "formKey",
+            processInstanceId
+        );
+    }
+
+    public CamundaTask getCamundaTaskForSomeUser(String processInstanceId, String id) {
+        return new CamundaTask(
+            id,
+            "some-name",
+            "some-user",
             ZonedDateTime.now(),
             ZonedDateTime.now(),
             "some-description",
