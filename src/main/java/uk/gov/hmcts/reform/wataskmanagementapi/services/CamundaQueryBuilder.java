@@ -11,8 +11,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.C
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingExpression;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingParameters;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -31,10 +31,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.TASK_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.TASK_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField.DUE_DATE_CAMEL_CASE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.DESCENDANT;
 
@@ -53,7 +53,7 @@ public class CamundaQueryBuilder {
      */
     public CamundaSearchQuery createQuery(SearchTaskRequest searchTaskRequest) {
 
-        EnumMap<SearchParameterKey, SearchParameter> searchParametersMap = asEnumMap(searchTaskRequest);
+        EnumMap<SearchParameterKey, SearchParameterList> searchParametersMap = asEnumMap(searchTaskRequest);
 
         Map<String, List<String>> userQueries = createUserQueries(searchParametersMap.get(USER));
         List<CamundaSortingExpression> sortingQueries = createSortingQueries(searchTaskRequest.getSortingParameters());
@@ -107,22 +107,22 @@ public class CamundaQueryBuilder {
     public CamundaSearchQuery createCompletableTasksQuery(String caseId, List<String> taskTypes) {
         CamundaOrQuery.CamundaOrQueryBuilder caseIdQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.CASE_ID,
-            new SearchParameter(CASE_ID,
-                                SearchOperator.IN, singletonList(caseId)
+            new SearchParameterList(CASE_ID,
+                                    SearchOperator.IN, singletonList(caseId)
             )
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder taskIdQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.TASK_TYPE,
-            new SearchParameter(TASK_ID,
-                                SearchOperator.IN, taskTypes
+            new SearchParameterList(TASK_ID,
+                                    SearchOperator.IN, taskTypes
             )
         );
 
         CamundaOrQuery.CamundaOrQueryBuilder stateQueries = createTaskVariableQueriesFor(
             CamundaVariableDefinition.TASK_STATE,
-            new SearchParameter(STATE,
-                                SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())
+            new SearchParameterList(STATE,
+                                    SearchOperator.IN, asList(ASSIGNED.value(), UNASSIGNED.value())
             )
         );
 
@@ -177,7 +177,7 @@ public class CamundaQueryBuilder {
      * @return CamundaQueryBuilder object with the process variable query.
      */
     private CamundaOrQuery.CamundaOrQueryBuilder createTaskVariableQueriesFor(CamundaVariableDefinition key,
-                                                                              SearchParameter searchParameter) {
+                                                                              SearchParameterList searchParameter) {
         Set<CamundaSearchExpression> jurisdictionExpressions = buildSearchExpressions(key.value(), searchParameter);
         return asOrQuery(jurisdictionExpressions);
 
@@ -189,14 +189,14 @@ public class CamundaQueryBuilder {
      * @param userSearchParameter the searchParameter with key USER as provided in the request.
      * @return a map with key "assigneeIn" and a list of userIds to be used as look up.
      */
-    private Map<String, List<String>> createUserQueries(SearchParameter userSearchParameter) {
+    private Map<String, List<String>> createUserQueries(SearchParameterList userSearchParameter) {
 
         //Safe-guard
         if (userSearchParameter == null) {
             return null;
         }
 
-        return Map.of("assigneeIn", userSearchParameter.getValues());
+        return Map.of("assigneeIn", userSearchParameter.getValue());
     }
 
     private CamundaSortingExpression createSortExpression(SortField sortBy, SortOrder sortOrder) {
@@ -214,10 +214,10 @@ public class CamundaQueryBuilder {
         );
     }
 
-    private EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {
-        EnumMap<SearchParameterKey, SearchParameter> map = new EnumMap<>(SearchParameterKey.class);
+    private EnumMap<SearchParameterKey, SearchParameterList> asEnumMap(SearchTaskRequest searchTaskRequest) {
+        EnumMap<SearchParameterKey, SearchParameterList> map = new EnumMap<>(SearchParameterKey.class);
         searchTaskRequest.getSearchParameters()
-            .forEach(request -> map.put(request.getKey(), request));
+            .forEach(request -> map.put(request.getKey(), (SearchParameterList) request));
 
         return map;
     }
@@ -230,10 +230,10 @@ public class CamundaQueryBuilder {
         return orQuery;
     }
 
-    private Set<CamundaSearchExpression> buildSearchExpressions(String key, SearchParameter searchParameter) {
+    private Set<CamundaSearchExpression> buildSearchExpressions(String key, SearchParameterList searchParameter) {
 
         return ofNullable(searchParameter)
-            .map(SearchParameter::getValues)
+            .map(SearchParameterList::getValue)
             .orElse(emptyList())
             .stream()
             .map(v -> asCamundaExpression(key, searchParameter.getOperator(), v))

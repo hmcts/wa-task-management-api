@@ -1,14 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 
-import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @ApiModel(
     value = "SearchParameter",
@@ -17,7 +18,7 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode
 @ToString
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public class SearchParameter {
+public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
     @ApiModelProperty(
         required = true,
@@ -34,20 +35,20 @@ public class SearchParameter {
     )
     private final SearchOperator operator;
 
-    @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = false)
+    @ApiModelProperty(required = true, example = "true", allowEmptyValue = false)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
     @NotEmpty(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
-    private final List<String> values;
+    private final Boolean value;
 
     @JsonCreator
-    public SearchParameter(SearchParameterKey key, SearchOperator operator, List<String> values) {
+    public SearchParameterBoolean(SearchParameterKey key, SearchOperator operator, Boolean value) {
         this.key = key;
         this.operator = operator;
-        this.values = values;
+        this.value = value;
     }
 
     public SearchParameterKey getKey() {
@@ -58,7 +59,7 @@ public class SearchParameter {
         return operator;
     }
 
-    public List<String> getValues() {
-        return values;
+    public Boolean getValue() {
+        return value;
     }
 }
