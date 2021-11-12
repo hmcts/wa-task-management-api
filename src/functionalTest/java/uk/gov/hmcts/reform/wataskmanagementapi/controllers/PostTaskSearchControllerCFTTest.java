@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -42,12 +42,13 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
+
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -86,7 +87,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     public void should_return_a_200_empty_list_when_the_user_did_not_have_any_roles() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
@@ -114,8 +115,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-                new SearchParameter(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameterList(
                     CASE_ID,
                     SearchOperator.IN,
                     asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
@@ -142,8 +143,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         // Given query
         searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-                new SearchParameter(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameterList(
                     CASE_ID,
                     SearchOperator.IN,
                     asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
@@ -177,7 +178,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         Response result = restApiActions.post(
@@ -206,7 +207,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         Response result = restApiActions.post(
@@ -236,7 +237,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -274,7 +275,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -311,7 +312,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -348,7 +349,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -385,7 +386,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -421,7 +422,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         Response result = restApiActions.post(
@@ -450,7 +451,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned"))
         ));
 
         Response result = restApiActions.post(
@@ -480,8 +481,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -516,8 +517,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))),
             singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
             ));
 
@@ -555,8 +556,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("17595"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("17595"))
         ));
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -587,8 +588,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId())),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId())),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -624,9 +625,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
 
         ));
 
@@ -659,9 +660,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterList(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -706,9 +707,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("17595", "17594")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("SSCS")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, asList("17595", "17594")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -745,9 +746,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterList(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
         ));
 
 
@@ -811,8 +812,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
         ));
 
         Response result = restApiActions.post(
@@ -924,9 +925,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN,
                 singletonList(TASK_TYPE_WORK_TYPE_MAP.get(taskType))),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
 
@@ -966,9 +967,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         //search by all work types
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN,
                 TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
 
@@ -1002,7 +1003,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))
         ));
 
         Response result = restApiActions.post(
@@ -1026,9 +1027,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN,
                 singletonList(TASK_TYPE_WORK_TYPE_MAP.get("followUpOverdueReasonsForAppeal"))),
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("dummyCaseId"))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("dummyCaseId"))
         ));
 
         Response result = restApiActions.post(
@@ -1063,9 +1064,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN,
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN,
                 TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
 
@@ -1099,9 +1100,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
                 singletonList("LEGAL_OPERATIONS")),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
 
@@ -1132,9 +1133,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
                 singletonList("ADMINISTRATOR")),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
 
@@ -1165,9 +1166,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
                 singletonList("JUDICIAL")),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
 
@@ -1207,9 +1208,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
                 List.of("LEGAL_OPERATIONS", "ADMINISTRATOR")),
-            new SearchParameter(CASE_ID, SearchOperator.IN,
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
 

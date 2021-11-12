@@ -30,7 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.ArrayList;
@@ -53,8 +53,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
@@ -136,7 +136,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(mockedAllVariables("processInstanceId", "SSCS", taskId));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
         ));
 
         mockMvc.perform(
@@ -188,7 +188,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(mockedAllVariables("processInstanceId", "SSCS", taskId));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("SSCS"))
         ));
 
         mockMvc.perform(
@@ -235,8 +235,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         )).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("access_requests"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("access_requests"))
         ));
 
         mockMvc.perform(
@@ -282,8 +282,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ).thenReturn(true);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("invalid_value"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("invalid_value"))
         ));
 
         mockMvc.perform(

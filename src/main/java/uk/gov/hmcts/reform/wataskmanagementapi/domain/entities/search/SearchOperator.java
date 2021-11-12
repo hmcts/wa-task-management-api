@@ -7,6 +7,7 @@ import static java.util.Arrays.stream;
 public enum SearchOperator {
 
     IN("IN"),
+    BOOLEAN("BOOLEAN"),
     BETWEEN("BETWEEN"),
     BEFORE("BEFORE"),
     AFTER("AFTER");

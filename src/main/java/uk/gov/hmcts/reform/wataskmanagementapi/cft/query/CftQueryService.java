@@ -18,8 +18,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
 @Slf4j
 @Service
@@ -163,14 +165,18 @@ public class CftQueryService {
         List<Violation> violations = new ArrayList<>();
 
         //Validate work-type
-        List<SearchParameter> workType = searchTaskRequest.getSearchParameters().stream()
-            .filter(sp -> sp.getKey().equals(SearchParameterKey.WORK_TYPE))
-            .collect(Collectors.toList());
+        List<SearchParameterList> workType = new ArrayList<>();
+        SearchParameterKey.WORK_TYPE.getSearchParameterImpl();
+        for (SearchParameter<?> sp : searchTaskRequest.getSearchParameters()) {
+            if (sp.getKey().equals(SearchParameterKey.WORK_TYPE)) {
+                workType.add((SearchParameterList) sp);
+            }
+        }
 
         if (!workType.isEmpty()) {
             //validate work type
-            SearchParameter workTypeParameter = workType.get(0);
-            List<String> values = workTypeParameter.getValues();
+            SearchParameterList workTypeParameter = workType.get(0);
+            List<String> values = workTypeParameter.getValue();
             //Validate
             values.forEach(value -> {
                 if (!ALLOWED_WORK_TYPES.contains(value)) {

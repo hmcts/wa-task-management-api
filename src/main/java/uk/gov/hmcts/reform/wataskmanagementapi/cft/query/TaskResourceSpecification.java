@@ -8,8 +8,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +23,6 @@ import java.util.stream.Collectors;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildQueryToRetrieveRoleInformation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseIds;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByRoleCategory;
@@ -30,14 +31,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
-
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.*;
 
 @SuppressWarnings({
         "PMD.DataflowAnomalyAnalysis",
@@ -126,11 +120,25 @@ public final class TaskResourceSpecification {
             .and(searchByRoleCategory(roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())))))));
     }
 
-    private static EnumMap<SearchParameterKey, SearchParameter> asEnumMap(SearchTaskRequest searchTaskRequest) {
-        EnumMap<SearchParameterKey, SearchParameter> map = new EnumMap<>(SearchParameterKey.class);
+    private static EnumMap<SearchParameterKey, SearchParameterList> asEnumMapForListOfStrings(SearchTaskRequest searchTaskRequest) {
+        EnumMap<SearchParameterKey, SearchParameterList> map = new EnumMap<>(SearchParameterKey.class);
         if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
             searchTaskRequest.getSearchParameters()
-                .forEach(request -> map.put(request.getKey(), request));
+                .stream()
+                .filter(SearchParameterList.class::isInstance)
+                .forEach(request -> map.put(request.getKey(), (SearchParameterList) request));
+        }
+
+        return map;
+    }
+
+    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(SearchTaskRequest searchTaskRequest) {
+        EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
+        if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
+            searchTaskRequest.getSearchParameters()
+                .stream()
+                .filter(SearchParameterBoolean.class::isInstance)
+                .forEach(request -> map.put(request.getKey(), (SearchParameterBoolean) request));
         }
 
         return map;

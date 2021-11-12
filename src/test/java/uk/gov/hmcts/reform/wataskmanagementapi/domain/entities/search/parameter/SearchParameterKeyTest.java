@@ -1,8 +1,9 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,6 +20,7 @@ class SearchParameterKeyTest {
         final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
         final String caseIdEnum = SearchParameterKey.CASE_ID.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
+        final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
 
         assertEquals("location", locationEnum);
         assertEquals("user", userEnum);
@@ -27,6 +29,7 @@ class SearchParameterKeyTest {
         assertEquals("taskId", taskIdEnum);
         assertEquals("taskType", taskTypeEnum);
         assertEquals("caseId", caseIdEnum);
+        assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
     }
 
