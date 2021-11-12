@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
-import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,7 +34,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 
-@Slf4j
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
@@ -582,6 +580,39 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_work_type_applications_when_task_type_processApplication() {
+        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+            Map.of(
+                CamundaVariableDefinition.TASK_TYPE, "processApplication",
+                CamundaVariableDefinition.TASK_ID, "processApplication"
+            ));
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            processApplicationTaskVariables.getCaseId(),
+            "decideAnApplication",
+            "IA",
+            "Asylum"
+        );
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].type", equalTo("processApplication"))
+            .body("tasks[0].work_type_id", equalTo("applications"));
+
+        common.cleanUpTask(processApplicationTaskVariables.getTaskId());
     }
 
     private String getAssigneeId(Headers headers) {
