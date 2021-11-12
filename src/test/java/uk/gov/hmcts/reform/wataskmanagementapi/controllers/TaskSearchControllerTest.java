@@ -21,7 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksComp
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.SearchTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -46,7 +47,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 
 @ExtendWith(MockitoExtension.class)
 class TaskSearchControllerTest {
@@ -90,7 +92,49 @@ class TaskSearchControllerTest {
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
             new SearchTaskRequest(
-                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+            )
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
+    }
+
+    @Test
+    void should_succeed_when_performing_search_for_returning_available_tasks_only_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
+        when(taskManagementService.getTaskCount(any())).thenReturn(1L);
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
+            new SearchTaskRequest(
+                singletonList(new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true))
+            )
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getTotalRecords());
+    }
+
+    @Test
+    void should_fail_when_performing_search_for_returning_available_tasks_only_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
+        when(taskManagementService.getTaskCount(any())).thenReturn(1L);
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
+            new SearchTaskRequest(
+                singletonList(new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true))
             )
         );
 
@@ -109,7 +153,7 @@ class TaskSearchControllerTest {
         when(taskManagementService.getTaskCount(any())).thenReturn(1L);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
-            singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+            singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
         );
 
         ReflectionTestUtils.setField(taskSearchController, "defaultMaxResults", 50);
@@ -137,7 +181,7 @@ class TaskSearchControllerTest {
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(0),
             new SearchTaskRequest(
-                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
+                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))),
                 singletonList(new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT))
             )
         );
@@ -218,7 +262,7 @@ class TaskSearchControllerTest {
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
             new SearchTaskRequest(
-                singletonList(new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
             )
         );
 

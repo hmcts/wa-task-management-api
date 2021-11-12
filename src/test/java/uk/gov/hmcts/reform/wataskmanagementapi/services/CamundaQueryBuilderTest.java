@@ -11,7 +11,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -24,11 +24,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 
 class CamundaQueryBuilderTest {
 
@@ -73,7 +73,7 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -105,7 +105,7 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, asList("assigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, asList("assigned"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -136,7 +136,7 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, asList("assigned", "unassigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, asList("assigned", "unassigned"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -173,10 +173,10 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("someJurisdiction", "anotherJurisdiction")),
-            new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation")),
-            new SearchParameter(STATE, SearchOperator.IN, asList("someState", "anotherState"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("someJurisdiction", "anotherJurisdiction")),
+            new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation")),
+            new SearchParameterList(STATE, SearchOperator.IN, asList("someState", "anotherState"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -246,10 +246,10 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, asList("someJurisdiction", "anotherJurisdiction")),
-            new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation")),
-            new SearchParameter(STATE, SearchOperator.IN, asList("someState", "anotherState"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("someJurisdiction", "anotherJurisdiction")),
+            new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation")),
+            new SearchParameterList(STATE, SearchOperator.IN, asList("someState", "anotherState"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -319,8 +319,8 @@ class CamundaQueryBuilderTest {
         throws JsonProcessingException, JSONException {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+            new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
         ));
 
         CamundaSearchQuery camundaSearchQuery = camundaQueryBuilder.createQuery(searchTaskRequest);
@@ -363,8 +363,8 @@ class CamundaQueryBuilderTest {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+                new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             singletonList(
                 new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
@@ -417,7 +417,7 @@ class CamundaQueryBuilderTest {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(
-                new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("aCaseId"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("aCaseId"))
             ),
             singletonList(
                 new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
@@ -460,7 +460,7 @@ class CamundaQueryBuilderTest {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             singletonList(
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId"))
             ),
             singletonList(
                 new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT)
@@ -507,8 +507,8 @@ class CamundaQueryBuilderTest {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+                new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             singletonList(
                 new SortingParameter(SortField.CASE_CATEGORY_CAMEL_CASE, SortOrder.ASCENDANT)
@@ -565,8 +565,8 @@ class CamundaQueryBuilderTest {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+                new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             asList(
                 new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT),
@@ -628,9 +628,9 @@ class CamundaQueryBuilderTest {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId")),
-                new SearchParameter(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("aCaseId", "anotherCaseId")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("someUser", "anotherUser")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("someLocation", "anotherLocation"))
             ),
             asList(
                 new SortingParameter(SortField.DUE_DATE_CAMEL_CASE, SortOrder.DESCENDANT),
@@ -705,8 +705,8 @@ class CamundaQueryBuilderTest {
 
 
         SearchTaskRequest searchTaskRequestWithBetween = new SearchTaskRequest(asList(
-            new SearchParameter(USER, SearchOperator.BETWEEN, asList("someUser", "anotherUser")),
-            new SearchParameter(LOCATION, SearchOperator.BETWEEN, asList("someLocation", "anotherLocation"))
+            new SearchParameterList(USER, SearchOperator.BETWEEN, asList("someUser", "anotherUser")),
+            new SearchParameterList(LOCATION, SearchOperator.BETWEEN, asList("someLocation", "anotherLocation"))
         ));
 
         assertThatThrownBy(() -> camundaQueryBuilder.createQuery(searchTaskRequestWithBetween))
@@ -715,8 +715,8 @@ class CamundaQueryBuilderTest {
             .hasNoCause();
 
         SearchTaskRequest searchTaskRequestWithAfter = new SearchTaskRequest(asList(
-            new SearchParameter(USER, SearchOperator.AFTER, asList("someUser", "anotherUser")),
-            new SearchParameter(LOCATION, SearchOperator.AFTER, asList("someLocation", "anotherLocation"))
+            new SearchParameterList(USER, SearchOperator.AFTER, asList("someUser", "anotherUser")),
+            new SearchParameterList(LOCATION, SearchOperator.AFTER, asList("someLocation", "anotherLocation"))
         ));
 
         assertThatThrownBy(() -> camundaQueryBuilder.createQuery(searchTaskRequestWithAfter))
@@ -725,8 +725,8 @@ class CamundaQueryBuilderTest {
             .hasNoCause();
 
         SearchTaskRequest searchTaskRequestWithBefore = new SearchTaskRequest(asList(
-            new SearchParameter(USER, SearchOperator.BEFORE, asList("someUser", "anotherUser")),
-            new SearchParameter(LOCATION, SearchOperator.BEFORE, asList("someLocation", "anotherLocation"))
+            new SearchParameterList(USER, SearchOperator.BEFORE, asList("someUser", "anotherUser")),
+            new SearchParameterList(LOCATION, SearchOperator.BEFORE, asList("someLocation", "anotherLocation"))
         ));
 
         assertThatThrownBy(() -> camundaQueryBuilder.createQuery(searchTaskRequestWithBefore))

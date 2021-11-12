@@ -1,15 +1,17 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class SearchParameterTest {
+class SearchParameterBooleanTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = SearchParameter.class;
+        final Class<?> classUnderTest = SearchParameterBoolean.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

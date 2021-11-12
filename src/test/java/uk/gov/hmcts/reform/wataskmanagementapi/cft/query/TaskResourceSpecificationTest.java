@@ -17,7 +17,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -41,12 +42,7 @@ import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithBasicGrantTypeOnly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.*;
 
 @ExtendWith(MockitoExtension.class)
 public class TaskResourceSpecificationTest {
@@ -295,42 +291,48 @@ public class TaskResourceSpecificationTest {
 
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
         final SearchTaskRequestScenario jurisdiction =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED"))
         ));
         final SearchTaskRequestScenario state =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location"))
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
+        ));
+        final SearchTaskRequestScenario availableTaskOnly =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
+
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location"))
         ));
         final SearchTaskRequestScenario location =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId"))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("caseId"))
         ));
         final SearchTaskRequestScenario caseId =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser"))
+            new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser"))
         ));
         final SearchTaskRequestScenario user =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
         ));
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        return Stream.of(jurisdiction, state, location, caseId, user, workType);
+        return Stream.of(jurisdiction, state, location, caseId, user, workType, availableTaskOnly);
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
