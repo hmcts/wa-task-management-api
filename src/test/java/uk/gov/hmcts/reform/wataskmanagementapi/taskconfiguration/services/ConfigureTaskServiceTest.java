@@ -77,6 +77,9 @@ class ConfigureTaskServiceTest {
     @Spy
     private ObjectMapper objectMapper;
 
+    private TaskResource skeletonTask;
+    private TaskResource taskResource;
+
     @BeforeEach
     void setup() {
         cftTaskMapper = new CFTTaskMapper(objectMapper);
@@ -95,6 +98,14 @@ class ConfigureTaskServiceTest {
             "taskTypeId",
             "caseId",
             "taskName"
+        );
+
+        skeletonTask = new TaskResource(
+            task.getId(),
+            "someCamundaTaskName",
+            "someTaskType",
+            CFTTaskState.UNCONFIGURED,
+            "someCaseId"
         );
     }
 
@@ -302,14 +313,6 @@ class ConfigureTaskServiceTest {
 
     @Test
     void should_configure_a_CFT_task_with_variables() {
-        TaskResource skeletonTask = new TaskResource(
-            task.getId(),
-            "someCamundaTaskName",
-            "someTaskType",
-            CFTTaskState.UNCONFIGURED,
-            "someCaseId"
-        );
-
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
         mappedValues.put(TASK_TYPE.value(), "someTaskType");
@@ -327,7 +330,7 @@ class ConfigureTaskServiceTest {
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
 
-        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+        taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
             new TaskConfigurationResults(mappedValues));
 
@@ -380,14 +383,6 @@ class ConfigureTaskServiceTest {
 
     @Test
     void should_configure_a_cft_task_with_permission_dmn_and_configuration_dmn() {
-        TaskResource skeletonTask = new TaskResource(
-            task.getId(),
-            "someCamundaTaskName",
-            "someTaskType",
-            CFTTaskState.UNCONFIGURED,
-            "someCaseId"
-        );
-
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
         mappedValues.put(TASK_TYPE.value(), "someTaskType");
@@ -431,11 +426,15 @@ class ConfigureTaskServiceTest {
         );
 
         when(taskVariableExtractor.getConfigurationVariables(task))
-            .thenReturn(new TaskConfigurationResults(mappedValues, configurationDmnEvaluationResponses, permissionsDmnEvaluationResponses));
+            .thenReturn(new TaskConfigurationResults(mappedValues,
+                configurationDmnEvaluationResponses,
+                permissionsDmnEvaluationResponses));
 
-        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+        taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues, configurationDmnEvaluationResponses, permissionsDmnEvaluationResponses));
+            new TaskConfigurationResults(mappedValues,
+                configurationDmnEvaluationResponses,
+                permissionsDmnEvaluationResponses));
 
         taskResource = configureTaskService.configureCFTTask(taskResource, task);
 
@@ -473,7 +472,8 @@ class ConfigureTaskServiceTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNotNull(taskResource.getTaskRoleResources());
-        assertEquals("tribunal-caseworker", taskResource.getTaskRoleResources().stream().findFirst().get().getRoleName());
+        assertEquals("tribunal-caseworker",
+            taskResource.getTaskRoleResources().stream().findFirst().get().getRoleName());
     }
 
 }

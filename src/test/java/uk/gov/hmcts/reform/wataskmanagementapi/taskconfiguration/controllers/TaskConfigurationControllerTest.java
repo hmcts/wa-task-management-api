@@ -10,11 +10,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.response.ConfigureTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.exceptions.ConfigureTaskException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 
 import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
@@ -69,6 +71,19 @@ class TaskConfigurationControllerTest {
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
+    @Test
+    void should_return_404_when_an_error_occurred() {
+        final String taskId = UUID.randomUUID().toString();
+
+        doThrow(ConfigureTaskException.class)
+            .when(configureTaskService)
+            .configureTask(taskId);
+
+        final ResponseEntity<String> response = taskConfigurationController.configureTask(taskId);
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+    
     private ConfigureTaskRequest getConfigureTaskRequest() {
 
 

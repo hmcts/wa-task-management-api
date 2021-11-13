@@ -8,7 +8,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DecisionTableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.request.DmnRequest;
@@ -30,6 +29,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.intValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
@@ -56,8 +57,8 @@ class DmnEvaluationServiceTest {
                 stringValue("tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
-                null,
-                null,
+                intValue(1),
+                booleanValue(true),
                 stringValue("LEGAL_OPERATIONS")
             ),
             new PermissionsDmnEvaluationResponse(
@@ -66,7 +67,7 @@ class DmnEvaluationServiceTest {
                 null,
                 null,
                 null,
-                stringValue("LEGAL_OPERATIONS")
+                null
             )
         );
 
@@ -89,16 +90,17 @@ class DmnEvaluationServiceTest {
 
         assertThat(response.get(0).getName(), is(stringValue("tribunal-caseworker")));
         assertThat(response.get(0).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
-        assertNull(response.get(0).getAutoAssignable());
+        assertThat(response.get(0).getAutoAssignable(), is(booleanValue(true)));
         assertNull(response.get(0).getAuthorisations());
-        assertNull(response.get(0).getAssignmentPriority());
+        assertThat(response.get(0).getAssignmentPriority(), is(intValue(1)));
+        assertThat(response.get(0).getRoleCategory(), is(stringValue("LEGAL_OPERATIONS")));
 
         assertThat(response.get(1).getName(), is(stringValue("senior-tribunal-caseworker")));
         assertThat(response.get(1).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
         assertNull(response.get(1).getAutoAssignable());
         assertNull(response.get(1).getAuthorisations());
         assertNull(response.get(1).getAssignmentPriority());
-
+        assertNull(response.get(1).getRoleCategory());
     }
 
     @Test
@@ -142,7 +144,7 @@ class DmnEvaluationServiceTest {
             "ia",
             new DmnRequest<>(new DecisionTableRequest(
                 jsonValue(ccdData),
-                CamundaValue.stringValue("some task type id")
+                stringValue("some task type id")
             ))
         );
 
@@ -173,7 +175,7 @@ class DmnEvaluationServiceTest {
             "ia",
             new DmnRequest<>(new DecisionTableRequest(
                 jsonValue(ccdData),
-                CamundaValue.stringValue("some task type id")
+                stringValue("some task type id")
             ))
         )).thenThrow(FeignException.class);
 

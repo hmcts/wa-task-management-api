@@ -43,7 +43,6 @@ public class ConfigureTaskService {
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
     public void configureTask(String taskId) {
-
         CamundaTask task = taskConfigurationCamundaService.getTask(taskId);
         log.info("CamundaTask id '{}' retrieved from Camunda", task.getId());
 
