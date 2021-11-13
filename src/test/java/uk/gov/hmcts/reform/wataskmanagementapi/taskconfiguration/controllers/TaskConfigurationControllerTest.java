@@ -15,6 +15,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
 
@@ -47,6 +49,9 @@ class TaskConfigurationControllerTest {
         final ResponseEntity<String> response = taskConfigurationController.configureTask(taskId);
 
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        verify(configureTaskService, times(1))
+            .configureTask(taskId);
     }
 
     @Test
