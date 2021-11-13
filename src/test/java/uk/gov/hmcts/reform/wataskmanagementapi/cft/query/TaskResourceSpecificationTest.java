@@ -71,6 +71,12 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
         lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+
+        BooleanAssertionPredicate taskIdPredicate = new BooleanAssertionPredicate(
+            criteriaBuilder,
+            null,
+            Boolean.TRUE);
+        //lenient().when(criteriaBuilder.equal(root.get(anyString()), anyString())).thenReturn(taskIdPredicate);
         lenient().when(root.get(anyString())).thenReturn(path);
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
     }

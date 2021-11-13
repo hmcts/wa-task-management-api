@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
@@ -173,6 +174,27 @@ class TaskConfigurationCamundaServiceTest {
         taskConfigurationCamundaService.assignTask(taskId, assigneeId, taskState.value());
 
         verify(camundaServiceApi).assignTask(serviceTokenId, taskId, new AssigneeRequest(assigneeId));
+    }
+
+    @Test
+    void should_call_updateTaskStateTo_method_when_assign_a_task_and_task_never_assigned() {
+        final String assigneeId = randomUUID().toString();
+
+        when(authTokenGenerator.generate()).thenReturn(serviceTokenId);
+
+        taskConfigurationCamundaService.assignTask(taskId, assigneeId, TaskState.UNASSIGNED.value());
+
+        HashMap<String, CamundaValue<String>> newTaskState = new HashMap<>();
+        newTaskState.put("taskState", CamundaValue.stringValue(TaskState.ASSIGNED.value()));
+
+        final AddLocalVariableRequest addLocalVariableRequest = new AddLocalVariableRequest(newTaskState);
+
+        verify(camundaServiceApi, times(1))
+            .addLocalVariablesToTask(
+                serviceTokenId,
+                taskId,
+                addLocalVariableRequest
+            );
     }
 
     @Test

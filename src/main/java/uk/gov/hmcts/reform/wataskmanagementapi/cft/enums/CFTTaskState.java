@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Arrays.stream;
@@ -26,6 +27,8 @@ public enum CFTTaskState {
     public static Optional<CFTTaskState> from(
         String value
     ) {
+        Objects.requireNonNull(value, "please provide a value");
+
         return stream(values())
             .filter(v -> v.getValue().equalsIgnoreCase(value))
             .findFirst();

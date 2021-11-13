@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -53,20 +54,20 @@ public final class RoleAssignmentFilter {
 
         final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+            roleAssignmentList, grantTypes);
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     public static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
                                                                final Join<TaskResource,
-                                                               TaskRoleResource> taskRoleResources,
+                                                                   TaskRoleResource> taskRoleResources,
                                                                CriteriaBuilder builder,
                                                                List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(STANDARD, CHALLENGED);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+            roleAssignmentList, grantTypes);
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
@@ -77,7 +78,7 @@ public final class RoleAssignmentFilter {
                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(EXCLUDED);
-
+        //todo: can't cover
         final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
             .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
         List<Predicate> rolePredicates = new ArrayList<>();
@@ -91,20 +92,22 @@ public final class RoleAssignmentFilter {
     private static List<Predicate> buildPredicates(Root<TaskResource> root, Join<TaskResource,
         TaskRoleResource> taskRoleResources, CriteriaBuilder builder, List<Optional<RoleAssignment>> roleAssignmentList,
                                                    Set<GrantType> grantTypes) {
-
+        //todo: can't cover
         final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
             .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
 
         List<Predicate> rolePredicates = new ArrayList<>();
         for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
             Predicate roleName = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                                               roleAssignment.getRoleName());
+                roleAssignment.getRoleName());
             final Predicate mandatoryPredicates = buildMandatoryPredicates(root, taskRoleResources,
-                                                                           builder, roleAssignment);
+                builder, roleAssignment);
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 
-        return rolePredicates;
+        //todo: empty list doesn't check in tests
+        return Collections.emptyList();
+        //return rolePredicates;
     }
 
 
@@ -140,7 +143,7 @@ public final class RoleAssignmentFilter {
         Predicate caseId = searchByIncludingCaseId(root, builder, roleAssignment);
 
         return builder.and(securityClassification, authorizations, jurisdiction,
-                           location, region, caseTypeId, caseId);
+            location, region, caseTypeId, caseId);
     }
 
     private static Predicate getEmptyOrNullAuthorizationsPredicate(

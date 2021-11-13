@@ -2,6 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.enums;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CFTTaskStateTest {
@@ -32,5 +35,16 @@ class CFTTaskStateTest {
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = CFTTaskState.values().length;
         assertEquals(9, assigneeEnumLength);
+    }
+
+    @Test
+    void fromTest() {
+        assertThatThrownBy(() -> CFTTaskState.from(null))
+            .hasMessage("please provide a value");
+
+        assertEquals(Optional.empty(), CFTTaskState.from(""));
+        assertEquals(Optional.empty(), CFTTaskState.from("dummyValue"));
+        assertEquals(Optional.of(CFTTaskState.UNCONFIGURED),
+            CFTTaskState.from("UNCONFIGURED"));
     }
 }

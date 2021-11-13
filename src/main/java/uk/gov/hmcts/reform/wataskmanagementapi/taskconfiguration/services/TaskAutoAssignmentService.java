@@ -83,6 +83,7 @@ public class TaskAutoAssignmentService {
                 .collect(toMap(
                     TaskRoleResource::getRoleName,
                     taskRoleResource -> taskRoleResource,
+                    //todo: check here
                     (a, b) -> b
                 ));
 
@@ -95,8 +96,9 @@ public class TaskAutoAssignmentService {
                         || taskRoleResource.getAuthorizations().length == 0
                         || roleAssignment.getAuthorisations().isEmpty()) {
                         return false;
+                    } else {
+                        return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
                     }
-                    return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
                 }).findFirst();
 
             if (match.isPresent()) {

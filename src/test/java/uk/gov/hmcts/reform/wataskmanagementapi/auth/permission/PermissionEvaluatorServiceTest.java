@@ -754,6 +754,118 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
+    @Test
+    void hasAccess_should_fail_when_looking_for_begin_time_greater_than_today_and_return_false() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().plusYears(1),
+            LocalDateTime.now().plusYears(2),
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void hasAccess_should_fail_when_looking_for_end_time_less_than_today_and_return_false() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().minusYears(1),
+            LocalDateTime.now().minusYears(2),
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void hasAccess_should_fail_when_looking_for_different_location() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().minusYears(1),
+            LocalDateTime.now().plusYears(2),
+            Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "location")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void hasAccess_should_success_when_looking_for_correct_location() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().minusYears(1),
+            LocalDateTime.now().plusYears(2),
+            Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "012345")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
     private List<RoleAssignment> createTestAssignments(List<String> roleNames,
                                                        Classification roleClassification,
                                                        Map<String, String> roleAttributes) {
@@ -790,6 +902,66 @@ class PermissionEvaluatorServiceTest {
             false,
             attributes
         );
+    }
+
+    private List<RoleAssignment> createTestAssignmentsEdgeCase(ActorIdType actorIdType,
+                                                               List<String> roleNames,
+                                                               Classification roleClassification,
+                                                               GrantType grantType,
+                                                               RoleCategory roleCategory,
+                                                               boolean readOnly,
+                                                               LocalDateTime beginTime,
+                                                               LocalDateTime endTime,
+                                                               Map<String, String> roleAttributes) {
+
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+            .forEach(roleType -> {
+                    RoleAssignment roleAssignment = createBaseAssignmentEdgeCase(actorIdType,
+                        UUID.randomUUID().toString(),
+                        roleType,
+                        roleName,
+                        roleClassification,
+                        grantType,
+                        roleCategory,
+                        readOnly,
+                        beginTime,
+                        endTime,
+                        roleAttributes
+                    );
+                    allTestRoles.add(roleAssignment);
+                }
+            ));
+        return allTestRoles;
+    }
+
+    private RoleAssignment createBaseAssignmentEdgeCase(ActorIdType actorIdType,
+                                                        String actorId,
+                                                        RoleType roleType,
+                                                        String roleName,
+                                                        Classification classification,
+                                                        GrantType grantType,
+                                                        RoleCategory roleCategory,
+                                                        boolean readOnly,
+                                                        LocalDateTime beginTime,
+                                                        LocalDateTime endTime,
+                                                        Map<String, String> attributes
+    ) {
+        return RoleAssignment.builder()
+            .actorIdType(actorIdType)
+            .actorId(actorId)
+            .roleType(roleType)
+            .roleName(roleName)
+            .classification(classification)
+            .grantType(grantType)
+            .roleCategory(roleCategory)
+            .readOnly(readOnly)
+            .beginTime(beginTime)
+            .endTime(endTime)
+            //.created()
+            .attributes(attributes)
+            //.authorisations()
+            .build();
     }
 
     private Map<String, CamundaVariable> getDefaultVariables() {

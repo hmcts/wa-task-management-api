@@ -22,9 +22,12 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
@@ -185,6 +188,16 @@ class DmnEvaluationServiceTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Could not evaluate from decision table wa-task-configuration-ia-asylum")
             .hasCauseInstanceOf(FeignException.class);
+    }
+
+    @Test
+    void should_return_decision_table_name() {
+        assertNotNull(WA_TASK_COMPLETION.getTableName());
+        assertNotNull(WA_TASK_CONFIGURATION.getTableName());
+        assertNotNull(WA_TASK_PERMISSIONS.getTableName());
+        assertEquals("wa-task-completion", WA_TASK_COMPLETION.getTableName());
+        assertEquals("wa-task-configuration", WA_TASK_CONFIGURATION.getTableName());
+        assertEquals("wa-task-permissions", WA_TASK_PERMISSIONS.getTableName());
     }
 
     @NotNull

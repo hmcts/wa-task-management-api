@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
@@ -40,8 +39,7 @@ class CaseConfigurationProviderServiceTest {
     private CcdDataService ccdDataService;
     @Mock
     private DmnEvaluationService dmnEvaluationService;
-    @Mock
-    private AuthTokenGenerator authTokenGenerator;
+
     @Mock
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 

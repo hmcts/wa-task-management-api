@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -17,6 +18,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskC
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,6 +30,7 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -152,7 +157,7 @@ class TaskAutoRoleAssignmentServiceTest {
     @Test
     void autoAssignCFTTask_should_update_when_no_task_role_resource() {
         TaskResource taskResource = createTestTask();
-
+        taskResource.setAssignee("someUser");
         RoleAssignment roleAssignmentResource = RoleAssignment.builder()
             .id("someId")
             .actorIdType(ActorIdType.IDAM)
@@ -170,6 +175,94 @@ class TaskAutoRoleAssignmentServiceTest {
 
         assertNull(result.getAssignee());
         assertEquals(CFTTaskState.UNASSIGNED, result.getState());
+    }
+
+    @Test
+    void should_assign_task_to_highest_prioritised_user_when_2_role_assignment_set_to_task() {
+        TaskResource taskResource = createTestTask();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "lowPrioritisedUser",
+            "tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+
+        roleAssignments.add(roleAssignmentResource1);
+
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "highPrioritisedUser",
+            "senior-tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2),
+            taskRoleResource("senior-tribunal-caseworker", false, 1)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+        assertNotNull(autoAssignCFTTaskResponse.getAssignee());
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource2.getActorId());
+
+
+        //set tribunal-caseworker high prioritised user
+        taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2),
+            taskRoleResource("senior-tribunal-caseworker", false, 3)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource1.getActorId());
+    }
+
+    @Test
+    void should_task_assignee_null_even_if_taskResource_has_an_assignee() {
+        TaskResource taskResource = createTestTask();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource = createRoleAssignment(
+            "lowPrioritisedUser",
+            "tribunal-caseworker",
+            List.of("DIVORCE")
+        );
+        roleAssignments.add(roleAssignmentResource);
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+        taskResource.setAssignee("dummyUser");
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
+        assertNull(autoAssignCFTTaskResponse.getAssignee());
     }
 
     @Test
@@ -331,5 +424,35 @@ class TaskAutoRoleAssignmentServiceTest {
         return taskResource;
     }
 
+    private TaskRoleResource taskRoleResource(String name, boolean autoAssign, int assignmentPriority) {
+        return new TaskRoleResource(
+            name,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            new String[]{"IA"},
+            assignmentPriority,
+            autoAssign
+        );
+    }
+
+    private RoleAssignment createRoleAssignment(String actorId, String roleName, List<String> authorisations) {
+        return RoleAssignment.builder()
+            .id(UUID.randomUUID().toString())
+            .actorIdType(ActorIdType.IDAM)
+            .actorId(actorId)
+            .roleName(roleName)
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .authorisations(authorisations)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+    }
 
 }

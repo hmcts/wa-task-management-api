@@ -27,6 +27,8 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -83,6 +85,7 @@ public class RoleAssignmentFilterTest {
             taskRoleResources,
             criteriaBuilder,
             roleAssignmentWithAllGrantTypes());
+        assertThat(predicate, instanceOf(Predicate.class));
         assertNotNull(predicate);
         assertEquals(inObject, predicate);
     }
@@ -141,7 +144,6 @@ public class RoleAssignmentFilterTest {
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
 
 
-
         Predicate predicate = RoleAssignmentFilter.buildQueryForExcluded(
             root,
             taskRoleResources,
@@ -172,13 +174,13 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
 
-        final Map<String, String> excludeddAttributes = Map.of(
+        final Map<String, String> excludedAttributes = Map.of(
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder()
             .roleName("senior-tribunal-caseworker")
             .classification(Classification.PUBLIC)
-            .attributes(excludeddAttributes)
+            .attributes(excludedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -218,13 +220,13 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
 
-        final Map<String, String> excludeddAttributes = Map.of(
+        final Map<String, String> excludedAttributes = Map.of(
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder()
             .roleName("senior-tribunal-caseworker")
             .classification(Classification.PUBLIC)
-            .attributes(excludeddAttributes)
+            .attributes(excludedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.EXCLUDED)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -385,12 +387,12 @@ public class RoleAssignmentFilterTest {
             .build();
         roleAssignments.add(Optional.of(roleAssignment));
 
-        final Map<String, String> excludeddAttributes = Map.of(
+        final Map<String, String> excludedAttributes = Map.of(
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(Classification.PUBLIC)
-            .attributes(excludeddAttributes)
+            .attributes(excludedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.EXCLUDED)
             .beginTime(LocalDateTime.now().minusYears(1))
