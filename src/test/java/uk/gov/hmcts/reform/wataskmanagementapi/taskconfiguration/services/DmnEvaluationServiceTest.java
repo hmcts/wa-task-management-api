@@ -30,7 +30,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTa
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.intValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
@@ -57,7 +57,7 @@ class DmnEvaluationServiceTest {
                 stringValue("tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
-                intValue(1),
+                integerValue(1),
                 booleanValue(true),
                 stringValue("LEGAL_OPERATIONS")
             ),
@@ -92,7 +92,7 @@ class DmnEvaluationServiceTest {
         assertThat(response.get(0).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
         assertThat(response.get(0).getAutoAssignable(), is(booleanValue(true)));
         assertNull(response.get(0).getAuthorisations());
-        assertThat(response.get(0).getAssignmentPriority(), is(intValue(1)));
+        assertThat(response.get(0).getAssignmentPriority(), is(integerValue(1)));
         assertThat(response.get(0).getRoleCategory(), is(stringValue("LEGAL_OPERATIONS")));
 
         assertThat(response.get(1).getName(), is(stringValue("senior-tribunal-caseworker")));

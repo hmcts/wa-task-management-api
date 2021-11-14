@@ -3,9 +3,12 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.sorting.CamundaSortingExpression;
 
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery.CamundaAndQueryBuilder.camundaQuery;
 
@@ -71,4 +74,62 @@ class CamundaSearchQueryTest {
 
         assertEquals(expected, resultJson);
     }
+
+    @ParameterizedTest
+    @CsvSource({
+        "eq, EQUAL",
+        "neq, NOT_EQUAL",
+        "gt, GREATER_THAN",
+        "gteq, GREATER_THAN_OR_EQUAL",
+        "lt, LOWER_THAN",
+        "lteq, LOWER_THAN_OR_EQUAL",
+        "like, LIKE"
+    })
+    void should_return_camunda_operator_from_string(String valueInput, String operatorInput) {
+
+        assertEquals(
+            CamundaOperator.from(valueInput),
+            CamundaOperator.valueOf(operatorInput)
+        );
+
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        value = {
+            ",",       // null
+            "''",      // empty
+            "' '",     // blank
+            "123",
+            "null",
+            "some-value"
+        }
+    )
+    void should_throw_exception_when_invalid_input_entered(String input) {
+
+        assertThatThrownBy(() -> CamundaOperator.from(input))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(input + " is an unsupported operator");
+
+    }
+
+    @Test
+    void should_set_camunda_search_query_using_camunda_or_query_builder() throws JsonProcessingException {
+
+        CamundaSearchQuery camundaSearchQuery = camundaQuery()
+            .andQuery(
+                new CamundaOrQuery.CamundaOrQueryBuilder().query(
+                    new CamundaSearchExpression("aKey", CamundaOperator.EQUAL.toString(), "aValue")
+                )
+            )
+            .build();
+
+        String resultJson = objectMapper.writeValueAsString(camundaSearchQuery);
+
+        String expected = "{\"queries\":{\"orQueries\":[{\"taskVariables\":[{\"name\":\"aKey\",\"operator\":\"eq\",\"value\":\"aValue\"}]}]}}";
+
+        assertEquals(expected, resultJson);
+    }
+
+
 }

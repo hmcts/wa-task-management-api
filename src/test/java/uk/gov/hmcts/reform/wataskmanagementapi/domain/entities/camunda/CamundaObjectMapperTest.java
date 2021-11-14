@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
@@ -77,6 +79,28 @@ class CamundaObjectMapperTest {
                           + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
                           + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
+    }
+
+    @Test
+    void should_convert_object_to_json_snake_case23232332() {
+
+
+    }
+
+    @Test
+    void given_snake_case_initiate_body_request_when_deserializes_it_keeps_attribute_list_and_operation_fields()
+        throws JsonProcessingException {
+
+        String expectedCamundaVariable = "{\n"
+                                         + "    \"value\": \"assigned\",\n"
+                                         + "    \"type\": \"string\"\n"
+                                         + "}";
+
+        CamundaVariable actual = camundaObjectMapper.readValue(expectedCamundaVariable, CamundaVariable.class);
+        assertNotNull(actual.getType());
+        assertNotNull(actual.getValue());
+        assertEquals(actual.getType(), "string");
+        assertEquals(actual.getValue(), "assigned");
     }
 
     @Test

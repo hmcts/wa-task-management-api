@@ -24,8 +24,8 @@ public class CamundaValue<T> {
         return new CamundaValue<>(value, "String");
     }
 
-    public static CamundaValue<Integer> intValue(Integer value) {
-        return new CamundaValue<>(value, "integer");
+    public static CamundaValue<Integer> integerValue(Integer value) {
+        return new CamundaValue<>(value, "Integer");
     }
 
     public static CamundaValue<Boolean> booleanValue(Boolean value) {

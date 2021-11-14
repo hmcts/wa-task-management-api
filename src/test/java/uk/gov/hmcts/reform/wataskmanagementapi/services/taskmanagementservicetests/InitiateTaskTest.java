@@ -25,10 +25,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -150,6 +153,22 @@ class InitiateTaskTest extends CamundaHelpers {
             .hasNoCause()
             .hasMessage("Database Conflict Error: "
                         + "The action could not be completed because there was a conflict in the database.");
+    }
+
+    @Test
+    void should_set_task_attributes_when_initiate_task_request_initiated() {
+
+        List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
+
+        assertNotNull(taskAttributes);
+        assertNotNull(taskAttributes.get(0));
+        assertEquals(TASK_TYPE, taskAttributes.get(0).getName());
+        assertEquals(A_TASK_TYPE, taskAttributes.get(0).getValue());
+
+        assertNotNull(taskAttributes.get(1));
+        assertEquals(TASK_NAME, taskAttributes.get(1).getName());
+        assertEquals(A_TASK_NAME, taskAttributes.get(1).getValue());
+
     }
 
     private void mockInitiateTaskDependencies() {
