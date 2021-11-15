@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -35,6 +37,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
+@Slf4j
 public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -114,6 +117,12 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             notesRequest,
             authenticationHeaders
         );
+
+        log.info("Status Code {} ", result.getStatusCode());
+        log.info("Content Type {} ", result.getContentType());
+        log.info("type ....{} ", result.jsonPath().get("type").toString());
+        log.info("title ....{} ", result.jsonPath().get("title").toString());
+
 
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value())
