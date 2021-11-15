@@ -88,7 +88,15 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             authenticationHeaders
         );
 
-        result.then().assertThat().statusCode(HttpStatus.BAD_REQUEST.value());
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/bad-request"))
+            .body("title", equalTo("Bad Request"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("detail", equalTo("Invalid request message"));
 
         common.cleanUpTask(taskId);
     }
@@ -107,7 +115,16 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             authenticationHeaders
         );
 
-        result.then().assertThat().statusCode(HttpStatus.BAD_REQUEST.value());
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("note_resource"))
+            .body("violations[0].message", equalTo("must not be empty"));
 
         common.cleanUpTask(taskId);
     }
