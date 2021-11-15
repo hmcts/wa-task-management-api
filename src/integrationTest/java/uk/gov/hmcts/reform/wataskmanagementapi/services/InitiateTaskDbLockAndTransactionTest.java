@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -44,6 +45,8 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
@@ -164,6 +167,24 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
+
+        InOrder inOrder = inOrder(
+            cftTaskMapper,
+            cftTaskDatabaseService,
+            configureTaskService,
+            taskAutoAssignmentService,
+            camundaService,
+            cftTaskDatabaseService
+        );
+
+        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        inOrder.verify(configureTaskService).configureCFTTask(
+            taskResourceCaptor.capture(),
+            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME))
+        );
+        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(any(TaskResource.class));
+        inOrder.verify(camundaService).updateCftTaskState(any(), any());
+        inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
         //verify task is in the DB
         assertEquals(1, taskResourceRepository.count());
