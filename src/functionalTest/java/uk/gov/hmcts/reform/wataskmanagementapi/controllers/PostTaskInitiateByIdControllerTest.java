@@ -172,7 +172,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             authenticationHeaders
         );
 
-        result.prettyPrint();
         //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
