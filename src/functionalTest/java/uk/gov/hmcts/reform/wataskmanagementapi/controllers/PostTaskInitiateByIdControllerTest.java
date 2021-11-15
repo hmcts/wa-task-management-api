@@ -172,6 +172,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             authenticationHeaders
         );
 
+        result.prettyPrint();
         //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
@@ -345,8 +346,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
             .body("title", equalTo("Constraint Violation"))
             .body("status", equalTo(400))
-            .body("violations.[0].field", equalTo("task_due_date"))
-            .body("violations.[0].message",
+            .body("violations[0].field", equalTo("task_due_date"))
+            .body("violations[0].message",
                 equalTo("Each task to initiate must contain task_due_date field present and populated."));
     }
 
