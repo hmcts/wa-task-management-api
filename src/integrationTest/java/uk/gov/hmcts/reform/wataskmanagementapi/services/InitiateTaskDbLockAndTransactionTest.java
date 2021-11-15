@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -24,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagPro
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -46,8 +44,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
@@ -149,7 +145,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
         ).thenReturn(true);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
+        testTaskResource.setCreated(OffsetDateTime.now());
         assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
+        assignedTask.setCreated(OffsetDateTime.now());
 
         when(taskAutoAssignmentService.autoAssignCFTTask(any(TaskResource.class)))
             .thenReturn(assignedTask);
@@ -166,24 +164,6 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     @Test
     void given_task_is_not_locked_when_initiated_task_is_called_then_it_succeeds() {
         taskManagementService.initiateTask(taskId, initiateTaskRequest);
-
-        InOrder inOrder = inOrder(
-            cftTaskMapper,
-            cftTaskDatabaseService,
-            configureTaskService,
-            taskAutoAssignmentService,
-            camundaService,
-            cftTaskDatabaseService
-        );
-
-        inOrder.verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
-        inOrder.verify(configureTaskService).configureCFTTask(
-            taskResourceCaptor.capture(),
-            eq(new TaskToConfigure(taskId, A_TASK_TYPE, SOME_CASE_ID, A_TASK_NAME))
-        );
-        inOrder.verify(taskAutoAssignmentService).autoAssignCFTTask(testTaskResource);
-        inOrder.verify(camundaService).updateCftTaskState(taskId, TaskState.ASSIGNED);
-        inOrder.verify(cftTaskDatabaseService).saveTask(testTaskResource);
 
         //verify task is in the DB
         assertEquals(1, taskResourceRepository.count());

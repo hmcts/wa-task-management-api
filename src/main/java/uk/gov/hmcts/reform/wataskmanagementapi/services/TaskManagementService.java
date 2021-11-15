@@ -703,8 +703,8 @@ public class TaskManagementService {
     private TaskResource initiateTaskProcess(String taskId, InitiateTaskRequest initiateTaskRequest) {
         try {
             TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
-            taskResource = configureTask(taskResource);
-            taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            configureTask(taskResource);
+            taskAutoAssignmentService.autoAssignCFTTask(taskResource);
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
