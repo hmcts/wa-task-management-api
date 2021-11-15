@@ -117,12 +117,6 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             authenticationHeaders
         );
 
-        log.info("Status Code {} ", result.getStatusCode());
-        log.info("Content Type {} ", result.getContentType());
-        log.info("type ....{} ", result.jsonPath().get("type").toString());
-        log.info("title ....{} ", result.jsonPath().get("title").toString());
-
-
         result.then().assertThat()
             .statusCode(HttpStatus.BAD_REQUEST.value())
             .and()
