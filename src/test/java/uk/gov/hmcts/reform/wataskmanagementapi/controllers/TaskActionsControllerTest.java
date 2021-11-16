@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -20,7 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
@@ -267,7 +267,7 @@ class TaskActionsControllerTest {
 
     @Test
     void should_update_notes() {
-        NotesRequest notesRequest = new NotesRequest(List.of());
+        final NotesRequest notesRequest = addNotes();
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
         TaskResource taskResource = spy(TaskResource.class);
@@ -278,11 +278,14 @@ class TaskActionsControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(taskManagementService, times(1))
+            .updateNotes(taskId, notesRequest);
     }
 
     @Test
     void should_return_403_when_task_updated_with_notes_and_with_insufficient_permission() {
-        NotesRequest notesRequest = new NotesRequest(List.of());
+        NotesRequest notesRequest = addNotes();
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
 
@@ -301,7 +304,7 @@ class TaskActionsControllerTest {
     @Test
     void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        NotesRequest notesRequest = new NotesRequest(List.of());
+        NotesRequest notesRequest = addNotes();
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
 
@@ -315,17 +318,9 @@ class TaskActionsControllerTest {
             .updateNotes(taskId, notesRequest);
     }
 
-    @Test
-    void should_return_a_400_when_mandatory_fields_are_missing() {
-        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
-        NotesRequest notesRequest = new NotesRequest(List.of());
-        assertThatThrownBy(() -> taskActionsController
-            .updatesTaskWithNotes(SERVICE_AUTHORIZATION_TOKEN, nonExistentTaskId, null))
-            .isInstanceOf(BadRequestException.class)
-            .hasNoCause()
-            .hasMessage("Bad Request");
-
-        verify(taskManagementService, times(0))
-            .updateNotes(taskId, notesRequest);
+    private NotesRequest addNotes() {
+        NoteResource noteResource = new NoteResource(
+            "code", "notetype", "userId", "content");
+        return new NotesRequest(List.of(noteResource));
     }
 }

@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 
 import java.util.List;
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 @ApiModel(
     value = "NotesRequest",
@@ -18,6 +19,7 @@ import javax.validation.Valid;
 @ToString
 public class NotesRequest {
 
+    @NotEmpty
     private final List<@Valid NoteResource> noteResource;
 
     @JsonCreator
