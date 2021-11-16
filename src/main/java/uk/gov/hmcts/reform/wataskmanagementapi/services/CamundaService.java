@@ -344,7 +344,7 @@ public class CamundaService {
     public void updateCftTaskState(String taskId, TaskState taskState) {
         try {
             updateCftTaskStateTo(taskId, taskState);
-        } catch (FeignException ex) {
+        } catch (CamundaCftTaskStateUpdateException ex) {
             throw new ServerErrorException("There was a problem when updating the cftTaskState", ex);
         }
     }
@@ -369,6 +369,7 @@ public class CamundaService {
             );
 
             Optional<HistoryVariableInstance> maybeCftTaskState = results.stream()
+                //todo: not covered
                 .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
                 .findFirst();
 

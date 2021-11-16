@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -105,9 +104,8 @@ public final class RoleAssignmentFilter {
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 
-        //todo: empty list doesn't check in tests
-        return Collections.emptyList();
-        //return rolePredicates;
+        //todo: empty list doesn't check in tests  return Collections.emptyList();
+        return rolePredicates;
     }
 
 
