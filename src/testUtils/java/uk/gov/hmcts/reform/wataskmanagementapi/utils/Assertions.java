@@ -64,4 +64,21 @@ public class Assertions {
             .body("task.task_state", equalTo(value))
             .log();
     }
+
+    public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName,String value,
+                                              Headers authenticationHeaders) {
+
+        Response result = restApiActions.get(
+            "task/{task-id}",
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .and().body("task.id", equalTo(taskId))
+            .body("task." + fieldName, equalTo(value))
+            .log();
+    }
 }

@@ -258,6 +258,8 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
+            task.setAssignee(assigneeAccessControlResponse.getUserInfo().getUid());
+
 
             //Perform Camunda updates
             camundaService.assignTask(
