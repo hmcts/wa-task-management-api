@@ -18,13 +18,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -102,40 +98,53 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                         + "(Typically this will be in CCD.)")
             )
-            .body("task_role_resources[0].task_role_id", notNullValue())
-            .body("task_role_resources[0].task_id", equalTo(taskId))
-            .body(
-                "task_role_resources[0].role_name",
-                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))
-            )
-            .body("task_role_resources[0].read", equalTo(true))
-            .body("task_role_resources[0].own", equalTo(true))
-            .body("task_role_resources[0].execute", equalTo(false))
-            .body("task_role_resources[0].cancel", equalTo(true))
-            .body("task_role_resources[0].refer", equalTo(true))
-            .body("task_role_resources[0].authorizations", equalTo(emptyList()))
-            .body("task_role_resources[0].auto_assignable", equalTo(false))
-            .body(
-                "task_role_resources[0].role_category",
-                anyOf(is("LEGAL_OPERATIONS"), is(nullValue()))
-            )
-            .body("task_role_resources[1].task_role_id", notNullValue())
-            .body("task_role_resources[1].task_id", equalTo(taskId))
-            .body(
-                "task_role_resources[1].role_name",
-                anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))
-            )
-            .body("task_role_resources[1].read", equalTo(true))
-            .body("task_role_resources[1].own", equalTo(true))
-            .body("task_role_resources[1].execute", equalTo(false))
-            .body("task_role_resources[1].cancel", equalTo(true))
-            .body("task_role_resources[1].refer", equalTo(true))
-            .body("task_role_resources[1].authorizations", equalTo(emptyList()))
-            .body("task_role_resources[1].auto_assignable", equalTo(false))
-            .body("task_role_resources[1].role_category",
-                anyOf(is("LEGAL_OPERATIONS"), is(nullValue())))
             .body("work_type_resource.id", equalTo("decision_making_work"))
             .body("work_type_resource.label", equalTo("Decision-making work"));
+
+
+        assertPermissions(
+            getTaskResource(result, "tribunal-caseworker"),
+            Map.of("read", true,
+                "refer", true,
+                "own", true,
+                "manage", true,
+                "execute", false,
+                "cancel", true,
+                "task_id", taskId,
+                "authorizations", List.of(),
+                "auto_assignable", false
+            )
+        );
+
+        assertPermissions(
+            getTaskResource(result, "senior-tribunal-caseworker"),
+            Map.of("read", true,
+                "refer", true,
+                "own", true,
+                "manage", true,
+                "execute", false,
+                "cancel", true,
+                "task_id", taskId,
+                "authorizations", List.of(),
+                "auto_assignable", false
+            )
+        );
+
+        Optional.ofNullable(getTaskResource(result, "task-supervisor"))
+            .ifPresent(resource ->
+                assertPermissions(
+                    resource,
+                    Map.of("read", true,
+                        "refer", true,
+                        "own", false,
+                        "manage", true,
+                        "execute", false,
+                        "cancel", true,
+                        "task_id", taskId,
+                        "authorizations", List.of("IA"),
+                        "auto_assignable", false
+                    )
+                ));
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
