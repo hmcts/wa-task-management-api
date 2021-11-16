@@ -119,7 +119,6 @@ public class TaskManagementService {
      */
     public Task getTask(String taskId, AccessControlResponse accessControlResponse) {
         List<PermissionTypes> permissionsRequired = singletonList(READ);
-        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
@@ -130,6 +129,7 @@ public class TaskManagementService {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             return cftTaskMapper.mapToTask(taskResource);
         } else {
+            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
             return camundaService.getMappedTask(taskId, variables);
         }

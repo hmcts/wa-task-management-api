@@ -94,9 +94,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 @Slf4j
 class TaskManagementServiceTest extends CamundaHelpers {
 
-
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+
     @Mock
     CamundaService camundaService;
     @Mock
@@ -239,10 +239,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     class Release2EndpointsGetTask {
         @Test
         void getTask_should_succeed_and_return_mapped_task() {
-
             Task mockedMappedTask = mock(Task.class);
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
@@ -263,12 +260,13 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             assertNotNull(response);
             assertEquals(mockedMappedTask, response);
+            verify(camundaService,times(0)).getTaskVariables(any());
+            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verifyNoInteractions(camundaService);
         }
 
         @Test
         void getTask_should_throw_task_not_found_exception_when_task_does_not_exist() {
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -286,15 +284,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
+            verify(camundaService,times(0)).getTaskVariables(any());
+            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verifyNoInteractions(camundaService);
         }
 
         @Test
         void getTask_should_throw_role_assignment_verification_exception_when_query_returns_empty_task() {
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
             when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(READ)))
                 .thenReturn(Optional.empty());
             TaskResource taskResource = spy(TaskResource.class);
@@ -310,6 +308,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+            verify(camundaService,times(0)).getTaskVariables(any());
+            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verifyNoInteractions(camundaService);
         }
     }
 
