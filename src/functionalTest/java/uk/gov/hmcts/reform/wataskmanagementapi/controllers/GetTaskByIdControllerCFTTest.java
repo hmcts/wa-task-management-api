@@ -69,7 +69,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 

@@ -60,7 +60,7 @@ public class ConfigureTaskService {
         String taskTypeId = (String) taskTypeIdValue.getValue();
 
         TaskToConfigure taskToConfigure
-            = getTaskToConfigure(new TaskToConfigure(taskId, taskTypeId, caseId, task.getName()));
+            = new TaskToConfigure(taskId, taskTypeId, caseId, task.getName(), null);
 
         TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
@@ -78,9 +78,8 @@ public class ConfigureTaskService {
 
     }
 
-    public ConfigureTaskResponse getConfiguration(TaskToConfigure inputTask) {
+    public ConfigureTaskResponse getConfiguration(TaskToConfigure taskToConfigure) {
 
-        var taskToConfigure = getTaskToConfigure(inputTask);
         TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
         AutoAssignmentResult autoAssignmentResult = taskAutoAssignmentService
@@ -157,13 +156,5 @@ public class ConfigureTaskService {
             configurationResults.setPermissionsDmnResponse(result.getPermissionsDmnResponse());
 
         }
-    }
-
-    private TaskToConfigure getTaskToConfigure(TaskToConfigure taskToConfigure) {
-        return featureFlagProvider.getBooleanValue(RELEASE_2_ENDPOINTS_FEATURE, StringUtils.EMPTY, StringUtils.EMPTY)
-            ? taskToConfigure.toBuilder()
-            .taskAttributes(Map.of("taskType", taskToConfigure.getTaskTypeId()))
-            .build()
-            : taskToConfigure;
     }
 }

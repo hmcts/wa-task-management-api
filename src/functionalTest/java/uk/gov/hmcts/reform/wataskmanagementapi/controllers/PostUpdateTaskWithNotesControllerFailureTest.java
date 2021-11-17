@@ -31,7 +31,7 @@ public class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootFunc
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

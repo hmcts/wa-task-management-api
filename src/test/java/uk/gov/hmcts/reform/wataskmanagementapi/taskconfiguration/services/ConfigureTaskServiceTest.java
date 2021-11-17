@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
-import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,7 +33,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -80,26 +78,22 @@ class ConfigureTaskServiceTest {
         );
     }
 
-    @ParameterizedTest
-    @MethodSource("scenarioProvider")
-    void can_configure_a_task_with_variables(boolean featureFlag, TaskToConfigure expectedTaskToConfigure) {
+    @Test
+    void can_configure_a_task_with_variables() {
 
         String processInstanceId = "processInstanceId";
 
         CamundaTask camundaTask = new CamundaTask(
-            expectedTaskToConfigure.getId(),
+            TASK_TO_CONFIGURE.getId(),
             processInstanceId,
-            expectedTaskToConfigure.getName()
+            TASK_TO_CONFIGURE.getName()
         );
-        when(camundaService.getTask(expectedTaskToConfigure.getId())).thenReturn(camundaTask);
-
-        when(featureFlagProvider.getBooleanValue(eq(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE), any(), any()))
-            .thenReturn(featureFlag);
+        when(camundaService.getTask(TASK_TO_CONFIGURE.getId())).thenReturn(camundaTask);
 
         HashMap<String, CamundaValue<?>> processVariables = new HashMap<>();
         processVariables.put(
             CASE_ID.value(),
-            new CamundaValue<>(expectedTaskToConfigure.getCaseId(), "String")
+            new CamundaValue<>(TASK_TO_CONFIGURE.getCaseId(), "String")
         );
         processVariables.put(
             TASK_STATE.value(),
@@ -110,7 +104,7 @@ class ConfigureTaskServiceTest {
             CamundaValue.stringValue("taskTypeId")
         );
 
-        doReturn(processVariables).when(camundaService).getVariables(expectedTaskToConfigure.getId());
+        doReturn(processVariables).when(camundaService).getVariables(TASK_TO_CONFIGURE.getId());
 
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put("key1", "value1");
@@ -118,10 +112,10 @@ class ConfigureTaskServiceTest {
         mappedValues.put(TASK_TYPE.value(), "taskTypeId");
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
 
-        when(taskVariableExtractor.getConfigurationVariables(expectedTaskToConfigure))
+        when(taskVariableExtractor.getConfigurationVariables(TASK_TO_CONFIGURE))
             .thenReturn(new TaskConfigurationResults(mappedValues));
 
-        configureTaskService.configureTask(expectedTaskToConfigure.getId());
+        configureTaskService.configureTask(TASK_TO_CONFIGURE.getId());
 
         HashMap<String, CamundaValue<String>> modifications = new HashMap<>();
         modifications.put("key1", CamundaValue.stringValue("value1"));
@@ -134,8 +128,7 @@ class ConfigureTaskServiceTest {
             modifications
         );
 
-        verify(taskVariableExtractor).getConfigurationVariables(expectedTaskToConfigure);
-        verify(featureFlagProvider).getBooleanValue(RELEASE_2_ENDPOINTS_FEATURE, StringUtils.EMPTY, StringUtils.EMPTY);
+        verify(taskVariableExtractor).getConfigurationVariables(TASK_TO_CONFIGURE);
     }
 
     @Test
@@ -277,39 +270,4 @@ class ConfigureTaskServiceTest {
 
         verify(taskVariableExtractor).getConfigurationVariables(eq(expectedTaskToConfigure));
     }
-
-    @ParameterizedTest
-    @MethodSource("scenarioProvider")
-    void should_get_configuration_as_requested_using_feature_flags(
-        boolean featureFlag,
-        TaskToConfigure expectedTaskToConfigure) {
-
-        final AutoAssignmentResult result = new AutoAssignmentResult(UNASSIGNED.value(), null);
-
-        when(autoAssignmentService.getAutoAssignmentVariables(expectedTaskToConfigure))
-            .thenReturn(result);
-
-        HashMap<String, Object> mappedValues = new HashMap<>();
-        mappedValues.put("key1", "value1");
-        mappedValues.put("key2", "value2");
-        mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
-
-        when(featureFlagProvider.getBooleanValue(eq(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE), any(), any()))
-            .thenReturn(featureFlag);
-
-        when(taskVariableExtractor.getConfigurationVariables(expectedTaskToConfigure))
-            .thenReturn(new TaskConfigurationResults(mappedValues));
-
-
-        final ConfigureTaskResponse configureTaskResponse =
-            configureTaskService.getConfiguration(TASK_TO_CONFIGURE);
-
-        assertNotNull(configureTaskResponse);
-        assertEquals(configureTaskResponse.getTaskId(), TASK_TO_CONFIGURE.getId());
-        assertEquals(configureTaskResponse.getCaseId(), TASK_TO_CONFIGURE.getCaseId());
-
-        verify(autoAssignmentService).getAutoAssignmentVariables(expectedTaskToConfigure);
-        verify(featureFlagProvider).getBooleanValue(RELEASE_2_ENDPOINTS_FEATURE, StringUtils.EMPTY, StringUtils.EMPTY);
-    }
-
 }

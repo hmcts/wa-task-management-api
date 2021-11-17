@@ -151,7 +151,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         initiateTask(taskVariables);
 
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -185,7 +185,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -193,7 +193,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         );
 
         Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
-        common.setupOrganisationalRoleAssignment(otherUserHeaders);
+        common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -226,7 +226,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             JURISDICTION, "SSCS"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         initiateTask(taskVariables);
 
         Response result = restApiActions.post(

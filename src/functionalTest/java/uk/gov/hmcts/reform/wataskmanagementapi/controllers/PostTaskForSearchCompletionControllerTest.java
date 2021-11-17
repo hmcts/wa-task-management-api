@@ -241,12 +241,13 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         // assign user to taskId2
         final String taskId2 = tasksList.get(1).getId();
         // assign user to taskId2
-        restApiActions.post(
+        Response post = restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
             new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
+
 
         // search for completable
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(

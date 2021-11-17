@@ -69,14 +69,12 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("assignee", notNullValue())
             .body("configuration_variables", notNullValue())
             .body("configuration_variables.taskType", equalTo("arrangeOfflinePayment"))
-            .body("configuration_variables.workType", equalTo("routine_work"))
             .body("configuration_variables.jurisdiction", equalTo("IA"))
             .body("configuration_variables.caseTypeId", equalTo("Asylum"))
             .body("configuration_variables.taskState", equalTo("assigned"))
             .body("configuration_variables.executionType", equalTo("Case Management Task"))
             .body("configuration_variables.caseId", equalTo(caseId))
             .body("configuration_variables.securityClassification", equalTo("PUBLIC"))
-            .body("configuration_variables.task-supervisor", equalTo("Read,Refer,Manage,Cancel"))
             .body("configuration_variables.autoAssigned", equalTo(true))
             .body("configuration_variables.taskSystem", equalTo("SELF"));
     }
@@ -118,11 +116,9 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("configuration_variables.caseId", equalTo(caseId))
             .body("configuration_variables.securityClassification", equalTo("PUBLIC"))
             .body("configuration_variables.autoAssigned", equalTo(false))
-            .body("configuration_variables.workType", equalTo("decision_making_work"))
-            .body("configuration_variables.case-manager", equalTo("Read,Refer,Own"))
-            .body("configuration_variables.tribunal-caseworker", equalTo("Read,Refer,Own"))
-            .body("configuration_variables.senior-tribunal-caseworker", equalTo("Read,Refer,Own"))
-            .body("configuration_variables.task-supervisor", equalTo("Read,Refer,Manage,Cancel"))
+            .body("configuration_variables.tribunal-caseworker", equalTo("Read,Refer,Own,Manage,Cancel"))
+            .body("configuration_variables.senior-tribunal-caseworker",
+                  equalTo("Read,Refer,Own,Manage,Cancel"))
             .body("configuration_variables.taskSystem", equalTo("SELF"));
     }
 

@@ -120,7 +120,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariablesForTask1.getCaseId(), taskVariablesForTask1.getTaskId());
         insertTaskInCftTaskDb(taskVariablesForTask2.getCaseId(), taskVariablesForTask2.getTaskId());
@@ -186,7 +186,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -214,7 +214,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -424,7 +424,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -463,7 +463,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -536,7 +536,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("17595"))
         ));
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -568,7 +568,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -606,7 +606,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
 
         ));
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -772,7 +772,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
@@ -815,7 +815,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         // insert task in CftTaskDb
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
@@ -851,7 +851,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         // insert task in CftTaskDb
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
@@ -885,7 +885,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId, taskType);
 
@@ -919,7 +919,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables1.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "task-supervisor");
 
         insertTaskInCftTaskDb(taskVariables1.getCaseId(), taskId1, taskType);
 
@@ -964,7 +964,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables1.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables1.getCaseId(), taskId1, taskType);
 
@@ -988,7 +988,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId, taskType);
 
@@ -1017,7 +1017,7 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         String taskId1 = taskVariables1.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders,"task-supervisor");
 
         insertTaskInCftTaskDb(taskVariables1.getCaseId(), taskId1, taskType);
 
