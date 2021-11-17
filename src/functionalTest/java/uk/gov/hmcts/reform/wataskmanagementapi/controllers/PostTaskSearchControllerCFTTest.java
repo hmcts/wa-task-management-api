@@ -64,7 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
-public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTest {
+public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
     private static final String TASK_ENDPOINT_BEING_TESTED = "task/{task-id}";
@@ -443,6 +443,35 @@ public class PostTaskSearchControllerCftTest extends SpringBootFunctionalBaseTes
             .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("unassigned")))
+            .body("total_records", greaterThanOrEqualTo(1));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_200_with_search_results_based_on_state_assigned() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.task_state", everyItem(is("assigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);

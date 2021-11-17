@@ -36,6 +36,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -169,6 +170,8 @@ class TaskSearchControllerTest {
 
     @Test
     void should_auto_complete_a_task() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "caseJurisdiction", "caseType");
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
@@ -206,7 +209,7 @@ class TaskSearchControllerTest {
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         GetTasksResponse<Task> tasksResponse = new GetTasksResponse<>(taskList, 1);
-        when(cftQueryService.getAllTasks(anyInt(), anyInt(), any(), any(), any())).thenReturn(tasksResponse);
+        when(cftQueryService.searchForTasks(anyInt(), anyInt(), any(), any(), any())).thenReturn(tasksResponse);
 
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, Optional.of(0), Optional.of(1),
@@ -218,5 +221,32 @@ class TaskSearchControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().getTotalRecords());
+    }
+
+    @Test
+    void should_succeed_when_performing_search_for_completable_with_feature_flag_on_and_return_a_200_ok() {
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            mockedUserInfo.getUid(),
+            mockedUserInfo.getEmail()
+            )
+        ).thenReturn(true);
+
+        List<Task> taskList = Lists.newArrayList(mock(Task.class));
+        GetTasksCompletableResponse<Task> tasksResponse = new GetTasksCompletableResponse<>(true, taskList);
+        when(cftQueryService.searchForCompletableTasks(any(), any(), any())).thenReturn(tasksResponse);
+
+        ResponseEntity<GetTasksCompletableResponse<Task>> response =
+            taskSearchController.searchWithCriteriaForAutomaticCompletion(
+            IDAM_AUTH_TOKEN,
+            new SearchEventAndCase("caseId", "eventId", "IA", "caseType")
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertTrue(response.getBody().isTaskRequiredForEvent());
     }
 }

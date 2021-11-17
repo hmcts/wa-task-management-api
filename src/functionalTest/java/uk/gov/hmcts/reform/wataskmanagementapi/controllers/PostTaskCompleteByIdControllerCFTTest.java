@@ -123,6 +123,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 
@@ -181,6 +182,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 
@@ -276,6 +278,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
     }
@@ -354,6 +357,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 
@@ -435,6 +439,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 
@@ -458,6 +463,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 
@@ -484,6 +490,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 
@@ -581,6 +588,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
+        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
 
         common.cleanUpTask(taskId);
 

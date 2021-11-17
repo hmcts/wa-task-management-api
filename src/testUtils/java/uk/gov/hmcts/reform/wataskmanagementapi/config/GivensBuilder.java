@@ -165,6 +165,37 @@ public class GivensBuilder {
         return response.get();
     }
 
+    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value, int taskCount) {
+        String filter = "?processVariables=" + key + "_eq_" + value;
+
+        AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    Response result = camundaApiActions.get(
+                        "/task" + filter,
+                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                    );
+
+                    result.then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .body("size()", is(taskCount));
+
+                    response.set(
+                        result.then()
+                            .extract()
+                            .jsonPath().getList("", CamundaTask.class)
+                    );
+
+                    return true;
+                });
+
+        return response.get();
+    }
+
     public GivensBuilder and() {
         return this;
     }

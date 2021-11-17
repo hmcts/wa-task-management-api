@@ -108,7 +108,8 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-        assertions = new Assertions(camundaApiActions, authorizationHeadersProvider);
+        assertions = new Assertions(camundaApiActions, restApiActions, authorizationHeadersProvider);
+
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
         documentManagementFiles.prepare();
 
@@ -127,7 +128,6 @@ public abstract class SpringBootFunctionalBaseTest {
             idamService,
             roleAssignmentServiceApi
         );
-
     }
 
     public void cleanUp(String taskId) {
