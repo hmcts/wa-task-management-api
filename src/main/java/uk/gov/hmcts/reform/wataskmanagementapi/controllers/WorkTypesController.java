@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetWorkTypesResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
@@ -38,7 +37,7 @@ public class WorkTypesController extends BaseController {
 
     @ApiOperation("Retrieve a list of work types with or without filter by user")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTaskResponse.class),
+        @ApiResponse(code = 200, message = OK, response = GetWorkTypesResponse.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
