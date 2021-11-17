@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -22,6 +23,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
@@ -45,6 +47,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     @Before
     public void setUp() {
         authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+
     }
 
     @Test
@@ -117,7 +120,9 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
-
+        String serviceToken = authenticationHeaders.getValue(AUTHORIZATION);
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(serviceToken);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",userInfo.getUid(), authenticationHeaders);
         common.cleanUpTask(taskId);
 
     }
@@ -141,7 +146,9 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
         assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
-
+        String serviceToken = authenticationHeaders.getValue(AUTHORIZATION);
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(serviceToken);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",userInfo.getUid(), authenticationHeaders);
         common.cleanUpTask(taskId);
 
     }

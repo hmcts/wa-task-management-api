@@ -173,6 +173,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
         assertions.taskStateWasUpdatedinDatabase(taskId, "unassigned", authenticationHeaders);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",null, authenticationHeaders);
 
         common.cleanUpTask(taskId);
     }
@@ -228,6 +229,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
         assertions.taskStateWasUpdatedinDatabase(taskId, "unassigned", authenticationHeaders);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",null, authenticationHeaders);
 
         common.cleanUpTask(taskId);
     }
