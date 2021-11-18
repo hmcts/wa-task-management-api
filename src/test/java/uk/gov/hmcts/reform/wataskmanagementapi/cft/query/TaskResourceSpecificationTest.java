@@ -76,7 +76,6 @@ public class TaskResourceSpecificationTest {
             criteriaBuilder,
             null,
             Boolean.TRUE);
-        //lenient().when(criteriaBuilder.equal(root.get(anyString()), anyString())).thenReturn(taskIdPredicate);
         lenient().when(root.get(anyString())).thenReturn(path);
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
     }

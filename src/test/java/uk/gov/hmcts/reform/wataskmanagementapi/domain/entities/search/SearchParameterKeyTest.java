@@ -32,4 +32,10 @@ class SearchParameterKeyTest {
         int assigneeEnumLength = SearchParameterKey.values().length;
         assertEquals(8, assigneeEnumLength);
     }
+
+    @Test
+    void should_return_id_when_toString_method_called() {
+        String expectedValue = "work_type";
+        assertEquals(expectedValue, SearchParameterKey.WORK_TYPE.toString());
+    }
 }

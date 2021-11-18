@@ -52,14 +52,15 @@ public final class TaskResourceSpecification {
     }
 
     public static Specification<TaskResource> buildSingleTaskQuery(String taskId,
-                                                             AccessControlResponse accessControlResponse,
-                                                             List<PermissionTypes> permissionsRequired
+                                                                   AccessControlResponse accessControlResponse,
+                                                                   List<PermissionTypes> permissionsRequired
     ) {
 
-        return buildRoleAssignmentConstraints(taskId,permissionsRequired, accessControlResponse);
+        return buildRoleAssignmentConstraints(taskId, permissionsRequired, accessControlResponse);
     }
 
     private static Specification<TaskResource> buildRoleAssignmentConstraints(
+        //buildTaskQuery 1. test
         List<PermissionTypes> permissionsRequired,
         AccessControlResponse accessControlResponse) {
 
@@ -101,9 +102,10 @@ public final class TaskResourceSpecification {
           List<PermissionTypes> permissionsRequired,
           AccessControlResponse accessControlResponse) {
 
+        //buildSingleTaskQuery second test
         return (root, query, builder) -> {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
-            final Predicate taskIdPredicate = builder.equal(root.get(TASK_ID),taskId);
+            final Predicate taskIdPredicate = builder.equal(root.get(TASK_ID), taskId);
 
             // filter roles which are active.
             final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
@@ -132,7 +134,7 @@ public final class TaskResourceSpecification {
             query.distinct(true);
 
             return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded),
-                               taskIdPredicate,permissionPredicate);
+                taskIdPredicate, permissionPredicate);
 
         };
     }

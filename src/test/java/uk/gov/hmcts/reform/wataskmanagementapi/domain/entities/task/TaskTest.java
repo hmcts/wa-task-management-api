@@ -36,7 +36,10 @@ public class TaskTest {
             "some-cat",
             "some-case",
             false,
-            new WarningValues(Arrays.asList(new Warning("123","some warning"),new Warning("456","some more warning"))),
+            new WarningValues(Arrays.asList(
+                new Warning("123", "some warning"),
+                new Warning("456", "some more warning"))
+            ),
             "some-case-management-category",
             "hearing_work"
         );
@@ -66,7 +69,44 @@ public class TaskTest {
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
         Assertions.assertThat(task.getCaseManagementCategory()).isEqualTo("some-case-management-category");
+        Assertions.assertThat(task.getAutoAssigned()).isTrue();
 
+    }
+
+    @Test
+    void should_create_full_object_and_get_values_when_autoAssigned_false() {
+
+        Task task = new Task(
+            "some-id",
+            "some-name",
+            "some-type",
+            "some-taskState",
+            "some-taskSystem",
+            "some-security",
+            "some-taskTitle",
+            created,
+            dueDate,
+            "some-assignee",
+            false,
+            "some-executionType",
+            "some-jurisdiction",
+            "some-region",
+            "some-location",
+            "some-location-name",
+            "some-caseTypeId",
+            "some-caseId",
+            "some-cat",
+            "some-case",
+            false,
+            new WarningValues(Arrays.asList(
+                new Warning("123", "some warning"),
+                new Warning("456", "some more warning"))
+            ),
+            "some-case-management-category",
+            "hearing_work"
+        );
+
+        Assertions.assertThat(task.getAutoAssigned()).isFalse();
 
     }
 }

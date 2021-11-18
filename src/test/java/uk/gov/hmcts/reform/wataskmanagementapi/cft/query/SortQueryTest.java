@@ -62,4 +62,10 @@ public class SortQueryTest {
         assertNotNull(sort);
         assertEquals(Sort.by("dueDateTime").descending(), sort);
     }
+
+    @Test
+    public void should_return_id_when_sort_toString_method_called() {
+        String expectedValue = "dueDate";
+        assertEquals(expectedValue, SortField.DUE_DATE_CAMEL_CASE.toString());
+    }
 }

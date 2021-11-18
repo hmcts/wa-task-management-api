@@ -23,6 +23,8 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -33,8 +35,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @ExtendWith({MockitoExtension.class})
 class ExclusiveTaskActionsControllerTest {
 
-
-    private static final String IDAM_AUTH_TOKEN = "IDAM_AUTH_TOKEN";
     private static final String SERVICE_AUTHORIZATION_TOKEN = "SERVICE_AUTHORIZATION_TOKEN";
 
     @Mock
@@ -104,18 +104,21 @@ class ExclusiveTaskActionsControllerTest {
                         + "client/user had insufficient rights to a resource.");
     }
 
-
     @Test
     void should_succeed_when_terminating_a_task_and_return_204_when_terminate_reason_is_cancelled() {
         TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
+
         ResponseEntity<Void> response = exclusiveTaskActionsController
             .terminateTask(SERVICE_AUTHORIZATION_TOKEN, taskId, req);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(taskManagementService, times(1))
+            .terminateTask(taskId, req.getTerminateInfo());
     }
 
     @Test

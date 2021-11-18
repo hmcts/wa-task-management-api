@@ -44,6 +44,8 @@ class DecisionTableRequestTest {
 
         assertNotEquals(obj1, obj2);
         assertEquals(obj2, obj3);
+        assertEquals(CamundaValue.stringValue("some case data"), obj1.getCaseData());
+        assertEquals(CamundaValue.stringValue("some task type"), obj1.getTaskType());
     }
 
 }

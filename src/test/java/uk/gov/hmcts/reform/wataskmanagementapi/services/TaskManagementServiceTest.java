@@ -15,9 +15,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -31,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksComp
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -44,6 +51,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,11 +60,13 @@ import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -393,7 +403,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
             taskManagementService.claimTask(taskId, accessControlResponse);
-
+            assertEquals(CFTTaskState.ASSIGNED, taskResource.getState());
+            assertEquals(userInfo.getUid(), taskResource.getAssignee());
             verify(camundaService, times(1)).claimTask(taskId, IDAM_USER_ID);
         }
 
@@ -524,6 +535,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .equals(CFTTaskState.UNASSIGNED.getValue());
             taskManagementService.unclaimTask(taskId, accessControlResponse);
 
+            when(taskResource.getAssignee()).thenReturn(null);
+            assertEquals(CFTTaskState.UNASSIGNED, taskResource.getState());
+            assertNull(taskResource.getAssignee());
             verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
         }
 
@@ -2760,9 +2774,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
         void given_initiateTask_task_is_initiated() {
             mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
 
+            when(taskAutoAssignmentService.autoAssignCFTTask(taskResource))
+                .thenReturn(taskResource);
+
             taskManagementService.initiateTask(taskId, initiateTaskRequest);
 
             verifyExpectations(CFTTaskState.UNASSIGNED);
+
+            verify(cftTaskDatabaseService, times(1))
+                .saveTask(taskResource);
         }
 
         private void verifyExpectations(CFTTaskState cftTaskState) {
@@ -2809,6 +2829,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             when(cftTaskDatabaseService.saveTask(any(TaskResource.class))).thenReturn(taskResource);
         }
+
 
     }
 
@@ -2922,25 +2943,21 @@ class TaskManagementServiceTest extends CamundaHelpers {
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(any()))
                 .thenReturn(Optional.of(taskResourceById));
 
-            List<NoteResource> mergedNotesList = new ArrayList<>();
-            NoteResource noteResource = new NoteResource("Warning Code",
-                "Warning",
-                "userId",
-                "Warning Description"
-            );
-            mergedNotesList.add(noteResource);
-            noteResource = new NoteResource("Warning Code",
-                "Warning",
-                "userId",
-                "Warning Description"
-            );
-            mergedNotesList.add(noteResource);
-
-            TaskResource mergedTaskResource = new TaskResource(
-                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            List<NoteResource> mergedNotesList = List.of(
+                new NoteResource("Warning Code",
+                    "Warning",
+                    "userId",
+                    "Warning Description"
+                ),
+                new NoteResource("Warning Code",
+                    "Warning",
+                    "userId",
+                    "Warning Description"
+                )
             );
 
-            mergedTaskResource.setNotes(mergedNotesList);
+            TaskResource mergedTaskResource = createTaskResource(true, mergedNotesList);
+
             when(cftTaskDatabaseService.saveTask(any()))
                 .thenReturn(mergedTaskResource);
 
@@ -2957,6 +2974,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             final TaskResource expected = taskManagementService.updateNotes("taskId", notesRequest);
 
             assertEquals(expected, mergedTaskResource);
+            assertTrue(expected.getHasWarnings());
+            assertEquals(2, expected.getNotes().size());
+
             verify(cftTaskDatabaseService, times(1))
                 .findByIdAndObtainPessimisticWriteLock(any());
             verify(cftTaskDatabaseService, times(1))
@@ -2979,6 +2999,58 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .findByIdAndObtainPessimisticWriteLock("taskId");
             verify(cftTaskDatabaseService, times(0))
                 .saveTask(any());
+        }
+
+
+        private TaskResource createTaskResource(boolean hasWarnings, List<NoteResource> notes) {
+            return new TaskResource(
+                "taskId",
+                "TaskName",
+                "taskType",
+                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                CFTTaskState.ASSIGNED,
+                TaskSystem.SELF,
+                SecurityClassification.PUBLIC,
+                "title",
+                "a description",
+                notes,
+                0,
+                0,
+                "someAssignee",
+                false,
+                new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+                new WorkTypeResource("routine_work", "Routine work"),
+                "JUDICIAL",
+                hasWarnings,
+                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                "1623278362430412",
+                "Asylum",
+                "TestCase",
+                "IA",
+                "1",
+                "TestRegion",
+                "765324",
+                "Taylor House",
+                BusinessContext.CFT_TASK,
+                "Some termination reason",
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+                singleton(new TaskRoleResource(
+                    "tribunal-caseofficer",
+                    true,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    new String[]{"SPECIFIC", "BASIC"},
+                    0,
+                    false,
+                    "JUDICIAL",
+                    "taskId",
+                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+                )),
+                "caseCategory"
+            );
         }
 
     }

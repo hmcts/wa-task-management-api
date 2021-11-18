@@ -122,6 +122,26 @@ class WorkTypesServiceTest {
         assertEquals(expectedResponse, response);
     }
 
+    @Test
+    void should_return_all_work_types() {
+        List<WorkType> workTypes = List.of(
+            new WorkType("routine_work", "Routine Work"),
+            new WorkType("decision_making_work", "Decision Making Work"),
+            new WorkType("hearing_work", "Hearing Work"),
+            new WorkType("applications", "Applications"),
+            new WorkType("upper_tribunal", "Upper Tribunal"),
+            new WorkType("priority", "Priority"),
+            new WorkType("error_management", "Error Management"),
+            new WorkType("access_requests", "Access Requests")
+        );
+        when(cftWorkTypeDatabaseService.getAllWorkTypes())
+            .thenReturn(workTypes);
+
+        List<WorkType> actualWorkTypes = workTypesService.getAllWorkTypes();
+
+        assertNotNull(actualWorkTypes);
+        assertEquals(workTypes, actualWorkTypes);
+    }
 
     private List<RoleAssignment> createTestRoleAssignmentsWithRoleAttributes(List<String> roleNames,
                                                                              Map<String, String> roleAttributes) {
