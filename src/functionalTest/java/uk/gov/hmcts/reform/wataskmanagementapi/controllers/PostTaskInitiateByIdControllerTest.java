@@ -417,7 +417,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                    "task_id", taskId,
                    "authorizations", List.of(),
                    "role_category", "LEGAL_OPERATIONS",
-                   "auto_assignable", true
+                   "auto_assignable", false
             )
         );
         assertPermissions(
@@ -431,7 +431,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                    "task_id", taskId,
                    "authorizations", List.of(),
                    "role_category", "LEGAL_OPERATIONS",
-                   "auto_assignable", true
+                   "auto_assignable", false
             )
         );
         assertPermissions(
