@@ -66,7 +66,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -509,8 +508,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
+
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
                     IDAM_USER_ID,
@@ -535,9 +535,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .equals(CFTTaskState.UNASSIGNED.getValue());
             taskManagementService.unclaimTask(taskId, accessControlResponse);
 
-            when(taskResource.getAssignee()).thenReturn(null);
-            assertEquals(CFTTaskState.UNASSIGNED, taskResource.getState());
-            assertNull(taskResource.getAssignee());
             verify(camundaService, times(1)).unclaimTask(taskId, taskHasUnassigned);
         }
 
@@ -548,8 +545,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             RoleAssignment roleAssignment = mock(RoleAssignment.class);
             List<RoleAssignment> roleAssignmentList = singletonList(roleAssignment);
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignmentList);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
                     RELEASE_2_ENDPOINTS_FEATURE,
@@ -580,8 +577,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
             when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignment);
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            when(accessControlResponse.getUserInfo())
+                .thenReturn(UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build());
 
             TaskResource taskResource = spy(TaskResource.class);
             when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(MANAGE)))
@@ -606,7 +603,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             verify(camundaService, times(0)).unclaimTask(any(), anyBoolean());
         }
-
     }
 
 
@@ -2771,18 +2767,39 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void given_initiateTask_task_is_initiated() {
+        void given_initiateTask_task_is_initiated_and_unassigned() {
             mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
 
             when(taskAutoAssignmentService.autoAssignCFTTask(taskResource))
                 .thenReturn(taskResource);
 
-            taskManagementService.initiateTask(taskId, initiateTaskRequest);
-
+            TaskResource initiatedTaskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+            assertNotNull(initiatedTaskResource);
             verifyExpectations(CFTTaskState.UNASSIGNED);
 
             verify(cftTaskDatabaseService, times(1))
                 .saveTask(taskResource);
+
+            verify(camundaService, times(1))
+                .updateCftTaskState(taskId, TaskState.UNASSIGNED);
+        }
+
+        @Test
+        void given_initiateTask_task_is_initiated_and_assigned() {
+            mockInitiateTaskDependencies(CFTTaskState.ASSIGNED);
+
+            lenient().when(taskAutoAssignmentService.autoAssignCFTTask(taskResource))
+                .thenReturn(taskResource);
+
+            TaskResource initiatedTaskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+            assertNotNull(initiatedTaskResource);
+            verifyExpectations(CFTTaskState.ASSIGNED);
+
+            verify(cftTaskDatabaseService, times(1))
+                .saveTask(taskResource);
+
+            verify(camundaService, times(1))
+                .updateCftTaskState(taskId, TaskState.ASSIGNED);
         }
 
         private void verifyExpectations(CFTTaskState cftTaskState) {
@@ -2956,7 +2973,13 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 )
             );
 
-            TaskResource mergedTaskResource = createTaskResource(true, mergedNotesList);
+            TaskResource mergedTaskResource = createTaskResource(
+                true,
+                mergedNotesList,
+                CFTTaskState.ASSIGNED,
+                "some-assignee",
+                false
+            );
 
             when(cftTaskDatabaseService.saveTask(any()))
                 .thenReturn(mergedTaskResource);
@@ -3002,58 +3025,60 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
 
-        private TaskResource createTaskResource(boolean hasWarnings, List<NoteResource> notes) {
-            return new TaskResource(
-                "taskId",
-                "TaskName",
-                "taskType",
-                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                CFTTaskState.ASSIGNED,
-                TaskSystem.SELF,
-                SecurityClassification.PUBLIC,
-                "title",
-                "a description",
-                notes,
-                0,
-                0,
-                "someAssignee",
-                false,
-                new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
-                new WorkTypeResource("routine_work", "Routine work"),
-                "JUDICIAL",
-                hasWarnings,
-                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                "1623278362430412",
-                "Asylum",
-                "TestCase",
-                "IA",
-                "1",
-                "TestRegion",
-                "765324",
-                "Taylor House",
-                BusinessContext.CFT_TASK,
-                "Some termination reason",
-                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-                singleton(new TaskRoleResource(
-                    "tribunal-caseofficer",
-                    true,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    new String[]{"SPECIFIC", "BASIC"},
-                    0,
-                    false,
-                    "JUDICIAL",
-                    "taskId",
-                    OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
-                )),
-                "caseCategory"
-            );
-        }
-
     }
 
+    private TaskResource createTaskResource(boolean hasWarnings, List<NoteResource> notes,
+                                            CFTTaskState taskState,
+                                            String assignee,
+                                            boolean autoAssigned) {
+        return new TaskResource(
+            taskId,
+            "TaskName",
+            "taskType",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            taskState,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            notes,
+            0,
+            0,
+            assignee,
+            autoAssigned,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            hasWarnings,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "Asylum",
+            "TestCase",
+            "IA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            "Some termination reason",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            singleton(new TaskRoleResource(
+                "tribunal-caseofficer",
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                new String[]{"SPECIFIC", "BASIC"},
+                0,
+                false,
+                "JUDICIAL",
+                "taskId",
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+            )),
+            "caseCategory"
+        );
+    }
 
 }
