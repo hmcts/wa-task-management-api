@@ -94,9 +94,9 @@ public final class RoleAssignmentFilter {
     }
 
     private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
-                                                          final Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                          CriteriaBuilder builder,
-                                                          List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                           final Join<TaskResource, TaskRoleResource> taskRoleResources,
+                                                           CriteriaBuilder builder,
+                                                           List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
@@ -106,10 +106,10 @@ public final class RoleAssignmentFilter {
     }
 
     private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
-                                                               final Join<TaskResource,
-                                                                   TaskRoleResource> taskRoleResources,
-                                                               CriteriaBuilder builder,
-                                                               List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                                final Join<TaskResource,
+                                                                    TaskRoleResource> taskRoleResources,
+                                                                CriteriaBuilder builder,
+                                                                List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(STANDARD, CHALLENGED);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
@@ -119,11 +119,10 @@ public final class RoleAssignmentFilter {
     }
 
     private static Predicate buildQueryForExcluded(Root<TaskResource> root,
-                                                  CriteriaBuilder builder,
-                                                  List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                   CriteriaBuilder builder,
+                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(EXCLUDED);
-        //todo: can't cover
         final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
             .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
         List<Predicate> rolePredicates = new ArrayList<>();
@@ -137,7 +136,6 @@ public final class RoleAssignmentFilter {
     private static List<Predicate> buildPredicates(Root<TaskResource> root, Join<TaskResource,
         TaskRoleResource> taskRoleResources, CriteriaBuilder builder, List<Optional<RoleAssignment>> roleAssignmentList,
                                                    Set<GrantType> grantTypes) {
-        //todo: can't cover
         final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
             .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
 
@@ -150,14 +148,13 @@ public final class RoleAssignmentFilter {
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 
-        //todo: empty list doesn't check in tests  return Collections.emptyList();
         return rolePredicates;
     }
 
 
     private static Predicate searchByExcludedGrantType(Root<TaskResource> root,
-                                                      CriteriaBuilder builder,
-                                                      RoleAssignment roleAssignment) {
+                                                       CriteriaBuilder builder,
+                                                       RoleAssignment roleAssignment) {
         Predicate securityClassification = mapSecurityClassification(
             root, builder, roleAssignment
         );

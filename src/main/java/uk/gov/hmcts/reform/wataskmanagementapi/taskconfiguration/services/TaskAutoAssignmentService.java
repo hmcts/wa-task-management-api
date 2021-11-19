@@ -83,7 +83,6 @@ public class TaskAutoAssignmentService {
                 .collect(toMap(
                     TaskRoleResource::getRoleName,
                     taskRoleResource -> taskRoleResource,
-                    //todo: check here
                     (a, b) -> b
                 ));
 

@@ -134,8 +134,7 @@ public class ConfigureTaskService {
         if (result.getProcessVariables() != null && configurationResults.getProcessVariables() != null) {
             configurationResults.getProcessVariables().putAll(result.getProcessVariables());
         }
-
-        //todo: not used
+        
         if (result.getConfigurationDmnResponse() != null) {
             configurationResults.setConfigurationDmnResponse(result.getConfigurationDmnResponse());
         }

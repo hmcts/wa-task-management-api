@@ -19,9 +19,8 @@ class DecisionTableRequestTest {
             .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
             .testing(Method.TO_STRING)
-            //todo: check here
-            //.testing(Method.EQUALS)
-            //.testing(Method.HASH_CODE)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
 

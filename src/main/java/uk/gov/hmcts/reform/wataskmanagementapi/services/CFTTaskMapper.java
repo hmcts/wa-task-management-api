@@ -273,11 +273,6 @@ public class CFTTaskMapper {
                 case ASSIGNEE:
                     taskResource.setAssignee((String) value);
                     break;
-
-                //todo: check maybe these are unnecessary
-                /*case CASE_ID:
-                    taskResource.setCaseId((String) value);
-                    break;*/
                 case CASE_NAME:
                     taskResource.setCaseName((String) value);
                     break;
@@ -312,14 +307,6 @@ public class CFTTaskMapper {
                     SecurityClassification sc = SecurityClassification.valueOf((String) value);
                     taskResource.setSecurityClassification(sc);
                     break;
-
-                //todo: check maybe these are unnecessary
-                    /*case TASK_ID:
-                    //taskResource.setTaskId((String) value);
-                    break;
-                case TASK_NAME:
-                    //taskResource.setTaskName((String) value);
-                    break;*/
                 case TASK_SYSTEM:
                     TaskSystem taskSystem = TaskSystem.valueOf((String) value);
                     taskResource.setTaskSystem(taskSystem);

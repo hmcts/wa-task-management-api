@@ -369,7 +369,6 @@ public class CamundaService {
             );
 
             Optional<HistoryVariableInstance> maybeCftTaskState = results.stream()
-                //todo: not covered
                 .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
                 .findFirst();
 
