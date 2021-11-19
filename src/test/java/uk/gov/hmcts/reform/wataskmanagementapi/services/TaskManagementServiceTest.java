@@ -96,9 +96,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 @Slf4j
 class TaskManagementServiceTest extends CamundaHelpers {
 
-
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
+
     @Mock
     CamundaService camundaService;
     @Mock
@@ -241,10 +241,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     class Release2EndpointsGetTask {
         @Test
         void getTask_should_succeed_and_return_mapped_task() {
-
             Task mockedMappedTask = mock(Task.class);
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
@@ -263,12 +260,13 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             assertNotNull(response);
             assertEquals(mockedMappedTask, response);
+            verify(camundaService,times(0)).getTaskVariables(any());
+            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verifyNoInteractions(camundaService);
         }
 
         @Test
         void getTask_should_throw_task_not_found_exception_when_task_does_not_exist() {
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
@@ -286,15 +284,15 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
+            verify(camundaService,times(0)).getTaskVariables(any());
+            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verifyNoInteractions(camundaService);
         }
 
         @Test
         void getTask_should_throw_role_assignment_verification_exception_when_query_returns_empty_task() {
-            Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
-            when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-
             when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(READ)))
                 .thenReturn(Optional.empty());
             TaskResource taskResource = spy(TaskResource.class);
@@ -310,6 +308,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+            verify(camundaService,times(0)).getTaskVariables(any());
+            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verifyNoInteractions(camundaService);
         }
     }
 
@@ -784,14 +785,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .thenReturn(Optional.of(taskResource));
 
             when(taskResource.getState()).thenReturn(CFTTaskState.UNASSIGNED);
+            when(taskResource.getAssignee()).thenReturn(SECONDARY_IDAM_USER_ID);
 
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
+
             taskManagementService.assignTask(taskId, assignerAccessControlResponse, assigneeAccessControlResponse);
 
             boolean isTaskAssigned = taskResource.getState().getValue().equals(CFTTaskState.ASSIGNED.getValue());
+            assertEquals(SECONDARY_IDAM_USER_ID, taskResource.getAssignee());
             verify(camundaService, times(1)).assignTask(taskId, IDAM_USER_ID, isTaskAssigned);
         }
 
@@ -2942,6 +2946,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("updateNotes()")
     class UpdateNotes {
+
         @Test
         void should_succeed() {
             List<NoteResource> existingNotesList = new ArrayList<>();
@@ -3000,6 +3005,49 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertTrue(expected.getHasWarnings());
             assertEquals(2, expected.getNotes().size());
 
+            verify(cftTaskDatabaseService, times(1))
+                .findByIdAndObtainPessimisticWriteLock(any());
+            verify(cftTaskDatabaseService, times(1))
+                .saveTask(any());
+        }
+
+        @Test
+        void should_succeed_when_task_has_no_existing_notes() {
+            TaskResource taskResourceById = new TaskResource(
+                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(any()))
+                .thenReturn(Optional.of(taskResourceById));
+
+            List<NoteResource> mergedNotesList = new ArrayList<>();
+            NoteResource noteResource = new NoteResource("Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            mergedNotesList.add(noteResource);
+
+            TaskResource mergedTaskResource = new TaskResource(
+                "taskId", "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
+
+            mergedTaskResource.setNotes(mergedNotesList);
+            when(cftTaskDatabaseService.saveTask(any()))
+                .thenReturn(mergedTaskResource);
+
+            final NoteResource newNoteResource = new NoteResource(
+                "Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
+
+            final TaskResource expected = taskManagementService.updateNotes("taskId", notesRequest);
+
+            assertEquals(expected, mergedTaskResource);
             verify(cftTaskDatabaseService, times(1))
                 .findByIdAndObtainPessimisticWriteLock(any());
             verify(cftTaskDatabaseService, times(1))

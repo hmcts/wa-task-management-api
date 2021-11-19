@@ -98,6 +98,9 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
+        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",assigneeId, authenticationHeaders);
+
         common.cleanUpTask(taskId);
     }
 
@@ -120,6 +123,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",assigneeId, authenticationHeaders);
 
         common.cleanUpTask(taskId);
     }

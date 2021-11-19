@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.io.Serializable;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Getter
@@ -17,11 +17,11 @@ public class NoteResource implements Serializable {
 
     private static final long serialVersionUID = 1928058324454924191L;
 
-    @NotNull(
+    @NotEmpty(
         message = "Each note element must have 'code', 'note_type' fields present and populated."
     )
     private String code;
-    @NotNull(
+    @NotEmpty(
         message = "Each note element must have 'code', 'note_type' fields present and populated."
     )
     private String noteType;

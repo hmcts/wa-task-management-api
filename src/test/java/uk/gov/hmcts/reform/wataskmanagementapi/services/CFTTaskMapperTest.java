@@ -3,14 +3,18 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -31,15 +35,17 @@ import java.util.Locale;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
@@ -127,8 +133,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource());
-        assertEquals(null, taskResource.getRoleCategory());
+        assertNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
@@ -189,8 +194,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getWorkTypeResource());
-        assertEquals(null, taskResource.getRoleCategory());
+        assertNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getRoleCategory());
         assertTrue(taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
@@ -294,6 +298,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertNull(taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
+        assertNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
@@ -382,7 +387,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getMinorPriority());
         assertNull(taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
-        assertEquals(null, taskResource.getRoleCategory());
+        assertNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
@@ -505,7 +510,7 @@ class CFTTaskMapperTest {
         assertEquals(2, actualRoleResources.get(2).getAssignmentPriority());
         assertTrue(actualRoleResources.get(2).getAutoAssignable());
         assertEquals("LEGAL_OPERATIONS", actualRoleResources.get(2).getRoleCategory());
-        
+
     }
 
     @Test
@@ -705,6 +710,110 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_map_task_resource_to_task_with_permissions_empty() {
+
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "tribunal-caseofficer",
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            new String[]{"SPECIFIC", "BASIC"},
+            0,
+            false,
+            "JUDICIAL",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+        TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertEquals("taskId", task.getId());
+        assertEquals("aTaskName", task.getName());
+        assertEquals("startAppeal", task.getType());
+        assertNotNull(task.getDueDate());
+        assertEquals("completed", task.getTaskState());
+        assertEquals("SELF", task.getTaskSystem());
+        assertEquals("PUBLIC", task.getSecurityClassification());
+        assertEquals("title", task.getTaskTitle());
+        assertEquals("someAssignee", task.getAssignee());
+        assertFalse(task.isAutoAssigned());
+        assertEquals("Manual", task.getExecutionType());
+        assertEquals("IA", task.getJurisdiction());
+        assertEquals("1623278362430412", task.getCaseId());
+        assertEquals("Asylum", task.getCaseTypeId());
+        assertEquals("TestCase", task.getCaseName());
+        assertEquals("1", task.getRegion());
+        assertEquals("765324", task.getLocation());
+        assertEquals("Taylor House", task.getLocationName());
+        assertEquals("caseCategory", taskResource.getCaseCategory());
+        assertEquals("caseCategory", task.getCaseManagementCategory());
+        assertEquals(false, task.getWarnings());
+        assertEquals(emptyList(), task.getWarningList().getValues());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
+        assertNotNull(task.getPermissions());
+        Assertions.assertTrue(task.getPermissions().getValues().isEmpty());
+    }
+
+    @Test
+    void should_map_task_resource_to_task_with_permissions() {
+
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "tribunal-caseofficer",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{"SPECIFIC", "BASIC"},
+            0,
+            false,
+            "JUDICIAL",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+        TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertEquals("taskId", task.getId());
+        assertEquals("aTaskName", task.getName());
+        assertEquals("startAppeal", task.getType());
+        assertNotNull(task.getDueDate());
+        assertEquals("completed", task.getTaskState());
+        assertEquals("SELF", task.getTaskSystem());
+        assertEquals("PUBLIC", task.getSecurityClassification());
+        assertEquals("title", task.getTaskTitle());
+        assertEquals("someAssignee", task.getAssignee());
+        assertFalse(task.isAutoAssigned());
+        assertEquals("Manual", task.getExecutionType());
+        assertEquals("IA", task.getJurisdiction());
+        assertEquals("1623278362430412", task.getCaseId());
+        assertEquals("Asylum", task.getCaseTypeId());
+        assertEquals("TestCase", task.getCaseName());
+        assertEquals("1", task.getRegion());
+        assertEquals("765324", task.getLocation());
+        assertEquals("Taylor House", task.getLocationName());
+        assertEquals("caseCategory", taskResource.getCaseCategory());
+        assertEquals("caseCategory", task.getCaseManagementCategory());
+        assertEquals(false, task.getWarnings());
+        assertEquals(emptyList(), task.getWarningList().getValues());
+        assertNotNull(task.getDueDate());
+        assertNotNull(task.getCreatedDate());
+        assertNotNull(task.getPermissions());
+        Assertions.assertFalse(task.getPermissions().getValues().isEmpty());
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.READ));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.OWN));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.MANAGE));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.EXECUTE));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
+        assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
+    }
+
+    @Test
     void should_map_task_resource_to_task() {
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -729,9 +838,8 @@ class CFTTaskMapperTest {
         assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
         assertEquals("someTitle", task.getTaskTitle());
         assertEquals("someAssignee", task.getAssignee());
-        assertEquals(false, task.isAutoAssigned());
+        assertFalse(task.isAutoAssigned());
         assertEquals("Manual", task.getExecutionType());
-        assertEquals("someJurisdiction", task.getJurisdiction());
         assertEquals("00000", task.getCaseId());
         assertEquals("someCaseType", task.getCaseTypeId());
         assertEquals("someCaseName", task.getCaseName());
@@ -745,6 +853,43 @@ class CFTTaskMapperTest {
         assertEquals("someCaseCategory", task.getCaseManagementCategory());
         assertNotNull(task.getDueDate());
         assertNotNull(task.getCreatedDate());
+    }
+
+    private TaskResource createTaskResourceWithRoleResource(TaskRoleResource roleResource) {
+        return new TaskResource(
+            "taskId",
+            "aTaskName",
+            "startAppeal",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            COMPLETED,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            null,
+            0,
+            0,
+            "someAssignee",
+            false,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            false,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "Asylum",
+            "TestCase",
+            "IA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            null,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            singleton(roleResource),
+            "caseCategory"
+        );
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {

@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -8,8 +11,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,12 +48,52 @@ public final class RoleAssignmentFilter {
     public static final String AUTHORIZATIONS_COLUMN = "authorizations";
     public static final String SECURITY_CLASSIFICATION_COLUMN = "securityClassification";
     public static final String ROLE_NAME_COLUMN = "roleName";
+    public static final String TASK_ROLE_RESOURCES = "taskRoleResources";
+    public static final ZoneId ZONE_ID = ZoneId.of("Europe/London");
 
     private RoleAssignmentFilter() {
         // avoid creating object
     }
 
-    public static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
+    public static Specification<TaskResource> buildRoleAssignmentConstraints(
+        List<PermissionTypes> permissionsRequired,
+        AccessControlResponse accessControlResponse) {
+
+        return (root, query, builder) -> {
+            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
+
+            // filter roles which are active.
+            final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+                .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+
+            // builds query for grant type BASIC, SPECIFIC
+            final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            // builds query for grant type STANDARD, CHALLENGED
+            final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
+                root, taskRoleResources, builder, activeRoleAssignments);
+
+            // builds query for grant type EXCLUDED
+            final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
+                root, builder, activeRoleAssignments);
+
+            final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
+
+            // permissions check
+            List<Predicate> permissionPredicates = new ArrayList<>();
+            for (PermissionTypes type : permissionsRequired) {
+                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
+            }
+            final Predicate permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
+
+            query.distinct(true);
+
+            return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
+        };
+    }
+
+    private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
                                                           final Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                           CriteriaBuilder builder,
                                                           List<Optional<RoleAssignment>> roleAssignmentList) {
@@ -58,7 +105,7 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    public static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
+    private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
                                                                final Join<TaskResource,
                                                                    TaskRoleResource> taskRoleResources,
                                                                CriteriaBuilder builder,
@@ -71,8 +118,7 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    public static Predicate buildQueryForExcluded(Root<TaskResource> root,
-                                                  final Join<TaskResource, TaskRoleResource> taskRoleResources,
+    private static Predicate buildQueryForExcluded(Root<TaskResource> root,
                                                   CriteriaBuilder builder,
                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
@@ -109,7 +155,7 @@ public final class RoleAssignmentFilter {
     }
 
 
-    public static Predicate searchByExcludedGrantType(Root<TaskResource> root,
+    private static Predicate searchByExcludedGrantType(Root<TaskResource> root,
                                                       CriteriaBuilder builder,
                                                       RoleAssignment roleAssignment) {
         Predicate securityClassification = mapSecurityClassification(
@@ -256,5 +302,36 @@ public final class RoleAssignmentFilter {
             }
         }
         return builder.conjunction();
+    }
+
+    private static Optional<RoleAssignment> filterByActiveRole(RoleAssignment roleAssignment) {
+        if (hasBeginTimePermission(roleAssignment) && hasEndTimePermission(roleAssignment)) {
+            return Optional.of(roleAssignment);
+        }
+        return Optional.empty();
+    }
+
+    private static boolean hasEndTimePermission(RoleAssignment roleAssignment) {
+        LocalDateTime endTime = roleAssignment.getEndTime();
+        if (endTime != null) {
+
+            ZonedDateTime endTimeLondonTime = endTime.atZone(ZONE_ID);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(ZONE_ID);
+
+            return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
+        }
+        return true;
+    }
+
+    private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
+        LocalDateTime beginTime = roleAssignment.getBeginTime();
+        if (beginTime != null) {
+
+            ZonedDateTime beginTimeLondonTime = beginTime.atZone(ZONE_ID);
+            ZonedDateTime currentDateTimeLondonTime = ZonedDateTime.now(ZONE_ID);
+
+            return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
+        }
+        return true;
     }
 }

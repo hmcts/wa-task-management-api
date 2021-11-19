@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
 import java.time.ZonedDateTime;
@@ -11,12 +13,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 
 public class CamundaHelpers {
     public static final String BEARER_SERVICE_TOKEN = "Bearer service token";
@@ -49,7 +53,8 @@ public class CamundaHelpers {
             false,
             new WarningValues(Collections.emptyList()),
             "someCaseManagementCategory",
-            "hearing_work"
+            "hearing_work",
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
         );
     }
 
@@ -134,6 +139,21 @@ public class CamundaHelpers {
         Map<String, CamundaVariable> response = Map.of(
             "completionMode", new CamundaVariable("Auto", "String"),
             "taskType", new CamundaVariable("reviewTheAppeal", "String")
+        );
+        dmnResult.add(response);
+        return dmnResult;
+    }
+
+    protected List<Map<String, CamundaVariable>> mockTaskCompletionDMNResponses() {
+        List<Map<String, CamundaVariable>> dmnResult = new ArrayList<>();
+        Map<String, CamundaVariable> response = Map.of(
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "taskType", new CamundaVariable("reviewTheAppeal", "String")
+        );
+        dmnResult.add(response);
+
+        response = Map.of(
+            "completionMode", new CamundaVariable("Auto", "String")
         );
         dmnResult.add(response);
         return dmnResult;

@@ -113,7 +113,6 @@ public class TaskManagementService {
      */
     public Task getTask(String taskId, AccessControlResponse accessControlResponse) {
         List<PermissionTypes> permissionsRequired = singletonList(READ);
-        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
@@ -124,6 +123,7 @@ public class TaskManagementService {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             return cftTaskMapper.mapToTask(taskResource);
         } else {
+            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
             return camundaService.getMappedTask(taskId, variables);
         }
@@ -258,6 +258,8 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
+            task.setAssignee(assigneeAccessControlResponse.getUserInfo().getUid());
+
 
             //Perform Camunda updates
             camundaService.assignTask(
@@ -654,7 +656,11 @@ public class TaskManagementService {
 
         final List<NoteResource> noteResources = notesRequest.getNoteResource();
 
-        noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+        if (taskResource.getNotes() == null) {
+            taskResource.setNotes(noteResources);
+        } else {
+            noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+        }
         taskResource.setHasWarnings(true);
 
         return cftTaskDatabaseService.saveTask(taskResource);

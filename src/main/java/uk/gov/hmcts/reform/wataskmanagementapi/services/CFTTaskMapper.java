@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -29,6 +30,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -136,11 +138,6 @@ public class CFTTaskMapper {
         );
     }
 
-    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
-        return workTypeId == null ? null : new WorkTypeResource(workTypeId);
-    }
-
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
                                                    TaskConfigurationResults taskConfigurationResults) {
 
@@ -151,6 +148,68 @@ public class CFTTaskMapper {
         List<PermissionsDmnEvaluationResponse> permissions = taskConfigurationResults.getPermissionsDmnResponse();
         taskResource.setTaskRoleResources(mapPermissions(permissions, taskResource));
         return taskResource;
+    }
+
+    public Task mapToTask(TaskResource taskResource) {
+        Set<PermissionTypes> permissionsUnion = extractUnionOfPermissions(taskResource.getTaskRoleResources());
+        return new Task(taskResource.getTaskId(),
+            taskResource.getTaskName(),
+            taskResource.getTaskType(),
+            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
+            taskResource.getTaskSystem().getValue(),
+            taskResource.getSecurityClassification().getSecurityClassification(),
+            taskResource.getTitle(),
+            taskResource.getCreated().toZonedDateTime(),
+            taskResource.getDueDateTime().toZonedDateTime(),
+            taskResource.getAssignee(),
+            taskResource.getAutoAssigned(),
+            taskResource.getExecutionTypeCode().getExecutionName(),
+            taskResource.getJurisdiction(),
+            taskResource.getRegion(),
+            taskResource.getLocation(),
+            taskResource.getLocationName(),
+            taskResource.getCaseTypeId(),
+            taskResource.getCaseId(),
+            taskResource.getCaseCategory(),
+            taskResource.getCaseName(),
+            taskResource.getHasWarnings(),
+            mapNoteResourceToWarnings(taskResource.getNotes()),
+            taskResource.getCaseCategory(),
+            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
+            new TaskPermissions(permissionsUnion)
+        );
+    }
+
+    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
+        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
+        return workTypeId == null ? null : new WorkTypeResource(workTypeId);
+    }
+
+    private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
+        Set<PermissionTypes> permissionsFound = new HashSet<>();
+        if (taskRoleResources != null) {
+            taskRoleResources.forEach(taskRoleResource -> {
+                if (taskRoleResource.getRead()) {
+                    permissionsFound.add(PermissionTypes.READ);
+                }
+                if (taskRoleResource.getManage()) {
+                    permissionsFound.add(PermissionTypes.MANAGE);
+                }
+                if (taskRoleResource.getExecute()) {
+                    permissionsFound.add(PermissionTypes.EXECUTE);
+                }
+                if (taskRoleResource.getCancel()) {
+                    permissionsFound.add(PermissionTypes.CANCEL);
+                }
+                if (taskRoleResource.getOwn()) {
+                    permissionsFound.add(PermissionTypes.OWN);
+                }
+                if (taskRoleResource.getRefer()) {
+                    permissionsFound.add(PermissionTypes.REFER);
+                }
+            });
+        }
+        return permissionsFound;
     }
 
     private Set<TaskRoleResource> mapPermissions(
@@ -367,35 +426,5 @@ public class CFTTaskMapper {
 
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
-
-
-    public Task mapToTask(TaskResource taskResource) {
-        return new Task(taskResource.getTaskId(),
-            taskResource.getTaskName(),
-            taskResource.getTaskType(),
-            taskResource.getState().getValue().toLowerCase(Locale.ROOT),
-            taskResource.getTaskSystem().getValue(),
-            taskResource.getSecurityClassification().getSecurityClassification(),
-            taskResource.getTitle(),
-            taskResource.getCreated().toZonedDateTime(),
-            taskResource.getDueDateTime().toZonedDateTime(),
-            taskResource.getAssignee(),
-            taskResource.getAutoAssigned(),
-            taskResource.getExecutionTypeCode().getExecutionName(),
-            taskResource.getJurisdiction(),
-            taskResource.getRegion(),
-            taskResource.getLocation(),
-            taskResource.getLocationName(),
-            taskResource.getCaseTypeId(),
-            taskResource.getCaseId(),
-            taskResource.getCaseCategory(),
-            taskResource.getCaseName(),
-            taskResource.getHasWarnings(),
-            mapNoteResourceToWarnings(taskResource.getNotes()),
-            taskResource.getCaseCategory(),
-            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId()
-        );
-    }
-
 }
 
