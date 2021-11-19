@@ -1706,7 +1706,6 @@ class CamundaServiceTest extends CamundaHelpers {
             mockCamundaGetAllVariablesWithWarning(null);
 
 
-
             List<CamundaTask> camundaTasks = List.of(createMockedUnmappedTask());
 
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
@@ -1761,7 +1760,7 @@ class CamundaServiceTest extends CamundaHelpers {
     class UpdateCftTaskState {
 
         @Test
-        void should_call_addLocalVariablesToTask_when_a_tas_updated() {
+        void should_call_addLocalVariablesToTask_when_a_task_updated() {
 
             camundaService.updateCftTaskState(taskId, COMPLETED);
 

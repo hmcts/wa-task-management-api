@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -23,7 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 public class SortQueryTest {
 
     @Test
-    public void sortFieldsInDescendingOrder() {
+    public void sort_fields_in_descending_order() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(CASE_ID, SearchOperator.IN, asList(
@@ -37,7 +39,7 @@ public class SortQueryTest {
     }
 
     @Test
-    public void sortFieldsInAscendingOrder() {
+    public void sort_fields_in_ascending_order() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(CASE_ID, SearchOperator.IN, asList(
@@ -51,7 +53,7 @@ public class SortQueryTest {
     }
 
     @Test
-    public void sortByFieldsWhenSortParametersEmpty() {
+    public void sort_by_fields_when_sort_parameters_empty() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameter(CASE_ID, SearchOperator.IN, asList(
@@ -63,9 +65,26 @@ public class SortQueryTest {
         assertEquals(Sort.by("dueDateTime").descending(), sort);
     }
 
-    @Test
-    public void should_return_id_when_sort_toString_method_called() {
-        String expectedValue = "dueDate";
-        assertEquals(expectedValue, SortField.DUE_DATE_CAMEL_CASE.toString());
+    @ParameterizedTest
+    @CsvSource(
+        value = {
+            "DUE_DATE_CAMEL_CASE, dueDate",
+            "DUE_DATE_SNAKE_CASE, due_date",
+            "TASK_TITLE_CAMEL_CASE, taskTitle",
+            "TASK_TITLE_SNAKE_CASE, task_title",
+            "LOCATION_NAME_CAMEL_CASE, locationName",
+            "LOCATION_NAME_SNAKE_CASE, location_name",
+            "CASE_CATEGORY_CAMEL_CASE, caseCategory",
+            "CASE_CATEGORY_SNAKE_CASE, case_category",
+            "CASE_ID_CAMEL_CASE, caseId",
+            "CASE_ID_SNAKE_CASE, case_id",
+            "CASE_NAME_CAMEL_CASE, caseName",
+            "CASE_NAME_SNAKE_CASE, case_name"
+        }
+    )
+    public void should_return_id_when_toString_method_called(String input, String expected) {
+
+        assertEquals(expected, SortField.valueOf(input).toString());
+
     }
 }

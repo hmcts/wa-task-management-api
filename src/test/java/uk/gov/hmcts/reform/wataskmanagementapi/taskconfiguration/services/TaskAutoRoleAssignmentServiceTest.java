@@ -140,7 +140,7 @@ class TaskAutoRoleAssignmentServiceTest {
 
     @Test
     void autoAssignCFTTask_should_update_when_no_role_assignments() {
-        TaskResource taskResource = createTestTask();
+        TaskResource taskResource = createTaskResource();
 
         when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
             .thenReturn(emptyList());
@@ -156,7 +156,7 @@ class TaskAutoRoleAssignmentServiceTest {
 
     @Test
     void autoAssignCFTTask_should_update_when_no_task_role_resource() {
-        TaskResource taskResource = createTestTask();
+        TaskResource taskResource = createTaskResource();
         taskResource.setAssignee("someUser");
         RoleAssignment roleAssignmentResource = RoleAssignment.builder()
             .id("someId")
@@ -179,7 +179,7 @@ class TaskAutoRoleAssignmentServiceTest {
 
     @Test
     void should_assign_task_to_highest_prioritised_user_when_2_role_assignment_set_to_task() {
-        TaskResource taskResource = createTestTask();
+        TaskResource taskResource = createTaskResource();
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -238,7 +238,7 @@ class TaskAutoRoleAssignmentServiceTest {
 
     @Test
     void should_task_assignee_null_even_if_taskResource_has_an_assignee() {
-        TaskResource taskResource = createTestTask();
+        TaskResource taskResource = createTaskResource();
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
@@ -401,7 +401,7 @@ class TaskAutoRoleAssignmentServiceTest {
         assertEquals(CFTTaskState.ASSIGNED, result.getState());
     }
 
-    private TaskResource createTestTask() {
+    private TaskResource createTaskResource() {
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "someTaskName",

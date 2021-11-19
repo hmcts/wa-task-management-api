@@ -221,7 +221,7 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_map_cft_task_to_task_with_warnings() {
+    void should_map_cftTask_to_task_with_warnings() {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -430,7 +430,8 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_map_configuration_attributes_with_different_types_of_permission() {
+    void should_map_configuration_attributes_with_different_permission_types() {
+        
         TaskResource skeletonTask = new TaskResource(
             taskId,
             "someCamundaTaskName",

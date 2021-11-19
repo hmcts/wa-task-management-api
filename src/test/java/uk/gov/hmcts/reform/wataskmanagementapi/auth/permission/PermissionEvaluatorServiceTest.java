@@ -755,10 +755,10 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
-    void hasAccess_should_fail_when_looking_for_begin_time_greater_than_today_and_return_false() {
+    void should_return_hasAccess_false_when_begin_time_and_end_time_greater_than_today() {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
 
-        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+        List<RoleAssignment> testCases = createRoleAssignments(
             ActorIdType.IDAM,
             singletonList("senior-tribunal-caseworker"),
             Classification.PUBLIC,
@@ -783,10 +783,10 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
-    void hasAccess_should_fail_when_looking_for_end_time_less_than_today_and_return_false() {
+    void should_return_hasAccess_false_when_end_time_less_than_today() {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
 
-        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+        List<RoleAssignment> testCases = createRoleAssignments(
             ActorIdType.IDAM,
             singletonList("senior-tribunal-caseworker"),
             Classification.PUBLIC,
@@ -811,10 +811,10 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
-    void hasAccess_should_fail_when_looking_for_different_location() {
+    void should_return_hasAccess_false_when_looking_for_different_location() {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
 
-        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+        List<RoleAssignment> testCases = createRoleAssignments(
             ActorIdType.IDAM,
             singletonList("senior-tribunal-caseworker"),
             Classification.PUBLIC,
@@ -839,10 +839,10 @@ class PermissionEvaluatorServiceTest {
     }
 
     @Test
-    void hasAccess_should_success_when_looking_for_correct_location() {
+    void should_return_hasAccess_true_when_looking_for_correct_location() {
         List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
 
-        List<RoleAssignment> testCases = createTestAssignmentsEdgeCase(
+        List<RoleAssignment> testCases = createRoleAssignments(
             ActorIdType.IDAM,
             singletonList("senior-tribunal-caseworker"),
             Classification.PUBLIC,
@@ -904,20 +904,20 @@ class PermissionEvaluatorServiceTest {
         );
     }
 
-    private List<RoleAssignment> createTestAssignmentsEdgeCase(ActorIdType actorIdType,
-                                                               List<String> roleNames,
-                                                               Classification roleClassification,
-                                                               GrantType grantType,
-                                                               RoleCategory roleCategory,
-                                                               boolean readOnly,
-                                                               LocalDateTime beginTime,
-                                                               LocalDateTime endTime,
-                                                               Map<String, String> roleAttributes) {
+    private List<RoleAssignment> createRoleAssignments(ActorIdType actorIdType,
+                                                       List<String> roleNames,
+                                                       Classification roleClassification,
+                                                       GrantType grantType,
+                                                       RoleCategory roleCategory,
+                                                       boolean readOnly,
+                                                       LocalDateTime beginTime,
+                                                       LocalDateTime endTime,
+                                                       Map<String, String> roleAttributes) {
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
             .forEach(roleType -> {
-                    RoleAssignment roleAssignment = createBaseAssignmentEdgeCase(actorIdType,
+                    RoleAssignment roleAssignment = createRoleAssignment(actorIdType,
                         UUID.randomUUID().toString(),
                         roleType,
                         roleName,
@@ -935,17 +935,17 @@ class PermissionEvaluatorServiceTest {
         return allTestRoles;
     }
 
-    private RoleAssignment createBaseAssignmentEdgeCase(ActorIdType actorIdType,
-                                                        String actorId,
-                                                        RoleType roleType,
-                                                        String roleName,
-                                                        Classification classification,
-                                                        GrantType grantType,
-                                                        RoleCategory roleCategory,
-                                                        boolean readOnly,
-                                                        LocalDateTime beginTime,
-                                                        LocalDateTime endTime,
-                                                        Map<String, String> attributes
+    private RoleAssignment createRoleAssignment(ActorIdType actorIdType,
+                                                String actorId,
+                                                RoleType roleType,
+                                                String roleName,
+                                                Classification classification,
+                                                GrantType grantType,
+                                                RoleCategory roleCategory,
+                                                boolean readOnly,
+                                                LocalDateTime beginTime,
+                                                LocalDateTime endTime,
+                                                Map<String, String> attributes
     ) {
         return RoleAssignment.builder()
             .actorIdType(actorIdType)
@@ -958,9 +958,7 @@ class PermissionEvaluatorServiceTest {
             .readOnly(readOnly)
             .beginTime(beginTime)
             .endTime(endTime)
-            //.created()
             .attributes(attributes)
-            //.authorisations()
             .build();
     }
 

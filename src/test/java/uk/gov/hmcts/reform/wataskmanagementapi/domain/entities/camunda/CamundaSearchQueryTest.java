@@ -85,7 +85,7 @@ class CamundaSearchQueryTest {
         "lteq, LOWER_THAN_OR_EQUAL",
         "like, LIKE"
     })
-    void should_return_camunda_operator_from_string(String valueInput, String operatorInput) {
+    void should_return_camunda_operator_when_input_is_a_valid_string(String valueInput, String operatorInput) {
 
         assertEquals(
             CamundaOperator.from(valueInput),
@@ -130,6 +130,5 @@ class CamundaSearchQueryTest {
 
         assertEquals(expected, resultJson);
     }
-
 
 }

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -82,14 +81,7 @@ class CamundaObjectMapperTest {
     }
 
     @Test
-    void should_convert_object_to_json_snake_case23232332() {
-
-
-    }
-
-    @Test
-    void given_snake_case_initiate_body_request_when_deserializes_it_keeps_attribute_list_and_operation_fields()
-        throws JsonProcessingException {
+    void given_snake_case_initiate_body_request_when_deserializes_it_keeps_attribute_list_and_operation_fields() {
 
         String expectedCamundaVariable = "{\n"
                                          + "    \"value\": \"assigned\",\n"

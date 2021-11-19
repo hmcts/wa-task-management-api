@@ -260,8 +260,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             assertNotNull(response);
             assertEquals(mockedMappedTask, response);
-            verify(camundaService,times(0)).getTaskVariables(any());
-            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verify(camundaService, times(0)).getTaskVariables(any());
+            verify(camundaService, times(0)).getMappedTask(any(), any());
             verifyNoInteractions(camundaService);
         }
 
@@ -284,8 +284,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
-            verify(camundaService,times(0)).getTaskVariables(any());
-            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verify(camundaService, times(0)).getTaskVariables(any());
+            verify(camundaService, times(0)).getMappedTask(any(), any());
             verifyNoInteractions(camundaService);
         }
 
@@ -308,8 +308,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
-            verify(camundaService,times(0)).getTaskVariables(any());
-            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verify(camundaService, times(0)).getTaskVariables(any());
+            verify(camundaService, times(0)).getMappedTask(any(), any());
             verifyNoInteractions(camundaService);
         }
     }
@@ -2771,7 +2771,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void given_initiateTask_task_is_initiated_and_unassigned() {
+        void initiate_unassigned_task() {
             mockInitiateTaskDependencies(CFTTaskState.UNASSIGNED);
 
             when(taskAutoAssignmentService.autoAssignCFTTask(taskResource))
@@ -2789,7 +2789,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void given_initiateTask_task_is_initiated_and_assigned() {
+        void initiate_assigned_task() {
             mockInitiateTaskDependencies(CFTTaskState.ASSIGNED);
 
             lenient().when(taskAutoAssignmentService.autoAssignCFTTask(taskResource))
@@ -3075,7 +3075,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     }
 
-    private TaskResource createTaskResource(boolean hasWarnings, List<NoteResource> notes,
+    private TaskResource createTaskResource(boolean hasWarnings,
+                                            List<NoteResource> notes,
                                             CFTTaskState taskState,
                                             String assignee,
                                             boolean autoAssigned) {

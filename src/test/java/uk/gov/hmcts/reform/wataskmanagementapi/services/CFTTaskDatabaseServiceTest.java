@@ -41,7 +41,7 @@ class CFTTaskDatabaseServiceTest extends CamundaHelpers {
     @Test
     void findByIdAndObtainPessimisticWriteLock_test() {
 
-        Optional<TaskResource> optionalTaskResource = Optional.of(createTestTask());
+        Optional<TaskResource> optionalTaskResource = Optional.of(createTaskResource());
 
         when(taskResourceRepository.findById(taskId))
             .thenReturn(optionalTaskResource);
@@ -57,7 +57,7 @@ class CFTTaskDatabaseServiceTest extends CamundaHelpers {
     @Test
     void findByIdOnly_test() {
 
-        Optional<TaskResource> optionalTaskResource = Optional.of(createTestTask());
+        Optional<TaskResource> optionalTaskResource = Optional.of(createTaskResource());
 
         when(taskResourceRepository.getByTaskId(taskId))
             .thenReturn(optionalTaskResource);
@@ -72,7 +72,7 @@ class CFTTaskDatabaseServiceTest extends CamundaHelpers {
     @Test
     void saveTask_test() {
 
-        taskResource = createTestTask();
+        taskResource = createTaskResource();
 
         when(taskResourceRepository.save(taskResource))
             .thenReturn(taskResource);
@@ -86,7 +86,7 @@ class CFTTaskDatabaseServiceTest extends CamundaHelpers {
     @Test
     void insertAndLock_test() throws SQLException {
 
-        taskResource = createTestTask();
+        taskResource = createTaskResource();
 
         cftTaskDatabaseService.insertAndLock(taskId);
 
@@ -95,7 +95,7 @@ class CFTTaskDatabaseServiceTest extends CamundaHelpers {
     }
 
 
-    private TaskResource createTestTask() {
+    private TaskResource createTaskResource() {
 
         return new TaskResource(
             UUID.randomUUID().toString(),

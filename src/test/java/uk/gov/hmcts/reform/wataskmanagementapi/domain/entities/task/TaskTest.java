@@ -80,7 +80,7 @@ public class TaskTest {
 
 
     @Test
-    void should_create_full_object_and_get_values_when_autoAssigned_false() {
+    void should_create_task_and_get_values_when_autoAssigned_false_and_permission_own() {
 
         Task task = new Task(
             "some-id",
@@ -110,10 +110,11 @@ public class TaskTest {
             ),
             "some-case-management-category",
             "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN)))
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
+        Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.OWN);
 
     }
 }
