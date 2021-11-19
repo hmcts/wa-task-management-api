@@ -239,13 +239,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         // assign user to taskId2
         final String taskId2 = tasksList.get(1).getId();
         // assign user to taskId2
-        Response post = restApiActions.post(
+        restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
             new AssignTaskRequest(assigneeId),
             authenticationHeaders
         );
-
 
         // search for completable
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -581,39 +580,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void should_return_work_type_applications_when_task_type_processApplication() {
-        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            Map.of(
-                CamundaVariableDefinition.TASK_TYPE, "processApplication",
-                CamundaVariableDefinition.TASK_ID, "processApplication"
-            ));
-
-        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
-            processApplicationTaskVariables.getCaseId(),
-            "decideAnApplication",
-            "IA",
-            "Asylum"
-        );
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            decideAnApplicationSearchRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(1))
-            .body("tasks[0].type", equalTo("processApplication"))
-            .body("tasks[0].work_type_id", equalTo("applications"));
-
-        common.cleanUpTask(processApplicationTaskVariables.getTaskId());
     }
 
     private String getAssigneeId(Headers headers) {
