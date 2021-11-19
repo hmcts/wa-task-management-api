@@ -14,10 +14,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.WorkTypeResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTWorkTypeDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -56,7 +56,7 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
-    private WorkTypeResourceRepository workTypeResourceRepository;
+    private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
 
     private ServiceMocks mockServices;
 
@@ -73,7 +73,7 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_500_when_database_connection_not_available_without_filter() throws Exception {
 
-        when(workTypeResourceRepository.findAll()).thenThrow(JDBCConnectionException.class);
+        when(cftWorkTypeDatabaseService.getAllWorkTypes()).thenThrow(JDBCConnectionException.class);
 
         mockMvc.perform(
             get(ENDPOINT_PATH)
@@ -93,14 +93,14 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
     @Test
     void should_return_500_when_database_connection_not_available_with_filter() throws Exception {
 
-        when(workTypeResourceRepository.findById(anyString())).thenThrow(JDBCConnectionException.class);
+        when(cftWorkTypeDatabaseService.getWorkTypes(anySet())).thenThrow(JDBCConnectionException.class);
 
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
