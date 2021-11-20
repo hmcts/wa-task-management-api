@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.Builder;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
+import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,11 +71,11 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
-        /*BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
-            Boolean.TRUE);*/
-        //lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
+            Boolean.TRUE);
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
 
@@ -282,8 +283,7 @@ public class TaskResourceSpecificationTest {
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        //return Stream.of(jurisdiction, state, location, caseId, user, workType);
-        return Stream.of(jurisdiction);
+        return Stream.of(jurisdiction, state, location, caseId, user, workType);
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
