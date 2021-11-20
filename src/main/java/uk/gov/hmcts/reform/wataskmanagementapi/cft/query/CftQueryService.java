@@ -144,6 +144,7 @@ public class CftQueryService {
             .filter(result -> result.containsKey(TASK_TYPE.value()))
             .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
             .filter(Objects::nonNull)
+            .filter(val -> val.trim().length() != 0)
             .collect(Collectors.toList());
 
     }

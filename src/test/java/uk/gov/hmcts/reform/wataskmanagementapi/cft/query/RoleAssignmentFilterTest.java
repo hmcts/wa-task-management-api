@@ -1,11 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -14,8 +15,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PRIVATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.RESTRICTED;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.inActiveRoles;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithAllGrantTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithChallengedGrantType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithChallengedGrantTypeAndNoAuthorizations;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantType;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithStandardGrantType;
 
@@ -43,162 +45,363 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTe
 @ExtendWith(MockitoExtension.class)
 public class RoleAssignmentFilterTest {
 
-    @Mock(extraInterfaces = Serializable.class) Root<TaskResource> root;
-    @Mock(extraInterfaces = Serializable.class) CriteriaQuery<?> query;
-    @Mock(extraInterfaces = Serializable.class) CriteriaBuilderImpl criteriaBuilder;
-    @Mock Join<Object, Object> taskRoleResources;
     @Mock
-    CriteriaBuilder.In<Object> inObject;
+    private Root<TaskResource> root;
     @Mock
-    CriteriaBuilder.In<Object> values;
+    private Root<Object> objectRoot;
     @Mock
-    Path<Object> authorizations;
+    private CriteriaQuery<?> query;
+    @Mock
+    private CriteriaBuilder builder;
+    @Mock
+    private Path<String> stringPath;
+    @Mock
+    private Predicate permissionsPredicate;
+    @Mock
+    private Predicate equalPredicate;
+    @Mock
+    private Predicate authorizationsPredicate;
+    @Mock
+    private CriteriaBuilder.In<Object> inObject;
+    @Mock
+    private Join<Object, Object> taskRoleResources;
+    @Mock
+    private Path<Object> pathObject;
+    @Mock
+    private Path<Object> roleNamePath;
+    @Mock
+    private Path<Object> classificationPath;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
     public void setUp() {
-        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
-        lenient().when(inObject.value(any())).thenReturn(values);
-        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
-            criteriaBuilder,
-            null,
-            Boolean.TRUE);
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
-        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
-        lenient().when(inObject.value(any())).thenReturn(values);
-
-        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
-
-        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
-        lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+        lenient().when(root.join("taskRoleResources")).thenReturn(taskRoleResources);
+        lenient().when(taskRoleResources.get("read")).thenReturn(pathObject);
+        lenient().when(builder.or(any())).thenReturn(inObject);
+        lenient().when(builder.or(any(), any())).thenReturn(inObject);
+        lenient().when(builder.and(any(), any())).thenReturn(inObject);
+        lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
+        lenient().when(builder.isTrue(any())).thenReturn(permissionsPredicate);
+        lenient().when(builder.in(any())).thenReturn(inObject);
     }
 
-    @Test
-    void buildQueryForBasicAndSpecific() {
-
+    @ParameterizedTest
+    @EnumSource(value = Classification.class, names = {"PUBLIC"})
+    void buildQueryForBasicAndSpecific(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithSpecificGrantType(PUBLIC)
+            roleAssignmentWithSpecificGrantType(classification)
         );
 
-        // Classification as public
+        lenient().when(root.get("securityClassification")).thenReturn(pathObject);
+        lenient().when(root.get("caseTypeId")).thenReturn(pathObject);
+        lenient().when(root.get("caseId")).thenReturn(pathObject);
+        lenient().when(root.get("jurisdiction")).thenReturn(pathObject);
+
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        lenient().when(builder.equal(pathObject, "Asylum")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "IA")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "1623278362431003")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "hmcts-judiciary")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "senior-tribunal-caseworker")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, new String[]{})).thenReturn(equalPredicate);
+
         Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
+        Predicate predicate = spec.toPredicate(root, query, builder);
+
+        assertNotNull(builder);
         assertNotNull(predicate);
 
-        // Classification as PRIVATE
-        accessControlResponse = new AccessControlResponse(
+        Mockito.verify(builder, Mockito.times(1)).equal(pathObject, "senior-tribunal-caseworker");
+        verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
+        verify(builder, times(2)).equal(pathObject, new String[]{});
+        verify(builder, times(1)).equal(pathObject, "Asylum");
+        verify(builder, times(1)).equal(pathObject, "IA");
+        verify(builder, times(1)).equal(pathObject, "1623278362431003");
+
+        verify(root, times(1)).join(anyString());
+        verify(root, times(5)).get(anyString());
+        verify(pathObject, times(2)).isNull();
+        verify(builder, times(2)).in(any());
+        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any(), any());
+        verify(builder, times(5)).and(any(), any());
+        verify(builder, times(1)).and(
+            any(), any(), any(), any(), any(), any(), any());
+        verify(builder, times(2)).conjunction();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Classification.class, names = {"PUBLIC"})
+    void buildQueryForBasicAndSpecificWhenAttributesDoesNotMatch(Classification classification) {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(classification)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithSpecificGrantType(PRIVATE)
+            roleAssignments
         );
-        spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+        when(taskRoleResources.get("roleName")).thenReturn(roleNamePath);
+
+        Predicate roleNamePredicate = mock(Predicate.class);
+        when(builder.equal(roleNamePath, "hmcts-judiciary")).thenReturn(roleNamePredicate);
+
+        lenient().when(root.get("securityClassification")).thenReturn(classificationPath);
+
+        when(builder.in(classificationPath).value(List.of(SecurityClassification.PUBLIC)))
+            .thenReturn(inObject);
+
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
+        Predicate predicate = spec.toPredicate(root, query, builder);
+
+        assertNotNull(builder);
         assertNotNull(predicate);
 
-        // Classification as RESTRICTED
-        accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithSpecificGrantType(RESTRICTED)
-        );
+        when(taskRoleResources.get("roleName")).thenReturn(roleNamePath);
+
+        roleNamePredicate = mock(Predicate.class);
+        when(builder.equal(roleNamePath, "hmcts-judiciary")).thenReturn(roleNamePredicate);
+
+        lenient().when(root.get("securityClassification")).thenReturn(classificationPath);
+
+        when(builder.in(classificationPath).value(List.of(SecurityClassification.PUBLIC)))
+            .thenReturn(null);
+
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(null);
+
         spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
+        predicate = spec.toPredicate(root, query, builder);
+
+        assertNotNull(builder);
         assertNotNull(predicate);
     }
 
     @Test
-    void buildQueryForStandardAndExcluded() {
+    void buildQueryForBasicAndSpecificWithOutAttributes() {
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
-            criteriaBuilder,
-            null,
-            Boolean.TRUE);
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
-        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
-        lenient().when(inObject.value(any())).thenReturn(values);
-
-        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
-
-        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(Classification.PUBLIC)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithStandardGrantType()
+            roleAssignments
         );
+
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
         Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        Predicate predicate = spec.toPredicate(root, query, builder);
         assertNotNull(spec);
         assertNotNull(predicate);
     }
 
-    @Test
-    void buildQueryForChallengedAndExcluded() {
-
+    @ParameterizedTest
+    @EnumSource(value = Classification.class, names = {"PUBLIC", "PRIVATE", "RESTRICTED"})
+    void buildQueryForStandardAndExcluded(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        lenient().when(criteriaBuilder.in(any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
-        lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
-        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
-            criteriaBuilder,
-            null,
-            Boolean.TRUE);
-        lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
-        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
-        lenient().when(inObject.value(any())).thenReturn(values);
-
-        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
-
-        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
-
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithChallengedGrantType()
+            roleAssignmentWithStandardGrantType(classification)
         );
+
+        lenient().when(root.get("securityClassification")).thenReturn(pathObject);
+        lenient().when(root.get("caseTypeId")).thenReturn(pathObject);
+        lenient().when(root.get("caseId")).thenReturn(pathObject);
+        lenient().when(root.get("jurisdiction")).thenReturn(pathObject);
+        lenient().when(root.get("region")).thenReturn(pathObject);
+        lenient().when(root.get("location")).thenReturn(pathObject);
+
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        lenient().when(builder.equal(pathObject, "Asylum")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "IA")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "1623278362431003")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "1")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "765324")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "hmcts-judiciary")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "tribunal-caseworker")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, new String[]{})).thenReturn(equalPredicate);
 
         Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
+        spec.toPredicate(root, query, builder);
 
-        accessControlResponse = new AccessControlResponse(
+        //Mockito.verify(builder, Mockito.times(1)).equal(pathObject, "senior-tribunal-caseworker");
+        //verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
+        verify(builder, times(1)).equal(pathObject, new String[]{});
+        verify(builder, times(1)).equal(pathObject, "Asylum");
+        verify(builder, times(1)).equal(pathObject, "IA");
+        verify(builder, times(1)).equal(pathObject, "1623278362431003");
+        verify(builder, times(1)).equal(pathObject, "1");
+        verify(builder, times(1)).equal(pathObject, "765324");
+
+        verify(root, times(1)).join(anyString());
+        verify(root, times(7)).get(anyString());
+        verify(pathObject, times(1)).isNull();
+        verify(builder, times(2)).in(any());
+        verify(builder, times(4)).or(any());
+        verify(builder, times(2)).or(any(), any());
+        verify(builder, times(4)).and(any(), any());
+        verify(builder, times(1)).and(
+            any(), any(), any(), any(), any(), any(), any());
+        verify(builder, times(1)).conjunction();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = Classification.class, names = {"PUBLIC", "PRIVATE", "RESTRICTED"})
+    void buildQueryForChallengedAndExcluded(Classification classification) {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithChallengedGrantTypeAndNoAuthorizations()
+            roleAssignmentWithChallengedGrantType(classification)
         );
 
-        spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+        lenient().when(root.get("securityClassification")).thenReturn(pathObject);
+        lenient().when(root.get("caseTypeId")).thenReturn(pathObject);
+        lenient().when(root.get("caseId")).thenReturn(pathObject);
+        lenient().when(root.get("jurisdiction")).thenReturn(pathObject);
+
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        lenient().when(builder.equal(pathObject, "Asylum")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "IA")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "1623278362431003")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "hmcts-judiciary")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, "tribunal-caseworker")).thenReturn(equalPredicate);
+        lenient().when(builder.equal(pathObject, new String[]{"DIVORCE", "PROBATE"})).thenReturn(equalPredicate);
+
+        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
+        spec.toPredicate(root, query, builder);
+
+        verify(builder, times(1)).equal(pathObject, new String[]{});
+        verify(builder, times(1)).equal(pathObject, "Asylum");
+        verify(builder, times(1)).equal(pathObject, "IA");
+        verify(builder, times(1)).equal(pathObject, "1623278362431003");
+
+        verify(root, times(1)).join(anyString());
+        verify(root, times(6)).get(anyString());
+        verify(pathObject, times(1)).isNull();
+        verify(builder, times(2)).in(any());
+        verify(builder, times(4)).or(any());
+        verify(builder, times(3)).or(any(), any());
+        verify(builder, times(4)).and(any(), any());
+        verify(builder, times(1)).and(
+            any(), any(), any(), any(), any(), any(), any());
+        verify(builder, times(2)).conjunction();
+    }
+
+    @Test
+    void searchQueryForAllGrantTypes() {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithAllGrantTypes()
+        );
+
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse);
+        Predicate predicate = spec.toPredicate(root, query, builder);
+
         assertNotNull(predicate);
     }
 
     @Test
-    void shouldFilterWhenRoleIsNotActive() {
+    void buildQueryForNegationValues() {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(null)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
+
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+        lenient().when(root.get("securityClassification")).thenReturn(null);
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse);
+        spec.toPredicate(root, query, builder);
+
+        verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
+        verify(builder, times(1)).equal(pathObject, new String[]{});
+
+        verify(root, times(1)).join(anyString());
+        verify(root, times(1)).get(anyString());
+        verify(pathObject, times(1)).isNull();
+        verify(builder, times(1)).in(any());
+        verify(builder, times(4)).or(any());
+        verify(builder, times(2)).or(any(), any());
+        verify(builder, times(4)).and(any(), any());
+        verify(builder, times(0)).and(
+            any(), any(), any(), any(), any(), any(), any());
+        verify(builder, times(0)).conjunction();
+    }
+
+    @Test
+    void shouldFilterByBeginAndEndTime() {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -207,46 +410,16 @@ public class RoleAssignmentFilterTest {
             inActiveRoles()
         );
 
-        // Classification as public
         Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
-    }
+        spec.toPredicate(root, query, builder);
 
-    @Test
-    void shouldFilterWhenRoleBeginAndEndTimeAreNotGiven() {
-        List<PermissionTypes> permissionsRequired = new ArrayList<>();
-        permissionsRequired.add(PermissionTypes.READ);
-
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-
-        roleAssignments.add(roleAssignment);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignments
-        );
-
-        // Classification as public
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse);
-        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
-        assertNotNull(spec);
-        assertNotNull(predicate);
+        verify(builder, times(0)).equal(any(), any());
+        verify(root, times(1)).join(anyString());
+        verify(builder, times(1)).or(any(), any());
+        verify(builder, times(0)).and(
+            any(), any(), any(), any(), any(), any(), any());
+        verify(builder, times(4)).or(any());
     }
 
 }
