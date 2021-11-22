@@ -177,7 +177,7 @@ pitest {
   threads = 10
   outputFormats = ['XML', 'HTML']
   timestampedReports = false
-  mutationThreshold = 88
+  mutationThreshold = 86
 }
 
 task tests {

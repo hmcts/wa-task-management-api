@@ -195,6 +195,7 @@ class TaskSearchControllerTest {
         assertNotNull(response.getBody());
         assertEquals(expectedResponse, response.getBody());
         assertEquals(emptyList(), response.getBody().getTasks());
+        assertEquals(0, response.getBody().getTasks().size());
 
     }
 
