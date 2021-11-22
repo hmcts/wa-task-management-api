@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -144,7 +143,6 @@ public class CftQueryService {
         return evaluateDmnResult.stream()
             .filter(result -> result.containsKey(TASK_TYPE.value()))
             .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
-            .filter(Objects::nonNull)
             .filter(StringUtils::hasText)
             .collect(Collectors.toList());
 
