@@ -126,11 +126,11 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         doNothing().when(camundaServiceApi).bpmnEscalation(any(), any(), any());
 
         mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(status().isNoContent());
 
         Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
@@ -180,6 +180,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             UNCONFIGURED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
+        taskResource.setCreated(OffsetDateTime.now());
         taskResourceRepository.save(taskResource);
     }
 

@@ -6,10 +6,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -88,6 +90,10 @@ public class CamundaHelpers {
 
     protected Map<String, CamundaVariable> createMockCamundaVariables() {
 
+        WarningValues warningValues = new WarningValues(
+            Arrays.asList(new Warning("123", "some warning"),
+                new Warning("456", "some more warning")));
+
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
@@ -104,6 +110,8 @@ public class CamundaHelpers {
         variables.put("appealType", new CamundaVariable("some_appealType", "String"));
         variables.put("autoAssigned", new CamundaVariable("false", "Boolean"));
         variables.put("assignee", new CamundaVariable("uid", "String"));
+        variables.put("hasWarnings", new CamundaVariable("true", "Boolean"));
+        variables.put("warningList", new CamundaVariable(warningValues, "WarningValues"));
         return variables;
     }
 

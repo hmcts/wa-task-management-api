@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,64 +12,85 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CFTWorkTypeDatabaseServiceTest extends CamundaHelpers {
+class CFTWorkTypeDatabaseServiceTest {
 
     @Mock
-    private WorkTypeResourceRepository workTypeResourceRepository;
+    WorkTypeResourceRepository workTypeResourceRepository;
 
     private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
+    private String workTypeId;
 
     @BeforeEach
     void setUp() {
-
         cftWorkTypeDatabaseService = new CFTWorkTypeDatabaseService(workTypeResourceRepository);
 
+        workTypeId = UUID.randomUUID().toString();
     }
 
     @Test
-    void findById_test() {
-        String workTypeId = "work_type_id";
+    void should_find_by_Id() {
+        WorkTypeResource workTypeResource = new WorkTypeResource("upper_tribunal", "Upper Tribunal");
+        WorkType expectedWorkType = new WorkType("upper_tribunal", "Upper Tribunal");
 
-        Optional<WorkTypeResource> optionalWorkTypeResource = Optional.of(createWorkTypeResource());
+        when(workTypeResourceRepository.findById(workTypeId)).thenReturn(Optional.of(workTypeResource));
 
-        when(workTypeResourceRepository.findById(workTypeId))
-            .thenReturn(optionalWorkTypeResource);
+        final Optional<WorkType> actualWorkTypeResource = cftWorkTypeDatabaseService.findById(workTypeId);
 
-        Optional<WorkType> actualWorkType =
-            cftWorkTypeDatabaseService.findById(workTypeId);
-
-        assertNotNull(actualWorkType);
-        assertTrue(actualWorkType.isPresent());
-        assertEquals("work_type_id", actualWorkType.get().getId());
-        assertEquals("work type label", actualWorkType.get().getLabel());
+        assertNotNull(actualWorkTypeResource);
+        assertEquals(expectedWorkType.getId(), actualWorkTypeResource.get().getId());
     }
 
     @Test
-    void getAllWorkTypes_test() {
+    void should_return_empty_if_no_work_type_found() {
+        final String someWorkTypeId = "someWorkTypeId";
+        when(workTypeResourceRepository.findById(someWorkTypeId)).thenReturn(Optional.empty());
+        final Optional<WorkType> actualWorkTypeResource = cftWorkTypeDatabaseService.findById(someWorkTypeId);
 
-        List<WorkTypeResource> workTypeResources = List.of(createWorkTypeResource());
-        when(workTypeResourceRepository.findAll())
-            .thenReturn(workTypeResources);
+        assertNotNull(actualWorkTypeResource);
+    }
 
-        List<WorkType> actualWorkTypes =
-            cftWorkTypeDatabaseService.getAllWorkTypes();
+    @Test
+    void getAllWorkTypes() {
+
+        final List<WorkTypeResource> workTypeResources = List.of(
+            new WorkTypeResource("hearing-work", "Hearing work"),
+            new WorkTypeResource("upper-tribunal", "Upper Tribunal"),
+            new WorkTypeResource("routine-work", "Routine work"),
+            new WorkTypeResource("decision-making-work", "Decision-making work"),
+            new WorkTypeResource("applications", "Applications"),
+            new WorkTypeResource("priority", "Priority"),
+            new WorkTypeResource("access-requests", "Access requests"),
+            new WorkTypeResource("error-management", "Error management"));
+
+        when(workTypeResourceRepository.findAll()).thenReturn(workTypeResources);
+
+        final List<WorkType> actualWorkTypes = cftWorkTypeDatabaseService.getAllWorkTypes();
+
+        List<WorkType> expectedWorkTypes = getAllExpectedWorkTypes();
 
         assertNotNull(actualWorkTypes);
-        assertEquals(1, actualWorkTypes.size());
-        assertEquals("work_type_id", actualWorkTypes.get(0).getId());
-        assertEquals("work type label", actualWorkTypes.get(0).getLabel());
-
+        assertThat(actualWorkTypes).isNotEmpty();
+        assertEquals(expectedWorkTypes.size(), actualWorkTypes.size());
     }
 
-    private WorkTypeResource createWorkTypeResource() {
-        return new WorkTypeResource("work_type_id", "work type label");
+    @NotNull
+    private List<WorkType> getAllExpectedWorkTypes() {
+        return List.of(
+            new WorkType("hearing-work", "Hearing work"),
+            new WorkType("upper-tribunal", "Upper Tribunal"),
+            new WorkType("routine-work", "Routine work"),
+            new WorkType("decision-making-work", "Decision-making work"),
+            new WorkType("applications", "Applications"),
+            new WorkType("priority", "Priority"),
+            new WorkType("access-requests", "Access requests"),
+            new WorkType("error-management", "Error management"));
     }
-
 }

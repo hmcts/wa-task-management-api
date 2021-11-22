@@ -6,105 +6,68 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
-import java.sql.SQLException;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CFTTaskDatabaseServiceTest extends CamundaHelpers {
+class CFTTaskDatabaseServiceTest {
 
     @Mock
-    private TaskResourceRepository taskResourceRepository;
+    TaskResourceRepository taskResourceRepository;
 
     private CFTTaskDatabaseService cftTaskDatabaseService;
-
     private String taskId;
-    private TaskResource taskResource;
 
     @BeforeEach
     void setUp() {
-
         cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
-        taskId = UUID.randomUUID().toString();
 
+        taskId = UUID.randomUUID().toString();
     }
 
     @Test
-    void findByIdAndObtainPessimisticWriteLock_test() {
+    void should_find_by_id_and_obtain_pessimistic_write_lock() {
+        TaskResource someTaskResource = mock(TaskResource.class);
 
-        Optional<TaskResource> optionalTaskResource = Optional.of(createTaskResource());
+        when(taskResourceRepository.findById(taskId)).thenReturn(Optional.of(someTaskResource));
 
-        when(taskResourceRepository.findById(taskId))
-            .thenReturn(optionalTaskResource);
-
-        Optional<TaskResource> actualTaskResource =
+        final Optional<TaskResource> actualTaskResource =
             cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId);
 
         assertNotNull(actualTaskResource);
         assertTrue(actualTaskResource.isPresent());
-
+        assertEquals(someTaskResource, actualTaskResource.get());
     }
 
     @Test
-    void findByIdOnly_test() {
+    void should_find_by_id_only() {
+        TaskResource someTaskResource = mock(TaskResource.class);
 
-        Optional<TaskResource> optionalTaskResource = Optional.of(createTaskResource());
+        when(taskResourceRepository.getByTaskId(taskId)).thenReturn(Optional.of(someTaskResource));
 
-        when(taskResourceRepository.getByTaskId(taskId))
-            .thenReturn(optionalTaskResource);
-
-        Optional<TaskResource> actualTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
+        final Optional<TaskResource> actualTaskResource = cftTaskDatabaseService.findByIdOnly(taskId);
 
         assertNotNull(actualTaskResource);
         assertTrue(actualTaskResource.isPresent());
-
+        assertEquals(someTaskResource, actualTaskResource.get());
     }
 
     @Test
-    void saveTask_test() {
+    void should_save_task() {
+        TaskResource someTaskResource = mock(TaskResource.class);
 
-        taskResource = createTaskResource();
+        when(taskResourceRepository.save(someTaskResource)).thenReturn(someTaskResource);
 
-        when(taskResourceRepository.save(taskResource))
-            .thenReturn(taskResource);
-
-        TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(taskResource);
+        final TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(someTaskResource);
 
         assertNotNull(actualTaskResource);
-
     }
-
-    @Test
-    void insertAndLock_test() throws SQLException {
-
-        taskResource = createTaskResource();
-
-        cftTaskDatabaseService.insertAndLock(taskId);
-
-        verify(taskResourceRepository, times(1)).insertAndLock(taskId);
-
-    }
-
-
-    private TaskResource createTaskResource() {
-
-        return new TaskResource(
-            UUID.randomUUID().toString(),
-            "someTaskName",
-            "someTaskType",
-            CFTTaskState.UNCONFIGURED,
-            "someCaseId"
-        );
-
-    }
-
 }

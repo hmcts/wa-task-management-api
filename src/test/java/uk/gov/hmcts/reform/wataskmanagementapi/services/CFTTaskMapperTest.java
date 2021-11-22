@@ -242,18 +242,6 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_map_cft_task_to_task_with_create_date_is_null() {
-
-        ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-        List<TaskAttribute> attributes = getDefaultAttributesWithWarnings(null, formattedDueDate);
-
-        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
-        assertNull(taskResource.getCreated());
-
-    }
-
-    @Test
     void should_map_configuration_attributes() {
         TaskResource skeletonTask = new TaskResource(
             taskId,
@@ -431,7 +419,7 @@ class CFTTaskMapperTest {
 
     @Test
     void should_map_configuration_attributes_with_different_permission_types() {
-        
+
         TaskResource skeletonTask = new TaskResource(
             taskId,
             "someCamundaTaskName",
@@ -677,7 +665,7 @@ class CFTTaskMapperTest {
     }
 
     @Test
-    void should_throw_exception_when_map_to_task_and_create_date_is_null() {
+    void should_default_created_date_when_not_provided() {
         String formattedCreatedDate = null;
         ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
@@ -685,11 +673,10 @@ class CFTTaskMapperTest {
         List<TaskAttribute> attributes = getDefaultAttributes(formattedCreatedDate, formattedDueDate);
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
-        assertNull(taskResource.getCreated());
+        assertNotNull(taskResource.getCreated());
         assertNotNull(taskResource.getDueDateTime());
 
-        assertThatThrownBy(() -> cftTaskMapper.mapToTask(taskResource))
-            .isInstanceOf(NullPointerException.class);
+        assertDoesNotThrow(() -> cftTaskMapper.mapToTask(taskResource));
     }
 
     @Test

@@ -1636,8 +1636,6 @@ class CamundaServiceTest extends CamundaHelpers {
             assertEquals("java.util.ArrayList", actualTask.getClass().getCanonicalName());
             assertEquals(1, actualTask.size());
             assertEquals(CONFIGURED.value(), actualTask.get(0).getTaskState());
-            assertNull(actualTask.get(0).getWarnings());
-            assertNull(actualTask.get(0).getWarningList());
 
         }
 
