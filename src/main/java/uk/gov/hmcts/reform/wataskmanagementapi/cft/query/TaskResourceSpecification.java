@@ -16,7 +16,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
@@ -89,7 +88,6 @@ public final class TaskResourceSpecification {
             final List<String> values = stateParam.getValues();
             if (!values.isEmpty()) {
                 cftTaskStates = values.stream()
-                    .filter(Objects::nonNull)
                     .filter(StringUtils::hasText)
                     .map(value -> CFTTaskState.valueOf(value.toUpperCase(Locale.ROOT)))
                     .collect(Collectors.toList());
