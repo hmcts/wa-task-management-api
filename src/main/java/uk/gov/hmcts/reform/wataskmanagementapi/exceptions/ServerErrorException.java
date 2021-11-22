@@ -10,10 +10,4 @@ public class ServerErrorException extends RuntimeException {
     ) {
         super(message, cause);
     }
-
-    public ServerErrorException(
-        String message
-    ) {
-        super(message);
-    }
 }

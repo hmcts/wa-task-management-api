@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -27,12 +26,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.extractCaseId;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.extractJurisdiction;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.extractLocation;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.extractState;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.extractUser;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.extractWorkType;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseIds;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
@@ -75,23 +68,6 @@ public class TaskQuerySpecificationTest {
     @Nested
     @DisplayName("searchByStates()")
     class SearchByStates {
-
-        @Test
-        void buildSpecificationWithEmptySearchParameters() {
-            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-
-            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
-            Specification<TaskResource> spec = extractState(searchTaskRequest);
-            Predicate predicate = spec.toPredicate(root, query, builder);
-
-            assertNotNull(predicate);
-
-            lenient().when(builder.conjunction()).thenReturn(null);
-            spec = extractState(searchTaskRequest);
-            predicate = spec.toPredicate(root, query, builder);
-
-            assertNull(predicate);
-        }
 
         @Test
         void buildSpecificationWhenColumnIsGiven() {
@@ -170,23 +146,6 @@ public class TaskQuerySpecificationTest {
     class SearchByJurisdictions {
 
         @Test
-        void buildSpecificationWithEmptySearchParameters() {
-            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-
-            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
-            Specification<TaskResource> spec = extractJurisdiction(searchTaskRequest);
-            Predicate predicate = spec.toPredicate(root, query, builder);
-
-            assertNotNull(predicate);
-
-            lenient().when(builder.conjunction()).thenReturn(null);
-            spec = extractState(searchTaskRequest);
-            predicate = spec.toPredicate(root, query, builder);
-
-            assertNull(predicate);
-        }
-
-        @Test
         void buildSpecificationWhenColumnIsGiven() {
             List<String> jurisdictions = List.of("IA");
             lenient().when(root.get(COLUMN_JURISDICTION)).thenReturn(path);
@@ -261,23 +220,6 @@ public class TaskQuerySpecificationTest {
     @Nested
     @DisplayName("searchByLocations()")
     class SearchByLocations {
-
-        @Test
-        void buildSpecificationWithEmptySearchParameters() {
-            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-
-            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
-            Specification<TaskResource> spec = extractLocation(searchTaskRequest);
-            Predicate predicate = spec.toPredicate(root, query, builder);
-
-            assertNotNull(predicate);
-
-            lenient().when(builder.conjunction()).thenReturn(null);
-            spec = extractState(searchTaskRequest);
-            predicate = spec.toPredicate(root, query, builder);
-
-            assertNull(predicate);
-        }
 
         @Test
         void buildSpecificationWhenColumnIsGiven() {
@@ -355,23 +297,6 @@ public class TaskQuerySpecificationTest {
     @Nested
     @DisplayName("searchByCaseIds()")
     class SearchByCaseIds {
-
-        @Test
-        void buildSpecificationWithEmptySearchParameters() {
-            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-
-            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
-            Specification<TaskResource> spec = extractCaseId(searchTaskRequest);
-            Predicate predicate = spec.toPredicate(root, query, builder);
-
-            assertNotNull(predicate);
-
-            lenient().when(builder.conjunction()).thenReturn(null);
-            spec = extractState(searchTaskRequest);
-            predicate = spec.toPredicate(root, query, builder);
-
-            assertNull(predicate);
-        }
 
         @Test
         void buildSpecificationWhenColumnIsGiven() {
@@ -480,23 +405,6 @@ public class TaskQuerySpecificationTest {
     @Nested
     @DisplayName("searchByUsers()")
     class SearchByUsers {
-
-        @Test
-        void buildSpecificationWithEmptySearchParameters() {
-            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-
-            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
-            Specification<TaskResource> spec = extractUser(searchTaskRequest);
-            Predicate predicate = spec.toPredicate(root, query, builder);
-
-            assertNotNull(predicate);
-
-            lenient().when(builder.conjunction()).thenReturn(null);
-            spec = extractState(searchTaskRequest);
-            predicate = spec.toPredicate(root, query, builder);
-
-            assertNull(predicate);
-        }
 
         @Test
         void buildSpecificationWhenColumnIsGiven() {
@@ -682,23 +590,6 @@ public class TaskQuerySpecificationTest {
     @Nested
     @DisplayName("searchByWorkTypes()")
     class SearchByWorkTypes {
-
-        @Test
-        void buildSpecificationWithEmptySearchParameters() {
-            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-
-            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
-            Specification<TaskResource> spec = extractWorkType(searchTaskRequest);
-            Predicate predicate = spec.toPredicate(root, query, builder);
-
-            assertNotNull(predicate);
-
-            lenient().when(builder.conjunction()).thenReturn(null);
-            spec = extractState(searchTaskRequest);
-            predicate = spec.toPredicate(root, query, builder);
-
-            assertNull(predicate);
-        }
 
         @Test
         void buildSpecificationWhenColumnIsGiven() {

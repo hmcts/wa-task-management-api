@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -144,7 +145,7 @@ public class CftQueryService {
             .filter(result -> result.containsKey(TASK_TYPE.value()))
             .map(result -> camundaService.getVariableValue(result.get(TASK_TYPE.value()), String.class))
             .filter(Objects::nonNull)
-            .filter(val -> val.trim().length() != 0)
+            .filter(StringUtils::hasText)
             .collect(Collectors.toList());
 
     }
