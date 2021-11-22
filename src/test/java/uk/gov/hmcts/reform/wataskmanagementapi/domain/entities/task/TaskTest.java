@@ -74,6 +74,7 @@ public class TaskTest {
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningCode()).isEqualTo("123");
         Assertions.assertThat(task.getWarningList().getValues().get(0).getWarningText()).isEqualTo("some warning");
         Assertions.assertThat(task.getCaseManagementCategory()).isEqualTo("some-case-management-category");
+        Assertions.assertThat(task.getAssignee()).isEqualTo("some-assignee");
         Assertions.assertThat(task.isAutoAssigned()).isTrue();
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.READ);
     }
@@ -92,7 +93,7 @@ public class TaskTest {
             "some-taskTitle",
             created,
             dueDate,
-            "some-assignee",
+            null,
             false,
             "some-executionType",
             "some-jurisdiction",
@@ -114,6 +115,7 @@ public class TaskTest {
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
+        Assertions.assertThat(task.getAssignee()).isNull();
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.OWN);
 
     }
