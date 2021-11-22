@@ -333,7 +333,7 @@ public class GivensBuilder {
 
         return processVariables.getProcessVariablesMap();
     }
-    
+
     public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("jurisdiction", "SCSS")
