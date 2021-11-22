@@ -25,6 +25,7 @@ import java.util.UUID;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
@@ -120,6 +121,27 @@ class WorkTypesServiceTest {
         List<WorkType> expectedResponse = asList(expectedWorkType1, expectedWorkType2);
         assertNotNull(response);
         assertEquals(expectedResponse, response);
+    }
+
+    @Test
+    void should_return_all_work_types() {
+
+        List<WorkType> expectedWorkTypes = List.of(
+            new WorkType("hearing-work", "Hearing work"),
+            new WorkType("upper-tribunal", "Upper Tribunal"),
+            new WorkType("routine-work", "Routine work"),
+            new WorkType("decision-making-work", "Decision-making work"),
+            new WorkType("applications", "Applications"),
+            new WorkType("priority", "Priority"),
+            new WorkType("access-requests", "Access requests"),
+            new WorkType("error-management", "Error management"));
+
+        when(cftWorkTypeDatabaseService.getAllWorkTypes()).thenReturn(expectedWorkTypes);
+
+        List<WorkType> actualWorkTypes = workTypesService.getAllWorkTypes();
+        assertNotNull(expectedWorkTypes);
+        assertEquals(expectedWorkTypes.size(), actualWorkTypes.size());
+        assertThat(actualWorkTypes).isNotEmpty();
     }
 
 
