@@ -59,8 +59,8 @@ class SearchParameterKeyTest {
     @ParameterizedTest
     @CsvSource(
         value = {
-            "''",      // empty
-            "' '",     // blank
+            "''",
+            "' '",
             "123",
             "null",
             "some-value"

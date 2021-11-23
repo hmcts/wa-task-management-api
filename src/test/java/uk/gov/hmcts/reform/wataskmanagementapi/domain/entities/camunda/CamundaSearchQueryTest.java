@@ -97,9 +97,9 @@ class CamundaSearchQueryTest {
     @ParameterizedTest
     @CsvSource(
         value = {
-            ",",       // null
-            "''",      // empty
-            "' '",     // blank
+            ",",
+            "''",
+            "' '",
             "123",
             "null",
             "some-value"
