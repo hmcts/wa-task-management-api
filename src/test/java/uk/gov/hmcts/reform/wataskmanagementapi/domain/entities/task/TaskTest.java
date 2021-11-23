@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 import static java.util.Collections.singleton;
 
-public class TaskTest {
+class TaskTest {
 
     ZonedDateTime created = ZonedDateTime.now();
     ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
