@@ -130,6 +130,7 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             UNCONFIGURED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
+        taskResource.setCreated(OffsetDateTime.now());
         taskResourceRepository.save(taskResource);
     }
 
@@ -164,11 +165,11 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             doNothing().when(camundaServiceApi).addLocalVariablesToTask(any(), any(), any());
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-            )
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                )
                 .andExpect(status().isNoContent());
 
             Optional<TaskResource> taskResource = taskResourceRepository.getByTaskId(taskId);
@@ -357,12 +358,12 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(new CompleteTaskRequest(null)))
-            )
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(asJsonString(new CompleteTaskRequest(null)))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
@@ -393,16 +394,16 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             doNothing().when(camundaServiceApi).completeTask(any(), any(), any());
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content("{\n"
-                             + "  \"completionOptions\": {\n"
-                             + "    \"assignAndComplete\": null\n"
-                             + "  }\n"
-                             + "}")
-            )
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\n"
+                                 + "  \"completionOptions\": {\n"
+                                 + "    \"assignAndComplete\": null\n"
+                                 + "  }\n"
+                                 + "}")
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
@@ -426,16 +427,16 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             doNothing().when(camundaServiceApi).completeTask(any(), any(), any());
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content("{\n"
-                             + "  \"completionOptions\": {\n"
-                             + "    \"anotherNonExistingProperty\": true\n"
-                             + "  }\n"
-                             + "}")
-            )
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\n"
+                                 + "  \"completionOptions\": {\n"
+                                 + "    \"anotherNonExistingProperty\": true\n"
+                                 + "  }\n"
+                                 + "}")
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
@@ -458,16 +459,16 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             doNothing().when(camundaServiceApi).completeTask(any(), any(), any());
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content("{\n"
-                             + "  \"completionOptions\": {\n"
-                             + "    \"assignAndComplete\": \"stringValue\"\n"
-                             + "  }\n"
-                             + "}")
-            )
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content("{\n"
+                                 + "  \"completionOptions\": {\n"
+                                 + "    \"assignAndComplete\": \"stringValue\"\n"
+                                 + "  }\n"
+                                 + "}")
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(
@@ -558,12 +559,12 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
             throws Exception {
 
             mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
-            )
+                    post(ENDPOINT_BEING_TESTED)
+                        .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                        .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(asJsonString(new CompleteTaskRequest(new CompletionOptions(true))))
+                )
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(
                     ResultMatcher.matchAll(

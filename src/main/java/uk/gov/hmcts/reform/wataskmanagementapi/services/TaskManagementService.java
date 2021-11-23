@@ -6,6 +6,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
@@ -21,6 +22,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -37,11 +40,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorE
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +62,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED;
@@ -116,7 +122,6 @@ public class TaskManagementService {
      */
     public Task getTask(String taskId, AccessControlResponse accessControlResponse) {
         List<PermissionTypes> permissionsRequired = singletonList(READ);
-        Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
 
         final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider
             .getBooleanValue(
@@ -127,6 +132,7 @@ public class TaskManagementService {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             return cftTaskMapper.mapToTask(taskResource);
         } else {
+            Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
             return camundaService.getMappedTask(taskId, variables);
         }
@@ -241,6 +247,7 @@ public class TaskManagementService {
         List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
         Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
+        String assigneeUserId = assigneeAccessControlResponse.getUserInfo().getUid();
 
         final boolean isRelease2EndpointsFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
@@ -261,11 +268,12 @@ public class TaskManagementService {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
+            task.setAssignee(assigneeUserId);
 
             //Perform Camunda updates
             camundaService.assignTask(
                 taskId,
-                assigneeAccessControlResponse.getUserInfo().getUid(),
+                assigneeUserId,
                 false);
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
@@ -287,7 +295,7 @@ public class TaskManagementService {
             boolean isTaskStateAssigned = TaskState.ASSIGNED.value().equals(taskState);
             camundaService.assignTask(
                 taskId,
-                assigneeAccessControlResponse.getUserInfo().getUid(),
+                assigneeUserId,
                 isTaskStateAssigned);
         }
     }
@@ -647,7 +655,12 @@ public class TaskManagementService {
      */
     @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
-        lockTaskId(taskId);
+        //Get DueDatetime or throw exception
+        List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
+
+        OffsetDateTime dueDate = extractDueDate(taskAttributes);
+
+        lockTaskId(taskId, dueDate);
         return initiateTaskProcess(taskId, initiateTaskRequest);
     }
 
@@ -657,12 +670,29 @@ public class TaskManagementService {
 
         final List<NoteResource> noteResources = notesRequest.getNoteResource();
 
-        noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+        if (taskResource.getNotes() == null) {
+            taskResource.setNotes(noteResources);
+        } else {
+            noteResources.forEach(noteResource -> taskResource.getNotes().add(noteResource));
+        }
         taskResource.setHasWarnings(true);
 
         return cftTaskDatabaseService.saveTask(taskResource);
     }
 
+    public Optional<TaskResource> getTaskById(String taskId) {
+        return cftTaskDatabaseService.findByIdOnly(taskId);
+    }
+
+    /**
+     * Retrieve task role information.
+     * This method retrieves role permission information for a given task.
+     * The task should have a read permission to retrieve role permission information.
+     *
+     * @param taskId        the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     * @return collection of roles
+     */
     public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
                                                             AccessControlResponse accessControlResponse) {
         final Optional<TaskResource> taskResource = getTaskById(taskId);
@@ -679,9 +709,33 @@ public class TaskManagementService {
             return emptyList();
         }
 
-        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
+        return taskResource.get().getTaskRoleResources().stream().map(
             cftTaskMapper::mapToTaskRolePermissions).collect(Collectors.toList()
         );
+    }
+
+    /**
+     * Helper method to extract the due date form the attributes this method.
+     * Also includes validation that may throw a CustomConstraintViolationException.
+     *
+     * @param taskAttributes the task attributes
+     * @return the due date
+     */
+    private OffsetDateTime extractDueDate(List<TaskAttribute> taskAttributes) {
+        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
+            .filter(attribute -> attribute != null && attribute.getValue() != null)
+            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
+
+        OffsetDateTime dueDate = cftTaskMapper.readDate(attributes, TASK_DUE_DATE, null);
+
+        if (dueDate == null) {
+            Violation violation = new Violation(
+                TASK_DUE_DATE.value(),
+                "Each task to initiate must contain task_due_date field present and populated."
+            );
+            throw new CustomConstraintViolationException(singletonList(violation));
+        }
+        return dueDate;
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
@@ -699,9 +753,9 @@ public class TaskManagementService {
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
-    private void lockTaskId(String taskId) {
+    private void lockTaskId(String taskId, OffsetDateTime dueDate) {
         try {
-            cftTaskDatabaseService.insertAndLock(taskId);
+            cftTaskDatabaseService.insertAndLock(taskId, dueDate);
         } catch (DataAccessException | SQLException e) {
             log.error("Error when inserting and locking the task(id={})", taskId, e);
             throw new DatabaseConflictException(ErrorMessages.DATABASE_CONFLICT_ERROR);
@@ -740,10 +794,6 @@ public class TaskManagementService {
     private TaskResource findByIdAndObtainLock(String taskId) {
         return cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
             .orElseThrow(() -> new ResourceNotFoundException("Resource not found"));
-    }
-
-    public Optional<TaskResource> getTaskById(String taskId) {
-        return cftTaskDatabaseService.findByIdOnly(taskId);
     }
 
     private boolean isTaskRequired(List<Map<String, CamundaVariable>> evaluateDmnResult, List<String> taskTypes) {

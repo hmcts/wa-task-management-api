@@ -60,18 +60,21 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     @Test
     void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed()
         throws InterruptedException {
+
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
         TaskResource taskResource = new TaskResource(
-            "some task id",
+            UUID.randomUUID().toString(),
             "some task name",
             "some task type",
             CFTTaskState.ASSIGNED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
+        OffsetDateTime created = OffsetDateTime.parse("2022-05-08T20:15:45.345875+01:00");
+        OffsetDateTime dueDate = OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00");
 
         executorService.execute(() -> {
-            taskResourceRepository.insertAndLock(taskResource.getTaskId());
+            taskResourceRepository.insertAndLock(taskResource.getTaskId(), created, dueDate);
             await().timeout(10, TimeUnit.SECONDS);
             taskResourceRepository.save(taskResource);
         });
@@ -84,7 +87,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
 
-        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId()));
+        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId(), created, dueDate));
         checkTaskWasSaved(taskResource.getTaskId());
         checkTaskWasSaved(otherTaskResource.getTaskId());
 

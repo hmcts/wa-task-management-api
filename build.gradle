@@ -168,7 +168,7 @@ jacocoTestReport {
 
 pitest {
   junit5PluginVersion = '0.12'
-  targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.*']
+  targetClasses = ['uk.gov.hmcts.reform.wataskmanagementapi.services.*']
   excludedClasses = [
     'uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.config.*',
     'uk.gov.hmcts.reform.wataskmanagementapi.config.*',

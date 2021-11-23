@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
@@ -77,13 +76,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass"})
 @Slf4j
 public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
 
-    @Autowired
     public CFTTaskMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -100,7 +98,7 @@ public class CFTTaskMapper {
         List<NoteResource> notes = extractWarningNotes(attributes);
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
-        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
+        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
 
@@ -184,11 +182,17 @@ public class CFTTaskMapper {
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
-        final List<String> authorisations = Stream.of(taskRoleResource.getAuthorizations())
-            .collect(Collectors.toList());
+        final String[] authorizations = taskRoleResource.getAuthorizations();
+        List<String> authorisations = new ArrayList<>();
+        if (authorizations.length > 0) {
+            authorisations = Stream.of(taskRoleResource.getAuthorizations())
+                .collect(Collectors.toList());
+        }
         List<PermissionTypes> permissionTypes = new ArrayList<>();
 
-        permissionTypes.add(PermissionTypes.READ);
+        if (taskRoleResource.getRead()) {
+            permissionTypes.add(PermissionTypes.READ);
+        }
         if (taskRoleResource.getExecute()) {
             permissionTypes.add(PermissionTypes.EXECUTE);
         }
@@ -200,6 +204,9 @@ public class CFTTaskMapper {
         }
         if (taskRoleResource.getOwn()) {
             permissionTypes.add(PermissionTypes.OWN);
+        }
+        if (taskRoleResource.getRefer()) {
+            permissionTypes.add(PermissionTypes.REFER);
         }
 
         return new TaskRolePermissions(
@@ -422,14 +429,14 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
+    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
                        TaskAttributeDefinition extractor,
                        Object defaultValue) {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
+    public  <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
                            TaskAttributeDefinition extractor,
                            Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);
