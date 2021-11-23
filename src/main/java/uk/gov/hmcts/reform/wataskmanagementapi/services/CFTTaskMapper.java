@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
@@ -83,7 +82,6 @@ public class CFTTaskMapper {
 
     private final ObjectMapper objectMapper;
 
-    @Autowired
     public CFTTaskMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
@@ -100,7 +98,7 @@ public class CFTTaskMapper {
         List<NoteResource> notes = extractWarningNotes(attributes);
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
-        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, null);
+        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
 
@@ -402,14 +400,14 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
+    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
                        TaskAttributeDefinition extractor,
                        Object defaultValue) {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
     @SuppressWarnings("unchecked")
-    private <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
+    public  <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
                            TaskAttributeDefinition extractor,
                            Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);

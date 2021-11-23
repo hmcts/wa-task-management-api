@@ -68,7 +68,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             authenticationHeaders
         );
 
-        result.prettyPrint();
         //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
@@ -194,6 +193,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("allocate Hearing Judge"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("case_id", equalTo(taskVariables.getCaseId()))
             .body("case_type_id", equalTo("Asylum"))
             .body("case_name", equalTo("Bob Smith"))
@@ -291,6 +292,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("arrange Offline Payment"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("case_id", equalTo(taskVariables.getCaseId()))
             .body("case_type_id", equalTo("Asylum"))
             .body("case_name", equalTo("Bob Smith"))
@@ -374,7 +377,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             authenticationHeaders
         );
 
-        result.prettyPrint();
+        //Note: this is the TaskResource.class
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
@@ -385,6 +388,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
             .body("title", equalTo("follow Up Overdue Reasons For Appeal"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
@@ -471,20 +476,6 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         common.cleanUpTask(taskId);
     }
 
-    private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
-        expectedPermissions.keySet().forEach(key ->
-                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
-
-        assertThat(resource.get("task_role_id")).isNotNull();
-    }
-
-    private Map<String, Object> getTaskResource(Response result, String roleName) {
-        final List<Map<String, Object>> resources = new JsonPath(result.getBody().asString())
-            .param("roleName", roleName)
-            .get("task_role_resources.findAll { resource -> resource.role_name == roleName }");
-        return resources.get(0);
-    }
-
     @Test
     public void should_return_a_201_when_initiating_a_default_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -525,6 +516,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("title", equalTo("aTaskName"))
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
             .body("case_id", equalTo(taskVariables.getCaseId()))
             .body("case_type_id", equalTo("Asylum"))
             .body("case_name", equalTo("Bob Smith"))
@@ -623,6 +616,42 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
+    public void should_return_a_400_if_no_due_date() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_CASE_ID, taskId)
+        ));
+        //First call
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(400))
+            .body("violations[0].field", equalTo("task_due_date"))
+            .body("violations[0].message",
+                equalTo("Each task to initiate must contain task_due_date field present and populated."));
+    }
+
+    @Test
     public void should_return_a_500_if_no_case_id() {
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -713,6 +742,20 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE);
+    }
+
+    private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
+        expectedPermissions.keySet().forEach(key ->
+                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+
+        assertThat(resource.get("task_role_id")).isNotNull();
+    }
+
+    private Map<String, Object> getTaskResource(Response result, String roleName) {
+        final List<Map<String, Object>> resources = new JsonPath(result.getBody().asString())
+            .param("roleName", roleName)
+            .get("task_role_resources.findAll { resource -> resource.role_name == roleName }");
+        return resources.size() > 0 ? resources.get(0) : null;
     }
 }
 

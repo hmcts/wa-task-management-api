@@ -37,8 +37,8 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
             "someTaskType",
             UNCONFIGURED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
-            );
-
+        );
+        taskResource.setCreated(OffsetDateTime.now());
         TaskResource updatedTaskResource = cftTaskDatabaseService.saveTask(taskResource);
         assertNotNull(updatedTaskResource);
         assertEquals(taskId, updatedTaskResource.getTaskId());
@@ -87,7 +87,7 @@ class CFTTaskDatabaseServiceTest extends SpringBootIntegrationBaseTest {
             UNCONFIGURED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
-
+        taskResource.setCreated(OffsetDateTime.now());
         return taskResourceRepository.save(taskResource);
     }
 

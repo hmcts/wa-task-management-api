@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -44,6 +46,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.Config
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.sql.SQLException;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +66,8 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -79,8 +84,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
 
 @ExtendWith(MockitoExtension.class)
@@ -98,8 +105,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     PermissionEvaluatorService permissionEvaluatorService;
     @Mock
     CFTTaskDatabaseService cftTaskDatabaseService;
-    @Mock
-    CFTTaskMapper cftTaskMapper;
+    @Spy
+    CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
@@ -245,7 +252,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
-            when(cftTaskMapper.mapToTask(taskResource)).thenReturn(mockedMappedTask);
+
+            doReturn(mockedMappedTask)
+                .when(cftTaskMapper).mapToTask(taskResource);
 
             Task response = taskManagementService.getTask(taskId, accessControlResponse);
 
@@ -2626,12 +2635,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("initiateTask()")
     class InitiateTask {
-
+        ZonedDateTime dueDate = ZonedDateTime.now();
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
         private final InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(
             INITIATION,
             asList(
                 new TaskAttribute(TASK_TYPE, A_TASK_TYPE),
-                new TaskAttribute(TASK_NAME, A_TASK_NAME)
+                new TaskAttribute(TASK_NAME, A_TASK_NAME),
+                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
             )
         );
         @Mock
@@ -2641,7 +2652,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         void given_some_error_other_than_DataAccessException_when_requiring_lock_then_throw_500_error()
             throws SQLException {
             doThrow(new RuntimeException("some unexpected error"))
-                .when(cftTaskDatabaseService).insertAndLock(anyString());
+                .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
 
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(RuntimeException.class);
@@ -2649,21 +2660,21 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
         @Test
         void given_some_error_when_initiateTaskProcess_then_throw_500_error() {
-            when(cftTaskMapper.mapToTaskResource(anyString(), anyList()))
-                .thenThrow(new RuntimeException("some unexpected error"));
+            when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+            doThrow(new RuntimeException("some unexpected error"))
+                .when(cftTaskMapper).mapToTaskResource(anyString(), anyList());
 
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(GenericServerErrorException.class)
                 .hasMessage("Generic Server Error: The action could not be completed "
                             + "because there was a problem when initiating the task.");
-
         }
 
         @Test
         void given_DataAccessException_when_initiate_task_then_throw_503_error() throws SQLException {
             String msg = "duplicate key value violates unique constraint \"tasks_pkey\"";
             doThrow(new DataIntegrityViolationException(msg))
-                .when(cftTaskDatabaseService).insertAndLock(anyString());
+                .when(cftTaskDatabaseService).insertAndLock(anyString(), any());
 
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(DatabaseConflictException.class)
@@ -2681,7 +2692,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         private void verifyExpectations(CFTTaskState cftTaskState) {
-            verify(cftTaskMapper).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+            verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
 
             verify(configureTaskService).configureCFTTask(
                 eq(taskResource),
@@ -2708,6 +2719,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         private void mockInitiateTaskDependencies(CFTTaskState cftTaskState) {
+            when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
             when(cftTaskMapper.mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes()))
                 .thenReturn(taskResource);
 
