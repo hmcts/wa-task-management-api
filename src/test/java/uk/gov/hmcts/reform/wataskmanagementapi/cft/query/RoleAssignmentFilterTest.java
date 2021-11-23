@@ -401,6 +401,51 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
+    void buildQueryForInvalidClassification() {
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(Classification.UNKNOWN)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
+
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+        lenient().when(root.get("securityClassification")).thenReturn(null);
+        lenient().when(taskRoleResources.get("roleName")).thenReturn(pathObject);
+        lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
+        lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
+
+        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse);
+        spec.toPredicate(root, query, builder);
+
+        verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
+        verify(builder, times(1)).equal(pathObject, new String[]{});
+
+        verify(root, times(1)).join(anyString());
+        verify(root, times(1)).get(anyString());
+        verify(pathObject, times(1)).isNull();
+        verify(builder, times(1)).in(any());
+        verify(builder, times(4)).or(any());
+        verify(builder, times(2)).or(any(), any());
+        verify(builder, times(4)).and(any(), any());
+        verify(builder, times(0)).and(
+            any(), any(), any(), any(), any(), any(), any());
+        verify(builder, times(0)).conjunction();
+    }
+
+    @Test
     void shouldFilterByBeginAndEndTime() {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);

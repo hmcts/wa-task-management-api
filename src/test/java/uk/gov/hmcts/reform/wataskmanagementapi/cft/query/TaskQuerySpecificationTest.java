@@ -20,7 +20,6 @@ import javax.persistence.criteria.Root;
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -606,27 +605,6 @@ public class TaskQuerySpecificationTest {
             verify(builder, never()).conjunction();
             verify(root, times(1)).get(COLUMN_WORK_TYPE);
             verify(builder, times(1)).in(any());
-        }
-
-        @Test
-        void buildSpecificationWhenColumnIsNull() {
-            List<String> workTypes = List.of("routine_work");
-
-            assertThrows(NullPointerException.class, () -> {
-                lenient().when(root.get(COLUMN_WORK_TYPE)).thenReturn(null);
-                Specification<TaskResource> spec = searchByWorkType(workTypes);
-                Predicate predicate = spec.toPredicate(root, query, builder);
-
-                assertNull(predicate);
-            });
-
-            assertThrows(NullPointerException.class, () -> {
-                lenient().when(root.get(COLUMN_WORK_TYPE).get(COLUMN_WORK_TYPE_ID)).thenReturn(null);
-                Specification<TaskResource> spec = searchByWorkType(workTypes);
-                Predicate predicate = spec.toPredicate(root, query, builder);
-
-                assertNull(predicate);
-            });
         }
 
         @Test

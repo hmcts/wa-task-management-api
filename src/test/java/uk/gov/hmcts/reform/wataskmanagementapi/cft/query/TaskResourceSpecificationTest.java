@@ -136,7 +136,7 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildTaskQueryWithStateAsNull() {
+    void shouldBuildTaskQueryWithNullConditions() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(STATE, SearchOperator.IN, singletonList(null))
         ));
@@ -146,7 +146,6 @@ public class TaskResourceSpecificationTest {
         );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
-
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
@@ -160,6 +159,26 @@ public class TaskResourceSpecificationTest {
 
         verify(criteriaBuilder, times(1)).in(any());
         verify(criteriaBuilder, times(6)).conjunction();
+
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(STATE, SearchOperator.IN, emptyList())
+        ));
+
+        spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        spec = TaskResourceSpecification.buildTaskQuery(
+            null, accessControlResponse, permissionsRequired
+        );
+
+        predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
     }
 
 
