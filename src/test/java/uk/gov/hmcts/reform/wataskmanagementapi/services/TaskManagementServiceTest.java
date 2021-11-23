@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -33,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -48,6 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -57,6 +60,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -66,6 +70,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -2983,5 +2988,71 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
     }
 
+    @Nested
+    @DisplayName("getTaskRolePermissions()")
+    class GetTaskRolePermissions {
+
+        private final TaskRolePermissions mockedMappedTask = mock(TaskRolePermissions.class);
+
+        @Test
+        void should_succeed() {
+            String taskId = "taskId";
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            TaskResource taskResource = spy(TaskResource.class);
+            TaskRoleResource taskRoleResource = spy(TaskRoleResource.class);
+
+            Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+            when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.of(taskResource));
+            when(cftTaskMapper.mapToTaskRolePermissions(any())).thenReturn(mockedMappedTask);
+
+            final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
+                taskId, accessControlResponse);
+
+            assertNotNull(taskRolePermissions);
+            assertFalse(taskRolePermissions.isEmpty());
+
+            verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
+            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
+            verify(cftTaskMapper, times(1)).mapToTaskRolePermissions(any());
+        }
+
+        @Test
+        void should_return_empty_task_role_permissions() {
+            String taskId = "taskId";
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            TaskResource taskResource = spy(TaskResource.class);
+            TaskRoleResource taskRoleResource = spy(TaskRoleResource.class);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
+
+            final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
+                taskId, accessControlResponse);
+
+            assertNotNull(taskRolePermissions);
+            assertTrue(taskRolePermissions.isEmpty());
+
+            verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
+            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
+            verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
+        }
+
+        @Test
+        void should_throw_task_not_found_exception() {
+            String taskId = "taskId";
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
+
+            assertThrows(TaskNotFoundException.class, () -> taskManagementService.getTaskRolePermissions(
+                taskId, accessControlResponse));
+
+            verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
+            verify(cftTaskDatabaseService, never()).findTaskBySpecification(any());
+            verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
+        }
+    }
 
 }

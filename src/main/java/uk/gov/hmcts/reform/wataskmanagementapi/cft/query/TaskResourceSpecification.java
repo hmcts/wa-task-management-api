@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildQueryToRetrieveRoleInformation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
@@ -58,6 +59,13 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 
+    public static Specification<TaskResource> buildTaskRolePermissionsQuery(
+        String taskId,
+        AccessControlResponse accessControlResponse) {
+
+        return searchByTaskId(taskId)
+            .and(buildQueryToRetrieveRoleInformation(accessControlResponse));
+    }
 
     public static Specification<TaskResource> buildQueryForCompletable(
         SearchEventAndCase searchEventAndCase, AccessControlResponse accessControlResponse,

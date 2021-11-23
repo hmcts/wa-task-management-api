@@ -53,6 +53,8 @@ public class RoleAssignmentFilterTest {
     CriteriaBuilder.In<Object> values;
     @Mock
     Path<Object> authorizations;
+    @Mock
+    Path<Object> objectPath;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -244,6 +246,21 @@ public class RoleAssignmentFilterTest {
         // Classification as public
         Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse);
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+    @Test
+    void buildQueryToRetrieveRoleInformation() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(PUBLIC)
+        );
+        //when(taskRoleResources.get("roleName")).thenReturn(objectPath);
+        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse);
+
         Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
         assertNotNull(predicate);

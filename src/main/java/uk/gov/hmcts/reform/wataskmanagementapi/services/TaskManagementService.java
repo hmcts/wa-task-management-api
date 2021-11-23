@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -14,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceSpecification;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -27,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -658,6 +661,27 @@ public class TaskManagementService {
         taskResource.setHasWarnings(true);
 
         return cftTaskDatabaseService.saveTask(taskResource);
+    }
+
+    public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
+                                                            AccessControlResponse accessControlResponse) {
+        final Optional<TaskResource> taskResource = getTaskById(taskId);
+        if (taskResource.isEmpty()) {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+        }
+        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
+
+        final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
+            taskResourceSpecification);
+
+        if (taskResourceQueryResult.isEmpty()) {
+            return emptyList();
+        }
+
+        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
+            cftTaskMapper::mapToTaskRolePermissions).collect(Collectors.toList()
+        );
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")

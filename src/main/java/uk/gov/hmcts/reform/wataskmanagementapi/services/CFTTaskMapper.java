@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -38,6 +39,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
@@ -179,6 +181,32 @@ public class CFTTaskMapper {
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
             new TaskPermissions(permissionsUnion)
         );
+    }
+
+    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
+        final List<String> authorisations = Stream.of(taskRoleResource.getAuthorizations())
+            .collect(Collectors.toList());
+        List<PermissionTypes> permissionTypes = new ArrayList<>();
+
+        permissionTypes.add(PermissionTypes.READ);
+        if (taskRoleResource.getExecute()) {
+            permissionTypes.add(PermissionTypes.EXECUTE);
+        }
+        if (taskRoleResource.getCancel()) {
+            permissionTypes.add(PermissionTypes.CANCEL);
+        }
+        if (taskRoleResource.getManage()) {
+            permissionTypes.add(PermissionTypes.MANAGE);
+        }
+        if (taskRoleResource.getOwn()) {
+            permissionTypes.add(PermissionTypes.OWN);
+        }
+
+        return new TaskRolePermissions(
+            taskRoleResource.getRoleCategory(),
+            taskRoleResource.getRoleName(),
+            permissionTypes,
+            authorisations);
     }
 
     private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
@@ -423,5 +451,6 @@ public class CFTTaskMapper {
 
         return value == null ? Optional.empty() : Optional.of((T) value);
     }
+
 }
 
