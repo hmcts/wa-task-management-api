@@ -178,7 +178,7 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
     @Test
-    void should_assign_task_to_highest_prioritised_user_when_2_role_assignment_set_to_task() {
+    void should_assign_task_to_highest_priority_user_when_more_than_one_role_assignments_set_to_a_task() {
         TaskResource taskResource = createTaskResource();
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -237,7 +237,7 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
     @Test
-    void should_task_assignee_null_even_if_taskResource_has_an_assignee() {
+    void should_return_task_assignee_null_when_authorisation_is_different() {
         TaskResource taskResource = createTaskResource();
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();

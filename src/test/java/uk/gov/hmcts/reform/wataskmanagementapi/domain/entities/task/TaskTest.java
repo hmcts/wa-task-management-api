@@ -81,7 +81,7 @@ public class TaskTest {
 
 
     @Test
-    void should_create_task_and_get_values_when_autoAssigned_false_and_permission_own() {
+    void should_create_task_and_get_values_when_autoAssigned_is_false_and_permission_own() {
 
         Task task = new Task(
             "some-id",

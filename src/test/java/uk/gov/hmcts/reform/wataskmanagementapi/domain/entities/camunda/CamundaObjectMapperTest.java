@@ -81,7 +81,7 @@ class CamundaObjectMapperTest {
     }
 
     @Test
-    void given_snake_case_initiate_body_request_when_deserializes_it_keeps_attribute_list_and_operation_fields() {
+    void read_value_method_should_return_correct_attributes() {
 
         String expectedCamundaVariable = "{\n"
                                          + "    \"value\": \"assigned\",\n"

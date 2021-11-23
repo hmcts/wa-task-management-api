@@ -50,7 +50,7 @@ class SearchParameterKeyTest {
             "WORK_TYPE, work_type"
         }
     )
-    public void should_return_id_when_toString_method_called(String input, String expected) {
+    public void should_return_id_when_toString_method_is_called(String input, String expected) {
 
         assertEquals(expected, SearchParameterKey.valueOf(input).toString());
 

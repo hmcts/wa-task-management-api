@@ -177,7 +177,7 @@ class TaskConfigurationCamundaServiceTest {
     }
 
     @Test
-    void should_call_updateTaskStateTo_method_when_assign_a_task_and_task_never_assigned() {
+    void should_call_updateTaskStateTo_method_when_for_never_assigned_task() {
         final String assigneeId = randomUUID().toString();
 
         when(authTokenGenerator.generate()).thenReturn(serviceTokenId);

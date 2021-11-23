@@ -1592,7 +1592,7 @@ class CamundaServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_return_null_when_variable_not_exist() {
+        void should_return_null_when_variable_not_found() {
 
             Map<String, CamundaVariable> mockedVariables = new HashMap<>();
             mockedVariables.put("caseId", new CamundaVariable("00000", "String"));
@@ -1610,18 +1610,25 @@ class CamundaServiceTest extends CamundaHelpers {
     @DisplayName("performSearchAction()")
     class PerformSearchAction {
 
+        List<CamundaTask> camundaTasks;
+        List<RoleAssignment> roleAssignment;
+        List<PermissionTypes> permissionsRequired;
+        AccessControlResponse accessControlResponse;
+
+        @BeforeEach
+        void setup() {
+
+            camundaTasks = List.of(createMockedUnmappedTask());
+            roleAssignment = singletonList(mock(RoleAssignment.class));
+            permissionsRequired = singletonList(READ);
+            accessControlResponse = new AccessControlResponse(mock(UserInfo.class), roleAssignment);
+
+        }
+
         @Test
         void should_return_task_list() {
+
             mockCamundaGetAllVariables();
-
-            List<CamundaTask> camundaTasks = List.of(createMockedUnmappedTask());
-
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-
-            final AccessControlResponse accessControlResponse =
-                new AccessControlResponse(mock(UserInfo.class), roleAssignment);
-
-            final List<PermissionTypes> permissionsRequired = singletonList(READ);
 
             when(permissionEvaluatorService.hasAccess(
                 anyMap(),
@@ -1641,17 +1648,9 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_return_task_list_with_warnings() {
+
             String taskId = "someCamundaTaskId";
             mockCamundaGetAllVariablesWithWarning(taskId);
-
-            List<CamundaTask> camundaTasks = List.of(createMockedUnmappedTask());
-
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-
-            final AccessControlResponse accessControlResponse =
-                new AccessControlResponse(mock(UserInfo.class), roleAssignment);
-
-            final List<PermissionTypes> permissionsRequired = singletonList(READ);
 
             when(permissionEvaluatorService.hasAccess(
                 anyMap(),
@@ -1673,17 +1672,9 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_return_task_list_with_warnings_permission_is_false() {
+
             String taskId = "someCamundaTaskId";
             mockCamundaGetAllVariablesWithWarning(taskId);
-
-            List<CamundaTask> camundaTasks = List.of(createMockedUnmappedTask());
-
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-
-            final AccessControlResponse accessControlResponse =
-                new AccessControlResponse(mock(UserInfo.class), roleAssignment);
-
-            final List<PermissionTypes> permissionsRequired = singletonList(READ);
 
             when(permissionEvaluatorService.hasAccess(
                 anyMap(),
@@ -1701,17 +1692,8 @@ class CamundaServiceTest extends CamundaHelpers {
 
         @Test
         void should_return_task_list_with_warnings_and_taskId_is_null() {
+
             mockCamundaGetAllVariablesWithWarning(null);
-
-
-            List<CamundaTask> camundaTasks = List.of(createMockedUnmappedTask());
-
-            List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
-
-            final AccessControlResponse accessControlResponse =
-                new AccessControlResponse(mock(UserInfo.class), roleAssignment);
-
-            final List<PermissionTypes> permissionsRequired = singletonList(READ);
 
             when(permissionEvaluatorService.hasAccess(
                 anyMap(),

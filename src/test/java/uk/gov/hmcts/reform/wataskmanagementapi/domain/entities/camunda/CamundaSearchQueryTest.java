@@ -105,7 +105,7 @@ class CamundaSearchQueryTest {
             "some-value"
         }
     )
-    void should_throw_exception_when_invalid_input_entered(String input) {
+    void should_throw_exception_when_invalid_input_given(String input) {
 
         assertThatThrownBy(() -> CamundaOperator.from(input))
             .isInstanceOf(IllegalArgumentException.class)

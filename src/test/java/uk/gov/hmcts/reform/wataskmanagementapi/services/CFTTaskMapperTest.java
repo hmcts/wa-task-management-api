@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,13 +37,13 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -743,7 +742,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getDueDate());
         assertNotNull(task.getCreatedDate());
         assertNotNull(task.getPermissions());
-        Assertions.assertTrue(task.getPermissions().getValues().isEmpty());
+        assertTrue(task.getPermissions().getValues().isEmpty());
     }
 
     @Test
@@ -792,7 +791,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getDueDate());
         assertNotNull(task.getCreatedDate());
         assertNotNull(task.getPermissions());
-        Assertions.assertFalse(task.getPermissions().getValues().isEmpty());
+        assertFalse(task.getPermissions().getValues().isEmpty());
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.READ));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.OWN));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.MANAGE));
