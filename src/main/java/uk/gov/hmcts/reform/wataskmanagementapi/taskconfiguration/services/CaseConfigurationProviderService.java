@@ -3,11 +3,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
@@ -29,44 +26,49 @@ public class CaseConfigurationProviderService {
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
-    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Autowired
     public CaseConfigurationProviderService(CcdDataService ccdDataService,
                                             DmnEvaluationService dmnEvaluationService,
-                                            ObjectMapper objectMapper,
-                                            LaunchDarklyFeatureFlagProvider featureFlagProvider) {
+                                            ObjectMapper objectMapper) {
         this.ccdDataService = ccdDataService;
         this.dmnEvaluationService = dmnEvaluationService;
         this.objectMapper = objectMapper;
-        this.featureFlagProvider = featureFlagProvider;
     }
 
     /**
      * Obtains a list of process variables that are related to the ccd case data.
      *
-     * @param caseId     the ccd case id
-     * @param taskTypeId some task type
+     * @param caseId         the ccd case id
+     * @param taskAttributes taskAttributes
      * @return a map with the process variables configuration
      */
-    public TaskConfigurationResults getCaseRelatedConfiguration(String caseId, String taskTypeId) {
+    public TaskConfigurationResults getCaseRelatedConfiguration(String caseId, Map<String, Object> taskAttributes) {
         // Obtain case from ccd
         CaseDetails caseDetails = ccdDataService.getCaseData(caseId);
 
         String jurisdiction = caseDetails.getJurisdiction();
         String caseType = caseDetails.getCaseType();
 
-        String caseDataString = extractCaseDataAsString(caseDetails.getData());
+        String caseDataString = writeValueAsString(caseDetails.getData());
+        String taskAttributesString = writeValueAsString(taskAttributes);
 
         // Evaluate Dmns
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
-            dmnEvaluationService.evaluateTaskConfigurationDmn(jurisdiction,
+            dmnEvaluationService.evaluateTaskConfigurationDmn(
+                jurisdiction,
                 caseType,
                 caseDataString,
-                getTaskTypeBasedOnReleaseVersion(taskTypeId));
+                taskAttributesString
+            );
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
-            dmnEvaluationService.evaluateTaskPermissionsDmn(jurisdiction, caseType, caseDataString);
+            dmnEvaluationService.evaluateTaskPermissionsDmn(
+                jurisdiction,
+                caseType,
+                caseDataString,
+                taskAttributesString
+            );
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
             taskConfigurationDmnResults,
@@ -84,16 +86,6 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResults,
             permissionsDmnResults
         );
-    }
-
-    private String getTaskTypeBasedOnReleaseVersion(String taskTypeId) {
-        boolean isR2On = featureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            StringUtils.EMPTY,
-            StringUtils.EMPTY);
-        if (isR2On) {
-            return taskTypeId;
-        }
-        return StringUtils.EMPTY;
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
@@ -120,7 +112,7 @@ public class CaseConfigurationProviderService {
         return caseConfigurationVariables;
     }
 
-    private String extractCaseDataAsString(Map<String, Object> data) {
+    private String writeValueAsString(Map<String, Object> data) {
         try {
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {

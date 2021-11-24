@@ -47,7 +47,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo(TerminateReason.CANCELLED)
@@ -74,7 +74,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo(TerminateReason.COMPLETED)
@@ -159,7 +159,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -179,7 +179,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
