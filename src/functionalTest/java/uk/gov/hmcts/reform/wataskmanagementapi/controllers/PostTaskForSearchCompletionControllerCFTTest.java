@@ -93,7 +93,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks.size()", equalTo(1))
-            .body("tasks[0].type", equalTo("processApplication"));
+            .body("tasks[0].type", equalTo("processApplication"))
+            .body("tasks[0].work_type_id", equalTo("applications"));
 
         common.cleanUpTask(processApplicationTaskVariables.getTaskId());
     }

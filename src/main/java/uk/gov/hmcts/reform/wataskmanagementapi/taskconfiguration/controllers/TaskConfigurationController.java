@@ -89,7 +89,8 @@ public class TaskConfigurationController {
                     taskId,
                     taskTypeId,
                     caseId,
-                    taskName
+                    taskName,
+                    null
                 )
             );
 
