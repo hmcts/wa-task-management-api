@@ -53,7 +53,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -160,7 +160,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "task-supervisor");
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -265,8 +265,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
             .getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-        common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -291,7 +291,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     }
 
     @Test
-    public void should_return_a_204_when_unclaiming_a_task_by_id_with_different_senior_tcw_credentials() {
+    public void should_return_a_forbidden_when_unclaiming_a_task_by_id_with_different_tcw_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
@@ -321,8 +321,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
             .getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-        common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "senior-tribunal-caseworker");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -336,8 +336,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-        assertions.taskStateWasUpdatedinDatabase(taskId, "unassigned", authenticationHeaders);
+            .statusCode(HttpStatus.FORBIDDEN.value());
 
         common.cleanUpTask(taskId);
     }
@@ -406,7 +405,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
     private TestVariables setupScenario() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         return taskVariables;
     }
 

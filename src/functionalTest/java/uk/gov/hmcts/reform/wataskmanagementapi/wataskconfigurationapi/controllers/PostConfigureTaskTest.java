@@ -63,7 +63,6 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("taskType.value", is(taskTypeId))
-            .body("workType.value", is("decision_making_work"))
             .body("caseName.value", is("Bob Smith"))
             .body("appealType.value", is("Protection"))
             .body("region.value", is("1"))
@@ -120,8 +119,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .body("jurisdiction.value", is("IA"))
             .body("caseTypeId.value", is("Asylum"))
             .body("title.value", is("task name"))
-            .body("tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"))
-            .body("senior-tribunal-caseworker.value", is("Read,Refer,Own,Manage,Cancel"));
+            .body("task-supervisor.value", is("Read,Refer,Manage,Cancel"));
     }
 
 }
