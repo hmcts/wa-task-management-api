@@ -71,17 +71,17 @@ public class CftQueryServiceITTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource({
-        "grantTypeBasicScenarioHappyPath",
-        "grantTypeSpecificScenarioHappyPath",
-        "grantTypeStandardScenarioHappyPath",
-        "grantTypeChallengedScenarioHappyPath",
-        "grantTypeWithStandardAndExcludedScenarioHappyPath",
-        "grantTypeWithChallengedAndExcludedScenarioHappyPath",
-        "grantTypeWithAvailableTasksOnlyScenarioHappyPath",
-        "withAllGrantTypesHappyPath",
-        "inActiveRole",
-        "sortByFieldScenario",
-        "paginatedResultsScenario"
+//        "grantTypeBasicScenarioHappyPath",
+//        "grantTypeSpecificScenarioHappyPath",
+//        "grantTypeStandardScenarioHappyPath",
+//        "grantTypeChallengedScenarioHappyPath",
+//        "grantTypeWithStandardAndExcludedScenarioHappyPath",
+//        "grantTypeWithChallengedAndExcludedScenarioHappyPath",
+        "grantTypeWithAvailableTasksOnlyScenarioHappyPath"
+//        "withAllGrantTypesHappyPath",
+//        "inActiveRole",
+//        "sortByFieldScenario",
+//        "paginatedResultsScenario"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         //given
@@ -828,10 +828,10 @@ public class CftQueryServiceITTest {
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("excluded_grant_type_with_classification_as_public")
+            .scenarioName("available_tasks_only")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeChallengedAndExcluded(Classification.PUBLIC))
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
@@ -840,10 +840,10 @@ public class CftQueryServiceITTest {
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("excluded_grant_type_with_classification_as_private")
+            .scenarioName("available_tasks_only")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeChallengedAndExcluded(Classification.PRIVATE))
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
@@ -856,7 +856,7 @@ public class CftQueryServiceITTest {
             .scenarioName("excluded_grant_type_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeStandardAndExcluded(Classification.RESTRICTED))
+            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(4)
             .expectedTaskDetails(Lists.newArrayList(
@@ -868,9 +868,9 @@ public class CftQueryServiceITTest {
             ).build();
 
         return Stream.of(
-            publicClassification,
-            privateClassification,
-            restrictedClassification
+            publicClassification
+//            privateClassification,
+//            restrictedClassification
         );
     }
 
@@ -1180,7 +1180,7 @@ public class CftQueryServiceITTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "SCSS",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")

@@ -457,7 +457,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned"))
         ));
 
         Response result = restApiActions.post(
