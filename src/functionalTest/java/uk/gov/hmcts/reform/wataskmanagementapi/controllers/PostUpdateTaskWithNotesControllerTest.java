@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -78,6 +79,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             .body("detail", equalTo("Task Not Found Error: The task could not be found."));
     }
 
+    @Ignore
     @Test
     @Disabled("Need to investigate the content type not being set")
     public void should_return_a_400_when_the_notes_are_not_provided() {
@@ -105,6 +107,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Test
     @Disabled("Need to investigate the content type not being set")
     public void should_return_a_400_when_the_notes_is_empty() {
