@@ -78,7 +78,6 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             .body("detail", equalTo("Task Not Found Error: The task could not be found."));
     }
 
-    @Ignore
     @Test
     @Ignore("Need to investigate the content type not being set")
     public void should_return_a_400_when_the_notes_are_not_provided() {
@@ -106,7 +105,6 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
     @Test
     @Ignore("Need to investigate the content type not being set")
     public void should_return_a_400_when_the_notes_is_empty() {
