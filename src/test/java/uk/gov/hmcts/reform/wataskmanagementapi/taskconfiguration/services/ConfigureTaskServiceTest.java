@@ -382,7 +382,7 @@ class ConfigureTaskServiceTest {
     }
 
     @Test
-    void should_configure_a_cft_task_with_permission_dmn_and_configuration_dmn() {
+    void should_configure_a_CFT_task_with_permission_dmn_and_configuration_dmn() {
         HashMap<String, Object> mappedValues = new HashMap<>();
         mappedValues.put(TASK_STATE.value(), CONFIGURED.value());
         mappedValues.put(TASK_TYPE.value(), "someTaskType");
