@@ -53,7 +53,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -78,7 +78,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -137,7 +137,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -224,7 +224,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -291,7 +291,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         //Create temporary role-assignment to assign task
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -334,7 +334,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -343,7 +343,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         //S2S service name is wa_task_management_api
         Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
-        common.setupOrganisationalRoleAssignment(otherUserHeaders);
+        common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
         Response result = restApiActions.post(
@@ -364,11 +364,11 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     }
 
     @Test
-    public void should_fail_and_return_403_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
+    public void should_complete_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -377,7 +377,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         //S2S service name is wa_task_management_api
         Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
-        common.setupOrganisationalRoleAssignment(otherUserHeaders);
+        common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
         Response result = restApiActions.post(
@@ -388,14 +388,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         common.cleanUpTask(taskId);
 
@@ -405,7 +398,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     public void should_return_a_404_if_task_does_not_exist_with_completion_options_assign_and_complete_true() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -430,7 +423,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -457,7 +450,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -536,7 +529,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
 
         String taskId = taskVariables.getTaskId();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         initiateTask(taskVariables);
 
         restApiActions.post(
@@ -609,7 +602,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         //Create temporary role-assignment to assign task
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,

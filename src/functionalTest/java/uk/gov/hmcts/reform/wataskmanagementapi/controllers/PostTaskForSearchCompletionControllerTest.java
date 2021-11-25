@@ -582,39 +582,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         common.cleanUpTask(taskId);
     }
 
-    @Test
-    public void should_return_work_type_applications_when_task_type_processApplication() {
-        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            Map.of(
-                CamundaVariableDefinition.TASK_TYPE, "processApplication",
-                CamundaVariableDefinition.TASK_ID, "processApplication"
-            ));
-
-        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
-            processApplicationTaskVariables.getCaseId(),
-            "decideAnApplication",
-            "IA",
-            "Asylum"
-        );
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            decideAnApplicationSearchRequest,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(1))
-            .body("tasks[0].type", equalTo("processApplication"))
-            .body("tasks[0].work_type_id", equalTo("applications"));
-
-        common.cleanUpTask(processApplicationTaskVariables.getTaskId());
-    }
-
     private String getAssigneeId(Headers headers) {
         return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }

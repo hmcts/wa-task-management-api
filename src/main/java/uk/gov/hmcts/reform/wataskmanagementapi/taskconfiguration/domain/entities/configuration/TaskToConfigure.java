@@ -1,15 +1,19 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration;
 
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Builder;
+import lombok.Data;
 
-@EqualsAndHashCode
-@ToString
+import java.util.Map;
+
+@Builder(toBuilder = true)
+@Data
 public class TaskToConfigure {
     private final String id;
     private final String taskTypeId;
     private final String caseId;
     private final String name;
+    @Builder.Default
+    private Map<String, Object> taskAttributes = Map.of();
 
     public TaskToConfigure(String id,
                            String taskTypeId,
@@ -21,20 +25,13 @@ public class TaskToConfigure {
         this.name = name;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getTaskTypeId() {
-        return taskTypeId;
-    }
-
-    public String getCaseId() {
-        return caseId;
-    }
-
-    public String getName() {
-        return name;
+    public TaskToConfigure(String id,
+                           String taskTypeId,
+                           String caseId,
+                           String name,
+                           Map<String, Object> taskAttributes) {
+        this(id, taskTypeId, caseId, name);
+        this.taskAttributes = taskAttributes;
     }
 }
 

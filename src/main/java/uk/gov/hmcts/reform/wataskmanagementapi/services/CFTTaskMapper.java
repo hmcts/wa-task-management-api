@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
@@ -151,7 +152,8 @@ public class CFTTaskMapper {
 
     public Task mapToTask(TaskResource taskResource) {
         Set<PermissionTypes> permissionsUnion = extractUnionOfPermissions(taskResource.getTaskRoleResources());
-        return new Task(taskResource.getTaskId(),
+        return new Task(
+            taskResource.getTaskId(),
             taskResource.getTaskName(),
             taskResource.getTaskType(),
             taskResource.getState().getValue().toLowerCase(Locale.ROOT),
@@ -229,6 +231,11 @@ public class CFTTaskMapper {
             });
         }
         return permissionsFound;
+    }
+
+    public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
+        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
+        });
     }
 
     private Set<TaskRoleResource> mapPermissions(
