@@ -91,7 +91,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
         final List<Map<String, String>> workTypes = result.jsonPath().getList(
             "work_types");
 
-        List<Map<String, String>> expectedWarnings = Lists.list(
+        List<Map<String, String>> expectedWorkTypes = Lists.list(
             Map.of("id", "hearing_work", "label", "Hearing work"),
             Map.of("id", "upper_tribunal", "label", "Upper Tribunal"),
             Map.of("id", "routine_work", "label", "Routine work"),
@@ -101,7 +101,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
             Map.of("id", "access_requests", "label","Access requests"),
             Map.of("id", "error_management", "label","Error management")
         );
-        Assertions.assertEquals(expectedWarnings, workTypes);
+        Assertions.assertEquals(expectedWorkTypes, workTypes);
 
     }
 
