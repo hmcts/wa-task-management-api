@@ -31,13 +31,13 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -182,13 +182,38 @@ public class CFTTaskMapper {
         );
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
+                      TaskAttributeDefinition extractor,
+                      Object defaultValue) {
+        return (T) map(attributesMap, extractor).orElse(defaultValue);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
+                          TaskAttributeDefinition extractor,
+                          Object defaultValue) {
+        Optional<T> maybeValue = map(attributesMap, extractor);
+        if (maybeValue.isPresent()) {
+            return (T) OffsetDateTime.parse((String) maybeValue.get(), CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
+        } else {
+            return (T) defaultValue;
+        }
+    }
+
+    public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
+        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
+        });
+    }
+
     private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
         String workTypeId = read(attributes, TASK_WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
 
     private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
-        Set<PermissionTypes> permissionsFound = new HashSet<>();
+        //Using TreeSet to benefit from SortedSet
+        TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
         if (taskRoleResources != null) {
             taskRoleResources.forEach(taskRoleResource -> {
                 if (taskRoleResource.getRead()) {
@@ -212,11 +237,6 @@ public class CFTTaskMapper {
             });
         }
         return permissionsFound;
-    }
-
-    public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
-        });
     }
 
     private Set<TaskRoleResource> mapPermissions(
@@ -397,25 +417,6 @@ public class CFTTaskMapper {
             return new WarningValues(warnings);
         }
         return new WarningValues();
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
-                       TaskAttributeDefinition extractor,
-                       Object defaultValue) {
-        return (T) map(attributesMap, extractor).orElse(defaultValue);
-    }
-
-    @SuppressWarnings("unchecked")
-    public  <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
-                           TaskAttributeDefinition extractor,
-                           Object defaultValue) {
-        Optional<T> maybeValue = map(attributesMap, extractor);
-        if (maybeValue.isPresent()) {
-            return (T) OffsetDateTime.parse((String) maybeValue.get(), CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
-        } else {
-            return (T) defaultValue;
-        }
     }
 
     @SuppressWarnings("unchecked")
