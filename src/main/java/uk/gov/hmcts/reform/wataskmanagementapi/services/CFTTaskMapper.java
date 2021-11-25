@@ -30,6 +30,7 @@ import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -200,6 +201,11 @@ public class CFTTaskMapper {
         }
     }
 
+    public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
+        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
+        });
+    }
+
     private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
         String workTypeId = read(attributes, TASK_WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
@@ -207,7 +213,7 @@ public class CFTTaskMapper {
 
     private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
         //Using TreeSet to benefit from SortedSet
-        Set<PermissionTypes> permissionsFound = new TreeSet<>();
+        TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
         if (taskRoleResources != null) {
             taskRoleResources.forEach(taskRoleResource -> {
                 if (taskRoleResource.getRead()) {
@@ -231,11 +237,6 @@ public class CFTTaskMapper {
             });
         }
         return permissionsFound;
-    }
-
-    public Map<String, Object> getTaskAttributes(TaskResource taskResource) {
-        return objectMapper.convertValue(taskResource, new TypeReference<HashMap<String, Object>>() {
-        });
     }
 
     private Set<TaskRoleResource> mapPermissions(
