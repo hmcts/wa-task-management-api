@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,6 +39,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -54,6 +56,7 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -69,6 +72,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.Sea
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class CftQueryServiceTest extends CamundaHelpers {
@@ -88,6 +92,39 @@ public class CftQueryServiceTest extends CamundaHelpers {
     class SearchForTasks {
         @Test
         void shouldReturnAllTasks() {
+            final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                new SearchParameter(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
+            ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+            final AccessControlResponse accessControlResponse = new AccessControlResponse(
+                null,
+                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+            );
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(PermissionTypes.READ);
+
+            Page<TaskResource> taskResources = new PageImpl<>(List.of(createTaskResource()));
+            when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+            when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
+
+            GetTasksResponse<Task> taskResourceList
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired);
+
+            assertNotNull(taskResourceList);
+            assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
+            assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
+
+            verify(taskResourceRepository, times(1)).findAll(any(), any(Pageable.class));
+        }
+
+        @Test
+        void shouldReturnAllTasksWhenWorkTypeIsNotSent() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
                 new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
                 new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
@@ -113,8 +150,37 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
+            assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
 
             verify(taskResourceRepository, times(1)).findAll(any(), any(Pageable.class));
+        }
+
+        @Test
+        void shouldThrowExceptionWhenInvalidWorkTypeIsSent() {
+            final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                new SearchParameter(WORK_TYPE, SearchOperator.IN, asList("unknown"))
+            ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+            final AccessControlResponse accessControlResponse = new AccessControlResponse(
+                null,
+                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+            );
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(PermissionTypes.READ);
+
+            assertThrows(
+                CustomConstraintViolationException.class, () ->
+                cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired)
+            );
+
+            verify(cftTaskMapper, Mockito.never()).mapToTask(any());
+            verify(taskResourceRepository, Mockito.never()).findAll(any(), any(Pageable.class));
         }
 
         @Test
@@ -457,6 +523,34 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertFalse(response.isTaskRequiredForEvent());
 
             verify(camundaService, times(0)).getVariableValue(any(), any());
+            verify(cftTaskMapper, times(0)).mapToTask(any());
+            verify(taskResourceRepository, times(0)).findAll(any());
+        }
+
+        @Test
+        void should_succeed_and_return_search_results1() {
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+                "someCaseId",
+                "someEventId",
+                "IA",
+                "Asylum"
+            );
+
+            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
+                .thenReturn(mockTaskCompletionDMNResponse());
+            when(camundaService.getVariableValue(any(), any())).thenReturn("");
+
+            GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
+                searchEventAndCase,
+                accessControlResponse,
+                permissionsRequired
+            );
+
+            assertNotNull(response);
+            assertTrue(response.getTasks().isEmpty());
+            assertFalse(response.isTaskRequiredForEvent());
+
             verify(cftTaskMapper, times(0)).mapToTask(any());
             verify(taskResourceRepository, times(0)).findAll(any());
         }

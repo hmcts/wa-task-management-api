@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
@@ -46,6 +47,7 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -274,6 +276,10 @@ public abstract class SpringBootFunctionalBaseTest {
 
         return response.get();
 
+    }
+
+    protected boolean isR2FeatureEnabled() {
+        return featureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE, EMPTY, EMPTY);
     }
 
 }
