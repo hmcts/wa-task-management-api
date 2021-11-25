@@ -699,6 +699,11 @@ public class TaskManagementService {
         if (taskResource.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
+
+        if (taskResource.get().getTaskRoleResources().isEmpty()) {
+            return emptyList();
+        }
+
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
 
@@ -706,11 +711,12 @@ public class TaskManagementService {
             taskResourceSpecification);
 
         if (taskResourceQueryResult.isEmpty()) {
-            return emptyList();
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        return taskResource.get().getTaskRoleResources().stream().map(
-            cftTaskMapper::mapToTaskRolePermissions).collect(Collectors.toList()
+        return taskResource.get().getTaskRoleResources().stream()
+            .filter(taskRoleResource -> taskRoleResource.getRead().equals(Boolean.TRUE))
+            .map(cftTaskMapper::mapToTaskRolePermissions).collect(Collectors.toList()
         );
     }
 

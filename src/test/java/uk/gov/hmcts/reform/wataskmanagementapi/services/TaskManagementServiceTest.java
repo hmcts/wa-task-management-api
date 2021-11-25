@@ -58,6 +58,7 @@ import java.util.UUID;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -3053,19 +3054,22 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @DisplayName("getTaskRolePermissions()")
     class GetTaskRolePermissions {
 
-        private final TaskRolePermissions mockedMappedTask = mock(TaskRolePermissions.class);
-
         @Test
         void should_succeed() {
             String taskId = "taskId";
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             TaskResource taskResource = spy(TaskResource.class);
-            TaskRoleResource taskRoleResource = new TaskRoleResource(
+            TaskRoleResource withRead = new TaskRoleResource(
                 "roleName", true, true, true, true, true,
                 true, new String[]{"Divorce"}, 1, false, "roleCategory"
             );
 
-            Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+            TaskRoleResource withOutRead = new TaskRoleResource(
+                "tribunal", false, true, true, true, true,
+                true, new String[]{"Divorce"}, 1, false, "roleCategory"
+            );
+
+            Set<TaskRoleResource> taskRoleResourceSet = Set.of(withRead, withOutRead);
             when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.of(taskResource));
@@ -3080,41 +3084,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
             ));
-            assertTrue(expectedRolePermission.getAuthorisations().containsAll(
-                List.of("Divorce")
+            assertTrue(expectedRolePermission.getAuthorisations().contains(
+                "Divorce"
             ));
-            assertEquals("roleCategory", expectedRolePermission.getRoleCategory());
-            assertEquals("roleName", expectedRolePermission.getRoleName());
-
-            verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
-            verify(cftTaskMapper, times(1)).mapToTaskRolePermissions(any());
-        }
-
-        @Test
-        void should_succeed_with_optional_permissions() {
-            String taskId = "taskId";
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            TaskResource taskResource = spy(TaskResource.class);
-            TaskRoleResource taskRoleResource = new TaskRoleResource(
-                "roleName", false, false, false, false, false,
-                false, new String[]{}, 1, false, "roleCategory"
-            );
-
-            Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
-            when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
-            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.of(taskResource));
-
-            final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
-                taskId, accessControlResponse);
-
-            assertNotNull(taskRolePermissions);
-            assertFalse(taskRolePermissions.isEmpty());
-            TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
-
-            assertTrue(expectedRolePermission.getPermissions().isEmpty());
-            assertTrue(expectedRolePermission.getAuthorisations().isEmpty());
             assertEquals("roleCategory", expectedRolePermission.getRoleCategory());
             assertEquals("roleName", expectedRolePermission.getRoleName());
 
@@ -3130,7 +3102,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             TaskResource taskResource = spy(TaskResource.class);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
+            when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(emptySet());
 
             final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
                 taskId, accessControlResponse);
@@ -3139,7 +3111,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertTrue(taskRolePermissions.isEmpty());
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
+            verify(cftTaskDatabaseService, never()).findTaskBySpecification(any());
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
 
@@ -3155,6 +3127,29 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
             verify(cftTaskDatabaseService, never()).findTaskBySpecification(any());
+            verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
+        }
+
+        @Test
+        void should_throw_role_verification_exception() {
+            String taskId = "taskId";
+            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            TaskResource taskResource = spy(TaskResource.class);
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                "roleName", true, true, true, true, true,
+                true, new String[]{"Divorce"}, 1, false, "roleCategory"
+            );
+
+            Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+            when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
+            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
+            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
+
+            assertThrows(RoleAssignmentVerificationException.class, () -> taskManagementService.getTaskRolePermissions(
+                taskId, accessControlResponse));
+
+            verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
+            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
     }
