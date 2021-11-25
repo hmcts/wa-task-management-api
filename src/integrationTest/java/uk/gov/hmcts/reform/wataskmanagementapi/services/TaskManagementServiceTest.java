@@ -203,7 +203,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @DisplayName("cancelTask()")
     class CancelTask {
         @Test
-        void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+        void cancelTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
@@ -237,7 +237,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @DisplayName("completeTask()")
     class CompleteTask {
         @Test
-        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+        void completeTask_should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
@@ -315,7 +315,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         class AssignAndCompleteIsTrue {
 
             @Test
-            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
@@ -358,7 +358,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         class AssignAndCompleteIsFalse {
 
             @Test
-            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
                 List<RoleAssignment> roleAssignment = singletonList(mock(RoleAssignment.class));
@@ -406,7 +406,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         class Completed {
 
             @Test
-            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
@@ -436,7 +436,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         class Cancelled {
 
             @Test
-            void should_rollback_transaction_when_exception_occurs_calling_camunda() throws Exception {
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 createAndSaveTestTask(taskId);
                 doThrow(FeignException.FeignServerException.class)
@@ -447,6 +447,32 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                         taskManagementService.terminateTask(
                             taskId,
                             new TerminateInfo(TerminateReason.CANCELLED)
+                        ))
+                )
+                    .isInstanceOf(ServerErrorException.class)
+                    .hasCauseInstanceOf(FeignException.class)
+                    .hasMessage("There was a problem when deleting the historic cftTaskState");
+
+                verifyTransactionWasRolledBack(taskId);
+            }
+        }
+
+        @Nested
+        @DisplayName("when terminate reason is deleted")
+        class Deleted {
+
+            @Test
+            void should_rollback_transaction_when_exception_occurs_calling_camunda() {
+
+                createAndSaveTestTask(taskId);
+                doThrow(FeignException.FeignServerException.class)
+                    .when(camundaServiceApi).searchHistory(any(), any());
+
+                assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
+                    () ->
+                        taskManagementService.terminateTask(
+                            taskId,
+                            new TerminateInfo(TerminateReason.DELETED)
                         ))
                 )
                     .isInstanceOf(ServerErrorException.class)

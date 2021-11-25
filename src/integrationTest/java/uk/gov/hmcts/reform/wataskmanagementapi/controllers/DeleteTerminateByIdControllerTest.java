@@ -150,5 +150,57 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ));
         }
     }
+
+    @Nested
+    @DisplayName("Terminate reason is deleted")
+    class Deleted {
+        @Test
+        void should_return_403_with_application_problem_response_when_client_is_not_allowed() throws Exception {
+
+            when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(false);
+
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.DELETED));
+
+            mockMvc.perform(
+                delete(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isForbidden(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+                    jsonPath("$.title").value("Forbidden"),
+                    jsonPath("$.status").value(403),
+                    jsonPath("$.detail").value(
+                        "Forbidden: The action could not be completed because the client/user "
+                        + "had insufficient rights to a resource.")
+                ));
+        }
+
+        @Test
+        void should_return_204_and_delete_task() throws Exception {
+
+            when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+                .thenReturn(true);
+
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.DELETED));
+
+            mockMvc.perform(
+                delete(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andExpect(
+                ResultMatcher.matchAll(
+                    status().isNoContent()
+                ));
+        }
+    }
 }
 
