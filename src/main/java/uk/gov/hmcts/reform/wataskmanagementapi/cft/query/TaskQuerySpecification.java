@@ -6,42 +6,66 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
 import java.util.List;
 
+import static org.springframework.util.CollectionUtils.isEmpty;
+
+@SuppressWarnings({"PMD.TooManyMethods"})
 public final class TaskQuerySpecification {
 
-    public static final String STATE = "state";
-    public static final String LOCATION = "location";
-    public static final String TASK_ID = "taskId";
-    public static final String TASK_TYPE = "taskType";
-    public static final String ASSIGNEE = "assignee";
-    public static final String CASE_ID = "caseId";
-    public static final String JURISDICTION = "jurisdiction";
-    public static final String WORK_TYPE = "workTypeResource";
+    private static final String STATE = "state";
+    private static final String LOCATION = "location";
+    private static final String TASK_ID = "taskId";
+    private static final String TASK_TYPE = "taskType";
+    private static final String ASSIGNEE = "assignee";
+    private static final String CASE_ID = "caseId";
+    private static final String JURISDICTION = "jurisdiction";
+    private static final String WORK_TYPE = "workTypeResource";
+    private static final String WORK_TYPE_ID = "id";
+
 
     private TaskQuerySpecification() {
         // avoid creating object
     }
 
     public static Specification<TaskResource> searchByState(List<CFTTaskState> cftTaskStates) {
+        if (isEmpty(cftTaskStates)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(STATE))
             .value(cftTaskStates);
     }
 
     public static Specification<TaskResource> searchByJurisdiction(List<String> jurisdictions) {
+        if (isEmpty(jurisdictions)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(JURISDICTION))
             .value(jurisdictions);
     }
 
     public static Specification<TaskResource> searchByLocation(List<String> locations) {
+        if (isEmpty(locations)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(LOCATION))
             .value(locations);
     }
 
-    public static Specification<TaskResource> searchByCaseId(List<String> caseIds) {
+    public static Specification<TaskResource> searchByCaseId(String caseId) {
+        return (root, query, builder) -> builder.equal(root.get(CASE_ID), caseId);
+    }
+
+    public static Specification<TaskResource> searchByCaseIds(List<String> caseIds) {
+        if (isEmpty(caseIds)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(CASE_ID))
             .value(caseIds);
     }
 
     public static Specification<TaskResource> searchByUser(List<String> users) {
+        if (isEmpty(users)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(ASSIGNEE))
             .value(users);
     }
@@ -51,12 +75,18 @@ public final class TaskQuerySpecification {
     }
 
     public static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {
+        if (isEmpty(taskTypes)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
             .value(taskTypes);
     }
 
     public static Specification<TaskResource> searchByWorkType(List<String> workTypes) {
-        return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get("id"))
+        if (isEmpty(workTypes)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
+        return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID))
             .value(workTypes);
     }
 
