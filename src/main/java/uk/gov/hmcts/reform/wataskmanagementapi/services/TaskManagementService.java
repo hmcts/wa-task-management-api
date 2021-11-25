@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -702,7 +703,9 @@ public class TaskManagementService {
         }
 
         return taskResource.get().getTaskRoleResources().stream().map(
-            cftTaskMapper::mapToTaskRolePermissions).collect(Collectors.toList()
+            cftTaskMapper::mapToTaskRolePermissions)
+            .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
+            .collect(Collectors.toList()
         );
     }
 

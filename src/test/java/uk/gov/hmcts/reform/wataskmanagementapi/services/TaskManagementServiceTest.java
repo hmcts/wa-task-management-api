@@ -2971,12 +2971,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
             String taskId = "taskId";
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             TaskResource taskResource = spy(TaskResource.class);
-            TaskRoleResource taskRoleResource = new TaskRoleResource(
-                "roleName", true, true, true, true, true,
+            TaskRoleResource tribunalResource = new TaskRoleResource(
+                "tribunal-caseworker", true, true, true, true, true,
+                true, new String[]{"Divorce"}, 1, false, "LegalOperations"
+            );
+
+            TaskRoleResource caseMgresource = new TaskRoleResource(
+                "case-manager", true, true, true, true, true,
                 true, new String[]{"Divorce"}, 1, false, "roleCategory"
             );
 
-            Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
+            Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource, caseMgresource);
             when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.of(taskResource));
@@ -2986,8 +2991,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             assertNotNull(taskRolePermissions);
             assertFalse(taskRolePermissions.isEmpty());
-            TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
 
+            assertTrue(taskRolePermissions.size() == 2);
+
+            TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
             ));
@@ -2995,11 +3002,21 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 List.of("Divorce")
             ));
             assertEquals("roleCategory", expectedRolePermission.getRoleCategory());
-            assertEquals("roleName", expectedRolePermission.getRoleName());
+            assertEquals("case-manager", expectedRolePermission.getRoleName());
+
+            expectedRolePermission = taskRolePermissions.get(1);
+            assertTrue(expectedRolePermission.getPermissions().containsAll(
+                List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
+            ));
+            assertTrue(expectedRolePermission.getAuthorisations().containsAll(
+                List.of("Divorce")
+            ));
+            assertEquals("LegalOperations", expectedRolePermission.getRoleCategory());
+            assertEquals("tribunal-caseworker", expectedRolePermission.getRoleName());
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
             verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
-            verify(cftTaskMapper, times(1)).mapToTaskRolePermissions(any());
+            verify(cftTaskMapper, times(2)).mapToTaskRolePermissions(any());
         }
 
         @Test

@@ -16,7 +16,8 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -55,15 +56,23 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("roles.size()", equalTo(2))
-            .body("roles[0].role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("roles[0].role_name", oneOf("senior-tribunal-caseworker", "tribunal-caseworker"))
-            .body("roles[0].permissions", hasItems("Read","Cancel","Manage","Own"))
+            .body("roles.size()", equalTo(4))
+            .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[0].role_name", is("case-manager"))
+            .body("roles[0].permissions", hasItems("Read","Own","Refer"))
             .body("roles[0].authorisations", empty())
             .body("roles[1].role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("roles[1].role_name", oneOf("senior-tribunal-caseworker", "tribunal-caseworker"))
-            .body("roles[1].permissions", hasItems("Read","Cancel","Manage","Own"))
-            .body("roles[1].authorisations", empty());
+            .body("roles[1].role_name", is("senior-tribunal-caseworker"))
+            .body("roles[1].permissions", hasItems("Read","Own","Refer"))
+            .body("roles[1].authorisations", empty())
+            .body("roles[2].role_category", nullValue())
+            .body("roles[2].role_name", is("task-supervisor"))
+            .body("roles[2].permissions", hasItems("Read","Cancel","Manage","Refer"))
+            .body("roles[2].authorisations", empty())
+            .body("roles[3].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[3].role_name", is("tribunal-caseworker"))
+            .body("roles[3].permissions", hasItems("Read","Own","Refer"))
+            .body("roles[3].authorisations", empty());
 
         common.cleanUpTask(taskId);
     }
