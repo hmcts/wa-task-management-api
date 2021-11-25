@@ -71,17 +71,17 @@ public class CftQueryServiceITTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource({
-//        "grantTypeBasicScenarioHappyPath",
-//        "grantTypeSpecificScenarioHappyPath",
-//        "grantTypeStandardScenarioHappyPath",
-//        "grantTypeChallengedScenarioHappyPath",
-//        "grantTypeWithStandardAndExcludedScenarioHappyPath",
-//        "grantTypeWithChallengedAndExcludedScenarioHappyPath",
-        "grantTypeWithAvailableTasksOnlyScenarioHappyPath"
-//        "withAllGrantTypesHappyPath",
-//        "inActiveRole",
-//        "sortByFieldScenario",
-//        "paginatedResultsScenario"
+        "grantTypeBasicScenarioHappyPath",
+        "grantTypeSpecificScenarioHappyPath",
+        "grantTypeStandardScenarioHappyPath",
+        "grantTypeChallengedScenarioHappyPath",
+        "grantTypeWithStandardAndExcludedScenarioHappyPath",
+        "grantTypeWithChallengedAndExcludedScenarioHappyPath",
+        "grantTypeWithAvailableTasksOnlyScenarioHappyPath",
+        "withAllGrantTypesHappyPath",
+        "inActiveRole",
+        "sortByFieldScenario",
+        "paginatedResultsScenario"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
         //given
@@ -824,6 +824,7 @@ public class CftQueryServiceITTest {
     private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
 
@@ -831,46 +832,45 @@ public class CftQueryServiceITTest {
             .scenarioName("available_tasks_only")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.PUBLIC))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PUBLIC))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(1)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
-                                 )
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
+                )
             ).build();
 
         final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
             .scenarioName("available_tasks_only")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.PRIVATE))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.PRIVATE))
             .searchTaskRequest(searchTaskRequest)
             .expectedSize(2)
             .expectedTaskDetails(Lists.newArrayList(
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
-                                 )
+                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
+                )
             ).build();
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
             .scenarioName("excluded_grant_type_with_classification_as_restricted")
             .firstResults(0)
             .maxResults(10)
-            .roleAssignments(roleAssignmentsWithGrantTypeSpecific(Classification.RESTRICTED))
+            .roleAssignments(roleAssignmentsWithGrantTypeStandard(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedSize(4)
+            .expectedSize(3)
             .expectedTaskDetails(Lists.newArrayList(
                 "8d6cc5cf-c973-11eb-bdba-0242ac111005", "1623278362431005",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111002", "1623278362431002",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111001", "1623278362431001",
-                "8d6cc5cf-c973-11eb-bdba-0242ac111000", "1623278362431000"
-                                 )
+                "8d6cc5cf-c973-11eb-bdba-0242ac111004", "1623278362431004",
+                "8d6cc5cf-c973-11eb-bdba-0242ac111003", "1623278362431003"
+                )
             ).build();
 
         return Stream.of(
-            publicClassification
-//            privateClassification,
-//            restrictedClassification
+            publicClassification,
+            privateClassification,
+            restrictedClassification
         );
     }
 
