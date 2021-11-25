@@ -11,7 +11,7 @@ values ('8d6cc5cf-c973-11eb-bdba-0242ac111000', 'SELF','2022-05-09T20:15:45.3458
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'hearing_work', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
-values ('8d6cc5cf-c973-11eb-bdba-0242ac115000', 'tribunal-caseworker', 'true', 'true', false, false, false, false, null,
+values ('8d6cc5cf-c973-11eb-bdba-0242ac115000', 'tribunal-caseworker', 'true', false, false, false, false, false, null,
         0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111000', '2021-05-09T20:15:45.345875+01:00');
 
 /*
@@ -60,7 +60,7 @@ values ('8d6cc5cf-c973-11eb-bdba-0242ac111003', 'SELF','2022-05-09T20:15:45.3458
         'PUBLIC', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'hearing_work', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
-values ('8d6cc5cf-c973-11eb-bdba-0242ac115003', 'senior-tribunal-caseworker', 'true', false, false, false, false, false, null,
+values ('8d6cc5cf-c973-11eb-bdba-0242ac115003', 'senior-tribunal-caseworker', 'true', true, false, false, false, false, null,
         0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111003', '2021-05-09T20:15:45.345875+01:00');
 
 /*
@@ -76,7 +76,7 @@ values ('8d6cc5cf-c973-11eb-bdba-0242ac111004', 'SELF','2022-05-09T20:15:45.3458
         'PRIVATE', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'hearing_work', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
-values ('8d6cc5cf-c973-11eb-bdba-0242ac115004', 'senior-tribunal-caseworker', 'true', false, false, false, false, false, null,
+values ('8d6cc5cf-c973-11eb-bdba-0242ac115004', 'senior-tribunal-caseworker', 'true', true, false, false, false, false, null,
         0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111004', '2021-05-09T20:15:45.345875+01:00');
 
 /*
@@ -92,12 +92,12 @@ values ('8d6cc5cf-c973-11eb-bdba-0242ac111005', 'SELF','2022-05-09T20:15:45.3458
         'RESTRICTED', 'ASSIGNED', 'taskName', 'SELF', 'startAppeal', null, 'title', 'hearing_work', 'MANUAL');
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
-values ('8d6cc5cf-c973-11eb-bdba-0242ac115005', 'senior-tribunal-caseworker', 'true', false, false, false, false, false, null,
+values ('8d6cc5cf-c973-11eb-bdba-0242ac115005', 'senior-tribunal-caseworker', 'true', true, false, false, false, false, null,
         0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111005', '2021-05-09T20:15:45.345875+01:00');
 
 insert into cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations,
                                     assignment_priority, auto_assignable, role_category, task_id, created)
-values ('8d6cc5cf-c973-11eb-bdba-0242ac115006', 'tribunal-caseworker', 'true', false, false, false, false, false, null,
+values ('8d6cc5cf-c973-11eb-bdba-0242ac115006', 'tribunal-caseworker', 'true', true, false, false, false, false, null,
         0, false, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111005', '2021-05-09T20:15:45.345875+01:00');
 
 /*
