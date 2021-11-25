@@ -19,6 +19,7 @@ class DecisionTableRequestTest {
             .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
             .testing(Method.TO_STRING)
+            .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
 
@@ -26,21 +27,18 @@ class DecisionTableRequestTest {
     void equalIsWellImplemented() {
         DecisionTableRequest obj1 = new DecisionTableRequest(
             CamundaValue.stringValue("some case data"),
-            CamundaValue.stringValue("some task type")
+            CamundaValue.stringValue("{\"caseTypeId\": \"some task type\"}")
         );
-
         DecisionTableRequest obj2 = new DecisionTableRequest(
-            CamundaValue.stringValue("some other case data"),
-            CamundaValue.stringValue("some other task type")
+            CamundaValue.stringValue("some case data"),
+            CamundaValue.stringValue("{\"caseTypeId\": \"some task type\"}")
         );
-
         DecisionTableRequest obj3 = new DecisionTableRequest(
-            CamundaValue.stringValue("some other case data"),
-            CamundaValue.stringValue("some other task type")
+            CamundaValue.stringValue("some case data"),
+            CamundaValue.stringValue("{\"caseTypeId\": \"some task type3\"}")
         );
 
-        assertNotEquals(obj1, obj2);
-        assertEquals(obj2, obj3);
+        assertEquals(obj1, obj2);
+        assertNotEquals(obj1, obj3);
     }
-
 }

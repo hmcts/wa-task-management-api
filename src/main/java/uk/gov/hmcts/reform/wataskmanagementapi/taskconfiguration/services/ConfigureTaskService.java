@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -18,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -30,15 +33,18 @@ public class ConfigureTaskService {
     private final List<TaskConfigurator> taskConfigurators;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final CFTTaskMapper cftTaskMapper;
+    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     public ConfigureTaskService(TaskConfigurationCamundaService taskConfigurationCamundaService,
                                 List<TaskConfigurator> taskConfigurators,
                                 TaskAutoAssignmentService taskAutoAssignmentService,
-                                CFTTaskMapper cftTaskMapper) {
+                                CFTTaskMapper cftTaskMapper,
+                                LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
         this.taskConfigurators = taskConfigurators;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.cftTaskMapper = cftTaskMapper;
+        this.featureFlagProvider = featureFlagProvider;
     }
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
@@ -53,12 +59,8 @@ public class ConfigureTaskService {
         String caseId = (String) caseIdValue.getValue();
         String taskTypeId = (String) taskTypeIdValue.getValue();
 
-        TaskToConfigure taskToConfigure = new TaskToConfigure(
-            taskId,
-            taskTypeId,
-            caseId,
-            task.getName()
-        );
+        TaskToConfigure taskToConfigure
+            = new TaskToConfigure(taskId, taskTypeId, caseId, task.getName(), null);
 
         TaskConfigurationResults configurationResults = getConfigurationResults(taskToConfigure);
 
@@ -98,8 +100,17 @@ public class ConfigureTaskService {
     }
 
     public TaskResource configureCFTTask(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
-        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigure);
+        TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
+        if (featureFlagProvider.getBooleanValue(
+            RELEASE_2_ENDPOINTS_FEATURE,
+            StringUtils.EMPTY,
+            StringUtils.EMPTY
+        )) {
+            Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(skeletonMappedTask);
+            taskToConfigureBuilder.taskAttributes(taskAttributes);
+        }
 
+        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigureBuilder.build());
         return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
     }
 
@@ -126,7 +137,8 @@ public class ConfigureTaskService {
      * Helper method to combine a task configuration result into one final object
      * containing all process variables and evaluations.
      *
-     * @param result               the task configuration result returned by the configurator
+     * @param result               the task configuration result returned by the
+     *                             configuratorCaseRelatedVariablesConfiguratorTest
      * @param configurationResults the final object where values get added
      */
     private void combineResults(TaskConfigurationResults result,
@@ -145,5 +157,4 @@ public class ConfigureTaskService {
 
         }
     }
-
 }

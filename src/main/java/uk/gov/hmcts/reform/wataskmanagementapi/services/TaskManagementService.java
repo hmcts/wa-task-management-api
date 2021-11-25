@@ -47,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -193,11 +194,7 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
-                taskId,
-                userId,
-                accessControlResponse,
-                permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             String taskState = taskResource.getState().getValue();
             taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
 
@@ -367,11 +364,7 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
-                taskId,
-                userId,
-                accessControlResponse,
-                permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
 
             //Safe-guard
             if (taskResource.getAssignee() == null) {
@@ -640,6 +633,14 @@ public class TaskManagementService {
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
                 break;
+            case DELETED:
+                //Update cft task
+                task.setState(CFTTaskState.TERMINATED);
+                //Perform Camunda updates
+                camundaService.deleteCftTaskState(taskId);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + terminateInfo.getTerminateReason());
         }
@@ -716,7 +717,9 @@ public class TaskManagementService {
 
         return taskResource.get().getTaskRoleResources().stream()
             .filter(taskRoleResource -> taskRoleResource.getRead().equals(Boolean.TRUE))
-            .map(cftTaskMapper::mapToTaskRolePermissions).collect(Collectors.toList()
+            .map(cftTaskMapper::mapToTaskRolePermissions)
+            .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
+            .collect(Collectors.toList()
         );
     }
 
@@ -889,45 +892,5 @@ public class TaskManagementService {
         if (!hasAccess) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
-    }
-
-    /**
-     * Helper method to evaluate whether a user should have access to a task.
-     * This method also performs extra checks for hierarchy and assignee.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId                the task id.
-     * @param userId                the IDAM userId of the user making the request.
-     * @param accessControlResponse the role assignments of the user.
-     * @param permissionsRequired   the permissions that are required by the endpoint.
-     */
-    private TaskResource roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
-        String taskId,
-        String userId,
-        AccessControlResponse accessControlResponse,
-        List<PermissionTypes> permissionsRequired) {
-
-        TaskResource taskResource = roleAssignmentVerification(
-            taskId,
-            accessControlResponse,
-            permissionsRequired);
-
-        boolean hasAccess = false;
-        for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-            //Safe-guard
-            if (hasAccess) {
-                break;
-            }
-            // If a user is a senior-tribunal-caseworker he might still be able to perform actions on it
-            if (SENIOR_TRIBUNAL_CASE_WORKER_ROLE.equals(roleAssignment.getRoleName())
-                || taskResource.getAssignee() != null && taskResource.getAssignee().equals(userId)) {
-                hasAccess = true;
-            }
-        }
-        if (!hasAccess) {
-            //Safe-guard
-            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-        }
-        return taskResource;
     }
 }

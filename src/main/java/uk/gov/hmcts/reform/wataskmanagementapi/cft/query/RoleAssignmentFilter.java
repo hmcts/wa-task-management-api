@@ -26,6 +26,8 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import static java.util.Collections.emptyList;
+import static java.util.List.of;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.BASE_LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.CASE_TYPE;
@@ -203,14 +205,17 @@ public final class RoleAssignmentFilter {
             authorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
         }
 
-        Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
-        Predicate region = searchByRegion(root, builder, roleAssignment);
-        Predicate jurisdiction = searchByRoleJurisdiction(root, builder, roleAssignment);
-        Predicate location = searchByRoleLocation(root, builder, roleAssignment);
-        Predicate caseId = searchByIncludingCaseId(root, builder, roleAssignment);
+        if (roleAssignment.getAttributes() != null) {
+            Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
+            Predicate region = searchByRegion(root, builder, roleAssignment);
+            Predicate jurisdiction = searchByRoleJurisdiction(root, builder, roleAssignment);
+            Predicate location = searchByRoleLocation(root, builder, roleAssignment);
+            Predicate caseId = searchByIncludingCaseId(root, builder, roleAssignment);
 
-        return builder.and(securityClassification, authorizations, jurisdiction,
-                           location, region, caseTypeId, caseId);
+            return builder.and(securityClassification, authorizations, jurisdiction,
+                location, region, caseTypeId, caseId);
+        }
+        return builder.and(securityClassification, authorizations);
     }
 
     private static Predicate getEmptyOrNullAuthorizationsPredicate(
@@ -228,29 +233,38 @@ public final class RoleAssignmentFilter {
         CriteriaBuilder builder,
         RoleAssignment roleAssignment) {
         final Classification classification = roleAssignment.getClassification();
-        if (classification.equals(Classification.RESTRICTED)) {
-            return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                List.of(
-                    SecurityClassification.RESTRICTED,
-                    SecurityClassification.PRIVATE,
-                    SecurityClassification.PUBLIC
-                )
-            );
-
-        } else if (classification.equals(Classification.PRIVATE)) {
-            return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                List.of(
-                    SecurityClassification.PRIVATE,
-                    SecurityClassification.PUBLIC
-                )
-            );
-        } else {
-            return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                List.of(
-                    SecurityClassification.PUBLIC
-                )
-            );
+        if (classification != null) {
+            switch (classification) {
+                case PUBLIC:
+                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                        of(
+                            SecurityClassification.PUBLIC
+                        )
+                    );
+                case PRIVATE:
+                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                        of(
+                            SecurityClassification.PRIVATE,
+                            SecurityClassification.PUBLIC
+                        )
+                    );
+                case RESTRICTED:
+                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                        of(
+                            SecurityClassification.RESTRICTED,
+                            SecurityClassification.PRIVATE,
+                            SecurityClassification.PUBLIC
+                        )
+                    );
+                default:
+                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                        emptyList()
+                    );
+            }
         }
+        return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+            emptyList()
+        );
     }
 
     private static Predicate mapAuthorizations(Join<TaskResource, TaskRoleResource> taskRoleResources,
@@ -270,11 +284,9 @@ public final class RoleAssignmentFilter {
     private static Predicate searchByCaseTypeId(Root<TaskResource> root,
                                                 CriteriaBuilder builder,
                                                 RoleAssignment roleAssignment) {
-        if (roleAssignment.getAttributes() != null) {
-            String caseTypeValue = roleAssignment.getAttributes().get(CASE_TYPE.value());
-            if (StringUtils.hasText(caseTypeValue)) {
-                return builder.equal(root.get(CASE_TYPE_ID_COLUMN), caseTypeValue);
-            }
+        String caseTypeValue = roleAssignment.getAttributes().get(CASE_TYPE.value());
+        if (StringUtils.hasText(caseTypeValue)) {
+            return builder.equal(root.get(CASE_TYPE_ID_COLUMN), caseTypeValue);
         }
         return builder.conjunction();
     }
@@ -282,11 +294,9 @@ public final class RoleAssignmentFilter {
     private static Predicate searchByRegion(Root<TaskResource> root,
                                             CriteriaBuilder builder,
                                             RoleAssignment roleAssignment) {
-        if (roleAssignment.getAttributes() != null) {
-            String regionVal = roleAssignment.getAttributes().get(REGION.value());
-            if (StringUtils.hasText(regionVal)) {
-                return builder.equal(root.get(REGION_COLUMN), regionVal);
-            }
+        String regionVal = roleAssignment.getAttributes().get(REGION.value());
+        if (StringUtils.hasText(regionVal)) {
+            return builder.equal(root.get(REGION_COLUMN), regionVal);
         }
         return builder.conjunction();
     }
@@ -294,11 +304,9 @@ public final class RoleAssignmentFilter {
     private static Predicate searchByIncludingCaseId(Root<TaskResource> root,
                                                      CriteriaBuilder builder,
                                                      RoleAssignment roleAssignment) {
-        if (roleAssignment.getAttributes() != null) {
-            String caseId = roleAssignment.getAttributes().get(CASE_ID.value());
-            if (StringUtils.hasText(caseId)) {
-                return builder.equal(root.get(CASE_ID_COLUMN), caseId);
-            }
+        String caseId = roleAssignment.getAttributes().get(CASE_ID.value());
+        if (StringUtils.hasText(caseId)) {
+            return builder.equal(root.get(CASE_ID_COLUMN), caseId);
         }
         return builder.conjunction();
     }
@@ -306,11 +314,9 @@ public final class RoleAssignmentFilter {
     private static Predicate searchByRoleJurisdiction(Root<TaskResource> root,
                                                       CriteriaBuilder builder,
                                                       RoleAssignment roleAssignment) {
-        if (roleAssignment.getAttributes() != null) {
-            String jurisdictionVal = roleAssignment.getAttributes().get(JURISDICTION.value());
-            if (StringUtils.hasText(jurisdictionVal)) {
-                return builder.equal(root.get(JURISDICTION_COLUMN), jurisdictionVal);
-            }
+        String jurisdictionVal = roleAssignment.getAttributes().get(JURISDICTION.value());
+        if (StringUtils.hasText(jurisdictionVal)) {
+            return builder.equal(root.get(JURISDICTION_COLUMN), jurisdictionVal);
         }
         return builder.conjunction();
     }
@@ -318,11 +324,9 @@ public final class RoleAssignmentFilter {
     private static Predicate searchByRoleLocation(Root<TaskResource> root,
                                                   CriteriaBuilder builder,
                                                   RoleAssignment roleAssignment) {
-        if (roleAssignment.getAttributes() != null) {
-            String locationVal = roleAssignment.getAttributes().get(BASE_LOCATION.value());
-            if (StringUtils.hasText(locationVal)) {
-                return builder.equal(root.get(LOCATION_COLUMN), locationVal);
-            }
+        String locationVal = roleAssignment.getAttributes().get(BASE_LOCATION.value());
+        if (StringUtils.hasText(locationVal)) {
+            return builder.equal(root.get(LOCATION_COLUMN), locationVal);
         }
         return builder.conjunction();
     }
