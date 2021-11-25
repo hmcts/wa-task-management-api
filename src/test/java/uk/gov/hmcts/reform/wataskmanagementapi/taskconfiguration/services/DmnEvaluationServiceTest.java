@@ -21,16 +21,11 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_CONFIGURATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_PERMISSIONS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.jsonValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
@@ -38,6 +33,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 class DmnEvaluationServiceTest {
 
     private static final String BEARER_SERVICE_TOKEN = "Bearer service token";
+    private static final String TASK_TYPE_ID = "taskType";
+    private static final String TASK_ATTRIBUTES = "{ \"taskTypeId\": " + TASK_TYPE_ID + "}";
     DmnEvaluationService dmnEvaluationService;
     @Mock
     private CamundaServiceApi camundaServiceApi;
@@ -57,8 +54,8 @@ class DmnEvaluationServiceTest {
                 stringValue("tribunal-caseworker"),
                 stringValue("Read,Refer,Own,Manage,Cancel"),
                 null,
-                integerValue(1),
-                booleanValue(true),
+                null,
+                null,
                 stringValue("LEGAL_OPERATIONS")
             ),
             new PermissionsDmnEvaluationResponse(
@@ -67,7 +64,7 @@ class DmnEvaluationServiceTest {
                 null,
                 null,
                 null,
-                null
+                stringValue("LEGAL_OPERATIONS")
             )
         );
 
@@ -75,7 +72,7 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData)))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -83,24 +80,24 @@ class DmnEvaluationServiceTest {
         List<PermissionsDmnEvaluationResponse> response = dmnEvaluationService.evaluateTaskPermissionsDmn(
             "ia",
             "Asylum",
-            ccdData
+            ccdData,
+            TASK_ATTRIBUTES
         );
 
         assertThat(response.size(), is(2));
 
         assertThat(response.get(0).getName(), is(stringValue("tribunal-caseworker")));
         assertThat(response.get(0).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
-        assertThat(response.get(0).getAutoAssignable(), is(booleanValue(true)));
+        assertNull(response.get(0).getAutoAssignable());
         assertNull(response.get(0).getAuthorisations());
-        assertThat(response.get(0).getAssignmentPriority(), is(integerValue(1)));
-        assertThat(response.get(0).getRoleCategory(), is(stringValue("LEGAL_OPERATIONS")));
+        assertNull(response.get(0).getAssignmentPriority());
 
         assertThat(response.get(1).getName(), is(stringValue("senior-tribunal-caseworker")));
         assertThat(response.get(1).getValue(), is(stringValue("Read,Refer,Own,Manage,Cancel")));
         assertNull(response.get(1).getAutoAssignable());
         assertNull(response.get(1).getAuthorisations());
         assertNull(response.get(1).getAssignmentPriority());
-        assertNull(response.get(1).getRoleCategory());
+
     }
 
     @Test
@@ -111,13 +108,13 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_PERMISSIONS.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData)))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         )).thenThrow(FeignException.class);
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
         assertThatThrownBy(() -> dmnEvaluationService
-            .evaluateTaskPermissionsDmn("ia", "Asylum", ccdData))
+            .evaluateTaskPermissionsDmn("ia", "Asylum", ccdData, TASK_ATTRIBUTES))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Could not evaluate from decision table wa-task-permissions-ia-asylum")
             .hasCauseInstanceOf(FeignException.class);
@@ -142,10 +139,7 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(
-                jsonValue(ccdData),
-                stringValue("some task type id")
-            ))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         );
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
@@ -154,7 +148,7 @@ class DmnEvaluationServiceTest {
             "ia",
             "Asylum",
             ccdData,
-            "some task type id"
+            TASK_ATTRIBUTES
         );
 
         assertThat(response.size(), is(2));
@@ -173,42 +167,25 @@ class DmnEvaluationServiceTest {
             BEARER_SERVICE_TOKEN,
             WA_TASK_CONFIGURATION.getTableKey("ia", "asylum"),
             "ia",
-            new DmnRequest<>(new DecisionTableRequest(
-                jsonValue(ccdData),
-                stringValue("some task type id")
-            ))
+            new DmnRequest<>(new DecisionTableRequest(jsonValue(ccdData), jsonValue(TASK_ATTRIBUTES)))
         )).thenThrow(FeignException.class);
 
         when(authTokenGenerator.generate()).thenReturn(BEARER_SERVICE_TOKEN);
 
-        assertThatThrownBy(() -> dmnEvaluationService.evaluateTaskConfigurationDmn(
-            "ia",
-            "Asylum",
-            ccdData,
-            "some task type id"
-        ))
+        assertThatThrownBy(() -> dmnEvaluationService
+            .evaluateTaskConfigurationDmn("ia", "Asylum", ccdData, TASK_ATTRIBUTES))
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Could not evaluate from decision table wa-task-configuration-ia-asylum")
             .hasCauseInstanceOf(FeignException.class);
     }
 
-    @Test
-    void should_return_decision_table_name() {
-        assertNotNull(WA_TASK_COMPLETION.getTableName());
-        assertNotNull(WA_TASK_CONFIGURATION.getTableName());
-        assertNotNull(WA_TASK_PERMISSIONS.getTableName());
-        assertEquals("wa-task-completion", WA_TASK_COMPLETION.getTableName());
-        assertEquals("wa-task-configuration", WA_TASK_CONFIGURATION.getTableName());
-        assertEquals("wa-task-permissions", WA_TASK_PERMISSIONS.getTableName());
-    }
-
     @NotNull
     private String getCcdData() {
         return "{"
-               + "\"jurisdiction\": \"ia\","
-               + "\"case_type_id\": \"Asylum\","
-               + "\"security_classification\": \"PUBLIC\","
-               + "\"data\": {}"
-               + "}";
+            + "\"jurisdiction\": \"ia\","
+            + "\"case_type_id\": \"Asylum\","
+            + "\"security_classification\": \"PUBLIC\","
+            + "\"data\": {}"
+            + "}";
     }
 }

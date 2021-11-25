@@ -36,7 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification.PUBLIC;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithBasicGrantTypeOnly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTestUtils.roleAssignmentWithSpecificGrantType;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
@@ -56,6 +59,7 @@ public class TaskResourceSpecificationTest {
     @Mock CriteriaBuilder.In<Object> values;
     @Mock Path<Object> authorizations;
     @Mock Path<Object> path;
+    @Mock Predicate mockPredicate;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -66,17 +70,18 @@ public class TaskResourceSpecificationTest {
         lenient().when(criteriaBuilder.or(any(), any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.or(any())).thenReturn(inObject);
         lenient().when(criteriaBuilder.and(any(), any())).thenReturn(inObject);
+        lenient().when(criteriaBuilder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
         BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
             Boolean.TRUE);
         lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
-        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
+        lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
 
         lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
 
-        lenient().when(authorizations.isNull()).thenReturn(booleanAssertionPredicate);
+        lenient().when(authorizations.isNull()).thenReturn(mockPredicate);
         lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
         lenient().when(root.get(anyString())).thenReturn(path);
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
@@ -86,10 +91,10 @@ public class TaskResourceSpecificationTest {
     @MethodSource({
         "searchParameterForTaskQuery"
     })
-    void shouldBuildTaskQuery(SearchTaskRequestScenario scenario) {
+    void shouldBuildTaskQueryWithSingleParameter(SearchTaskRequestScenario scenario) {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithSpecificGrantType(PUBLIC)
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
         );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
@@ -101,6 +106,130 @@ public class TaskResourceSpecificationTest {
         Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
         assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(2)).in(any());
+        verify(criteriaBuilder, times(5)).conjunction();
+    }
+
+    @Test
+    void shouldBuildTaskQueryWithOutSearchParameters() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(6)).conjunction();
+    }
+
+    @Test
+    void shouldBuildTaskQueryWithNullConditions() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(STATE, SearchOperator.IN, singletonList(null))
+        ));
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(6)).conjunction();
+
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(STATE, SearchOperator.IN, emptyList())
+        ));
+
+        spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        spec = TaskResourceSpecification.buildTaskQuery(
+            null, accessControlResponse, permissionsRequired
+        );
+
+        predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
+
+    @Test
+    void shouldBuildTaskQueryWithOutSearchParametersAndReturnConjunctionAsNull() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(6)).conjunction();
+    }
+
+    @Test
+    void shouldBuildTaskQueryWithAllParameters() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
+            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
+            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
+        ));
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        final Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        verify(criteriaBuilder, times(7)).in(any());
     }
 
     @Test
@@ -127,7 +256,7 @@ public class TaskResourceSpecificationTest {
     void shouldBuildSingleTaskQueryForCompletable(SearchTaskRequestScenario scenario) {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
-            roleAssignmentWithSpecificGrantType(PUBLIC)
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
         );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
@@ -139,12 +268,29 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        spec = TaskResourceSpecification.buildQueryForCompletable(
-            scenario.searchEventAndCase, accessControlResponse, permissionsRequired, emptyList());
+        verify(criteriaBuilder, times(3)).in(any());
+    }
 
-        predicate = spec.toPredicate(root, query, criteriaBuilder);
+    @Test
+    void shouldBuildSingleTaskQueryForCompletableNegated() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "caseId", "eventId", "IA", "caseType");
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildQueryForCompletable(
+            searchEventAndCase, accessControlResponse, permissionsRequired, emptyList());
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
         assertNotNull(spec);
         assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(2)).in(any());
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
@@ -184,34 +330,16 @@ public class TaskResourceSpecificationTest {
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
-            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
-        ));
-
-        final SearchTaskRequestScenario allParameters =
-            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
-
-        return Stream.of(jurisdiction, state, location, caseId, user, workType, allParameters);
+        return Stream.of(jurisdiction, state, location, caseId, user, workType);
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            null, "eventId", "IA", "caseType");
-        SearchTaskRequestScenario withoutCaseId =
-            SearchTaskRequestScenario.builder().searchEventAndCase(searchEventAndCase).build();
-
-        searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "IA", "caseType");
-
         SearchTaskRequestScenario withCaseId =
             SearchTaskRequestScenario.builder().searchEventAndCase(searchEventAndCase).build();
 
-        return Stream.of(withoutCaseId, withCaseId);
+        return Stream.of(withCaseId);
     }
 
     @Builder

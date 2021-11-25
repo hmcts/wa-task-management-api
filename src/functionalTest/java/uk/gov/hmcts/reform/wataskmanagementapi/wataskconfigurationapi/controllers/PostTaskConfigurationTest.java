@@ -36,7 +36,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_task_configuration_then_expect_task_is_auto_assigned() throws Exception {
+    public void given_task_is_configured_then_expect_task_is_auto_assigned() throws Exception {
         caseId = createCcdCase();
 
         createTaskMessage = createBasicMessageForTask("arrangeOfflinePayment", caseId).build();
@@ -69,7 +69,6 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("assignee", notNullValue())
             .body("configuration_variables", notNullValue())
             .body("configuration_variables.taskType", equalTo("arrangeOfflinePayment"))
-            .body("configuration_variables.workType", equalTo("routine_work"))
             .body("configuration_variables.jurisdiction", equalTo("IA"))
             .body("configuration_variables.caseTypeId", equalTo("Asylum"))
             .body("configuration_variables.taskState", equalTo("assigned"))
@@ -117,6 +116,9 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("configuration_variables.caseId", equalTo(caseId))
             .body("configuration_variables.securityClassification", equalTo("PUBLIC"))
             .body("configuration_variables.autoAssigned", equalTo(false))
+            .body("configuration_variables.tribunal-caseworker", equalTo("Read,Refer,Own,Manage,Cancel"))
+            .body("configuration_variables.senior-tribunal-caseworker",
+                  equalTo("Read,Refer,Own,Manage,Cancel"))
             .body("configuration_variables.taskSystem", equalTo("SELF"));
     }
 
