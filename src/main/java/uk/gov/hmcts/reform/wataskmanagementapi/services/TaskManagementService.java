@@ -633,6 +633,14 @@ public class TaskManagementService {
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
                 break;
+            case DELETED:
+                //Update cft task
+                task.setState(CFTTaskState.TERMINATED);
+                //Perform Camunda updates
+                camundaService.deleteCftTaskState(taskId);
+                //Commit transaction
+                cftTaskDatabaseService.saveTask(task);
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + terminateInfo.getTerminateReason());
         }
