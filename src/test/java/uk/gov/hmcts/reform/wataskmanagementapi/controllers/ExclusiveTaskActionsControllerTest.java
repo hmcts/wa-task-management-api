@@ -136,6 +136,20 @@ class ExclusiveTaskActionsControllerTest {
     }
 
     @Test
+    void should_succeed_when_terminating_a_task_and_return_204_when_terminate_reason_is_deleted() {
+        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.DELETED));
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        ResponseEntity<Void> response = exclusiveTaskActionsController
+            .terminateTask(SERVICE_AUTHORIZATION_TOKEN, taskId, req);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    }
+
+    @Test
     void should_fail_when_terminating_a_task_and_client_is_not_whitelisted_return_403() {
         TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
 
