@@ -260,8 +260,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
             assertNotNull(response);
             assertEquals(mockedMappedTask, response);
-            verify(camundaService,times(0)).getTaskVariables(any());
-            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verify(camundaService, times(0)).getTaskVariables(any());
+            verify(camundaService, times(0)).getMappedTask(any(), any());
             verifyNoInteractions(camundaService);
         }
 
@@ -284,8 +284,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(TaskNotFoundException.class)
                 .hasNoCause()
                 .hasMessage("Task Not Found Error: The task could not be found.");
-            verify(camundaService,times(0)).getTaskVariables(any());
-            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verify(camundaService, times(0)).getTaskVariables(any());
+            verify(camundaService, times(0)).getMappedTask(any(), any());
             verifyNoInteractions(camundaService);
         }
 
@@ -308,8 +308,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
-            verify(camundaService,times(0)).getTaskVariables(any());
-            verify(camundaService,times(0)).getMappedTask(any(), any());
+            verify(camundaService, times(0)).getTaskVariables(any());
+            verify(camundaService, times(0)).getMappedTask(any(), any());
             verifyNoInteractions(camundaService);
         }
     }
@@ -2807,6 +2807,46 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
 
+
+            @Test
+            void should_throw_exception_when_task_resource_not_found() {
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.empty());
+
+                assertThatThrownBy(() -> taskManagementService.terminateTask(taskId, terminateInfo))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasNoCause()
+                    .hasMessage("Resource not found");
+                verify(camundaService, times(0)).deleteCftTaskState(taskId);
+                verify(cftTaskDatabaseService, times(0)).saveTask(taskResource);
+            }
+
+        }
+
+        @Nested
+        @DisplayName("When Terminate Reason is Deleted")
+        class Deleted {
+            TerminateInfo terminateInfo = new TerminateInfo(TerminateReason.DELETED);
+
+            @Test
+            void should_succeed() {
+
+                TaskResource taskResource = spy(TaskResource.class);
+
+                when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                    .thenReturn(Optional.of(taskResource));
+
+                when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+                taskManagementService.terminateTask(taskId, terminateInfo);
+
+                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                verify(camundaService, times(1)).deleteCftTaskState(taskId);
+                verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
+            }
 
             @Test
             void should_throw_exception_when_task_resource_not_found() {
