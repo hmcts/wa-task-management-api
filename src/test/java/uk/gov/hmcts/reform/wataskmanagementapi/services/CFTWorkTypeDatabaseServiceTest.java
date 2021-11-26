@@ -79,6 +79,8 @@ class CFTWorkTypeDatabaseServiceTest {
         assertNotNull(actualWorkTypes);
         assertThat(actualWorkTypes).isNotEmpty();
         assertEquals(expectedWorkTypes.size(), actualWorkTypes.size());
+        assertEquals("hearing-work", actualWorkTypes.get(0).getId());
+        assertEquals("Hearing work", actualWorkTypes.get(0).getLabel());
     }
 
     @NotNull

@@ -9,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
+import java.sql.SQLException;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -74,6 +78,23 @@ class CFTTaskDatabaseServiceTest {
         final TaskResource actualTaskResource = cftTaskDatabaseService.saveTask(someTaskResource);
 
         assertNotNull(actualTaskResource);
+    }
+
+    @Test
+    void should_insert_and_lock_task() throws SQLException {
+
+        OffsetDateTime dueDate = OffsetDateTime.now();
+        OffsetDateTime created = OffsetDateTime.now().plusMinutes(1);
+
+        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created);
+
+        cftTaskDatabaseService.insertAndLock(taskId, dueDate);
+
+        verify(taskResourceRepository, times(1))
+            .insertAndLock(anyString(),
+                any(),
+                any()
+            );
     }
 
     @Test

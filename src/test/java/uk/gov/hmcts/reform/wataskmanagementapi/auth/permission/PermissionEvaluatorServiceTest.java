@@ -754,6 +754,118 @@ class PermissionEvaluatorServiceTest {
         });
     }
 
+    @Test
+    void should_return_hasAccess_false_when_begin_time_and_end_time_greater_than_today() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createRoleAssignments(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().plusYears(1),
+            LocalDateTime.now().plusYears(2),
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void should_return_hasAccess_false_when_end_time_less_than_today() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createRoleAssignments(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().minusYears(1),
+            LocalDateTime.now().minusYears(2),
+            emptyMap()
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void should_return_hasAccess_false_when_looking_for_different_location() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createRoleAssignments(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().minusYears(1),
+            LocalDateTime.now().plusYears(2),
+            Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "location")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertFalse(result);
+        });
+    }
+
+    @Test
+    void should_return_hasAccess_true_when_looking_for_correct_location() {
+        List<PermissionTypes> permissionsRequired = singletonList(PermissionTypes.OWN);
+
+        List<RoleAssignment> testCases = createRoleAssignments(
+            ActorIdType.IDAM,
+            singletonList("senior-tribunal-caseworker"),
+            Classification.PUBLIC,
+            GrantType.SPECIFIC,
+            RoleCategory.LEGAL_OPERATIONS,
+            false,
+            LocalDateTime.now().minusYears(1),
+            LocalDateTime.now().plusYears(2),
+            Map.of(RoleAttributeDefinition.BASE_LOCATION.value(), "012345")
+        );
+
+        testCases.forEach(roleAssignment -> {
+            boolean result = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
+                "anotherUserId",
+                "someUserId",
+                defaultVariables,
+                singletonList(roleAssignment),
+                permissionsRequired
+            );
+            assertTrue(result);
+        });
+    }
+
     private List<RoleAssignment> createTestAssignments(List<String> roleNames,
                                                        Classification roleClassification,
                                                        Map<String, String> roleAttributes) {
@@ -790,6 +902,64 @@ class PermissionEvaluatorServiceTest {
             false,
             attributes
         );
+    }
+
+    private List<RoleAssignment> createRoleAssignments(ActorIdType actorIdType,
+                                                       List<String> roleNames,
+                                                       Classification roleClassification,
+                                                       GrantType grantType,
+                                                       RoleCategory roleCategory,
+                                                       boolean readOnly,
+                                                       LocalDateTime beginTime,
+                                                       LocalDateTime endTime,
+                                                       Map<String, String> roleAttributes) {
+
+        List<RoleAssignment> allTestRoles = new ArrayList<>();
+        roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)
+            .forEach(roleType -> {
+                    RoleAssignment roleAssignment = createRoleAssignment(actorIdType,
+                        UUID.randomUUID().toString(),
+                        roleType,
+                        roleName,
+                        roleClassification,
+                        grantType,
+                        roleCategory,
+                        readOnly,
+                        beginTime,
+                        endTime,
+                        roleAttributes
+                    );
+                    allTestRoles.add(roleAssignment);
+                }
+            ));
+        return allTestRoles;
+    }
+
+    private RoleAssignment createRoleAssignment(ActorIdType actorIdType,
+                                                String actorId,
+                                                RoleType roleType,
+                                                String roleName,
+                                                Classification classification,
+                                                GrantType grantType,
+                                                RoleCategory roleCategory,
+                                                boolean readOnly,
+                                                LocalDateTime beginTime,
+                                                LocalDateTime endTime,
+                                                Map<String, String> attributes
+    ) {
+        return RoleAssignment.builder()
+            .actorIdType(actorIdType)
+            .actorId(actorId)
+            .roleType(roleType)
+            .roleName(roleName)
+            .classification(classification)
+            .grantType(grantType)
+            .roleCategory(roleCategory)
+            .readOnly(readOnly)
+            .beginTime(beginTime)
+            .endTime(endTime)
+            .attributes(attributes)
+            .build();
     }
 
     private Map<String, CamundaVariable> getDefaultVariables() {

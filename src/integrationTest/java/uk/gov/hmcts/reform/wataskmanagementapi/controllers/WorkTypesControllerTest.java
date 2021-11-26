@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
@@ -30,13 +29,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -64,8 +64,6 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
     private CFTWorkTypeDatabaseService cftWorkTypeDatabaseService;
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @SpyBean
-    private AccessControlService accessControlService;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
@@ -138,14 +136,13 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
-        when(cftWorkTypeDatabaseService.findById("upper_tribunal"))
-            .thenReturn(Optional.of(new WorkType("upper_tribunal", "Upper Tribunal")));
-        when(cftWorkTypeDatabaseService.findById("hearing_work"))
-            .thenReturn(Optional.of(new WorkType("hearing_work", "Hearing work")));
+        when(cftWorkTypeDatabaseService.getWorkTypes(Set.of("hearing_work","upper_tribunal")))
+            .thenReturn(List.of(new WorkType("hearing_work", "Hearing work"),
+                                new WorkType("upper_tribunal", "Upper Tribunal")));
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
@@ -156,8 +153,9 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
         ).andReturn();
 
-        WorkType expectedWorkType1 = new WorkType("upper_tribunal", "Upper Tribunal");
-        WorkType expectedWorkType2 = new WorkType("hearing_work", "Hearing work");
+        WorkType expectedWorkType1 = new WorkType("hearing_work", "Hearing work");
+        WorkType expectedWorkType2 = new WorkType("upper_tribunal", "Upper Tribunal");
+
 
         GetWorkTypesResponse expectedResponse = new GetWorkTypesResponse(asList(expectedWorkType1, expectedWorkType2));
         assertEquals(
@@ -219,7 +217,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
@@ -227,7 +225,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
         doThrow(JDBCConnectionException.class)
-            .when(cftWorkTypeDatabaseService).findById(anyString());
+            .when(cftWorkTypeDatabaseService).getWorkTypes(anySet());
         mockMvc.perform(
             get(ENDPOINT_PATH + "?filter-by-user=true")
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -254,7 +252,7 @@ class WorkTypesControllerTest extends SpringBootIntegrationBaseTest {
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
         mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), anyString(), anyString()))

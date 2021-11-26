@@ -49,7 +49,6 @@ public class ConfigureTaskService {
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter"})
     public void configureTask(String taskId) {
-
         CamundaTask task = taskConfigurationCamundaService.getTask(taskId);
         log.info("CamundaTask id '{}' retrieved from Camunda", task.getId());
 
@@ -147,14 +146,13 @@ public class ConfigureTaskService {
         if (result.getProcessVariables() != null && configurationResults.getProcessVariables() != null) {
             configurationResults.getProcessVariables().putAll(result.getProcessVariables());
         }
-
+        
         if (result.getConfigurationDmnResponse() != null) {
             configurationResults.setConfigurationDmnResponse(result.getConfigurationDmnResponse());
         }
 
         if (result.getPermissionsDmnResponse() != null) {
             configurationResults.setPermissionsDmnResponse(result.getPermissionsDmnResponse());
-
         }
     }
 }

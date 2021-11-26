@@ -353,6 +353,35 @@ public class Common {
 
     }
 
+    public void setupOrganisationalRoleAssignmentWithWorkTypes(Headers headers) {
+
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", "IA",
+            "workType","hearing_work,upper_tribunal,routine_work"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/set-organisational-role-assignment-request.json"
+        );
+    }
+
     public void setupOrganisationalRoleAssignmentWithOutEndDate(Headers headers) {
 
         UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));

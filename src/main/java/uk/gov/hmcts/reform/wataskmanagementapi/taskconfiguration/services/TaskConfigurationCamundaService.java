@@ -116,7 +116,7 @@ public class TaskConfigurationCamundaService {
             if (!taskStateIsAssignedAlready) {
                 updateTaskStateTo(taskId, TaskState.ASSIGNED);
                 log.info("Updated task variables with state '{}' for task id '{}'",
-                         TaskState.ASSIGNED.value(), taskId
+                    TaskState.ASSIGNED.value(), taskId
                 );
             }
             camundaServiceApi.assignTask(serviceTokenGenerator.generate(), taskId, new AssigneeRequest(userId));
