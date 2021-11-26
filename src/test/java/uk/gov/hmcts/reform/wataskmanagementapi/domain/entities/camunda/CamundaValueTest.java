@@ -25,6 +25,15 @@ class CamundaValueTest {
     }
 
     @Test
+    void should_return_camunda_value_from_integer() {
+        
+        CamundaValue<Integer> testObject = CamundaValue.integerValue(100);
+
+        Assertions.assertEquals("Integer", testObject.getType());
+        Assertions.assertEquals(100, testObject.getValue());
+    }
+
+    @Test
     void should_return_camunda_value_from_json_string() {
 
         CamundaValue<String> testObject = CamundaValue.jsonValue("someJson");

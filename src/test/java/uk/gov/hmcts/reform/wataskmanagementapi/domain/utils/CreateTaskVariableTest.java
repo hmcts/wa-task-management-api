@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+
 class CreateTaskVariableTest {
 
     private CamundaTask camundaTask;
@@ -25,7 +26,7 @@ class CreateTaskVariableTest {
     private TaskMapper taskMapper;
     private WarningValues warningValues = new WarningValues(
         Arrays.asList(new Warning("123", "some warning"),
-                      new Warning("456", "some more warning")));
+            new Warning("456", "some more warning")));
 
     @BeforeEach
     void setup() {
@@ -80,6 +81,14 @@ class CreateTaskVariableTest {
         Assertions.assertThat(task.getWarnings()).isFalse();
         Assertions.assertThat(task.getWarningList()).isNotNull();
         Assertions.assertThat(task.getCaseManagementCategory()).isNotNull();
+
+    }
+
+    @Test
+    void should_return_string_when_camunda_variable_type_is_string() {
+
+        CamundaVariable camundaVariable = new CamundaVariable(TaskState.ASSIGNED.value(), "string");
+        Assertions.assertThat(camundaVariable.getType()).isEqualTo("string");
 
     }
 }

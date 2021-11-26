@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
@@ -79,15 +79,11 @@ class WorkTypesServiceTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
-        when(cftWorkTypeDatabaseService.findById("upper_tribunal"))
-            .thenReturn(Optional.empty());
-        when(cftWorkTypeDatabaseService.findById("hearing_work"))
-            .thenReturn(Optional.empty());
 
         List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
 
@@ -102,15 +98,14 @@ class WorkTypesServiceTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
-        when(cftWorkTypeDatabaseService.findById("upper_tribunal"))
-            .thenReturn(Optional.of(new WorkType("upper_tribunal", "Upper Tribunal")));
-        when(cftWorkTypeDatabaseService.findById("hearing_work"))
-            .thenReturn(Optional.of(new WorkType("hearing_work", "Hearing work")));
+        when(cftWorkTypeDatabaseService.getWorkTypes(Set.of("upper_tribunal","hearing_work")))
+            .thenReturn(List.of(new WorkType("upper_tribunal", "Upper Tribunal"),
+                                new WorkType("hearing_work", "Hearing work")));
 
         List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
 

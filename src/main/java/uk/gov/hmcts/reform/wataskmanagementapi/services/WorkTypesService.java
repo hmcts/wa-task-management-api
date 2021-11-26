@@ -7,15 +7,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPE;
 
 @Slf4j
 @Service
@@ -48,33 +46,19 @@ public class WorkTypesService {
         if (actorWorkTypes.isEmpty()) {
             return emptyList();
         }
-        List<WorkType> workTypes = new ArrayList<>();
+        return cftWorkTypeDatabaseService.getWorkTypes(actorWorkTypes);
 
-        for (String workTypeId : actorWorkTypes) {
-            Optional<WorkType> optionalWorkType = getWorkType(workTypeId.trim());
-
-            optionalWorkType.ifPresent(workTypes::add);
-        }
-        return workTypes;
     }
 
     public List<WorkType> getAllWorkTypes() {
         return cftWorkTypeDatabaseService.getAllWorkTypes();
     }
 
-    private Optional<WorkType> getWorkType(String workTypeId) {
-        Optional<WorkType> workTypeResource = cftWorkTypeDatabaseService.findById(workTypeId);
-        if (workTypeResource.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(new WorkType(workTypeResource.get().getId(), workTypeResource.get().getLabel()));
-    }
-
     private Set<String> extractActorWorkTypes(AccessControlResponse accessControlResponse) {
         Set<String> roleWorkTypes = new HashSet<>();
 
         for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
+            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPE.value());
             if (assignedWorkedList != null) {
                 roleWorkTypes.addAll(asList(assignedWorkedList.split(",")));
             }
