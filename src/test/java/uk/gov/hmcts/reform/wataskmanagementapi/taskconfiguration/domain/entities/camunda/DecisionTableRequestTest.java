@@ -19,7 +19,6 @@ class DecisionTableRequestTest {
             .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
             .testing(Method.TO_STRING)
-            .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
 
@@ -40,5 +39,9 @@ class DecisionTableRequestTest {
 
         assertEquals(obj1, obj2);
         assertNotEquals(obj1, obj3);
+
+        assertEquals(CamundaValue.stringValue("some case data"), obj1.getCaseData());
+        assertEquals(CamundaValue.stringValue("{\"caseTypeId\": \"some task type\"}"), obj1.getTaskAttributes());
+
     }
 }

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
 
@@ -77,6 +78,21 @@ class CamundaObjectMapperTest {
                           + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
                           + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
+    }
+
+    @Test
+    void read_value_method_should_return_correct_attributes() {
+
+        String expectedCamundaVariable = "{\n"
+                                         + "    \"value\": \"assigned\",\n"
+                                         + "    \"type\": \"string\"\n"
+                                         + "}";
+
+        CamundaVariable actual = camundaObjectMapper.readValue(expectedCamundaVariable, CamundaVariable.class);
+        assertNotNull(actual.getType());
+        assertNotNull(actual.getValue());
+        assertEquals(actual.getType(), "string");
+        assertEquals(actual.getValue(), "assigned");
     }
 
     @Test

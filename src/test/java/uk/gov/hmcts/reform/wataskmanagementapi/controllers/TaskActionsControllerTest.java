@@ -59,7 +59,11 @@ class TaskActionsControllerTest {
     @Mock
     private RoleAssignment mockedRoleAssignment;
     @Mock
+    private RoleAssignment mockedAssigneeRoleAssignment;
+    @Mock
     private UserInfo mockedUserInfo;
+    @Mock
+    private UserInfo mockedAssigneeUserInfo;
     @Mock
     private SystemDateProvider systemDateProvider;
     @Mock
@@ -84,14 +88,17 @@ class TaskActionsControllerTest {
     void should_succeed_when_fetching_a_task_and_return_a_204_no_content() {
 
         Task mockedTask = mock(Task.class);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(mockedUserInfo,
-                                                                                singletonList(mockedRoleAssignment));
+        AccessControlResponse mockAccessControlResponse = new AccessControlResponse(
+            mockedUserInfo,
+            singletonList(mockedRoleAssignment)
+        );
+
         when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(accessControlResponse);
+            .thenReturn(mockAccessControlResponse);
 
         when(taskManagementService.getTask(
             taskId,
-            accessControlResponse
+            mockAccessControlResponse
         ))
             .thenReturn(mockedTask);
 
@@ -106,8 +113,14 @@ class TaskActionsControllerTest {
 
     @Test
     void should_succeed_when_claiming_a_task_and_return_a_204_no_content() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
 
         ResponseEntity<Void> response = taskActionsController.claimTask(IDAM_AUTH_TOKEN, taskId);
+
+        verify(taskManagementService, times(1))
+            .claimTask(taskId, mockAccessControlResponse);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -115,24 +128,40 @@ class TaskActionsControllerTest {
 
     @Test
     void should_unclaim_a_task_204_no_content() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
 
-        String authToken = "someAuthToken";
-
-        ResponseEntity<Void> response = taskActionsController.unclaimTask(authToken, taskId);
+        ResponseEntity<Void> response = taskActionsController.unclaimTask(IDAM_AUTH_TOKEN, taskId);
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(taskManagementService, times(1))
+            .unclaimTask(taskId, mockAccessControlResponse);
     }
 
     @Test
     void should_succeed_and_return_a_204_no_content_when_assigning_task() {
+        AssignTaskRequest assignTaskRequest = new AssignTaskRequest("userId");
 
-        String authToken = "someAuthToken";
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
+            .thenReturn(mockAccessControlResponse);
+
+        AccessControlResponse mockedAssigneeAccessControlResponse =
+            new AccessControlResponse(mockedAssigneeUserInfo, singletonList(mockedAssigneeRoleAssignment));
+        when(accessControlService.getRolesGivenUserId(assignTaskRequest.getUserId(), IDAM_AUTH_TOKEN))
+            .thenReturn(mockedAssigneeAccessControlResponse);
 
         ResponseEntity<Void> response = taskActionsController.assignTask(
-            authToken,
+            IDAM_AUTH_TOKEN,
             taskId,
-            new AssignTaskRequest("userId")
+            assignTaskRequest
         );
+
+        verify(taskManagementService, times(1))
+            .assignTask(taskId, mockAccessControlResponse, mockedAssigneeAccessControlResponse);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
@@ -238,10 +267,16 @@ class TaskActionsControllerTest {
 
     @Test
     void should_cancel_a_task() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
 
         ResponseEntity response = taskActionsController.cancelTask(IDAM_AUTH_TOKEN, taskId);
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+
+        verify(taskManagementService, times(1))
+            .cancelTask(taskId, mockAccessControlResponse);
     }
 
     @Test

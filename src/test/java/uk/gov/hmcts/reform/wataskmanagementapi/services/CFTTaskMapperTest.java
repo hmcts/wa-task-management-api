@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -40,20 +40,22 @@ import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.COMPLETED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
@@ -195,7 +197,7 @@ class CFTTaskMapperTest {
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getRoleCategory());
-        assertEquals(false, taskResource.getHasWarnings());
+        assertTrue(taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
         assertEquals("00000", taskResource.getCaseId());
         assertEquals("someCaseType", taskResource.getCaseTypeId());
@@ -219,6 +221,26 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getTaskRoleResources());
     }
 
+    @Test
+    void should_map_cftTask_to_task_with_warnings() {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes = getDefaultAttributesWithWarnings(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        Task task = cftTaskMapper.mapToTask(taskResource);
+
+        assertNotNull(task);
+        assertTrue(task.getWarnings());
+        assertNotNull(task.getWarningList());
+        assertNotNull(task.getWarningList().getValues());
+        assertEquals(2, task.getWarningList().getValues().size());
+
+    }
 
     @Test
     void should_map_configuration_attributes() {
@@ -286,6 +308,32 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertEquals(emptySet(), taskResource.getTaskRoleResources());
+    }
+
+    @Test
+    void should_map_configuration_attributes_when_skeleton_fields_changed() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues));
+
+
+        assertEquals("otherCaseId", taskResource.getCaseId());
+        assertEquals("otherTaskId", taskResource.getTaskId());
+        assertEquals("otherTaskName", taskResource.getTaskName());
+
     }
 
 
@@ -397,6 +445,91 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_map_configuration_attributes_with_different_permission_types() {
+
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(AUTO_ASSIGNED.value(), true);
+        mappedValues.put(ASSIGNEE.value(), "someAssignee");
+        mappedValues.put(JURISDICTION.value(), "IA");
+        mappedValues.put(HAS_WARNINGS.value(), true);
+
+        List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
+            asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("IA,WA"),
+                    integerValue(2),
+                    booleanValue(true),
+                    stringValue("LEGAL_OPERATIONS")
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    integerValue(1),
+                    booleanValue(false),
+                    stringValue("LEGAL_OPERATIONS")
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("some-caseworker"),
+                    stringValue("Read"),
+                    null,
+                    integerValue(null),
+                    booleanValue(null),
+                    stringValue(null)
+                )
+            );
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses));
+
+
+        assertTrue(taskResource.getAutoAssigned());
+        assertNotNull(taskResource.getAssignee());
+        assertEquals("someAssignee", taskResource.getAssignee());
+        assertEquals("someCaseId", taskResource.getCaseId());
+        assertTrue(taskResource.getHasWarnings());
+
+        List<TaskRoleResource> actualRoleResources = new ArrayList<>(taskResource.getTaskRoleResources());
+
+        assertNotNull(actualRoleResources);
+        assertEquals(3, actualRoleResources.size());
+
+        assertEquals("senior-tribunal-caseworker", actualRoleResources.get(0).getRoleName());
+        assertEquals(0, actualRoleResources.get(0).getAuthorizations().length);
+        assertEquals(1, actualRoleResources.get(0).getAssignmentPriority());
+        assertFalse(actualRoleResources.get(0).getAutoAssignable());
+        assertEquals("LEGAL_OPERATIONS", actualRoleResources.get(0).getRoleCategory());
+
+        assertEquals("some-caseworker", actualRoleResources.get(1).getRoleName());
+        assertEquals(0, actualRoleResources.get(1).getAuthorizations().length);
+        assertNull(actualRoleResources.get(1).getAssignmentPriority());
+        assertFalse(actualRoleResources.get(1).getAutoAssignable());
+        assertNull(actualRoleResources.get(1).getRoleCategory());
+
+        assertEquals("tribunal-caseworker", actualRoleResources.get(2).getRoleName());
+        assertEquals(2, actualRoleResources.get(2).getAuthorizations().length);
+        assertArrayEquals(
+            new String[]{"IA", "WA"},
+            actualRoleResources.get(2).getAuthorizations()
+        );
+        assertEquals(2, actualRoleResources.get(2).getAssignmentPriority());
+        assertTrue(actualRoleResources.get(2).getAutoAssignable());
+        assertEquals("LEGAL_OPERATIONS", actualRoleResources.get(2).getRoleCategory());
+
+    }
+
+    @Test
     void should_throw_exception_when_execution_type_enum_is_not_mapped() {
 
         List<TaskAttribute> attributes = singletonList(
@@ -414,7 +547,7 @@ class CFTTaskMapperTest {
 
         List<TaskAttribute> attributes = asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, "aTaskType"),
-            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "aTaskName"),
             new TaskAttribute(TASK_CASE_ID, "someCaseId")
         );
 
@@ -637,7 +770,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getDueDate());
         assertNotNull(task.getCreatedDate());
         assertNotNull(task.getPermissions());
-        Assertions.assertTrue(task.getPermissions().getValues().isEmpty());
+        assertTrue(task.getPermissions().getValues().isEmpty());
     }
 
     @Test
@@ -686,7 +819,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getDueDate());
         assertNotNull(task.getCreatedDate());
         assertNotNull(task.getPermissions());
-        Assertions.assertFalse(task.getPermissions().getValues().isEmpty());
+        assertFalse(task.getPermissions().getValues().isEmpty());
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.READ));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.OWN));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.MANAGE));
@@ -720,7 +853,7 @@ class CFTTaskMapperTest {
         assertEquals(SecurityClassification.PUBLIC.getSecurityClassification(), task.getSecurityClassification());
         assertEquals("someTitle", task.getTaskTitle());
         assertEquals("someAssignee", task.getAssignee());
-        assertEquals(false, task.isAutoAssigned());
+        assertFalse(task.isAutoAssigned());
         assertEquals("Manual", task.getExecutionType());
         assertEquals("00000", task.getCaseId());
         assertEquals("someCaseType", task.getCaseTypeId());
@@ -936,13 +1069,44 @@ class CFTTaskMapperTest {
     }
 
     private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
-
-        List<TaskAttribute> defaultAttributes = getDefaultAttributes(createdDate, dueDate);
-        List<TaskAttribute> attributes = new ArrayList<>(defaultAttributes);
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                         + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
-        attributes.add(new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, values));
+        return asList(
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_CATEGORY, "someCaseCategory"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_ID, "00000"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_NAME, "someCaseName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CASE_TYPE_ID, "someCaseType"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_CREATED, createdDate),
+            new TaskAttribute(TaskAttributeDefinition.TASK_DUE_DATE, dueDate),
+            new TaskAttribute(TaskAttributeDefinition.TASK_DESCRIPTION, "someCamundaTaskDescription"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME, "MANUAL"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TaskAttributeDefinition.TASK_JURISDICTION, "someJurisdiction"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION, "someStaffLocationId"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_LOCATION_NAME, "someStaffLocationName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NAME, "someCamundaTaskName"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_REGION, "someRegion"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION, "PUBLIC"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_STATE, CFTTaskState.UNCONFIGURED),
+            new TaskAttribute(TaskAttributeDefinition.TASK_SYSTEM, "SELF"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TITLE, "someTitle"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TYPE, "someTaskType"),
+            new TaskAttribute(TaskAttributeDefinition.TASK_WARNINGS, values),
+            //Unmapped
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_BUSINESS_CONTEXT, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_MAJOR_PRIORITY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_MINOR_PRIORITY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ROLES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ROLE_CATEGORY, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+        );
 
-        return attributes;
+
     }
 }

@@ -344,7 +344,7 @@ public class CamundaService {
     public void updateCftTaskState(String taskId, TaskState taskState) {
         try {
             updateCftTaskStateTo(taskId, taskState);
-        } catch (FeignException ex) {
+        } catch (CamundaCftTaskStateUpdateException ex) {
             throw new ServerErrorException("There was a problem when updating the cftTaskState", ex);
         }
     }

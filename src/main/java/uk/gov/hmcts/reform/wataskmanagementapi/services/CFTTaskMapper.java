@@ -72,7 +72,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
 
-
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
@@ -300,9 +299,6 @@ public class CFTTaskMapper {
                 case ASSIGNEE:
                     taskResource.setAssignee((String) value);
                     break;
-                case CASE_ID:
-                    taskResource.setCaseId((String) value);
-                    break;
                 case CASE_NAME:
                     taskResource.setCaseName((String) value);
                     break;
@@ -337,12 +333,6 @@ public class CFTTaskMapper {
                     SecurityClassification sc = SecurityClassification.valueOf((String) value);
                     taskResource.setSecurityClassification(sc);
                     break;
-                case TASK_ID:
-                    taskResource.setTaskId((String) value);
-                    break;
-                case TASK_NAME:
-                    taskResource.setTaskName((String) value);
-                    break;
                 case TASK_SYSTEM:
                     TaskSystem taskSystem = TaskSystem.valueOf((String) value);
                     taskResource.setTaskSystem(taskSystem);
@@ -362,6 +352,15 @@ public class CFTTaskMapper {
                 case WORK_TYPE:
                     WorkTypeResource workTypeResource = new WorkTypeResource((String) value, StringUtils.EMPTY);
                     taskResource.setWorkTypeResource(workTypeResource);
+                    break;
+                case CASE_ID:
+                    taskResource.setCaseId((String) value);
+                    break;
+                case TASK_ID:
+                    taskResource.setTaskId((String) value);
+                    break;
+                case TASK_NAME:
+                    taskResource.setTaskName((String) value);
                     break;
                 default:
                     break;

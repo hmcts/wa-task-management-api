@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -187,11 +188,14 @@ class TaskSearchControllerTest {
         final NoRoleAssignmentsFoundException exception =
             new NoRoleAssignmentsFoundException(exceptionMessage);
 
+        SearchTasksResponse expectedResponse = new SearchTasksResponse(Collections.emptyList());
         ResponseEntity<SearchTasksResponse> response = taskSearchController.handleNoRoleAssignmentsException(exception);
 
         assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
+        assertEquals(expectedResponse, response.getBody());
         assertEquals(emptyList(), response.getBody().getTasks());
+        assertEquals(0, response.getBody().getTasks().size());
 
     }
 
@@ -201,9 +205,9 @@ class TaskSearchControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_TASK_QUERY,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail()
+                RELEASE_2_TASK_QUERY,
+                mockedUserInfo.getUid(),
+                mockedUserInfo.getEmail()
             )
         ).thenReturn(true);
 
@@ -229,9 +233,9 @@ class TaskSearchControllerTest {
             .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_TASK_QUERY,
-            mockedUserInfo.getUid(),
-            mockedUserInfo.getEmail()
+                RELEASE_2_TASK_QUERY,
+                mockedUserInfo.getUid(),
+                mockedUserInfo.getEmail()
             )
         ).thenReturn(true);
 
@@ -241,9 +245,9 @@ class TaskSearchControllerTest {
 
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
             taskSearchController.searchWithCriteriaForAutomaticCompletion(
-            IDAM_AUTH_TOKEN,
-            new SearchEventAndCase("caseId", "eventId", "IA", "caseType")
-        );
+                IDAM_AUTH_TOKEN,
+                new SearchEventAndCase("caseId", "eventId", "IA", "caseType")
+            );
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
