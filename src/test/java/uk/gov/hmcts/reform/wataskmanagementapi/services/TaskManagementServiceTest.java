@@ -3037,7 +3037,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertNotNull(taskRolePermissions);
             assertFalse(taskRolePermissions.isEmpty());
 
-            assertTrue(taskRolePermissions.size() == 2);
+            assertEquals(2, taskRolePermissions.size());
 
             TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
