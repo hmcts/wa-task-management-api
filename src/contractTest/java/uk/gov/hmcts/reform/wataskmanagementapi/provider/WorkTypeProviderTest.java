@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPE;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_work_types")
@@ -96,7 +96,7 @@ public class WorkTypeProviderTest {
         workTypes.add(new WorkType("hearing_work", "Hearing Work"));
 
         Map<String, String> attributes = Map.of(
-            WORK_TYPES.value(), "hearing_work"
+            WORK_TYPE.value(), "hearing_work"
         );
 
         List<RoleAssignment> roleAssignmentList = List.of(

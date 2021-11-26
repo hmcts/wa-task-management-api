@@ -173,7 +173,7 @@ public class ServiceMocks {
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "IA");
         final RoleAssignment orgRoleAssignment = createBaseAssignment(
             UUID.randomUUID().toString(),
             "tribunal-caseworker",
