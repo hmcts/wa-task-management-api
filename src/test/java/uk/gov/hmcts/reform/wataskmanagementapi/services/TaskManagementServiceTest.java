@@ -3091,6 +3091,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(cftTaskMapper, times(1)).mapToTaskRolePermissions(any());
         }
 
+        @Test
         void should_return_empty_task_role_permissions() {
             String taskId = "taskId";
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
