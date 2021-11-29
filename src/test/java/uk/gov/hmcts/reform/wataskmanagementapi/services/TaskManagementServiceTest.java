@@ -3092,26 +3092,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_return_empty_task_role_permissions() {
-            String taskId = "taskId";
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            TaskResource taskResource = spy(TaskResource.class);
-
-            when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
-
-            final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
-                taskId, accessControlResponse);
-
-            assertNotNull(taskRolePermissions);
-            assertTrue(taskRolePermissions.isEmpty());
-
-            verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
-            verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
-        }
-
-        @Test
         void should_throw_task_not_found_exception() {
             String taskId = "taskId";
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);

@@ -706,11 +706,7 @@ public class TaskManagementService {
         final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
             taskResourceSpecification);
 
-        if (taskResourceQueryResult.isEmpty()) {
-            return emptyList();
-        }
-
-        return taskResource.get().getTaskRoleResources().stream().map(
+        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
             cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
