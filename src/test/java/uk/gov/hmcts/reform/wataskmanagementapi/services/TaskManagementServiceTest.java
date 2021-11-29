@@ -3092,19 +3092,20 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_return_empty_task_role_permissions() {
+        void should_throw_role_verification_exception() {
             String taskId = "taskId";
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             TaskResource taskResource = spy(TaskResource.class);
+            TaskRoleResource taskRoleResource = new TaskRoleResource(
+                "roleName", true, true, true, true, true,
+                true, new String[]{"Divorce"}, 1, false, "roleCategory"
+            );
 
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
 
-            final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
-                taskId, accessControlResponse);
-
-            assertNotNull(taskRolePermissions);
-            assertTrue(taskRolePermissions.isEmpty());
+            assertThrows(RoleAssignmentVerificationException.class, () -> taskManagementService.getTaskRolePermissions(
+                taskId, accessControlResponse));
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
             verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());

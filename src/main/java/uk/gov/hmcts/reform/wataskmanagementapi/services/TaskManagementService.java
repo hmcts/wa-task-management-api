@@ -707,10 +707,10 @@ public class TaskManagementService {
             taskResourceSpecification);
 
         if (taskResourceQueryResult.isEmpty()) {
-            return emptyList();
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        return taskResource.get().getTaskRoleResources().stream().map(
+        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
             cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
