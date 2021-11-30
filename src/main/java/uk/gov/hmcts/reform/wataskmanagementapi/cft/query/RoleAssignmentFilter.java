@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -39,6 +40,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.G
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType.STANDARD;
 
 
+@Slf4j
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports"})
 public final class RoleAssignmentFilter {
 
@@ -52,6 +54,7 @@ public final class RoleAssignmentFilter {
     public static final String ROLE_NAME_COLUMN = "roleName";
     public static final String TASK_ROLE_RESOURCES = "taskRoleResources";
     public static final ZoneId ZONE_ID = ZoneId.of("Europe/London");
+    public static final String READ_COLUMN = "read";
 
     private RoleAssignmentFilter() {
         // avoid creating object
@@ -92,6 +95,27 @@ public final class RoleAssignmentFilter {
             query.distinct(true);
 
             return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
+        };
+    }
+
+    public static Specification<TaskResource> buildQueryToRetrieveRoleInformation(
+        AccessControlResponse accessControlResponse) {
+
+        return (root, query, builder) -> {
+            // filter roles which are active.
+            final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+                .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+
+            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
+
+            List<Predicate> rolePredicates = new ArrayList<>();
+            for (Optional<RoleAssignment> roleAssignment : activeRoleAssignments) {
+                Predicate rolePredicate = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
+                    roleAssignment.get().getRoleName());
+
+                rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
+            }
+            return builder.or(rolePredicates.toArray(new Predicate[0]));
         };
     }
 

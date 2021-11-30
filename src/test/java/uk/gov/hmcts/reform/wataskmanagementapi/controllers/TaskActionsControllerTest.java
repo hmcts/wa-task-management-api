@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -20,7 +21,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
@@ -357,5 +360,26 @@ class TaskActionsControllerTest {
         NoteResource noteResource = new NoteResource(
             "code", "notetype", "userId", "content");
         return new NotesRequest(List.of(noteResource));
+    }
+
+    @Test
+    void should_return_task_roles_with_permissions() {
+        AccessControlResponse mockAccessControlResponse =
+            new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment));
+        when(accessControlService.getRoles(IDAM_AUTH_TOKEN)).thenReturn(mockAccessControlResponse);
+
+        List<PermissionTypes> permissionTypes = List.of(PermissionTypes.READ);
+        List<String> authorisations = List.of("Divorce");
+        List<TaskRolePermissions> taskRolePermissions = List.of(
+            new TaskRolePermissions("roleCategory", "roleName", permissionTypes, authorisations));
+        when(taskManagementService.getTaskRolePermissions(taskId, mockAccessControlResponse))
+            .thenReturn(taskRolePermissions);
+        final ResponseEntity<GetTaskRolePermissionsResponse> response = taskActionsController
+            .getTaskRolePermissions(IDAM_AUTH_TOKEN, taskId);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(response.getBody().getPermissionsList(), taskRolePermissions);
     }
 }

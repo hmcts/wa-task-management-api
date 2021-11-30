@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
@@ -15,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceSpecification;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -30,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
@@ -44,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -679,6 +683,38 @@ public class TaskManagementService {
 
     public Optional<TaskResource> getTaskById(String taskId) {
         return cftTaskDatabaseService.findByIdOnly(taskId);
+    }
+
+    /**
+     * Retrieve task role information.
+     * This method retrieves role permission information for a given task.
+     * The task should have a read permission to retrieve role permission information.
+     *
+     * @param taskId        the task id.
+     * @param accessControlResponse the access control response containing user id and role assignments.
+     * @return collection of roles
+     */
+    public List<TaskRolePermissions> getTaskRolePermissions(String taskId,
+                                                            AccessControlResponse accessControlResponse) {
+        final Optional<TaskResource> taskResource = getTaskById(taskId);
+        if (taskResource.isEmpty()) {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+        }
+        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
+
+        final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
+            taskResourceSpecification);
+
+        if (taskResourceQueryResult.isEmpty()) {
+            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
+        }
+
+        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
+            cftTaskMapper::mapToTaskRolePermissions)
+            .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
+            .collect(Collectors.toList()
+        );
     }
 
     /**

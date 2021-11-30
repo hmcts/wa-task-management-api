@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
@@ -39,6 +40,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
@@ -75,7 +77,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Service
 @SuppressWarnings(
     {"PMD.LinguisticNaming", "PMD.ExcessiveImports", "PMD.DataflowAnomalyAnalysis",
-        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods"})
+        "PMD.NcssCount", "PMD.CyclomaticComplexity", "PMD.TooManyMethods", "PMD.GodClass", "java:S5411"})
 @Slf4j
 public class CFTTaskMapper {
 
@@ -208,6 +210,22 @@ public class CFTTaskMapper {
     private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
         String workTypeId = read(attributes, TASK_WORK_TYPE, null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
+    }
+
+    public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
+        final String[] authorizations = taskRoleResource.getAuthorizations();
+        List<String> authorisations = new ArrayList<>();
+        if (authorizations.length > 0) {
+            authorisations = Stream.of(taskRoleResource.getAuthorizations())
+                .collect(Collectors.toList());
+        }
+        final Set<PermissionTypes> permissionTypes = extractUnionOfPermissions(Set.of(taskRoleResource));
+
+        return new TaskRolePermissions(
+            taskRoleResource.getRoleCategory(),
+            taskRoleResource.getRoleName(),
+            List.copyOf(permissionTypes),
+            authorisations);
     }
 
     private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {

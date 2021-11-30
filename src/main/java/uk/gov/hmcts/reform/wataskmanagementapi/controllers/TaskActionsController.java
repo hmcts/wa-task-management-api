@@ -26,7 +26,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
@@ -34,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
 
@@ -265,6 +268,32 @@ public class TaskActionsController extends BaseController {
             .noContent()
             .cacheControl(CacheControl.noCache())
             .build();
+    }
+
+    @ApiOperation("Retrieve the role permissions information for the task identified by the given task-id.")
+    @ApiResponses({
+        @ApiResponse(code = 200, message = OK, response = GetTaskResponse.class),
+        @ApiResponse(code = 400, message = BAD_REQUEST),
+        @ApiResponse(code = 403, message = FORBIDDEN),
+        @ApiResponse(code = 401, message = UNAUTHORIZED),
+        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+    })
+    @GetMapping(path = "/{task-id}/roles")
+    public ResponseEntity<GetTaskRolePermissionsResponse> getTaskRolePermissions(
+        @RequestHeader(AUTHORIZATION) String authToken, @PathVariable(TASK_ID) String id) {
+
+        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+
+        final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
+            id,
+            accessControlResponse
+        );
+
+        return ResponseEntity
+            .ok()
+            .cacheControl(CacheControl.noCache())
+            .body(new GetTaskRolePermissionsResponse(taskRolePermissions));
     }
 
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)

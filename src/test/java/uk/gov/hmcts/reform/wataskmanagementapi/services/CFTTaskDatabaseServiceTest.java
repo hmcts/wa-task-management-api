@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -20,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,5 +95,26 @@ class CFTTaskDatabaseServiceTest {
                 any(),
                 any()
             );
+    }
+
+    @Test
+    void should_return_task_resource_by_specification() {
+        TaskResource taskResource = spy(TaskResource.class);
+        Mockito.when(taskResourceRepository.findOne(any())).thenReturn(Optional.of(taskResource));
+
+        final Optional<TaskResource> taskBySpecification = cftTaskDatabaseService.findTaskBySpecification(any());
+
+        assertNotNull(taskBySpecification);
+        verify(taskResourceRepository, times(1)).findOne(any());
+    }
+
+    @Test
+    void should_return_empty_task_resource_by_specification() {
+        Mockito.when(taskResourceRepository.findOne(any())).thenReturn(Optional.empty());
+
+        final Optional<TaskResource> taskBySpecification = cftTaskDatabaseService.findTaskBySpecification(any());
+
+        assertTrue(taskBySpecification.isEmpty());
+        verify(taskResourceRepository, times(1)).findOne(any());
     }
 }
