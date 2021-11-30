@@ -720,7 +720,7 @@ public class TaskManagementService {
             .map(cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
-        );
+            );
     }
 
     /**

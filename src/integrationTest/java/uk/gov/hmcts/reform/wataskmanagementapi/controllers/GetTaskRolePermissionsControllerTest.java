@@ -154,7 +154,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
             .thenReturn(new RoleAssignmentResource(allTestRoles));
 
         TaskRoleResource taskRoleResource = new TaskRoleResource(
-            "roleName", true, false, false, false, false,
+            "roleName", false, false, false, false, false,
             false, new String[]{}, 1, false, "roleCategory"
         );
 
