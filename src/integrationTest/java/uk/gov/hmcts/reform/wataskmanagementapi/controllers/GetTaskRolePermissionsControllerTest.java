@@ -63,11 +63,9 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
 
     private UserInfo mockedUserInfo;
     private ServiceMocks mockServices;
-    private String taskId;
 
     @BeforeEach
     void setUp() {
-        taskId = UUID.randomUUID().toString();
         mockedUserInfo = UserInfo.builder().uid(ServiceMocks.IDAM_USER_ID).name("someUser").build();
         lenient().when(serviceAuthTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
         lenient().when(idamWebApi.userInfo(IDAM_AUTHORIZATION_TOKEN)).thenReturn(mockedUserInfo);
@@ -83,6 +81,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
     void should_return_200_with_empty_list_when_task_does_not_have_any_roles()
         throws Exception {
 
+        String taskId = UUID.randomUUID().toString();
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         List<RoleAssignment> allTestRoles =
@@ -112,6 +111,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
 
     @Test
     void should_return_503_with_application_problem_response_when_db_is_not_available() throws Exception {
+        String taskId = UUID.randomUUID().toString();
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         List<RoleAssignment> allTestRoles =
@@ -144,7 +144,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
     @Test
     void should_return_403_with_role_assignment_verification_problem_when_task_does_not_have_required_permissions()
         throws Exception {
-
+        String taskId = UUID.randomUUID().toString();
         final List<String> roleNames = singletonList("tribunal-caseworker");
 
         List<RoleAssignment> allTestRoles =
