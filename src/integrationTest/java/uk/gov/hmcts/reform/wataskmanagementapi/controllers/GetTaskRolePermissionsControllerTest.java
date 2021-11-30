@@ -161,9 +161,9 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
 
         final TaskResource taskResource = spy(TaskResource.class);
+
         when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
         when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
-        when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
         when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
 
