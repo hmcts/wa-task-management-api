@@ -3008,8 +3008,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Test
         void should_succeed() {
             String taskId = "taskId";
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
-            TaskResource taskResource = spy(TaskResource.class);
+            final AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            TaskResource taskResource = new TaskResource(
+                taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
+            );
 
             TaskRoleResource tribunalResource = new TaskRoleResource(
                 "tribunal-caseworker", true, true, true, true, true,
@@ -3027,7 +3029,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             );
 
             Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource, caseManagerResource, withOutRead);
-            when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
+            taskResource.setTaskRoleResources(taskRoleResourceSet);
+
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.of(taskResource));
 

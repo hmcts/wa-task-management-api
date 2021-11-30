@@ -213,9 +213,9 @@ public class CFTTaskMapper {
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
-        final String[] authorizations = taskRoleResource.getAuthorizations();
+        final String[] authorisationsArray = taskRoleResource.getAuthorizations();
         List<String> authorisations = new ArrayList<>();
-        if (authorizations.length > 0) {
+        if (authorisationsArray.length > 0) {
             authorisations = Stream.of(taskRoleResource.getAuthorizations())
                 .collect(Collectors.toList());
         }

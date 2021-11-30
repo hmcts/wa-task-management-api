@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -465,6 +467,43 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(0)).and(
             any(), any(), any(), any(), any(), any(), any());
         verify(builder, times(4)).or(any());
+    }
+
+    @Test
+    void buildQueryToRetrieveRoleInformation() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(Classification.PUBLIC)
+        );
+        when(taskRoleResources.get("roleName")).thenReturn(roleNamePath);
+        when(builder.equal(roleNamePath, "hmcts-judiciary")).thenReturn(equalPredicate);
+
+        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse);
+
+        spec.toPredicate(root, query, builder);
+
+        verify(root, times(1)).join(anyString());
+        verify(builder, times(0)).equal(any(), any());
+        verify(builder, times(1)).or(any());
+        verify(builder, times(2)).or(any(), any());
+    }
+
+    @Test
+    void buildQueryToRetrieveRoleInformationWhenRoleAssignmentAreEmpty() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            Collections.emptyList()
+        );
+        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse);
+
+        spec.toPredicate(root, query, builder);
+
+        verify(root, times(1)).join(anyString());
+        verify(builder, times(1)).or(any());
+        verify(builder, never()).equal(any(), any());
+        verify(builder, never()).or(any(), any());
     }
 
 }
