@@ -4,7 +4,6 @@ import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
@@ -16,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
@@ -58,7 +58,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
     private CamundaServiceApi camundaServiceApi;
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @SpyBean
+    @MockBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private UserInfo mockedUserInfo;
@@ -160,10 +160,13 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
 
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
 
-        final TaskResource taskResource = spy(TaskResource.class);
+        TaskResource taskResource = new TaskResource(
+            taskId, "taskName", "taskType", CFTTaskState.ASSIGNED
+        );
 
         when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-        when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
+
+        taskResource.setTaskRoleResources(taskRoleResourceSet);
 
         when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
 

@@ -486,7 +486,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(builder, times(0)).equal(any(), any());
         verify(builder, times(1)).or(any());
-        verify(builder, times(2)).or(any(), any());
+        verify(builder, times(2)).and(any(), any());
     }
 
     @Test
@@ -503,7 +503,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(builder, times(1)).or(any());
         verify(builder, never()).equal(any(), any());
-        verify(builder, never()).or(any(), any());
+        verify(builder, never()).and(any(), any());
     }
 
 }

@@ -113,7 +113,7 @@ public final class RoleAssignmentFilter {
                 Predicate rolePredicate = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
                     roleAssignment.get().getRoleName());
 
-                rolePredicates.add(builder.or(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
+                rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
             }
             return builder.or(rolePredicates.toArray(new Predicate[0]));
         };
