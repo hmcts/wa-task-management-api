@@ -715,7 +715,7 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        return taskResource.get().getTaskRoleResources().stream()
+        return taskResourceQueryResult.get().getTaskRoleResources().stream()
             .filter(taskRoleResource -> taskRoleResource.getRead().equals(Boolean.TRUE))
             .map(cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
