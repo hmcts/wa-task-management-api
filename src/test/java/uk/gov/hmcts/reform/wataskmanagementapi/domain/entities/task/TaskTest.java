@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -46,7 +47,8 @@ class TaskTest {
             ),
             "some-case-management-category",
             "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
+            RoleCategory.ADMINISTRATOR.name()
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -111,7 +113,8 @@ class TaskTest {
             ),
             "some-case-management-category",
             "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN)))
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN))),
+            RoleCategory.LEGAL_OPERATIONS.name()
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();

@@ -179,7 +179,8 @@ public class CFTTaskMapper {
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory(),
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
-            new TaskPermissions(permissionsUnion)
+            new TaskPermissions(permissionsUnion),
+            taskResource.getRoleCategory()
         );
     }
 

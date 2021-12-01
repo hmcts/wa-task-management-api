@@ -25,6 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
@@ -32,7 +33,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
-
 
 @Service
 @SuppressWarnings("PMD.LinguisticNaming")
@@ -72,6 +72,7 @@ public class TaskMapper {
         WarningValues warningList = getVariableValue(variables.get(WARNING_LIST.value()), WarningValues.class);
         String caseManagementCategory = getVariableValue(variables.get(CASE_MANAGEMENT_CATEGORY.value()), String.class);
         String workType = getVariableValue(variables.get(WORK_TYPE.value()), String.class);
+        String roleCategory = getVariableValue(variables.get(ROLE_CATEGORY.value()), String.class);
         return new Task(
             id,
             name,
@@ -98,7 +99,8 @@ public class TaskMapper {
             caseManagementCategory,
             workType,
             //returning empty since this should only be used in R1 and task permissions is R2
-            new TaskPermissions(Collections.emptySet())
+            new TaskPermissions(Collections.emptySet()),
+            roleCategory
         );
     }
 
