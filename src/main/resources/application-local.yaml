@@ -19,4 +19,4 @@ logging:
       SQL: debug
       type.descriptor.sql.BasicBinder: debug
       engine: debug
-    uk.gov.hmcts.reform: debug
+    uk.gov.hmcts.reform: info

@@ -1,15 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
@@ -51,12 +52,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
     private static final String TASK_INITIATION_END_POINT = "task/{task-id}";
-    private static final String CAMUNDA_SEARCH_HISTORY_ENDPOINT = "/history/variable-instance";
 
     private Headers authenticationHeaders;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Before
     public void setUp() {
@@ -64,39 +61,46 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
     }
 
     @Test
-    public void given_processApplication_task_when_decideAnApplication_event_then_return_processApplication_tasks() {
-        TestVariables processApplicationTaskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-            Map.of(
-                CamundaVariableDefinition.TASK_TYPE, "processApplication",
-                CamundaVariableDefinition.TASK_ID, "processApplication"
-            ));
+    public void should_return_200_with_appropriate_task_to_complete() {
+        Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
+        scenarios.forEach(scenario -> {
 
-        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
-            processApplicationTaskVariables.getCaseId(),
-            "decideAnApplication",
-            "IA",
-            "Asylum"
-        );
+            TestVariables testVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+                Map.of(
+                    CamundaVariableDefinition.TASK_TYPE, scenario.taskId,
+                    CamundaVariableDefinition.TASK_ID, scenario.taskId
+                ));
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+            SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+                testVariables.getCaseId(),
+                scenario.eventId,
+                "IA",
+                "Asylum"
+            );
 
-        insertTaskInCftTaskDb(processApplicationTaskVariables.getCaseId(),
-            processApplicationTaskVariables.getTaskId(), null, "processApplication");
+            common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            decideAnApplicationSearchRequest,
-            authenticationHeaders
-        );
+            insertTaskInCftTaskDb(
+                testVariables.getCaseId(),
+                testVariables.getTaskId(),
+                null,
+                scenario.taskId);
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(1))
-            .body("tasks[0].type", equalTo("processApplication"))
-            .body("tasks[0].work_type_id", equalTo("applications"));
+            Response result = restApiActions.post(
+                ENDPOINT_BEING_TESTED,
+                decideAnApplicationSearchRequest,
+                authenticationHeaders
+            );
 
-        common.cleanUpTask(processApplicationTaskVariables.getTaskId());
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .contentType(APPLICATION_JSON_VALUE)
+                .body("tasks.size()", equalTo(1))
+                .body("tasks[0].type", equalTo(scenario.taskId))
+                .body("tasks[0].work_type_id", equalTo(scenario.workTypeId));
+
+            common.cleanUpTask(testVariables.getTaskId());
+        });
     }
 
     @Test
@@ -618,7 +622,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             new TaskAttribute(TASK_CASE_ID, caseId),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now())),
-            new TaskAttribute(TASK_DUE_DATE,  CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
+            new TaskAttribute(TASK_DUE_DATE, CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now().plusDays(10))),
             new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
@@ -635,6 +639,22 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value());
+    }
+
+    private static Stream<CompletableTaskScenario> tasksToCompleteScenarios() {
+        return Stream.of(
+            new CompletableTaskScenario("processApplication", "decideAnApplication", "applications"),
+            new CompletableTaskScenario("reviewAdditionalEvidence", "markEvidenceAsReviewed", "decision_making_work"),
+            new CompletableTaskScenario("reviewAdditionalHomeOfficeEvidence", "markEvidenceAsReviewed", "decision_making_work")
+        );
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class CompletableTaskScenario {
+        private String taskId;
+        private String eventId;
+        private String workTypeId;
     }
 }
 
