@@ -10,7 +10,6 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -55,7 +54,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
 
-            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("cancelled"));
 
             mockMvc.perform(
                 delete(ENDPOINT_BEING_TESTED)
@@ -83,7 +82,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
-            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("cancelled"));
 
             mockMvc.perform(
                 delete(ENDPOINT_BEING_TESTED)
@@ -108,7 +107,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
 
-            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.COMPLETED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("completed"));
 
             mockMvc.perform(
                 delete(ENDPOINT_BEING_TESTED)
@@ -136,7 +135,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
-            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.COMPLETED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("completed"));
 
             mockMvc.perform(
                 delete(ENDPOINT_BEING_TESTED)
@@ -160,7 +159,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(false);
 
-            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.DELETED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("deleted"));
 
             mockMvc.perform(
                 delete(ENDPOINT_BEING_TESTED)
@@ -188,7 +187,7 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
 
-            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.DELETED));
+            TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("deleted"));
 
             mockMvc.perform(
                 delete(ENDPOINT_BEING_TESTED)
