@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
@@ -213,12 +212,8 @@ public class CFTTaskMapper {
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
-        final String[] authorisationsArray = taskRoleResource.getAuthorizations();
-        List<String> authorisations = new ArrayList<>();
-        if (authorisationsArray.length > 0) {
-            authorisations = Stream.of(taskRoleResource.getAuthorizations())
-                .collect(Collectors.toList());
-        }
+        List<String> authorisations = asList(taskRoleResource.getAuthorizations());
+
         final Set<PermissionTypes> permissionTypes = extractUnionOfPermissions(Set.of(taskRoleResource));
 
         return new TaskRolePermissions(
