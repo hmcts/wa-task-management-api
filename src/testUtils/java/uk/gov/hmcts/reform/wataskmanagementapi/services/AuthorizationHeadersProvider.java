@@ -97,7 +97,7 @@ public class AuthorizationHeadersProvider {
 
     public Header getLawFirmAuthorizationOnly() {
 
-        TestAccount lawfirm = getIdamCaseWorkerCredentials("wa-ft-lawfirm-");
+        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
         return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }
