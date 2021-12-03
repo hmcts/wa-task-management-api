@@ -275,6 +275,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             authenticationHeaders
         );
 
+        result.prettyPrint();
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -298,7 +300,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue());
+            .body("task.warnings", notNullValue())
+            .body("task.role_category", notNullValue());
 
         common.cleanUpTask(taskId);
     }
