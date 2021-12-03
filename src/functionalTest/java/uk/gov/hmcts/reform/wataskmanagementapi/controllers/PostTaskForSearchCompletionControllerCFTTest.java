@@ -643,9 +643,21 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     private static Stream<CompletableTaskScenario> tasksToCompleteScenarios() {
         return Stream.of(
-            new CompletableTaskScenario("processApplication", "decideAnApplication", "applications"),
-            new CompletableTaskScenario("reviewAdditionalEvidence", "markEvidenceAsReviewed", "decision_making_work"),
-            new CompletableTaskScenario("reviewAdditionalHomeOfficeEvidence", "markEvidenceAsReviewed", "decision_making_work")
+            new CompletableTaskScenario(
+                "processApplication",
+                "decideAnApplication",
+                "applications"
+            ),
+            new CompletableTaskScenario(
+                "reviewAdditionalEvidence",
+                "markEvidenceAsReviewed",
+                "decision_making_work"
+            ),
+            new CompletableTaskScenario(
+                "reviewAdditionalHomeOfficeEvidence",
+                "markEvidenceAsReviewed",
+                "decision_making_work"
+            )
         );
     }
 
