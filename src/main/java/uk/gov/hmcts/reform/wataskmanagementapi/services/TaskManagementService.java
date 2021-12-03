@@ -79,7 +79,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.ExcessiveParameterList"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-    public static final String SENIOR_TRIBUNAL_CASE_WORKER_ROLE = "senior-tribunal-caseworker";
 
     private final CamundaService camundaService;
     private final CamundaQueryBuilder camundaQueryBuilder;
