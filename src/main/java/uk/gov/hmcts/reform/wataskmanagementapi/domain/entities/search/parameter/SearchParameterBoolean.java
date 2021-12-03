@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @ApiModel(
     value = "SearchParameter",
@@ -22,14 +21,14 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
     @ApiModelProperty(
         required = true,
-        allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, work_type",
+        allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, work_type, available_tasks_onky",
         example = "user")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
     private final SearchParameterKey key;
 
-    @ApiModelProperty(allowableValues = "IN", example = "IN")
+    @ApiModelProperty(allowableValues = "BOOLEAN", example = "BOOLEAN")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
@@ -59,7 +58,7 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
         return operator;
     }
 
-    public Boolean getValue() {
+    public Boolean getValues() {
         return value;
     }
 }

@@ -59,7 +59,7 @@ public class SearchParameterList implements SearchParameter<List<String>> {
         return operator;
     }
 
-    public List<String> getValue() {
+    public List<String> getValues() {
         return value;
     }
 }

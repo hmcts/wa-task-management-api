@@ -45,7 +45,7 @@ import javax.persistence.OneToMany;
     }
 )
 @SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
-public class TaskResource implements Serializable {
+public class    TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 

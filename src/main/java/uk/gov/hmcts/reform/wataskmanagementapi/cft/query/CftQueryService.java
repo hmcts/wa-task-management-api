@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 import java.util.ArrayList;
@@ -36,7 +35,6 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
 @Slf4j
 @Service
@@ -166,7 +164,6 @@ public class CftQueryService {
 
         //Validate work-type
         List<SearchParameterList> workType = new ArrayList<>();
-        SearchParameterKey.WORK_TYPE.getSearchParameterImpl();
         for (SearchParameter<?> sp : searchTaskRequest.getSearchParameters()) {
             if (sp.getKey().equals(SearchParameterKey.WORK_TYPE)) {
                 workType.add((SearchParameterList) sp);
@@ -176,7 +173,7 @@ public class CftQueryService {
         if (!workType.isEmpty()) {
             //validate work type
             SearchParameterList workTypeParameter = workType.get(0);
-            List<String> values = workTypeParameter.getValue();
+            List<String> values = workTypeParameter.getValues();
             //Validate
             values.forEach(value -> {
                 if (!ALLOWED_WORK_TYPES.contains(value)) {
