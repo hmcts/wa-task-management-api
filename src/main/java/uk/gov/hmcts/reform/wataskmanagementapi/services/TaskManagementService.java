@@ -716,7 +716,6 @@ public class TaskManagementService {
         }
 
         return taskResourceQueryResult.get().getTaskRoleResources().stream()
-            .filter(taskRoleResource -> taskRoleResource.getRead().equals(Boolean.TRUE))
             .map(cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()

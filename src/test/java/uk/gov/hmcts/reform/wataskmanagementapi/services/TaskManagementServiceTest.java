@@ -3040,8 +3040,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertNotNull(taskRolePermissions);
             assertFalse(taskRolePermissions.isEmpty());
 
-            assertEquals(2, taskRolePermissions.size());
+            assertEquals(3, taskRolePermissions.size());
 
+            // first index
             TaskRolePermissions expectedRolePermission = taskRolePermissions.get(0);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
@@ -3052,19 +3053,31 @@ class TaskManagementServiceTest extends CamundaHelpers {
             assertEquals("roleCategory", expectedRolePermission.getRoleCategory());
             assertEquals("case-manager", expectedRolePermission.getRoleName());
 
+            // second index
             expectedRolePermission = taskRolePermissions.get(1);
+            assertTrue(expectedRolePermission.getPermissions().containsAll(
+                List.of(MANAGE, CANCEL, EXECUTE, OWN, REFER)
+            ));
+            assertTrue(expectedRolePermission.getAuthorisations().contains(
+                "Divorce"
+            ));
+            assertEquals("roleCategory", expectedRolePermission.getRoleCategory());
+            assertEquals("senior-tribunal", expectedRolePermission.getRoleName());
+
+            // third index
+            expectedRolePermission = taskRolePermissions.get(2);
             assertTrue(expectedRolePermission.getPermissions().containsAll(
                 List.of(MANAGE, CANCEL, EXECUTE, OWN, READ, REFER)
             ));
-            assertTrue(expectedRolePermission.getAuthorisations().containsAll(
-                List.of("Divorce")
+            assertTrue(expectedRolePermission.getAuthorisations().contains(
+                "Divorce"
             ));
             assertEquals("LegalOperations", expectedRolePermission.getRoleCategory());
             assertEquals("tribunal-caseworker", expectedRolePermission.getRoleName());
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
             verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
-            verify(cftTaskMapper, times(2)).mapToTaskRolePermissions(any());
+            verify(cftTaskMapper, times(3)).mapToTaskRolePermissions(any());
         }
 
         @Test
