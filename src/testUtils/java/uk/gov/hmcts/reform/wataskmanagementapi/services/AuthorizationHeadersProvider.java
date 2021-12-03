@@ -84,23 +84,21 @@ public class AuthorizationHeadersProvider {
 
 
     public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
-        TestAccount caseworker = getIdamCredentials(emailPrefix);
+        TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
     public Header getCaseworkerBAuthorizationOnly(String emailPrefix) {
-        TestAccount caseworker = getIdamCredentials(emailPrefix);
+        TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
     }
 
     public Header getLawFirmAuthorizationOnly() {
 
-        String username = System.getenv("TEST_WA_LAW_FIRM_USERNAME");
-        String password = System.getenv("TEST_WA_LAW_FIRM_PASSWORD");
-
-        return getAuthorization(username, password);
+        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
+        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }
 
@@ -127,9 +125,17 @@ public class AuthorizationHeadersProvider {
         return new Header(AUTHORIZATION, accessToken);
     }
 
-    private TestAccount getIdamCredentials(String emailPrefix) {
+    private TestAccount getIdamCaseWorkerCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
 
-        return generateIdamTestAccount(emailPrefix);
+    private TestAccount getIdamLawFirmCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
+            new RoleCode("caseworker-ia-legalrep-solicitor"),
+            new RoleCode("payments")
+        );
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
@@ -145,13 +151,12 @@ public class AuthorizationHeadersProvider {
         return body;
     }
 
-    private TestAccount generateIdamTestAccount(String emailPrefix) {
+    private TestAccount generateIdamTestAccount(String emailPrefix, List<RoleCode> requiredRoles) {
         String email = emailPrefix + UUID.randomUUID() + "@fake.hmcts.net";
         String password = "London01";
 
         log.info("Attempting to create a new test account {}", email);
 
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
