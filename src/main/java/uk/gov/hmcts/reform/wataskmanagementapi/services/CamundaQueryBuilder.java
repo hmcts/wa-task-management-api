@@ -196,7 +196,7 @@ public class CamundaQueryBuilder {
             return null;
         }
 
-        return Map.of("assigneeIn", userSearchParameter.getValue());
+        return Map.of("assigneeIn", userSearchParameter.getValues());
     }
 
     private CamundaSortingExpression createSortExpression(SortField sortBy, SortOrder sortOrder) {
@@ -233,7 +233,7 @@ public class CamundaQueryBuilder {
     private Set<CamundaSearchExpression> buildSearchExpressions(String key, SearchParameterList searchParameter) {
 
         return ofNullable(searchParameter)
-            .map(SearchParameterList::getValue)
+            .map(SearchParameterList::getValues)
             .orElse(emptyList())
             .stream()
             .map(v -> asCamundaExpression(key, searchParameter.getOperator(), v))

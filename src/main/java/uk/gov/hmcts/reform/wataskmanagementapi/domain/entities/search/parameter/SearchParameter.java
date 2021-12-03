@@ -6,5 +6,5 @@ public interface SearchParameter<T> {
 
     SearchParameterKey getKey();
     SearchOperator getOperator();
-    T getValue();
+    T getValues();
 }

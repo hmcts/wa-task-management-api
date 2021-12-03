@@ -73,6 +73,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 
 @ExtendWith(MockitoExtension.class)
 public class CftQueryServiceTest extends CamundaHelpers {
@@ -162,7 +163,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
                 new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
                 new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameterList(CASE_ID, SearchOperator.BOOLEAN, asList("true"))
+                new SearchParameterList(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, asList("true"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -190,12 +191,12 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldThrowExceptionWhenInvalidWorkTypeIsSent() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameter(WORK_TYPE, SearchOperator.IN, asList("unknown"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("unknown"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 

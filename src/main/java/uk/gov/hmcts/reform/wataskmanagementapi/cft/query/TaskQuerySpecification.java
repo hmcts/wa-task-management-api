@@ -92,13 +92,9 @@ public final class TaskQuerySpecification {
         return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID))
             .value(workTypes);
     }
-    protected static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
-        return (root, query, builder) -> builder.in(root.get(TASK_ID))
-            .value(taskIds);
-    }
 
     //TODO: Do we need to add the search task request to this?
-    protected static Specification<TaskResource> searchByAvailableTasksOnly() {
+    public static Specification<TaskResource> searchByAvailableTasksOnly() {
         return (root, query, builder) ->  {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
             return builder.isTrue(taskRoleResources.get(OWN_ATTRIBUTE));
