@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
@@ -22,24 +21,11 @@ import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildQueryToRetrieveRoleInformation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByState;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskId;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.*;
 
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.TooManyMethods", "PMD.LawOfDemeter"})
 public final class TaskResourceSpecification {
-
-    public static final String LOCATION = "location";
-    public static final String TASK_ID = "taskId";
-    public static final String TASK_TYPE = "taskType";
-    public static final String CASE_ID = "caseId";
-    public static final String WORK_TYPE = "workTypeResource";
 
     private TaskResourceSpecification() {
         // avoid creating object
@@ -84,14 +70,27 @@ public final class TaskResourceSpecification {
 
     private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
 
-        final EnumMap<SearchParameterKey, SearchParameter> keyMap = asEnumMap(searchTaskRequest);
-        SearchParameter jurisdictionParam = keyMap.get(JURISDICTION);
-        SearchParameter stateParam = keyMap.get(STATE);
-        SearchParameter locationParam = keyMap.get(LOCATION);
-        SearchParameter caseIdParam = keyMap.get(CASE_ID);
-        SearchParameter userParam = keyMap.get(USER);
-        SearchParameter workTypeParam = keyMap.get(WORK_TYPE);
+        final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
+        SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
+        SearchParameterList stateParam = keyMap.get(STATE);
+        SearchParameterList locationParam = keyMap.get(LOCATION);
+        SearchParameterList caseIdParam = keyMap.get(CASE_ID);
+        SearchParameterList userParam = keyMap.get(USER);
+        SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
 
+        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
+        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
+
+        return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
+            .and(searchByState(getCftTaskStates(stateParam))
+            .and(searchByAvailableTasksOnly(availableTasksOnly != null && availableTasksOnly.getValues()))
+            .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
+            .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
+            .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
+            .and(searchByWorkType(workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues()))))));
+    }
+
+    private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (stateParam != null) {
             final List<String> values = stateParam.getValues();
@@ -102,13 +101,7 @@ public final class TaskResourceSpecification {
                     .collect(Collectors.toList());
             }
         }
-
-        return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
-            .and(searchByState(cftTaskStates)
-            .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
-            .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
-            .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
-            .and(searchByWorkType(workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues()))))));
+        return cftTaskStates;
     }
 
     private static EnumMap<SearchParameterKey, SearchParameterList> asEnumMapForListOfStrings(SearchTaskRequest searchTaskRequest) {

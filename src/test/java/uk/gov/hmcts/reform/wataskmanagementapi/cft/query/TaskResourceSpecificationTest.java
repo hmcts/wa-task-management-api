@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 import lombok.Builder;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -134,7 +135,7 @@ public class TaskResourceSpecificationTest {
     @Test
     void shouldBuildTaskQueryWithNullConditions() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList(null))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList(null))
         ));
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
@@ -157,7 +158,7 @@ public class TaskResourceSpecificationTest {
         verify(criteriaBuilder, times(6)).conjunction();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(STATE, SearchOperator.IN, emptyList())
+            new SearchParameterList(STATE, SearchOperator.IN, emptyList())
         ));
 
         spec = TaskResourceSpecification.buildTaskQuery(
@@ -205,12 +206,13 @@ public class TaskResourceSpecificationTest {
     @Test
     void shouldBuildTaskQueryWithAllParameters() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
-            new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("caseId")),
+            new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(
