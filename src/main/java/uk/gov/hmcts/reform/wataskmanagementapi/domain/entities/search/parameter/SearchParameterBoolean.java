@@ -21,25 +21,25 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
     @ApiModelProperty(
         required = true,
-        allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, work_type, available_tasks_onky",
-        example = "user")
+        allowableValues = "available_tasks_only",
+        example = "available_tasks_only")
     @NotNull(
-        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+        message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
     private final SearchParameterKey key;
 
     @ApiModelProperty(allowableValues = "BOOLEAN", example = "BOOLEAN")
     @NotNull(
-        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+        message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
     private final SearchOperator operator;
 
     @ApiModelProperty(required = true, example = "true", allowEmptyValue = false)
     @NotNull(
-        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+        message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
     @NotEmpty(
-        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
+        message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
     private final Boolean value;
 

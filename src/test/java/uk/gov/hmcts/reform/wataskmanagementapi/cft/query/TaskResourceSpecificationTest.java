@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 import lombok.Builder;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -217,7 +218,8 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("caseId")),
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS"))
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(

@@ -42,13 +42,13 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     @NotEmpty(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )
-    private final List<String> value;
+    private final List<String> values;
 
     @JsonCreator
-    public SearchParameterList(SearchParameterKey key, SearchOperator operator, List<String> value) {
+    public SearchParameterList(SearchParameterKey key, SearchOperator operator, List<String> values) {
         this.key = key;
         this.operator = operator;
-        this.value = value;
+        this.values = values;
     }
 
     public SearchParameterKey getKey() {
@@ -60,6 +60,6 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     }
 
     public List<String> getValues() {
-        return value;
+        return values;
     }
 }

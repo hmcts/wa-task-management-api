@@ -104,7 +104,11 @@ public final class TaskQuerySpecification {
     }
 
     //TODO: Do we need to add the search task request to this?
-    public static Specification<TaskResource> searchByAvailableTasksOnly() {
+    public static Specification<TaskResource> searchByAvailableTasksOnly(boolean availableTasksOnly) {
+        if (!availableTasksOnly) {
+            return (root, query, builder) -> builder.conjunction();
+        }
+        //TODO: This needs to be moved into the role assignment check
         return (root, query, builder) ->  {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
             return builder.isTrue(taskRoleResources.get(OWN_ATTRIBUTE));
