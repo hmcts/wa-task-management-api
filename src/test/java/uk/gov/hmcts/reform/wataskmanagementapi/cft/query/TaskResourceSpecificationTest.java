@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 import lombok.Builder;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
