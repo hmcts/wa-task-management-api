@@ -159,7 +159,8 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "a description"
 
         );
     }
@@ -203,7 +204,8 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "a description"
         );
     }
 

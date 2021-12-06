@@ -132,6 +132,9 @@ public class Task {
     @ApiModelProperty(required = true,
         notes = "A value describing the work type of the case, for IA")
     private TaskPermissions permissions;
+    @ApiModelProperty(required = true,
+        notes = "A value describing to users what they should do next")
+    private String description;
 
     private Task() {
         //Hidden constructor
@@ -162,7 +165,8 @@ public class Task {
                 WarningValues warningList,
                 String caseManagementCategory,
                 String workTypeId,
-                TaskPermissions taskPermissions
+                TaskPermissions taskPermissions,
+                String description
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -191,6 +195,7 @@ public class Task {
         this.caseManagementCategory = caseManagementCategory;
         this.workTypeId = workTypeId;
         this.permissions = taskPermissions;
+        this.description = description;
 
     }
 
@@ -292,6 +297,10 @@ public class Task {
 
     public TaskPermissions getPermissions() {
         return permissions;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
 
