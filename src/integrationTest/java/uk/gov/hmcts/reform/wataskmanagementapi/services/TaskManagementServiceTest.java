@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -126,9 +125,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
+                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                IDAM_USER_ID,
+                IDAM_USER_EMAIL
             )
         ).thenReturn(true);
 
@@ -419,16 +418,14 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 assertThatThrownBy(() -> transactionHelper.doInNewTransaction(
                     () -> taskManagementService.terminateTask(
                         taskId,
-                        new TerminateInfo(TerminateReason.COMPLETED)
+                        new TerminateInfo("completed")
                     )))
                     .isInstanceOf(ServerErrorException.class)
                     .hasCauseInstanceOf(FeignException.class)
                     .hasMessage("There was a problem when deleting the historic cftTaskState");
 
                 verifyTransactionWasRolledBack(taskId);
-
             }
-
         }
 
         @Nested
@@ -446,7 +443,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () ->
                         taskManagementService.terminateTask(
                             taskId,
-                            new TerminateInfo(TerminateReason.CANCELLED)
+                            new TerminateInfo("cancelled")
                         ))
                 )
                     .isInstanceOf(ServerErrorException.class)
@@ -472,7 +469,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     () ->
                         taskManagementService.terminateTask(
                             taskId,
-                            new TerminateInfo(TerminateReason.DELETED)
+                            new TerminateInfo("deleted")
                         ))
                 )
                     .isInstanceOf(ServerErrorException.class)

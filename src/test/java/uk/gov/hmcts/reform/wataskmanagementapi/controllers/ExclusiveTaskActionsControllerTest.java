@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
@@ -106,7 +105,7 @@ class ExclusiveTaskActionsControllerTest {
 
     @Test
     void should_succeed_when_terminating_a_task_and_return_204_when_terminate_reason_is_cancelled() {
-        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("cancelled"));
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -123,7 +122,7 @@ class ExclusiveTaskActionsControllerTest {
 
     @Test
     void should_succeed_when_terminating_a_task_and_return_204_when_terminate_reason_is_completed() {
-        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.COMPLETED));
+        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("completed"));
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -137,7 +136,7 @@ class ExclusiveTaskActionsControllerTest {
 
     @Test
     void should_succeed_when_terminating_a_task_and_return_204_when_terminate_reason_is_deleted() {
-        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.DELETED));
+        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("deleted"));
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -151,7 +150,7 @@ class ExclusiveTaskActionsControllerTest {
 
     @Test
     void should_fail_when_terminating_a_task_and_client_is_not_whitelisted_return_403() {
-        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo(TerminateReason.CANCELLED));
+        TerminateTaskRequest req = new TerminateTaskRequest(new TerminateInfo("cancelled"));
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
