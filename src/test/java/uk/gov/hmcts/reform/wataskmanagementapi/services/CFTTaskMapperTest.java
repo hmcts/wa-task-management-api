@@ -993,6 +993,34 @@ class CFTTaskMapperTest {
         assertTrue(taskRolePermissions.getAuthorisations().isEmpty());
     }
 
+    @Test
+    void should_map_configuration_attributes_description() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+        mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues));
+
+
+        assertEquals("otherCaseId", taskResource.getCaseId());
+        assertEquals("otherTaskId", taskResource.getTaskId());
+        assertEquals("otherTaskName", taskResource.getTaskName());
+        assertEquals("aDescription", taskResource.getDescription());
+
+    }
+
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {
         return asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),

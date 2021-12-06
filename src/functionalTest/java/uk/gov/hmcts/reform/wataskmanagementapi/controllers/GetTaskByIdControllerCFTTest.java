@@ -38,6 +38,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_TYPE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_EXECUTION_TYPE_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
@@ -298,7 +299,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue());
+            .body("task.warnings", notNullValue())
+            .body("task.description", notNullValue());
 
         common.cleanUpTask(taskId);
     }
@@ -462,7 +464,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             new TaskAttribute(TASK_CASE_NAME, "aCaseName"),
             new TaskAttribute(TASK_AUTO_ASSIGNED, true),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_WARNINGS, warningValues)
+            new TaskAttribute(TASK_WARNINGS, warningValues),
+            new TaskAttribute(TASK_DESCRIPTION, "aDescription")
         ));
 
         Response result = restApiActions.post(
