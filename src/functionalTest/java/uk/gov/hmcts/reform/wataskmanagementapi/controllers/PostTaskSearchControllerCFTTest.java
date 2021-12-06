@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
@@ -853,7 +852,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo(TerminateReason.CANCELLED)
+            new TerminateInfo("cancelled")
         );
 
         // Terminate task will remove record from camunda history table.
@@ -889,7 +888,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo(TerminateReason.COMPLETED)
+            new TerminateInfo("completed")
         );
 
         // Terminate task.

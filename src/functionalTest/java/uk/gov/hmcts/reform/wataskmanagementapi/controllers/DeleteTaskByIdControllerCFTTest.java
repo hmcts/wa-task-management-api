@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
@@ -50,7 +49,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo(TerminateReason.CANCELLED)
+            new TerminateInfo("cancelled")
         );
 
         Response result = restApiActions.delete(
@@ -77,7 +76,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
-            new TerminateInfo(TerminateReason.COMPLETED)
+            new TerminateInfo("completed")
         );
 
         Response result = restApiActions.delete(
