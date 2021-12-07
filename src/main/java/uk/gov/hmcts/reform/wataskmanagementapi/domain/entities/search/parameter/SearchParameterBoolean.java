@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
@@ -55,6 +56,7 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
         return operator;
     }
 
+    @JsonProperty("value")
     public Boolean getValues() {
         return values;
     }
