@@ -38,16 +38,13 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
-    @NotEmpty(
-        message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
-    )
-    private final Boolean value;
+    private final Boolean values;
 
     @JsonCreator
-    public SearchParameterBoolean(SearchParameterKey key, SearchOperator operator, Boolean value) {
+    public SearchParameterBoolean(SearchParameterKey key, SearchOperator operator, Boolean values) {
         this.key = key;
         this.operator = operator;
-        this.value = value;
+        this.values = values;
     }
 
     public SearchParameterKey getKey() {
@@ -59,6 +56,6 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     }
 
     public Boolean getValues() {
-        return value;
+        return values;
     }
 }
