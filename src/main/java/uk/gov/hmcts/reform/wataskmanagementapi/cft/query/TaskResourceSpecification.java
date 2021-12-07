@@ -37,7 +37,7 @@ public final class TaskResourceSpecification {
         List<PermissionTypes> permissionsRequired
     ) {
 
-        return buildApplicationConstraints(searchTaskRequest)
+        return buildApplicationConstraints(searchTaskRequest, permissionsRequired)
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 
@@ -68,7 +68,8 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
     }
 
-    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
+    private static Specification<TaskResource> buildApplicationConstraints(
+        SearchTaskRequest searchTaskRequest, List<PermissionTypes> permissionsRequired) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
         SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
@@ -81,9 +82,13 @@ public final class TaskResourceSpecification {
         final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
         SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
 
+        if (availableTasksOnly != null && availableTasksOnly.getValues()) {
+            permissionsRequired.add(PermissionTypes.OWN);
+        } else {
+            permissionsRequired.add(PermissionTypes.READ);
+        }
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
             .and(searchByState(getCftTaskStates(stateParam))
-            .and(searchByAvailableTasksOnly(availableTasksOnly != null && availableTasksOnly.getValues()))
             .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
             .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
             .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())

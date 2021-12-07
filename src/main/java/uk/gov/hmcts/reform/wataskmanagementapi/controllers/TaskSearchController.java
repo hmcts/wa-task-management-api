@@ -31,6 +31,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -103,13 +104,12 @@ public class TaskSearchController extends BaseController {
         );
         if (isFeatureEnabled) {
             //Release 2
-            List<PermissionTypes> permissionsRequired = singletonList(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
                 firstResult.orElse(0),
                 maxResults.orElse(defaultMaxResults),
                 searchTaskRequest,
                 accessControlResponse,
-                permissionsRequired
+                new ArrayList<>()
             );
 
             return ResponseEntity
