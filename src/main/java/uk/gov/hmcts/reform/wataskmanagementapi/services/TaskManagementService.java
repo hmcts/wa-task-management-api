@@ -602,7 +602,6 @@ public class TaskManagementService {
         return camundaService.getTaskCount(query);
     }
 
-
     /**
      * Exclusive client access only.
      * This method terminates a task and orchestrates the logic between CFT Task db and camunda.
@@ -615,35 +614,13 @@ public class TaskManagementService {
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
         //Find and Lock Task
         TaskResource task = findByIdAndObtainLock(taskId);
-
-        switch (terminateInfo.getTerminateReason()) {
-            case COMPLETED:
-                //Update cft task
-                task.setState(CFTTaskState.COMPLETED);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                break;
-            case CANCELLED:
-                //Update cft task
-                task.setState(CFTTaskState.CANCELLED);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                break;
-            case DELETED:
-                //Update cft task
-                task.setState(CFTTaskState.TERMINATED);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + terminateInfo.getTerminateReason());
-        }
+        //Update cft task and terminate reason
+        task.setState(CFTTaskState.TERMINATED);
+        task.setTerminationReason(terminateInfo.getTerminateReason());
+        //Perform Camunda updates
+        camundaService.deleteCftTaskState(taskId);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
     }
 
     /**
@@ -690,7 +667,7 @@ public class TaskManagementService {
      * This method retrieves role permission information for a given task.
      * The task should have a read permission to retrieve role permission information.
      *
-     * @param taskId        the task id.
+     * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @return collection of roles
      */
@@ -715,8 +692,8 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        return taskResourceQueryResult.get().getTaskRoleResources().stream()
-            .map(cftTaskMapper::mapToTaskRolePermissions)
+        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
+            cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );

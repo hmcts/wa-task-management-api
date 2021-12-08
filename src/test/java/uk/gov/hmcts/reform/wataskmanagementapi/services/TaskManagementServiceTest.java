@@ -27,7 +27,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TerminateReason;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -2754,7 +2753,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @DisplayName("When Terminate Reason is Completed")
         class Completed {
 
-            TerminateInfo terminateInfo = new TerminateInfo(TerminateReason.COMPLETED);
+            TerminateInfo terminateInfo = new TerminateInfo("completed");
 
             @Test
             void should_succeed() {
@@ -2768,7 +2767,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
-                assertEquals(CFTTaskState.COMPLETED, taskResource.getState());
+                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                assertEquals("completed", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
@@ -2794,7 +2794,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Nested
         @DisplayName("When Terminate Reason is Cancelled")
         class Cancelled {
-            TerminateInfo terminateInfo = new TerminateInfo(TerminateReason.CANCELLED);
+            TerminateInfo terminateInfo = new TerminateInfo("cancelled");
 
 
             @Test
@@ -2809,7 +2809,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
 
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
-                assertEquals(CFTTaskState.CANCELLED, taskResource.getState());
+                assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                assertEquals("cancelled", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
@@ -2836,7 +2837,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         @Nested
         @DisplayName("When Terminate Reason is Deleted")
         class Deleted {
-            TerminateInfo terminateInfo = new TerminateInfo(TerminateReason.DELETED);
+            TerminateInfo terminateInfo = new TerminateInfo("deleted");
 
             @Test
             void should_succeed() {
@@ -2851,6 +2852,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 taskManagementService.terminateTask(taskId, terminateInfo);
 
                 assertEquals(CFTTaskState.TERMINATED, taskResource.getState());
+                assertEquals("deleted", taskResource.getTerminationReason());
                 verify(camundaService, times(1)).deleteCftTaskState(taskId);
                 verify(cftTaskDatabaseService, times(1)).saveTask(taskResource);
             }
