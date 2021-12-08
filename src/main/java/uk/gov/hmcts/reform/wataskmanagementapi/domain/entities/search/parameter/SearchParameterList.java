@@ -30,9 +30,6 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     private final SearchParameterKey key;
 
     @ApiModelProperty(allowableValues = "IN", example = "IN")
-    @NotNull(
-        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
-    )
     private final SearchOperator operator;
 
     @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = false)

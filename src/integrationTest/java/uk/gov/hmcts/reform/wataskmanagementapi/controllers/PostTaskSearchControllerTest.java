@@ -336,7 +336,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_body_request() throws Exception {
-
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -391,8 +390,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_camelCase_worktype_search_parameter_key() throws Exception {
-
-
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -424,8 +421,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_search_parameter_operator() throws Exception {
-
-
         mockMvc.perform(
                 post("/task")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -451,7 +446,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                         .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
-                    jsonPath("$.detail").value("Invalid request field: search_parameters.[0].operator")));
+                    jsonPath("$.detail").value(
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
+
     }
 
     @Test
@@ -500,16 +497,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
-                        .value(
-                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
-                        ),
-                    jsonPath("$.title").value("Constraint Violation"),
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
-                    jsonPath("$.violations").isNotEmpty(),
-                    jsonPath("$.violations.[0].field").value("search_parameters[0].operator"),
-                    jsonPath("$.violations.[0].message")
-                        .value("Each search_parameter element must have 'key', 'values'"
-                               + " and 'operator' fields present and populated.")));
+                    jsonPath("$.detail").value(
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
     }
 
     @Test
@@ -535,13 +527,12 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
-                        .value(
-                            "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
-                        ),
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
-                    jsonPath("$.detail")
-                        .value("Invalid request field: search_parameters.[0].operator")));
+                    jsonPath("$.detail").value(
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
+
     }
 
     @Test
@@ -566,15 +557,11 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
-                        .value(
-                            "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"
-                        ),
-                    jsonPath("$.title").value("Constraint Violation"),
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
-                    jsonPath("$.violations").isNotEmpty(),
-                    jsonPath("$.violations.[0].field").value("search_parameters[0].operator"),
-                    jsonPath("$.violations.[0].message")
-                        .value("Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
+                    jsonPath("$.detail").value(
+                        "Invalid request field: search_parameters.[0]: Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
     }
 
     @Test
