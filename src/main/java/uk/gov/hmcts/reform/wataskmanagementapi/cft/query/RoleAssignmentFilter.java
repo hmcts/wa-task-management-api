@@ -81,7 +81,7 @@ public final class RoleAssignmentFilter {
 
             // builds query for grant type EXCLUDED
             final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
-                root, taskRoleResources, builder, activeRoleAssignments);
+                root, builder, activeRoleAssignments);
 
             final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
 
@@ -145,7 +145,6 @@ public final class RoleAssignmentFilter {
     }
 
     private static Predicate buildQueryForExcluded(Root<TaskResource> root,
-                                                  final Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                   CriteriaBuilder builder,
                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
@@ -348,7 +347,7 @@ public final class RoleAssignmentFilter {
 
             return currentDateTimeLondonTime.isBefore(endTimeLondonTime);
         }
-        return false;
+        return true;
     }
 
     private static boolean hasBeginTimePermission(RoleAssignment roleAssignment) {
@@ -360,6 +359,6 @@ public final class RoleAssignmentFilter {
 
             return currentDateTimeLondonTime.isAfter(beginTimeLondonTime);
         }
-        return false;
+        return true;
     }
 }

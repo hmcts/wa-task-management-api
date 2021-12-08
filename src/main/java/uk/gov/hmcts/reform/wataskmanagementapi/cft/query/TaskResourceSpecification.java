@@ -84,8 +84,6 @@ public final class TaskResourceSpecification {
 
         if (availableTasksOnly != null && availableTasksOnly.getValues()) {
             permissionsRequired.add(PermissionTypes.OWN);
-        } else {
-            permissionsRequired.add(PermissionTypes.READ);
         }
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
             .and(searchByState(getCftTaskStates(stateParam))

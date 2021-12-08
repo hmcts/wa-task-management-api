@@ -38,7 +38,6 @@ import java.util.Optional;
 import javax.validation.Valid;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
@@ -104,12 +103,14 @@ public class TaskSearchController extends BaseController {
         );
         if (isFeatureEnabled) {
             //Release 2
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
                 firstResult.orElse(0),
                 maxResults.orElse(defaultMaxResults),
                 searchTaskRequest,
                 accessControlResponse,
-                new ArrayList<>()
+                permissionsRequired
             );
 
             return ResponseEntity
