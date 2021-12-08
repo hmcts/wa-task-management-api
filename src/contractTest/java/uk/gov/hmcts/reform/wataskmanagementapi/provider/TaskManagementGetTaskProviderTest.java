@@ -159,7 +159,8 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "LEGAL_OPERATIONS"
 
         );
     }
@@ -203,7 +204,8 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "LEGAL_OPERATIONS"
         );
     }
 

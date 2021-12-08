@@ -60,9 +60,11 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
@@ -1081,6 +1083,138 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
                 TASK_TYPE_WORK_TYPE_MAP.get("arrangeOfflinePayment"))
             )
             .body("total_records", equalTo(2));
+    }
+
+    @Test
+    public void should_search_by_role_category_legal_operations_and_return_tasks_with_role_category_as_legal_operations() {
+        String taskType = "processApplication";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+                singletonList("LEGAL_OPERATIONS")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(1))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("tasks.role_category", everyItem(is("LEGAL_OPERATIONS")))
+            .body("total_records", equalTo(1));
+    }
+
+    @Test
+    public void should_search_by_role_category_administrator_and_return_tasks_with_role_category_as_administrator() {
+        String taskType = "arrangeOfflinePayment";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+                singletonList("ADMINISTRATOR")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(1))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("tasks.role_category", everyItem(is("ADMINISTRATOR")))
+            .body("total_records", equalTo(1));
+    }
+
+    @Test
+    public void should_search_by_role_category_judicial_and_return_tasks_with_role_category_as_judiciary() {
+        String taskType = "reviewAddendumHomeOfficeEvidence";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+                singletonList("JUDICIAL")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(1))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("tasks.role_category", everyItem(is("JUDICIAL")))
+            .body("total_records", equalTo(1));
+    }
+
+    @Test
+    public void should_search_by_any_role_category_and_return_tasks_with_appropriate_role_category() {
+        String taskType = "reviewAddendumEvidence";
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId, taskType);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
+                List.of("LEGAL_OPERATIONS", "ADMINISTRATOR", "JUDICIAL")),
+            new SearchParameter(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", equalTo(1))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks.id", hasItem(taskId))
+            .body("tasks.role_category", everyItem(is("JUDICIAL")))
+            .body("total_records", equalTo(1));
     }
 
     private List<TestVariables> createMultipleTasks(String[] states) {
