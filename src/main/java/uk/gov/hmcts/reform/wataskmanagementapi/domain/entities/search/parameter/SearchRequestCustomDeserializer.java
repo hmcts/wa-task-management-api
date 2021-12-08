@@ -13,7 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import java.io.IOException;
 
 @JsonComponent
-public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParameter> {
+public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParameter<?>> {
+
+    private static final String ERROR_MESSAGE = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.";
 
     public SearchRequestCustomDeserializer() {
         this(null);
@@ -24,17 +26,15 @@ public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParam
     }
 
     @Override
-    public SearchParameter deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException {
+    public SearchParameter<?> deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException {
 
         final ObjectMapper mapper = (ObjectMapper) jsonParser.getCodec();
         final JsonNode searchNode = mapper.readTree(jsonParser);
 
         final JsonNode operatorNode = searchNode.get("operator");
 
-        String message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.";
-
         if (operatorNode == null) {
-            throw new BadRequestException(message);
+            throw new BadRequestException(ERROR_MESSAGE);
         }
 
         if (SearchOperator.BOOLEAN.getValue().equals(operatorNode.asText())) {
@@ -42,7 +42,7 @@ public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParam
         } else if (SearchOperator.IN.getValue().equals(operatorNode.asText())) {
             return mapper.treeToValue(searchNode, SearchParameterList.class);
         } else {
-            throw new BadRequestException(message);
+            throw new BadRequestException(ERROR_MESSAGE);
         }
     }
 }
