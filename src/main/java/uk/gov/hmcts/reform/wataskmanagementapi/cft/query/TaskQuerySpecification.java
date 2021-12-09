@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
-import javax.persistence.criteria.Join;
 import java.util.List;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -22,10 +20,7 @@ public final class TaskQuerySpecification {
     private static final String JURISDICTION = "jurisdiction";
     private static final String WORK_TYPE = "workTypeResource";
     private static final String WORK_TYPE_ID = "id";
-    private static final String OWN_ATTRIBUTE = "own";
-    private static final String TASK_ROLE_RESOURCES = "taskRoleResources";
     private static final String ROLE_CATEGORY = "roleCategory";
-
 
     private TaskQuerySpecification() {
         // avoid creating object
@@ -101,18 +96,6 @@ public final class TaskQuerySpecification {
         }
         return (root, query, builder) -> builder.in(root.get(ROLE_CATEGORY))
             .value(roleCategories);
-    }
-
-    //TODO: Do we need to add the search task request to this?
-    public static Specification<TaskResource> searchByAvailableTasksOnly(boolean availableTasksOnly) {
-        if (!availableTasksOnly) {
-            return (root, query, builder) -> builder.conjunction();
-        }
-        //TODO: This needs to be moved into the role assignment check
-        return (root, query, builder) ->  {
-            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
-            return builder.isTrue(taskRoleResources.get(OWN_ATTRIBUTE));
-        };
     }
 
 }

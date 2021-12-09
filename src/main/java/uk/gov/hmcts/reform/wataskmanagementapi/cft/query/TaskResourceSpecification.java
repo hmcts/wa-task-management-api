@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildQueryToRetrieveRoleInformation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByAvailableTasksOnly;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseIds;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
@@ -33,7 +31,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
 @SuppressWarnings({
         "PMD.DataflowAnomalyAnalysis",
@@ -125,7 +130,9 @@ public final class TaskResourceSpecification {
         return cftTaskStates;
     }
 
-    private static EnumMap<SearchParameterKey, SearchParameterList> asEnumMapForListOfStrings(SearchTaskRequest searchTaskRequest) {
+    private static EnumMap<SearchParameterKey, SearchParameterList> asEnumMapForListOfStrings(
+        SearchTaskRequest searchTaskRequest) {
+
         EnumMap<SearchParameterKey, SearchParameterList> map = new EnumMap<>(SearchParameterKey.class);
         if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
             searchTaskRequest.getSearchParameters()
@@ -137,7 +144,9 @@ public final class TaskResourceSpecification {
         return map;
     }
 
-    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(SearchTaskRequest searchTaskRequest) {
+    private static EnumMap<SearchParameterKey, SearchParameterBoolean> asEnumMapForBoolean(
+        SearchTaskRequest searchTaskRequest) {
+
         EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
         if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
             searchTaskRequest.getSearchParameters()

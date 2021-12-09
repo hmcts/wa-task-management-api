@@ -15,7 +15,8 @@ import java.io.IOException;
 @JsonComponent
 public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParameter<?>> {
 
-    private static final String ERROR_MESSAGE = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.";
+    private static final String ERROR_MESSAGE =
+        "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.";
 
     public SearchRequestCustomDeserializer() {
         this(null);

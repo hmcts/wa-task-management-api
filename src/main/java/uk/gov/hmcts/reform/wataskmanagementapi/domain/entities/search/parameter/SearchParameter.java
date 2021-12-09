@@ -5,6 +5,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOper
 public interface SearchParameter<T> {
 
     SearchParameterKey getKey();
+
     SearchOperator getOperator();
+
     T getValues();
 }
