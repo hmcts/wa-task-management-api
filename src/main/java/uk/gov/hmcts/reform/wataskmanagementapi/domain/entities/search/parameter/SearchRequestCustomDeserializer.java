@@ -13,7 +13,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.BadRequestException;
 import java.io.IOException;
 
 @JsonComponent
+@SuppressWarnings({"PMD.LawOfDemeter"})
 public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParameter<?>> {
+
+    private static final long serialVersionUID = -1895766495984179418L;
 
     private static final String ERROR_MESSAGE =
         "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.";
