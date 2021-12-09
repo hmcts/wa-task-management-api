@@ -48,14 +48,17 @@ public class SearchParameterList implements SearchParameter<List<String>> {
         this.values = values;
     }
 
+    @Override
     public SearchParameterKey getKey() {
         return key;
     }
 
+    @Override
     public SearchOperator getOperator() {
         return operator;
     }
 
+    @Override
     public List<String> getValues() {
         return values;
     }
