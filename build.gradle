@@ -202,12 +202,11 @@ sonarqube {
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
-    property "sonar.coverage.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/SearchParameterBoolean.java"+
-      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/SearchParameterList.java"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
-      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java," +
       "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
-      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**,"+
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**"
   }
 }
 
