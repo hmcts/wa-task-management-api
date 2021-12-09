@@ -676,6 +676,11 @@ public class TaskManagementService {
         if (taskResource.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
+
+        if (taskResource.get().getTaskRoleResources().isEmpty()) {
+            return emptyList();
+        }
+
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
 
@@ -687,7 +692,7 @@ public class TaskManagementService {
         }
 
         return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
-                cftTaskMapper::mapToTaskRolePermissions)
+            cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );
