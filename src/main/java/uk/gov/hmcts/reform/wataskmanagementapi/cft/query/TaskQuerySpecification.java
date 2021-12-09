@@ -2,10 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
-import javax.persistence.criteria.Join;
 import java.util.List;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -22,8 +20,6 @@ public final class TaskQuerySpecification {
     private static final String JURISDICTION = "jurisdiction";
     private static final String WORK_TYPE = "workTypeResource";
     private static final String WORK_TYPE_ID = "id";
-    private static final String OWN_ATTRIBUTE = "own";
-    private static final String TASK_ROLE_RESOURCES = "taskRoleResources";
 
     private TaskQuerySpecification() {
         // avoid creating object

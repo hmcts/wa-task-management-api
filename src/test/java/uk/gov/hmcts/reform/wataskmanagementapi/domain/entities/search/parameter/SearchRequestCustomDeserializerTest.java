@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
@@ -131,22 +130,20 @@ class SearchRequestCustomDeserializerTest {
 
     @NotNull
     private String searchParameterJson_withSearchParameterListOnly() {
-        return
-            "        {\n" +
-            "            \"key\": \"jurisdiction\",\n" +
-            "            \"values\": [\"ia\", \"sscs\"],\n" +
-            "            \"operator\": \"IN\"\n" +
-            "        }\n";
+        return "       {\n"
+               + "          \"key\": \"jurisdiction\",\n"
+               + "          \"values\": [\"ia\", \"sscs\"],\n"
+               + "          \"operator\": \"IN\"\n"
+               + "        }\n";
     }
 
     @NotNull
     private String searchParameterJson_withSearchParameterBooleanOnly() {
-        return
-            "        {\n" +
-            "            \"key\": \"available_tasks_only\",\n" +
-            "            \"value\": true,\n" +
-            "            \"operator\": \"BOOLEAN\"\n" +
-            "        }";
+        return "      {\n"
+               + "           \"key\": \"available_tasks_only\",\n"
+               + "           \"value\": true,\n"
+               + "           \"operator\": \"BOOLEAN\"\n"
+               + "        }";
     }
 
 }
