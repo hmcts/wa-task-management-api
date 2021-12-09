@@ -47,14 +47,17 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
         this.values = values;
     }
 
+    @Override
     public SearchParameterKey getKey() {
         return key;
     }
 
+    @Override
     public SearchOperator getOperator() {
         return operator;
     }
 
+    @Override
     @JsonProperty("value")
     public Boolean getValues() {
         return values;

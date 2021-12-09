@@ -60,7 +60,7 @@ public final class RoleAssignmentFilter {
         // avoid creating object
     }
 
-    protected static Specification<TaskResource> buildRoleAssignmentConstraints(
+    public static Specification<TaskResource> buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
         AccessControlResponse accessControlResponse) {
 
