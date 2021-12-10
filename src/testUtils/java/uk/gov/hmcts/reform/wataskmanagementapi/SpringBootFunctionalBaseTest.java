@@ -123,6 +123,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         common = new Common(
             given,
+            restApiActions,
             camundaApiActions,
             authorizationHeadersProvider,
             idamService,

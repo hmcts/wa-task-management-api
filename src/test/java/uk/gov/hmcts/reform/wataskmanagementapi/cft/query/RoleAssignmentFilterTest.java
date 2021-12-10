@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -32,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -87,7 +89,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
-    void buildQueryForBasicAndSpecific(Classification classification) {
+    void should_build_query_for_basic_and_specific(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -140,7 +142,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
-    void buildQueryForBasicAndSpecificWhenAttributesDoesNotMatch(Classification classification) {
+    void should_build_query_for_basic_and_specific_when_attributes_does_not_match(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -200,7 +202,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void buildQueryForBasicAndSpecificWithOutAttributes() {
+    void should_build_query_for_basic_and_specific_with_out_attributes() {
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
@@ -232,7 +234,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC", "PRIVATE", "RESTRICTED"})
-    void buildQueryForStandardAndExcluded(Classification classification) {
+    void should_build_query_for_standard_and_excluded(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -288,7 +290,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC", "PRIVATE", "RESTRICTED"})
-    void buildQueryForChallengedAndExcluded(Classification classification) {
+    void should_build_query_for_challenged_and_excluded(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -335,7 +337,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void searchQueryForAllGrantTypes() {
+    void should_build_query_for_all_grant_types() {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -356,7 +358,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void buildQueryForNegationValues() {
+    void should_build_query_for_negation_values() {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -401,7 +403,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void buildQueryForInvalidClassification() {
+    void should_build_query_for_invalid_classification() {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -446,7 +448,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void shouldFilterByBeginAndEndTime() {
+    void should_build_query_for_when_begin_and_end_time_are_active() {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -465,6 +467,43 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(0)).and(
             any(), any(), any(), any(), any(), any(), any());
         verify(builder, times(4)).or(any());
+    }
+
+    @Test
+    void should_build_query_to_retrieve_role_information() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(Classification.PUBLIC)
+        );
+        when(taskRoleResources.get("roleName")).thenReturn(roleNamePath);
+        when(builder.equal(roleNamePath, "hmcts-judiciary")).thenReturn(equalPredicate);
+
+        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse);
+
+        spec.toPredicate(root, query, builder);
+
+        verify(root, times(1)).join(anyString());
+        verify(builder, times(0)).equal(any(), any());
+        verify(builder, times(1)).or(any());
+        verify(builder, times(2)).and(any(), any());
+    }
+
+    @Test
+    void should_build_query_to_retrieve_role_information_when_role_assignment_are_empty() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            Collections.emptyList()
+        );
+        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse);
+
+        spec.toPredicate(root, query, builder);
+
+        verify(root, times(1)).join("taskRoleResources");
+        verify(builder, times(1)).or(any());
+        verify(builder, never()).equal(any(), any());
+        verify(builder, never()).and(any(), any());
     }
 
 }
