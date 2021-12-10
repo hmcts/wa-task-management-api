@@ -9,7 +9,6 @@ import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
@@ -45,7 +44,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseRequest())
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTask())
@@ -63,7 +62,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithAvailableTasks(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseWithAvailableTasks())
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTask())
@@ -81,7 +80,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseWithWorkTypeRequest())
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTask())
@@ -99,7 +98,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseRequest(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseRequest())
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
@@ -117,7 +116,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getTaskManagementServiceResponseHeaders())
             .matchHeader(AUTHORIZATION, AUTH_TOKEN)
             .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithWorkTypeRequest(), String.valueOf(ContentType.JSON))
+            .body(createSearchEventCaseWithWorkTypeRequest())
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTaskWithWarnings())
@@ -127,7 +126,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     @Test
     @PactTestFor(pactMethod = "executeSearchQuery200")
     void testSearchQuery200Test(MockServer mockServer) {
-        SerenityRest.registerParser("application/json", Parser.JSON);
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -135,14 +133,12 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
-            .contentType(ContentType.JSON)
             .statusCode(HttpStatus.OK.value());
     }
 
     @Test
     @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200")
     void testSearchQueryWithAvailableTasksOnly200Test(MockServer mockServer) {
-        SerenityRest.registerParser("application/json", Parser.JSON);
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -150,14 +146,12 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseWithAvailableTasks())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
-            .contentType(ContentType.JSON)
             .statusCode(HttpStatus.OK.value());
     }
 
     @Test
     @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
     void testSearchQueryWithWorkType200Test(MockServer mockServer) {
-        SerenityRest.registerParser("application/json", Parser.JSON);
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -165,14 +159,12 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseWithWorkTypeRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
-            .contentType(ContentType.JSON)
             .statusCode(HttpStatus.OK.value());
     }
 
     @Test
     @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
     void testSearchQueryWithWarnings200Test(MockServer mockServer) {
-        SerenityRest.registerParser("application/json", Parser.JSON);
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -180,14 +172,12 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
-            .contentType(ContentType.JSON)
             .statusCode(HttpStatus.OK.value());
     }
 
     @Test
     @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
     void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
-        SerenityRest.registerParser("application/json", Parser.JSON);
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -195,7 +185,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .body(createSearchEventCaseWithWorkTypeRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
-            .contentType(ContentType.JSON)
             .statusCode(HttpStatus.OK.value());
     }
 
