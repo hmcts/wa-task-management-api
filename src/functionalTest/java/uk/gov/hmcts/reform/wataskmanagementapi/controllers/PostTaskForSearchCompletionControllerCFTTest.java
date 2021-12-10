@@ -379,7 +379,6 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         common.cleanUpTask(taskId2);
     }
 
-    @Ignore
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();

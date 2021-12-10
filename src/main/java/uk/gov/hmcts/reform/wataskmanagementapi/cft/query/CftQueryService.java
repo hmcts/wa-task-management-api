@@ -85,9 +85,11 @@ public class CftQueryService {
         return new GetTasksResponse<>(tasks, pages.getTotalElements());
     }
 
-    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
-                                                                       AccessControlResponse accessControlResponse,
-                                                                       List<PermissionTypes> permissionsRequired) {
+    public GetTasksCompletableResponse<Task> searchForCompletableTasks(
+        SearchEventAndCase searchEventAndCase,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired
+    ) {
 
         //Safe-guard against unsupported Jurisdictions and case types.
         if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())

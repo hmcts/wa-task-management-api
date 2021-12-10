@@ -80,6 +80,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         setInitMockForSearchTask();
     }
 
+    @State({"appropriate tasks are returned by criteria with available tasks only"})
+    public void getTasksBySearchCriteriaWithAvailableTasksOnly() {
+        setInitMockForSearchTask();
+    }
+
     @State({"appropriate tasks are returned by criteria with work-type"})
     public void getTasksBySearchCriteriaWithWorkType() {
         setInitMockForSearchTask();
