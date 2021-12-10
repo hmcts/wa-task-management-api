@@ -79,7 +79,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.ExcessiveParameterList"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-    public static final String SENIOR_TRIBUNAL_CASE_WORKER_ROLE = "senior-tribunal-caseworker";
 
     private final CamundaService camundaService;
     private final CamundaQueryBuilder camundaQueryBuilder;
@@ -602,7 +601,6 @@ public class TaskManagementService {
         return camundaService.getTaskCount(query);
     }
 
-
     /**
      * Exclusive client access only.
      * This method terminates a task and orchestrates the logic between CFT Task db and camunda.
@@ -615,35 +613,13 @@ public class TaskManagementService {
     public void terminateTask(String taskId, TerminateInfo terminateInfo) {
         //Find and Lock Task
         TaskResource task = findByIdAndObtainLock(taskId);
-
-        switch (terminateInfo.getTerminateReason()) {
-            case COMPLETED:
-                //Update cft task
-                task.setState(CFTTaskState.COMPLETED);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                break;
-            case CANCELLED:
-                //Update cft task
-                task.setState(CFTTaskState.CANCELLED);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                break;
-            case DELETED:
-                //Update cft task
-                task.setState(CFTTaskState.TERMINATED);
-                //Perform Camunda updates
-                camundaService.deleteCftTaskState(taskId);
-                //Commit transaction
-                cftTaskDatabaseService.saveTask(task);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + terminateInfo.getTerminateReason());
-        }
+        //Update cft task and terminate reason
+        task.setState(CFTTaskState.TERMINATED);
+        task.setTerminationReason(terminateInfo.getTerminateReason());
+        //Perform Camunda updates
+        camundaService.deleteCftTaskState(taskId);
+        //Commit transaction
+        cftTaskDatabaseService.saveTask(task);
     }
 
     /**
@@ -690,7 +666,7 @@ public class TaskManagementService {
      * This method retrieves role permission information for a given task.
      * The task should have a read permission to retrieve role permission information.
      *
-     * @param taskId        the task id.
+     * @param taskId                the task id.
      * @param accessControlResponse the access control response containing user id and role assignments.
      * @return collection of roles
      */
@@ -700,6 +676,11 @@ public class TaskManagementService {
         if (taskResource.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
+
+        if (taskResource.get().getTaskRoleResources().isEmpty()) {
+            return emptyList();
+        }
+
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
 
@@ -714,7 +695,7 @@ public class TaskManagementService {
             cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
-        );
+            );
     }
 
     /**

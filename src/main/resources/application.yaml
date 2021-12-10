@@ -119,8 +119,8 @@ launchDarkly:
 logging:
   level:
     root: INFO
-    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
-    org.zalando.logbook: TRACE
+    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
+    org.zalando.logbook: INFO
 
 logbook:
   include: /task/**
