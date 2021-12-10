@@ -62,7 +62,7 @@ public class TaskManagementProviderTestConfiguration {
 
     @Bean
     @Primary
-    public SearchRequestCustomDeserializer searchRequestCustomDeserializer(){
+    public SearchRequestCustomDeserializer searchRequestCustomDeserializer() {
         return new SearchRequestCustomDeserializer();
     }
 
@@ -99,7 +99,8 @@ public class TaskManagementProviderTestConfiguration {
 
     @Bean
     @Primary
-    public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder(SearchRequestCustomDeserializer searchRequestCustomDeserializer) {
+    public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder(
+        SearchRequestCustomDeserializer searchRequestCustomDeserializer) {
         SimpleModule customDeserializerModule = new JsonComponentModule();
         customDeserializerModule.addDeserializer(SearchParameter.class, searchRequestCustomDeserializer);
 
