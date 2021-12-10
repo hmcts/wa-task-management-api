@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import org.springframework.boot.jackson.JsonComponentModule;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -17,6 +19,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchRequestCustomDeserializer;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
@@ -58,6 +62,12 @@ public class TaskManagementProviderTestConfiguration {
 
     @Bean
     @Primary
+    public SearchRequestCustomDeserializer searchRequestCustomDeserializer(){
+        return new SearchRequestCustomDeserializer();
+    }
+
+    @Bean
+    @Primary
     public SystemDateProvider systemDateProvider() {
         return new SystemDateProvider();
     }
@@ -89,14 +99,18 @@ public class TaskManagementProviderTestConfiguration {
 
     @Bean
     @Primary
-    public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
+    public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder(SearchRequestCustomDeserializer searchRequestCustomDeserializer) {
+        SimpleModule customDeserializerModule = new JsonComponentModule();
+        customDeserializerModule.addDeserializer(SearchParameter.class, searchRequestCustomDeserializer);
+
         return new Jackson2ObjectMapperBuilder()
             .serializationInclusion(JsonInclude.Include.NON_ABSENT)
             .propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
             .modules(
                 new ParameterNamesModule(),
                 new JavaTimeModule(),
-                new Jdk8Module()
+                new Jdk8Module(),
+                customDeserializerModule
             );
     }
 
