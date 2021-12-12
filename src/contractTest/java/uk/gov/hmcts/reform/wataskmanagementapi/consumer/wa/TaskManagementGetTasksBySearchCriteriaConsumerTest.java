@@ -32,7 +32,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
 
     public static final String CONTENT_TYPE = "Content-Type";
     private static final String WA_SEARCH_QUERY = "/task";
-    //private static final String CONTENT_TYPE = "application/json\r\n";
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQuery200(PactDslWithProvider builder) throws JsonProcessingException {
