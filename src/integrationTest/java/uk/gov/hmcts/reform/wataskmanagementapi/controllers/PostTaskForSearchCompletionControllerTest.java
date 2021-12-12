@@ -9,16 +9,37 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
+import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,6 +59,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
+import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_EMAIL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBaseTest {
@@ -52,7 +74,10 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-
+    @MockBean
+    private TaskResourceRepository taskResourceRepository;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private ServiceMocks mockServices;
     private String taskId;
 
@@ -251,6 +276,61 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             .andExpect(jsonPath("tasks[0].assignee").value("IDAM_USER_ID"));
     }
 
+    @Test
+    void should_return_a_200_when_task_permissions_are_empty() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = Collections.singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        //enable R2 flag
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            FeatureFlag.RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
+
+        List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
+            "taskType", new CamundaVariable("reviewTheAppeal", "String"),
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "workType", new CamundaVariable("decision_making_work", "String")
+        ));
+        when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
+            .thenReturn(mockedResponse);
+
+        when(taskResourceRepository.findAll(any()))
+            .thenReturn(List.of(createTaskResource()));
+
+        mockMvc.perform(
+            post("/task/search-for-completable")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content(asJsonString(searchEventAndCase))
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks[0].permissions.values").isEmpty())
+            .andExpect(jsonPath("tasks.size()").value(1));
+
+        verify(camundaServiceApi, times(1))
+            .evaluateDMN(any(), any(), any());
+        verify(taskResourceRepository, times(1))
+            .findAll(any());
+    }
+
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                              String jurisdiction,
                                                              String taskId) {
@@ -286,6 +366,53 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             )
         );
 
+    }
+
+    private List<Map<String, CamundaVariable>> mockTaskCompletionDMNResponse() {
+        List<Map<String, CamundaVariable>> dmnResult = new ArrayList<>();
+        Map<String, CamundaVariable> response = Map.of(
+            "completionMode", new CamundaVariable("Auto", "String"),
+            "taskType", new CamundaVariable("reviewTheAppeal", "String")
+        );
+        dmnResult.add(response);
+        return dmnResult;
+    }
+
+    private TaskResource createTaskResource() {
+        return new TaskResource(
+            "taskId",
+            "aTaskName",
+            "startAppeal",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            CFTTaskState.COMPLETED,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            null,
+            0,
+            0,
+            "someAssignee",
+            false,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            false,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "Asylum",
+            "TestCase",
+            "IA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            "Some termination reason",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            Collections.emptySet(),
+            "caseCategory"
+        );
     }
 
 }
