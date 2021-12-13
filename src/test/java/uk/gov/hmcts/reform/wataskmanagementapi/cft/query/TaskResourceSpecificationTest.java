@@ -208,7 +208,7 @@ public class TaskResourceSpecificationTest {
         verify(criteriaBuilder, times(7)).conjunction();
     }
 
-    @Test
+    /*@Test
     void shouldBuildTaskQueryWithAllParameters() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
