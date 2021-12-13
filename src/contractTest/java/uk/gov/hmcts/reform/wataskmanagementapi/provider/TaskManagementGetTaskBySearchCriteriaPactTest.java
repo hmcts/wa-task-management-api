@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
@@ -73,7 +74,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
@@ -213,10 +214,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             context.setTarget(testTarget);
         }
 
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
 
     }
 
