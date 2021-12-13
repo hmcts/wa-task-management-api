@@ -73,7 +73,7 @@ public final class TaskQuerySpecification {
         return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
     }
 
-    protected static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
+    public static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
         return (root, query, builder) -> builder.in(root.get(TASK_ID))
             .value(taskIds);
     }
