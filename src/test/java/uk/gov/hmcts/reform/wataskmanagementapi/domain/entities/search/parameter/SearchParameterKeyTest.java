@@ -52,7 +52,7 @@ class SearchParameterKeyTest {
             "WORK_TYPE, work_type"
         }
     )
-    public void should_return_id_when_toString_method_is_called(String input, String expected) {
+    void should_return_id_when_toString_method_is_called(String input, String expected) {
 
         assertEquals(expected, SearchParameterKey.valueOf(input).toString());
 
@@ -68,7 +68,7 @@ class SearchParameterKeyTest {
             "some-value"
         }
     )
-    public void should_throw_exception_when_input_is_invalid(String input) {
+    void should_throw_exception_when_input_is_invalid(String input) {
 
         assertThatThrownBy(() -> SearchParameterKey.valueOf(input))
             .isInstanceOf(IllegalArgumentException.class);
@@ -76,7 +76,7 @@ class SearchParameterKeyTest {
     }
 
     @Test
-    public void should_throw_exception_when_input_is_null() {
+    void should_throw_exception_when_input_is_null() {
 
         assertThatThrownBy(() -> SearchParameterKey.valueOf(null))
             .isInstanceOf(NullPointerException.class);
