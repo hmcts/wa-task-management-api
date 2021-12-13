@@ -36,7 +36,7 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.initiateTask(taskVariables, authenticationHeaders);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -85,7 +85,7 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
-        common.initiateTask(taskVariables, authenticationHeaders);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -96,7 +96,7 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("roles.size()", equalTo(4))
+            .body("roles.size()", equalTo(5))
             .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
             .body("roles[0].role_name", is("case-manager"))
             .body("roles[0].permissions", hasItems("Read","Own","Refer"))

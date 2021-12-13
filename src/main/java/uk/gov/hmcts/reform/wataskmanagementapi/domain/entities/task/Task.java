@@ -130,11 +130,11 @@ public class Task {
     private String workTypeId;
 
     @ApiModelProperty(required = true,
-        notes = "A value describing the work type of the case, for IA")
+        notes = "A value describing the task permissions")
     private TaskPermissions permissions;
 
     @ApiModelProperty(required = true,
-        notes = "A value describing the role category of the case, for IA")
+        notes = "A value describing the role category")
     private String roleCategory;
 
     private Task() {

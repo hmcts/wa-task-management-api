@@ -67,6 +67,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
@@ -269,6 +270,7 @@ class CFTTaskMapperTest {
         mappedValues.put(TITLE.value(), "someTitle");
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
+        mappedValues.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
@@ -289,7 +291,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
-        assertNull(taskResource.getRoleCategory());
+        assertEquals("LEGAL_OPERATIONS", taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
         assertEquals("someCaseId", taskResource.getCaseId());
@@ -336,7 +338,6 @@ class CFTTaskMapperTest {
         assertEquals("otherTaskName", taskResource.getTaskName());
 
     }
-
 
     @Test
     void should_map_configuration_attributes_with_permissions() {

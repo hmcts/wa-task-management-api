@@ -100,7 +100,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
-            .body("task_role_resources.size()", equalTo(3));
+            .body("task_role_resources.size()", equalTo(5));
 
         assertPermissions(
             getTaskResource(result, "hearing-judge"),
@@ -212,7 +212,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("work_type_resource.id", nullValue())
             .body("work_type_resource.label", nullValue())
-            .body("task_role_resources.size()", equalTo(2));
+            .body("task_role_resources.size()", equalTo(5));
 
         assertPermissions(
             getTaskResource(result, "hearing-centre-admin"),
@@ -409,7 +409,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("work_type_resource.id", equalTo("decision_making_work"))
             .body("work_type_resource.label", equalTo("Decision-making work"))
-            .body("task_role_resources.size()", equalTo(4));
+            .body("task_role_resources.size()", equalTo(5));
 
         assertPermissions(
             getTaskResource(result, "senior-tribunal-caseworker"),

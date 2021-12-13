@@ -44,6 +44,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentTe
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
@@ -108,7 +109,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(2)).in(any());
-        verify(criteriaBuilder, times(5)).conjunction();
+        verify(criteriaBuilder, times(6)).conjunction();
     }
 
     @Test
@@ -132,7 +133,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(6)).conjunction();
+        verify(criteriaBuilder, times(7)).conjunction();
     }
 
     @Test
@@ -158,7 +159,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(6)).conjunction();
+        verify(criteriaBuilder, times(7)).conjunction();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameter(STATE, SearchOperator.IN, emptyList())
@@ -181,7 +182,6 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
     }
 
-
     @Test
     void shouldBuildTaskQueryWithOutSearchParametersAndReturnConjunctionAsNull() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
@@ -203,7 +203,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(6)).conjunction();
+        verify(criteriaBuilder, times(7)).conjunction();
     }
 
     @Test
@@ -214,7 +214,8 @@ public class TaskResourceSpecificationTest {
             new SearchParameter(LOCATION, SearchOperator.IN, singletonList("location")),
             new SearchParameter(CASE_ID, SearchOperator.IN, singletonList("caseId")),
             new SearchParameter(USER, SearchOperator.IN, singletonList("testUser")),
-            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
+            new SearchParameter(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
+            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS"))
         ));
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(
@@ -229,7 +230,7 @@ public class TaskResourceSpecificationTest {
         );
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(7)).in(any());
+        verify(criteriaBuilder, times(8)).in(any());
     }
 
     @Test
@@ -330,7 +331,13 @@ public class TaskResourceSpecificationTest {
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
 
-        return Stream.of(jurisdiction, state, location, caseId, user, workType);
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS"))
+        ));
+        final SearchTaskRequestScenario roleCtg =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest).build();
+
+        return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg);
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
