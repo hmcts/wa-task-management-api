@@ -50,78 +50,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .toPact();
     }
 
-    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact testSearchQueryWithAvailableTasksOnly200(PactDslWithProvider builder) throws
-        JsonProcessingException {
-        return builder
-            .given("appropriate tasks are returned by criteria with available tasks only")
-            .uponReceiving("Provider receives a POST /task request from a WA API")
-            .path(WA_SEARCH_QUERY)
-            .method(HttpMethod.POST.toString())
-            .headers(getTaskManagementServiceResponseHeaders())
-            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
-            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithAvailableTasks(), APPLICATION_JSON)
-            .willRespondWith()
-            .status(HttpStatus.OK.value())
-            .body(createResponseForGetTask())
-            .toPact();
-    }
-
-    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder)
-        throws JsonProcessingException {
-        return builder
-            .given("appropriate tasks are returned by criteria with work-type")
-            .uponReceiving("Provider receives a POST /task request from a WA API")
-            .path(WA_SEARCH_QUERY)
-            .method(HttpMethod.POST.toString())
-            .headers(getTaskManagementServiceResponseHeaders())
-            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
-            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithWorkTypeRequest(), APPLICATION_JSON)
-            .willRespondWith()
-            .status(HttpStatus.OK.value())
-            .body(createResponseForGetTask())
-            .toPact();
-    }
-
-    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithWarnings200(PactDslWithProvider builder)
-        throws JsonProcessingException {
-        return builder
-            .given("appropriate tasks are returned by criteria with warnings only")
-            .uponReceiving("Provider receives a POST /task request from a WA API")
-            .path(WA_SEARCH_QUERY)
-            .method(HttpMethod.POST.toString())
-            .headers(getTaskManagementServiceResponseHeaders())
-            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
-            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseRequest(), APPLICATION_JSON)
-            .willRespondWith()
-            .status(HttpStatus.OK.value())
-            .body(createResponseForGetTaskWithWarnings())
-            .toPact();
-    }
-
-    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithWorkTypeWithWarnings200(PactDslWithProvider builder)
-        throws JsonProcessingException {
-        return builder
-            .given("appropriate tasks are returned by criteria with work-type with warnings only")
-            .uponReceiving("Provider receives a POST /task request from a WA API")
-            .path(WA_SEARCH_QUERY)
-            .method(HttpMethod.POST.toString())
-            .headers(getTaskManagementServiceResponseHeaders())
-            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
-            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .body(createSearchEventCaseWithWorkTypeRequest(), APPLICATION_JSON)
-            .willRespondWith()
-            .status(HttpStatus.OK.value())
-            .body(createResponseForGetTaskWithWarnings())
-            .toPact();
-    }
-
     @Test
     @PactTestFor(pactMethod = "executeSearchQuery200")
     void testSearchQuery200Test(MockServer mockServer) {
@@ -130,58 +58,6 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .headers(getHttpHeaders())
             .contentType(APPLICATION_JSON)
             .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200")
-    void testSearchQueryWithAvailableTasksOnly200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(APPLICATION_JSON)
-            .body(createSearchEventCaseWithAvailableTasks())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
-    void testSearchQueryWithWorkType200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(APPLICATION_JSON)
-            .body(createSearchEventCaseWithWorkTypeRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
-    void testSearchQueryWithWarnings200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(APPLICATION_JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
-    void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(APPLICATION_JSON)
-            .body(createSearchEventCaseWithWorkTypeRequest())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
