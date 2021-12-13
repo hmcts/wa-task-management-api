@@ -79,7 +79,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
     "PMD.ExcessiveParameterList"})
 public class TaskManagementService {
     public static final String USER_ID_CANNOT_BE_NULL = "UserId cannot be null";
-    public static final String SENIOR_TRIBUNAL_CASE_WORKER_ROLE = "senior-tribunal-caseworker";
 
     private final CamundaService camundaService;
     private final CamundaQueryBuilder camundaQueryBuilder;
@@ -677,6 +676,11 @@ public class TaskManagementService {
         if (taskResource.isEmpty()) {
             throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
         }
+
+        if (taskResource.get().getTaskRoleResources().isEmpty()) {
+            return emptyList();
+        }
+
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
 
@@ -688,7 +692,7 @@ public class TaskManagementService {
         }
 
         return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
-                cftTaskMapper::mapToTaskRolePermissions)
+            cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );
