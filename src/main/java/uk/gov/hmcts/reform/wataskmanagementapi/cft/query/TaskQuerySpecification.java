@@ -73,6 +73,11 @@ public final class TaskQuerySpecification {
         return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
     }
 
+    protected static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
+        return (root, query, builder) -> builder.in(root.get(TASK_ID))
+            .value(taskIds);
+    }
+
     public static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {
         if (isEmpty(taskTypes)) {
             return (root, query, builder) -> builder.conjunction();
@@ -87,10 +92,6 @@ public final class TaskQuerySpecification {
         }
         return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID))
             .value(workTypes);
-    }
-    protected static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
-        return (root, query, builder) -> builder.in(root.get(TASK_ID))
-            .value(taskIds);
     }
 
 }
