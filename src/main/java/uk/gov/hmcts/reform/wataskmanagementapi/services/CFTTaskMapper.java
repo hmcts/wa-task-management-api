@@ -379,6 +379,7 @@ public class CFTTaskMapper {
                     break;
                 case ROLE_CATEGORY:
                     taskResource.setRoleCategory((String) value);
+                    break;
                 case DESCRIPTION:
                     taskResource.setDescription((String) value);
                     break;
