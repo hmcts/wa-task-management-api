@@ -1179,19 +1179,28 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_search_by_any_role_category_and_return_tasks_with_appropriate_role_category() {
-        String taskType = "reviewAddendumEvidence";
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
-        String taskId = taskVariables.getTaskId();
+        //initiate first task
+        String taskType = "followUpOverdueReasonsForAppeal";
+        TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
+        final String taskId1 = taskVariables1.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers,"task-supervisor");
 
-        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
 
+        //initiate second task
+        taskType = "arrangeOfflinePayment";
+        TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
+        String taskId2 = taskVariables2.getTaskId();
+
+        common.insertTaskInCftTaskDb(taskVariables2, taskType, headers);
+
+        //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameter(ROLE_CATEGORY, SearchOperator.IN,
-                List.of("LEGAL_OPERATIONS", "ADMINISTRATOR", "JUDICIAL")),
+                List.of("LEGAL_OPERATIONS", "ADMINISTRATOR")),
             new SearchParameter(CASE_ID, SearchOperator.IN,
-                singletonList(taskVariables.getCaseId()))
+                asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
 
         Response result = restApiActions.post(
@@ -1202,12 +1211,12 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(1))
+            .body("tasks.size()", equalTo(2))
             .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks.id", hasItem(taskId))
-            .body("tasks.role_category", everyItem(is("JUDICIAL")))
-            .body("total_records", equalTo(1));
+            .body("tasks.case_id", hasItems(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
+            .body("tasks.id", hasItems(taskId1, taskId2))
+            .body("tasks.role_category", hasItems("LEGAL_OPERATIONS", "ADMINISTRATOR"))
+            .body("total_records", equalTo(2));
     }
 
     private List<TestVariables> createMultipleTasks(String[] states) {

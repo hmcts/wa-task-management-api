@@ -26,6 +26,7 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -137,12 +138,17 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             authenticationHeaders
         );
 
+        result.prettyPrint();
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.warnings", is(false));
-
+            .body("task.warnings", is(false))
+            .body("task.case_management_category", equalTo("Protection"))
+            .body("task.work_type_id", equalTo("decision_making_work"))
+            .body("task.permissions.values", contains("Read", "Refer", "Own", "Manage", "Execute", "Cancel"))
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
 
@@ -298,7 +304,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue());
+            .body("task.warnings", notNullValue())
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
     }

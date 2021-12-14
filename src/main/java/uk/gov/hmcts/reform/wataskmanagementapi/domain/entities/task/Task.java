@@ -197,6 +197,7 @@ public class Task {
         this.workTypeId = workTypeId;
         this.permissions = taskPermissions;
         this.roleCategory = roleCategory;
+
     }
 
     public String getId() {
