@@ -58,6 +58,7 @@ public class CamundaHelpers {
             "someCaseManagementCategory",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
     }

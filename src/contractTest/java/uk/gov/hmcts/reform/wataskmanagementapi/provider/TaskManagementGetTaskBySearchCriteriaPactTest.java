@@ -137,6 +137,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
     }
@@ -181,6 +182,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
     }

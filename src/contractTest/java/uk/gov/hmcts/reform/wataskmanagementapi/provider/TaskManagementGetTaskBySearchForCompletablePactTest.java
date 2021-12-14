@@ -118,6 +118,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
 
@@ -164,6 +165,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
 

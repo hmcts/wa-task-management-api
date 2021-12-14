@@ -161,6 +161,7 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
     }
@@ -205,6 +206,7 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
+            "a description",
             RoleCategory.LEGAL_OPERATIONS.name()
         );
     }
