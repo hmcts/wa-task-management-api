@@ -266,6 +266,7 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
+            .withProcessVariable("description", "aDescription")
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -296,6 +297,7 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
+            .withProcessVariable("description", "aDescription")
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -329,6 +331,7 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", true)
             .withProcessVariable("warningList", values)
             .withProcessVariable("caseManagementCategory", "Protection")
+            .withProcessVariable("description", "aDescription")
             .build();
 
         return processVariables.getProcessVariablesMap();
@@ -353,6 +356,7 @@ public class GivensBuilder {
             .withProcessVariableBoolean("hasWarnings", false)
             .withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
+            .withProcessVariable("description", "aDescription")
             .build();
 
         return processVariables.getProcessVariablesMap();

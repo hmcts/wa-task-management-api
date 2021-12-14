@@ -256,7 +256,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
             "taskType", new CamundaVariable("reviewTheAppeal", "String"),
             "completionMode", new CamundaVariable("Auto", "String"),
-            "workType", new CamundaVariable("decision_making_work", "String")
+            "workType", new CamundaVariable("decision_making_work", "String"),
+            "description", new CamundaVariable("aDescription", "String")
         ));
         when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
             .thenReturn(mockedResponse);
@@ -273,7 +274,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             )
             .andExpect(status().isOk())
             .andExpect(jsonPath("tasks.size()").value(1))
-            .andExpect(jsonPath("tasks[0].assignee").value("IDAM_USER_ID"));
+            .andExpect(jsonPath("tasks[0].assignee").value("IDAM_USER_ID"))
+            .andExpect(jsonPath("tasks[0].description").value("aDescription"));
     }
 
     @Test
@@ -361,6 +363,13 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
                 "caseId1",
                 "String",
                 "caseId",
+                processInstanceId,
+                taskId
+            ),
+            new CamundaVariableInstance(
+                "aDescription",
+                "String",
+                "description",
                 processInstanceId,
                 taskId
             )

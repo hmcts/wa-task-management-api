@@ -116,7 +116,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "a description"
         );
 
         return singletonList(task);
@@ -161,7 +162,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "a description"
         );
 
         return singletonList(taskWithWarnings);
