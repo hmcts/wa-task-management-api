@@ -57,7 +57,8 @@ public class CamundaHelpers {
             "someCaseManagementCategory",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
-            null
+            null,
+            "a description"
         );
     }
 

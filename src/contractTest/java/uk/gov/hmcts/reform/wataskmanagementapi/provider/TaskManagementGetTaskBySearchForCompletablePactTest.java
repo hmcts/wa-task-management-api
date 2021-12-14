@@ -117,7 +117,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            "a description"
         );
 
         return singletonList(task);
@@ -163,7 +164,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
                     ))),
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            "a description"
         );
 
         return singletonList(taskWithWarnings);

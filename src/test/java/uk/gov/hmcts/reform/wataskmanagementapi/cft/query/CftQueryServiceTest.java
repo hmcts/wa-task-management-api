@@ -701,7 +701,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "Some Case Management Category",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            "Description"
         );
     }
 }
