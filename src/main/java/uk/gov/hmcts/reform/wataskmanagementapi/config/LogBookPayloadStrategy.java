@@ -10,11 +10,11 @@ public class LogBookPayloadStrategy implements Strategy {
 
     @Override
     public HttpResponse process(final HttpRequest request, final HttpResponse response) throws IOException {
-        return response.withBody();
+        return response.withoutBody();
     }
 
     @Override
     public HttpRequest process(final HttpRequest request) throws IOException {
-        return request.withBody();
+        return request.withoutBody();
     }
 }

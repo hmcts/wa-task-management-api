@@ -20,6 +20,7 @@ public final class TaskQuerySpecification {
     private static final String JURISDICTION = "jurisdiction";
     private static final String WORK_TYPE = "workTypeResource";
     private static final String WORK_TYPE_ID = "id";
+    private static final String ROLE_CATEGORY = "roleCategory";
 
 
     private TaskQuerySpecification() {
@@ -88,6 +89,14 @@ public final class TaskQuerySpecification {
         }
         return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID))
             .value(workTypes);
+    }
+
+    public static Specification<TaskResource> searchByRoleCategory(List<String> roleCategories) {
+        if (isEmpty(roleCategories)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
+        return (root, query, builder) -> builder.in(root.get(ROLE_CATEGORY))
+            .value(roleCategories);
     }
 
 }
