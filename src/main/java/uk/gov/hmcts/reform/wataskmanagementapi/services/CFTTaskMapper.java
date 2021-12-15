@@ -179,6 +179,7 @@ public class CFTTaskMapper {
             taskResource.getCaseCategory(),
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
             new TaskPermissions(permissionsUnion),
+            taskResource.getRoleCategory(),
             taskResource.getDescription()
         );
     }
@@ -375,6 +376,9 @@ public class CFTTaskMapper {
                     break;
                 case TASK_NAME:
                     taskResource.setTaskName((String) value);
+                    break;
+                case ROLE_CATEGORY:
+                    taskResource.setRoleCategory((String) value);
                     break;
                 case DESCRIPTION:
                     taskResource.setDescription((String) value);

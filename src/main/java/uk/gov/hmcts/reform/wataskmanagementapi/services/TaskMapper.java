@@ -101,8 +101,9 @@ public class TaskMapper {
             workType,
             //returning empty since this should only be used in R1 and task permissions is R2
             new TaskPermissions(Collections.emptySet()),
+            // returning null as its only applicable for R2
+            null,
             description
-
         );
     }
 
