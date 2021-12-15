@@ -170,8 +170,8 @@ public class Task {
                 String caseManagementCategory,
                 String workTypeId,
                 TaskPermissions taskPermissions,
-                String description,
-                String roleCategory
+                String roleCategory,
+                String description
     ) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
@@ -200,9 +200,8 @@ public class Task {
         this.caseManagementCategory = caseManagementCategory;
         this.workTypeId = workTypeId;
         this.permissions = taskPermissions;
-        this.description = description;
         this.roleCategory = roleCategory;
-
+        this.description = description;
     }
 
     public String getId() {
@@ -305,12 +304,12 @@ public class Task {
         return permissions;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public String getRoleCategory() {
         return roleCategory;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
 

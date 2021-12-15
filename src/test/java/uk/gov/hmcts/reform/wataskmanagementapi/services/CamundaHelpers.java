@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
@@ -58,8 +57,8 @@ public class CamundaHelpers {
             "someCaseManagementCategory",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
-            "a description",
-            RoleCategory.LEGAL_OPERATIONS.name()
+            null,
+            "a description"
         );
     }
 

@@ -26,7 +26,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
@@ -74,7 +73,6 @@ public class TaskMapper {
         String caseManagementCategory = getVariableValue(variables.get(CASE_MANAGEMENT_CATEGORY.value()), String.class);
         String workType = getVariableValue(variables.get(WORK_TYPE.value()), String.class);
         String description = getVariableValue(variables.get(DESCRIPTION.value()), String.class);
-        String roleCategory = getVariableValue(variables.get(ROLE_CATEGORY.value()), String.class);
         return new Task(
             id,
             name,
@@ -102,8 +100,9 @@ public class TaskMapper {
             workType,
             //returning empty since this should only be used in R1 and task permissions is R2
             new TaskPermissions(Collections.emptySet()),
-            description,
-            roleCategory
+            // returning null as its only applicable for R2
+            null,
+            description
         );
     }
 

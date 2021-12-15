@@ -48,8 +48,8 @@ class TaskTest {
             "some-case-management-category",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
-            "a description",
-            RoleCategory.ADMINISTRATOR.name()
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -80,8 +80,8 @@ class TaskTest {
         Assertions.assertThat(task.getAssignee()).isEqualTo("some-assignee");
         Assertions.assertThat(task.isAutoAssigned()).isTrue();
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.READ);
+        Assertions.assertThat(task.getRoleCategory()).isEqualTo("LEGAL_OPERATIONS");
         Assertions.assertThat(task.getDescription()).isEqualTo("a description");
-        Assertions.assertThat(task.getRoleCategory()).isEqualTo(RoleCategory.ADMINISTRATOR.name());
     }
 
 
@@ -117,8 +117,8 @@ class TaskTest {
             "some-case-management-category",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN))),
-            "a description",
-            RoleCategory.LEGAL_OPERATIONS.name()
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
