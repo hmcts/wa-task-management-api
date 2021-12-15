@@ -408,7 +408,50 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_a_200_with_task_description_property() {
+        TestVariables taskVariables1 = common.setupTaskAndRetrieveIds("reviewTheAppeal");
+        String taskId = taskVariables1.getTaskId();
 
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+
+        initiateTaskWithWarnings(taskVariables1, "reviewTheAppeal");
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("task.id", notNullValue())
+            .body("task.name", notNullValue())
+            .body("task.type", notNullValue())
+            .body("task.task_state", notNullValue())
+            .body("task.task_system", notNullValue())
+            .body("task.security_classification", notNullValue())
+            .body("task.task_title", notNullValue())
+            .body("task.created_date", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.location_name", notNullValue())
+            .body("task.location", notNullValue())
+            .body("task.execution_type", notNullValue())
+            .body("task.jurisdiction", notNullValue())
+            .body("task.region", notNullValue())
+            .body("task.case_type_id", notNullValue())
+            .body("task.case_id", notNullValue())
+            .body("task.case_type_id", notNullValue())
+            .body("task.case_category", notNullValue())
+            .body("task.case_name", notNullValue())
+            .body("task.auto_assigned", notNullValue())
+            .body("task.warnings", notNullValue())
+            .body("task.description", notNullValue());
+
+        common.cleanUpTask(taskId);
+    }
+    
     private void initiateTask(TestVariables taskVariables) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
@@ -479,51 +522,4 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value());
 
     }
-
-    @Test
-    public void should_return_a_200_with_task_description_property() {
-        TestVariables taskVariables1 = common.setupTaskAndRetrieveIds("reviewTheAppeal");
-        String taskId = taskVariables1.getTaskId();
-
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
-
-        initiateTaskWithWarnings(taskVariables1, "reviewTheAppeal");
-
-        Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("task.id", notNullValue())
-            .body("task.name", notNullValue())
-            .body("task.type", notNullValue())
-            .body("task.task_state", notNullValue())
-            .body("task.task_system", notNullValue())
-            .body("task.security_classification", notNullValue())
-            .body("task.task_title", notNullValue())
-            .body("task.created_date", notNullValue())
-            .body("task.due_date", notNullValue())
-            .body("task.location_name", notNullValue())
-            .body("task.location", notNullValue())
-            .body("task.execution_type", notNullValue())
-            .body("task.jurisdiction", notNullValue())
-            .body("task.region", notNullValue())
-            .body("task.case_type_id", notNullValue())
-            .body("task.case_id", notNullValue())
-            .body("task.case_type_id", notNullValue())
-            .body("task.case_category", notNullValue())
-            .body("task.case_name", notNullValue())
-            .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue())
-            .body("task.description", is("[Request respondent evidence](/case/IA/Asylum/${[CASE_REFERENCE]}"
-                                         + "/trigger/requestRespondentEvidence)"));
-
-        common.cleanUpTask(taskId);
-    }
-
 }
-
