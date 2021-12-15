@@ -29,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseIds;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByJurisdiction;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByRoleCategory;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByState;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskId;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
@@ -47,6 +48,7 @@ public class TaskQuerySpecificationTest {
     private static final String COLUMN_JURISDICTION = "jurisdiction";
     private static final String COLUMN_WORK_TYPE = "workTypeResource";
     private static final String COLUMN_WORK_TYPE_ID = "id";
+    private static final String ROLE_CATEGORY = "roleCategory";
 
     @Mock
     private Root<TaskResource> root;
@@ -647,6 +649,83 @@ public class TaskQuerySpecificationTest {
             verify(builder, never()).in(any());
             verify(root, never()).get(COLUMN_WORK_TYPE);
         }
+    }
+
+    @Nested
+    @DisplayName("searchByRoleCategory()")
+    class SearchByRoleCategory {
+
+        @Test
+        void buildSpecificationWhenColumnIsGiven() {
+            List<String> locations = List.of("765324");
+            lenient().when(root.get(ROLE_CATEGORY)).thenReturn(path);
+            lenient().when(builder.in(path)).thenReturn(inObject);
+            lenient().when(inObject.value(locations)).thenReturn(inObject);
+            Specification<TaskResource> spec = searchByRoleCategory(locations);
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNotNull(predicate);
+
+            verify(builder, never()).conjunction();
+            verify(root, times(1)).get(ROLE_CATEGORY);
+            verify(builder, times(1)).in(any());
+        }
+
+        @Test
+        void buildSpecificationWhenColumnIsNull() {
+            List<String> roleCategories = List.of("LEGAL_OPERATIONS");
+            lenient().when(root.get(ROLE_CATEGORY)).thenReturn(null);
+            lenient().when(builder.in(null)).thenReturn(inObject);
+            Specification<TaskResource> spec = searchByRoleCategory(roleCategories);
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNull(predicate);
+
+            verify(builder, never()).conjunction();
+            verify(root, times(1)).get(ROLE_CATEGORY);
+            verify(builder, times(1)).in(any());
+        }
+
+        @Test
+        void buildSpecificationWhenLocationsReturnedFromBuilderAreNull() {
+            List<String> roleCategories = List.of("LEGAL_OPERATIONS");
+            lenient().when(root.get(ROLE_CATEGORY)).thenReturn(path);
+            lenient().when(builder.in(path)).thenReturn(inObject);
+            lenient().when(inObject.value(roleCategories)).thenReturn(null);
+            Specification<TaskResource> spec = searchByRoleCategory(roleCategories);
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNull(predicate);
+
+            verify(builder, never()).conjunction();
+            verify(root, times(1)).get(ROLE_CATEGORY);
+            verify(builder, times(1)).in(any());
+        }
+
+        @Test
+        void buildSpecificationWhenLocationsAreEmpty() {
+            lenient().when(builder.conjunction()).thenReturn(mockPredicate);
+            Specification<TaskResource> spec = searchByRoleCategory(emptyList());
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNotNull(predicate);
+            verify(builder, times(1)).conjunction();
+            verify(builder, never()).in(any());
+            verify(root, never()).get(ROLE_CATEGORY);
+        }
+
+        @Test
+        void buildSpecificationWhenConjunctionIsNull() {
+            lenient().when(builder.conjunction()).thenReturn(null);
+            Specification<TaskResource> spec = searchByRoleCategory(emptyList());
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNull(predicate);
+            verify(builder, times(1)).conjunction();
+            verify(builder, never()).in(any());
+            verify(root, never()).get(ROLE_CATEGORY);
+        }
+
     }
 
 }

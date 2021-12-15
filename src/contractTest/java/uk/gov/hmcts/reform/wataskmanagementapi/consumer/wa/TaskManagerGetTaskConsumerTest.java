@@ -115,6 +115,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("description", "aDescription")
                 )).build();
     }
 
@@ -151,6 +152,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .stringType("description", "aDescription")
                 )).build();
     }
 
