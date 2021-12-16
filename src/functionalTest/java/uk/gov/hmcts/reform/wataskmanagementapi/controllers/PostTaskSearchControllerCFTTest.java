@@ -860,8 +860,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks[0].id", equalTo(taskId))
             .body("tasks[0].task_state", equalTo("unassigned"))
-            .body("tasks[0].description",
-                equalTo("[Change the direction due date](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/changeDirectionDueDate)"));
+            .body("tasks[0].description",  equalTo(
+                "[Change the direction due date](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/changeDirectionDueDate)"
+            ));
 
         common.cleanUpTask(taskId);
     }
