@@ -835,6 +835,67 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_200_status_with_task_description_matching_to_dmn_description_value() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(headers);
+
+        common.insertTaskInCftTaskDb(taskVariables, "decideOnTimeExtension", headers);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            headers
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks[0].id", equalTo(taskId))
+            .body("tasks[0].task_state", equalTo("unassigned"))
+            .body("tasks[0].description",
+                equalTo("[Change the direction due date](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/changeDirectionDueDate)"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_200_status_with_empty_task_description_when_dmn_description_value_not_exists() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(headers);
+
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueCaseBuilding", headers);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            searchTaskRequest,
+            headers
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks[0].id", equalTo(taskId))
+            .body("tasks[0].task_state", equalTo("unassigned"))
+            .body("tasks[0].description", equalTo(""));
+
+        common.cleanUpTask(taskId);
+    }
+
     /**
      * Terminate task with state CANCELLED will remove cftTaskState from Camunda history table.
      */
