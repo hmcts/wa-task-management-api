@@ -26,8 +26,8 @@ import java.util.Map;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -107,7 +107,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -146,7 +146,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", is(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("decision_making_work"))
-            .body("task.permissions.values", contains("Read", "Refer", "Own", "Manage", "Execute", "Cancel"))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Execute", "Cancel"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
@@ -243,7 +243,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.warnings", is(true));
+            .body("task.warnings", is(true))
+            .body("task.permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -304,6 +305,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
@@ -442,8 +444,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private void initiateTaskWithWarnings(TestVariables taskVariables) {
         WarningValues warningValues = new WarningValues(
-            asList(new Warning("Code1", "Text1"),
-                new Warning("Code2", "Text2")));
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
