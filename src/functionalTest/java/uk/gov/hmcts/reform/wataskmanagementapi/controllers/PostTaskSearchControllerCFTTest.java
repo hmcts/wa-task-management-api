@@ -1234,6 +1234,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_a_200_with_search_results_for_jurisdiction_location_filters_and_available_tasks_only() {
+        String taskType = "followUpOverdueReasonsForAppeal";
+
+
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324"
@@ -1248,14 +1251,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(headers);
 
-        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskId);
+        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            authenticationHeaders
+            headers
         );
 
         result.then().assertThat()
