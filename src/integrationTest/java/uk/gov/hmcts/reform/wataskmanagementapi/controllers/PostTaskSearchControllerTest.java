@@ -593,7 +593,9 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.title").value("Bad Request"),
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail")
-                        .value("Invalid request field: search_parameters.[0].operator")));
+                        .value("Invalid request field: search_parameters.[0]: Each search_parameter "
+                               + "element must have 'key', "
+                               + "'values' and 'operator' fields present and populated.")));
     }
 
     @Test
