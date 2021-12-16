@@ -190,6 +190,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.permissions.values", everyItem(notNullValue()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -603,6 +604,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
+            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -786,6 +788,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.auto_assigned", everyItem(notNullValue()))
             .body("tasks.warnings", everyItem(notNullValue()))
             .body("tasks.description", everyItem(notNullValue()))
+            .body("tasks.permissions.values", everyItem(notNullValue()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
