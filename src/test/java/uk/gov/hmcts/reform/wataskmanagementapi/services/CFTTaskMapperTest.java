@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAtt
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
@@ -66,6 +67,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
@@ -268,6 +270,7 @@ class CFTTaskMapperTest {
         mappedValues.put(TITLE.value(), "someTitle");
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
+        mappedValues.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
@@ -288,7 +291,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
-        assertNull(taskResource.getRoleCategory());
+        assertEquals("LEGAL_OPERATIONS", taskResource.getRoleCategory());
         assertEquals(false, taskResource.getHasWarnings());
         assertNull(taskResource.getAssignmentExpiry());
         assertEquals("someCaseId", taskResource.getCaseId());
@@ -335,7 +338,6 @@ class CFTTaskMapperTest {
         assertEquals("otherTaskName", taskResource.getTaskName());
 
     }
-
 
     @Test
     void should_map_configuration_attributes_with_permissions() {
@@ -920,6 +922,104 @@ class CFTTaskMapperTest {
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
         assertThat(taskAttributes).size().isEqualTo(32);
+    }
+
+    @Test
+    void should_map_task_role_permissions() {
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "tribunal-caseofficer",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{"SPECIFIC", "BASIC"},
+            0,
+            false,
+            "JUDICIAL",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
+
+        assertEquals("tribunal-caseofficer", taskRolePermissions.getRoleName());
+        assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
+        assertNotNull(taskRolePermissions.getPermissions());
+        assertFalse(taskRolePermissions.getPermissions().isEmpty());
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.READ));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+
+        assertFalse(taskRolePermissions.getAuthorisations().isEmpty());
+        assertTrue(taskRolePermissions.getAuthorisations().contains("SPECIFIC"));
+        assertTrue(taskRolePermissions.getAuthorisations().contains("BASIC"));
+    }
+
+    @Test
+    void should_map_task_role_permissions_when_authorisations_are_empty() {
+        TaskRoleResource roleResource = new TaskRoleResource(
+            "tribunal-caseofficer",
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            new String[]{},
+            0,
+            false,
+            "JUDICIAL",
+            "taskId",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+        );
+
+        final TaskRolePermissions taskRolePermissions = cftTaskMapper.mapToTaskRolePermissions(roleResource);
+
+        assertEquals("tribunal-caseofficer", taskRolePermissions.getRoleName());
+        assertEquals("JUDICIAL", taskRolePermissions.getRoleCategory());
+        assertNotNull(taskRolePermissions.getPermissions());
+        assertFalse(taskRolePermissions.getPermissions().isEmpty());
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.READ));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.OWN));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.MANAGE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.EXECUTE));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.CANCEL));
+        assertTrue(taskRolePermissions.getPermissions().contains(PermissionTypes.REFER));
+
+        assertTrue(taskRolePermissions.getAuthorisations().isEmpty());
+    }
+
+    @Test
+    void should_map_configuration_attributes_description() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(CamundaVariableDefinition.CASE_ID.value(), "otherCaseId");
+        mappedValues.put(CamundaVariableDefinition.TASK_ID.value(), "otherTaskId");
+        mappedValues.put(CamundaVariableDefinition.TASK_NAME.value(), "otherTaskName");
+        mappedValues.put(CamundaVariableDefinition.DESCRIPTION.value(), "aDescription");
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues));
+
+
+        assertEquals("otherCaseId", taskResource.getCaseId());
+        assertEquals("otherTaskId", taskResource.getTaskId());
+        assertEquals("otherTaskName", taskResource.getTaskName());
+        assertEquals("aDescription", taskResource.getDescription());
+
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {

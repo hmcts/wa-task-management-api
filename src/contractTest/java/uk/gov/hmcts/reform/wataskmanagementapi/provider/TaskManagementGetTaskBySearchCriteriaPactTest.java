@@ -135,7 +135,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "LEGAL_OPERATIONS",
+            "a description"
         );
     }
 
@@ -178,7 +180,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                         PermissionTypes.CANCEL,
                         PermissionTypes.MANAGE,
                         PermissionTypes.REFER
-                    )))
+                    ))),
+            "LEGAL_OPERATIONS",
+            "a description"
         );
     }
 

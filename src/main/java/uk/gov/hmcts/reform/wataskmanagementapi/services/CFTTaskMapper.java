@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
@@ -179,7 +178,9 @@ public class CFTTaskMapper {
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory(),
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
-            new TaskPermissions(permissionsUnion)
+            new TaskPermissions(permissionsUnion),
+            taskResource.getRoleCategory(),
+            taskResource.getDescription()
         );
     }
 
@@ -213,12 +214,8 @@ public class CFTTaskMapper {
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
-        final String[] authorizations = taskRoleResource.getAuthorizations();
-        List<String> authorisations = new ArrayList<>();
-        if (authorizations.length > 0) {
-            authorisations = Stream.of(taskRoleResource.getAuthorizations())
-                .collect(Collectors.toList());
-        }
+        List<String> authorisations = asList(taskRoleResource.getAuthorizations());
+
         final Set<PermissionTypes> permissionTypes = extractUnionOfPermissions(Set.of(taskRoleResource));
 
         return new TaskRolePermissions(
@@ -379,6 +376,12 @@ public class CFTTaskMapper {
                     break;
                 case TASK_NAME:
                     taskResource.setTaskName((String) value);
+                    break;
+                case ROLE_CATEGORY:
+                    taskResource.setRoleCategory((String) value);
+                    break;
+                case DESCRIPTION:
+                    taskResource.setDescription((String) value);
                     break;
                 default:
                     break;

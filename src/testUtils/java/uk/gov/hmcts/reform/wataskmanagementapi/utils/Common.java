@@ -16,6 +16,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleA
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -23,10 +25,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
 
 import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -34,12 +40,27 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.R
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.ORGANISATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
 @Slf4j
 public class Common {
 
+    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
+    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final GivensBuilder given;
+    private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
     private final AuthorizationHeadersProvider authorizationHeadersProvider;
 
@@ -49,11 +70,13 @@ public class Common {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Common(GivensBuilder given,
+                  RestApiActions restApiActions,
                   RestApiActions camundaApiActions,
                   AuthorizationHeadersProvider authorizationHeadersProvider,
                   IdamService idamService,
                   RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.given = given;
+        this.restApiActions = restApiActions;
         this.camundaApiActions = camundaApiActions;
         this.authorizationHeadersProvider = authorizationHeadersProvider;
         this.idamService = idamService;
@@ -444,6 +467,41 @@ public class Common {
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json"
         );
+    }
+
+    public void insertTaskInCftTaskDb(TestVariables testVariables, String taskType, Headers authenticationHeaders) {
+        String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
+                          + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_WARNINGS, warnings),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        Response result = restApiActions.post(
+            TASK_INITIATION_ENDPOINT_BEING_TESTED,
+            testVariables.getTaskId(),
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
     }
 
     private String toJsonString(Map<String, String> attributes) {

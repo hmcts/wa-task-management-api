@@ -254,7 +254,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                 ));
     }
 
-
     @Test
     void should_return_400_bad_request_when_work_types_did_not_exist() throws Exception {
 
@@ -360,7 +359,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
     @Test
     void should_return_400_bad_request_when_invalid_search_parameter_key() throws Exception {
-
 
         mockMvc.perform(
                 post("/task")
@@ -546,7 +544,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                         .value("Invalid request field: search_parameters.[0].operator")));
     }
 
-
     @Test
     void should_return_400_bad_request_when_null_operator_provided() throws Exception {
         mockMvc.perform(
@@ -578,6 +575,38 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.violations.[0].field").value("search_parameters[0].operator"),
                     jsonPath("$.violations.[0].message")
                         .value("Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated.")));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_operator_with_null_value_provided() throws Exception {
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                         + "    \"search_parameters\": [\n"
+                         + "        {\n"
+                         + "            \"key\": \"jurisdiction\",\n"
+                         + "            \"values\": [\"ia\", \"sscs\"],\n"
+                         + "             \"operator\": \"null\"\n"
+                         + "        }\n"
+                         + "    ]\n"
+                         + "}")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
+            .andDo(MockMvcResultHandlers.print())
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                        ),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Invalid request field: search_parameters.[0].operator")));
     }
 
     @Test
@@ -615,6 +644,37 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    void should_return_400_bad_request_when_key_and_values_are_empty() throws Exception {
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                         + "    \"search_parameters\": [\n"
+                         + "        {\n"
+                         + "            \"key\": \"\",\n"
+                         + "            \"values\": [\"\", \"\"],\n"
+                         + "            \"operator\": \"IN\"\n"
+                         + "        }\n"
+                         + "    ]\n"
+                         + "}")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value(
+                            "https://github.com/hmcts/wa-task-management-api/problem/bad-request"
+                        ),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail")
+                        .value("Invalid request field: search_parameters.[0].key")));
+    }
+
+    @Test
     void should_return_400_bad_request_when_empty_string_key_provided() throws Exception {
         mockMvc.perform(
                 post("/task")
@@ -644,7 +704,6 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.detail")
                         .value("Invalid request field: search_parameters.[0].key")));
     }
-
 
     @Test
     void should_return_200_and_accept_Request_when_theres_at_least_one_value() throws Exception {
@@ -688,6 +747,53 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                              + "}\n")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isOk()));
+    }
+
+    @Test
+    void should_return_200_and_accept_Request_when_values_are_null() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+
+        List<RoleAssignment> allTestRoles =
+            mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(userInfo, allTestRoles);
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(allTestRoles));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        //enable R2 flag
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+            RELEASE_2_TASK_QUERY,
+            accessControlResponse.getUserInfo().getUid(),
+            IDAM_USER_EMAIL)
+        ).thenReturn(true);
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                         + "  \"search_parameters\": [\n"
+                         + "    {\n"
+                         + "      \"key\": \"jurisdiction\",\n"
+                         + "      \"values\": [null],\n"
+                         + "      \"operator\": \"IN\"\n"
+                         + "    }\n"
+                         + "  ]\n"
+                         + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isOk()));
@@ -747,6 +853,39 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             .andExpect(
                 ResultMatcher.matchAll(
                     status().isOk()));
+    }
+
+    @Test
+    void should_return_400_bad_request_when_invalid_camelCase_role_category_search_parameter_key()
+        throws Exception {
+
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                         + "  \"search_parameters\": [\n"
+                         + "    {\n"
+                         + "      \"key\": \"roleCategory\",\n"
+                         + "      \"operator\": \"IN\",\n"
+                         + "      \"values\": [\n"
+                         + "        \"aValue\"\n"
+                         + "      ]\n"
+                         + "    }\n"
+                         + "  ]\n"
+                         + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail").value("Invalid request field: search_parameters.[0].key")));
     }
 
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,

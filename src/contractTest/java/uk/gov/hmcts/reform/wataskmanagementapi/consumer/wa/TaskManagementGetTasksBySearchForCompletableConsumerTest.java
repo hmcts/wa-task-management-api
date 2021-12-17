@@ -122,6 +122,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("description", "aDescription")
                 )).build();
     }
 
@@ -159,6 +160,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .stringType("description", "aDescription")
                 )).build();
     }
 

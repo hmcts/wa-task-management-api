@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -38,6 +39,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
@@ -96,6 +98,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .statusCode(HttpStatus.OK.value())
                 .contentType(APPLICATION_JSON_VALUE)
                 .body("tasks.size()", equalTo(1))
+                .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
                 .body("tasks[0].work_type_id", equalTo(scenario.workTypeId));
 
@@ -198,6 +201,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .contentType(APPLICATION_JSON_VALUE)
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
+            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
             .body("tasks[0].id", equalTo(taskId2));
 
         common.cleanUpTask(taskId1);
@@ -212,7 +216,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.TASK_ID, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_TYPE, "reviewTheAppeal",
             CamundaVariableDefinition.TASK_STATE, "unassigned",
-            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
+            CamundaVariableDefinition.CASE_TYPE_ID, "Asylum",
+            CamundaVariableDefinition.DESCRIPTION, "aDescription"
         );
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
         String taskId = taskVariables.getTaskId();
@@ -241,7 +246,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].id", equalTo(taskId))
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
-            .body("tasks[0].case_type_id", equalTo("Asylum"));
+            .body("tasks[0].case_type_id", equalTo("Asylum"))
+            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
+            .body("tasks[0].description", equalTo("aDescription"));
 
         common.cleanUpTask(taskId);
     }
@@ -295,7 +302,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
-            .body("tasks[0].warnings", is(false));
+            .body("tasks[0].warnings", is(false))
+            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "tasks[0].warning_list.values");
@@ -355,7 +363,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
-            .body("tasks[0].warnings", is(true));
+            .body("tasks[0].warnings", is(true))
+            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "tasks[0].warning_list.values");
@@ -627,7 +636,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, false)
+            new TaskAttribute(TASK_AUTO_ASSIGNED, false),
+            new TaskAttribute(TASK_DESCRIPTION, "aDescription")
         ));
 
         Response result = restApiActions.post(
