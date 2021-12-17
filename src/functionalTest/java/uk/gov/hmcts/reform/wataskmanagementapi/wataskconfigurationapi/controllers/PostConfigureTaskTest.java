@@ -27,7 +27,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void cleanUp() {
-        super.cleanUp(taskId);
+        common.cleanUpTask(taskId);
     }
 
     @Test

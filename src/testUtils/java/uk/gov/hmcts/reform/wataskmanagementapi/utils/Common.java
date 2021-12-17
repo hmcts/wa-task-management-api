@@ -30,6 +30,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
@@ -98,7 +99,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.isEmpty()) {
             fail("Search did not yield any results for case id: " + caseId);
@@ -140,7 +141,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
@@ -159,7 +160,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCustomVariables(processVariables)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
@@ -175,7 +176,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, false)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
@@ -191,13 +192,26 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, taskType)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
         }
 
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
+
+    public List<CamundaTask> setupTaskAndRetrieveIdsForGivenCaseId(String caseId, String taskType) {
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, taskType)
+            .and()
+            .iRetrieveATasksWithProcessVariableFilter("caseId", caseId, taskType);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+        // return taskId
+        return response;
     }
 
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
@@ -207,7 +221,7 @@ public class Common {
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, true)
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId);
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
@@ -216,10 +230,12 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public void cleanUpTask(String taskId) {
-        log.info("Cleaning task {}", taskId);
-        camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+    public void cleanUpTask(String... taskId) {
+        Stream.of(taskId).forEach(task -> {
+            log.info("Cleaning task {}", task);
+            camundaApiActions.post(ENDPOINT_COMPLETE_TASK, task,
+                authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+        });
     }
 
     public void cleanUpAndValidateCftTaskState(String taskId, String reason) {
@@ -298,7 +314,6 @@ public class Common {
 
     }
 
-
     public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
@@ -343,6 +358,45 @@ public class Common {
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+        );
+
+    }
+
+    public void setupCFTOrganisationalWithMultipleRoles(Headers headers) {
+
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", "IA"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+        );
+
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),

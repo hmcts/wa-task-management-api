@@ -59,8 +59,19 @@ public final class TaskResourceSpecification {
         List<PermissionTypes> permissionsRequired
     ) {
 
-        return buildApplicationConstraints(searchTaskRequest, permissionsRequired)
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
+        final Specification<TaskResource> constrainsSpec = buildApplicationConstraints(searchTaskRequest);
+
+        boolean andPermissions  = false;
+        if (isAvailableTasksOnly(searchTaskRequest)) {
+            permissionsRequired.add(PermissionTypes.OWN);
+            andPermissions = true;
+        }
+
+        final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, andPermissions);
+
+        return constrainsSpec.and(roleAssignmentSpec);
+
     }
 
     public static Specification<TaskResource> buildSingleTaskQuery(String taskId,
@@ -68,7 +79,7 @@ public final class TaskResourceSpecification {
                                                                    List<PermissionTypes> permissionsRequired
     ) {
         return searchByTaskId(taskId)
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
+            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
     }
 
     public static Specification<TaskResource> buildTaskRolePermissionsQuery(
@@ -87,11 +98,10 @@ public final class TaskResourceSpecification {
             .and(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .and(searchByTaskTypes(taskTypes))
             //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse));
+            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
     }
 
-    private static Specification<TaskResource> buildApplicationConstraints(
-        SearchTaskRequest searchTaskRequest, List<PermissionTypes> permissionsRequired) {
+    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
         SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
@@ -102,12 +112,6 @@ public final class TaskResourceSpecification {
         SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
         SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
 
-        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
-        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
-
-        if (availableTasksOnly != null && availableTasksOnly.getValues()) {
-            permissionsRequired.add(PermissionTypes.OWN);
-        }
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
             .and(searchByState(getCftTaskStates(stateParam))
             .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
@@ -157,6 +161,13 @@ public final class TaskResourceSpecification {
         }
 
         return map;
+    }
+
+    private static boolean isAvailableTasksOnly(SearchTaskRequest searchTaskRequest) {
+        final EnumMap<SearchParameterKey, SearchParameterBoolean> boolKeyMap = asEnumMapForBoolean(searchTaskRequest);
+        SearchParameterBoolean availableTasksOnly = boolKeyMap.get(AVAILABLE_TASKS_ONLY);
+
+        return availableTasksOnly != null && availableTasksOnly.getValues();
     }
 
 }

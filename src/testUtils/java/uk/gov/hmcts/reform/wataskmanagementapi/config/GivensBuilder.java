@@ -42,6 +42,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -133,9 +134,9 @@ public class GivensBuilder {
         return this;
     }
 
-    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
+    public List<CamundaTask> iRetrieveATasksWithProcessVariableFilter(String key, String value, String taskType) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
-        String filter = "?processVariables=" + key + "_eq_" + value;
+        String filter = "?processVariables=" + key + "_eq_" + value + ",taskId_eq_" + taskType;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
@@ -151,7 +152,7 @@ public class GivensBuilder {
                     result.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
                         .contentType(APPLICATION_JSON_VALUE)
-                        .body("size()", is(1));
+                        .body("size()", greaterThanOrEqualTo(1));
 
                     response.set(
                         result.then()
