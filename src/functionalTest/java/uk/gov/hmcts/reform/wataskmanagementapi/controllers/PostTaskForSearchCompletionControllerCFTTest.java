@@ -39,7 +39,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
@@ -638,8 +637,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, false),
-            new TaskAttribute(TASK_DESCRIPTION, "aDescription")
+            new TaskAttribute(TASK_AUTO_ASSIGNED, false)
         ));
 
         Response result = restApiActions.post(
