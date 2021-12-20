@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 )
 @EqualsAndHashCode
 @ToString
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "java:S1452"})
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameterBoolean implements SearchParameter<Boolean> {
 
     @ApiModelProperty(

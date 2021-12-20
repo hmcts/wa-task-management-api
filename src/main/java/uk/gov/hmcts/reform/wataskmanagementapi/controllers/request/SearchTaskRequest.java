@@ -17,6 +17,7 @@ import javax.validation.constraints.NotEmpty;
 )
 @EqualsAndHashCode
 @ToString
+@SuppressWarnings("java:S1452")
 public class SearchTaskRequest {
 
     @ApiModelProperty(
