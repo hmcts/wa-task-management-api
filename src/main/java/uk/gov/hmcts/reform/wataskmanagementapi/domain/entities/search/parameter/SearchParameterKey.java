@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SearchParameterKey {
 
-    AVAILABLE_TASKS_ONLY("available_tasks_only"),
     LOCATION("location"),
     USER("user"),
     JURISDICTION("jurisdiction"),
@@ -12,7 +11,9 @@ public enum SearchParameterKey {
     TASK_ID("taskId"),
     TASK_TYPE("taskType"),
     CASE_ID("caseId"),
-    WORK_TYPE("work_type"), //R2 should be snake_case only
+    //R2 should be snake_case only,
+    WORK_TYPE("work_type"),
+    AVAILABLE_TASKS_ONLY("available_tasks_only"),
     ROLE_CATEGORY("role_category");
 
     @JsonValue

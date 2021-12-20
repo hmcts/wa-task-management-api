@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static java.util.Collections.singletonList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildQueryToRetrieveRoleInformation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildRoleAssignmentConstraints;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByCaseId;
@@ -27,7 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecifi
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByLocation;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByRoleCategory;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByState;
-import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskId;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskIds;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByTaskTypes;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByUser;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskQuerySpecification.searchByWorkType;
@@ -78,7 +80,7 @@ public final class TaskResourceSpecification {
                                                                    AccessControlResponse accessControlResponse,
                                                                    List<PermissionTypes> permissionsRequired
     ) {
-        return searchByTaskId(taskId)
+        return searchByTaskIds(singletonList(taskId))
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
     }
 
@@ -86,7 +88,7 @@ public final class TaskResourceSpecification {
         String taskId,
         AccessControlResponse accessControlResponse) {
 
-        return searchByTaskId(taskId)
+        return searchByTaskIds(singletonList(taskId))
             .and(buildQueryToRetrieveRoleInformation(accessControlResponse));
     }
 
@@ -153,7 +155,7 @@ public final class TaskResourceSpecification {
         SearchTaskRequest searchTaskRequest) {
 
         EnumMap<SearchParameterKey, SearchParameterBoolean> map = new EnumMap<>(SearchParameterKey.class);
-        if (searchTaskRequest != null && searchTaskRequest.getSearchParameters() != null) {
+        if (searchTaskRequest != null && !CollectionUtils.isEmpty(searchTaskRequest.getSearchParameters())) {
             searchTaskRequest.getSearchParameters()
                 .stream()
                 .filter(SearchParameterBoolean.class::isInstance)

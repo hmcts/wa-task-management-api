@@ -70,11 +70,10 @@ public final class TaskQuerySpecification {
             .value(users);
     }
 
-    public static Specification<TaskResource> searchByTaskId(String taskId) {
-        return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
-    }
-
-    public static Specification<TaskResource> searchByTaskId(List<String> taskIds) {
+    public static Specification<TaskResource> searchByTaskIds(List<String> taskIds) {
+        if (isEmpty(taskIds)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(TASK_ID))
             .value(taskIds);
     }

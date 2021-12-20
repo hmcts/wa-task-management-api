@@ -94,7 +94,7 @@ public class TaskResourceSpecificationTest {
     @MethodSource({
         "searchParameterForTaskQuery"
     })
-    void shouldBuildTaskQueryWithSingleParameter(SearchTaskRequestScenario scenario) {
+    void should_build_task_query_with_single_parameter(SearchTaskRequestScenario scenario) {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
@@ -115,7 +115,7 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildTaskQueryWithOutSearchParameters() {
+    void should_build_task_query_with_empty_search_parameters() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
@@ -139,9 +139,34 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildTaskQueryWithNullConditions() {
+    void should_build_task_query_with_search_parameters_as_null() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(null);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
+
+        Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(7)).conjunction();
+    }
+
+    @Test
+    void should_build_task_query_with_null_conditions() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(STATE, SearchOperator.IN, singletonList(null))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList(null)),
+            new SearchParameterList(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, singletonList(null))
         ));
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
@@ -185,7 +210,7 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildTaskQueryWithOutSearchParametersAndReturnConjunctionAsNull() {
+    void should_build_task_query_with_out_search_parameter_and_return_conjunction_as_null() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
@@ -209,7 +234,7 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildTaskQueryWithAllParameters() {
+    void should_build_task_query_with_all_parameters() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
@@ -218,7 +243,7 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
-            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(
@@ -237,7 +262,36 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildSingleTaskQuery() {
+    void should_build_task_query_with_available_task_only() {
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("caseId")),
+            new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser")),
+            new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS")),
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
+        ));
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
+        );
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+        permissionsRequired.add(PermissionTypes.OWN);
+
+        final Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
+            searchTaskRequest, accessControlResponse, permissionsRequired
+        );
+        spec.toPredicate(root, query, criteriaBuilder);
+
+        verify(criteriaBuilder, times(8)).in(any());
+    }
+
+    @Test
+    void should_build_single_task_query() {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             roleAssignmentWithSpecificGrantType(PUBLIC)
@@ -253,11 +307,26 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
     }
 
+    @Test
+    void should_build_task_role_permissions_query() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignmentWithSpecificGrantType(PUBLIC)
+        );
+
+        final Specification<TaskResource> spec = TaskResourceSpecification.buildTaskRolePermissionsQuery(
+            "someTaskId", accessControlResponse);
+
+        Predicate predicate = spec.toPredicate(root, query, criteriaBuilder);
+        assertNotNull(spec);
+        assertNotNull(predicate);
+    }
+
     @ParameterizedTest
     @MethodSource({
         "searchParameterForCompletable"
     })
-    void shouldBuildSingleTaskQueryForCompletable(SearchTaskRequestScenario scenario) {
+    void should_build_task_query_for_search_for_completable(SearchTaskRequestScenario scenario) {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
@@ -276,7 +345,7 @@ public class TaskResourceSpecificationTest {
     }
 
     @Test
-    void shouldBuildSingleTaskQueryForCompletableNegated() {
+    void should_build_task_query_for_search_for_completable_negated() {
         AccessControlResponse accessControlResponse = new AccessControlResponse(
             null,
             roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
@@ -297,6 +366,8 @@ public class TaskResourceSpecificationTest {
         verify(criteriaBuilder, times(2)).in(any());
     }
 
+
+
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -316,6 +387,13 @@ public class TaskResourceSpecificationTest {
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
         final SearchTaskRequestScenario availableTaskOnly =
+            SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
+                .expectedInPredicate(1).expectedConjunctions(7).build();
+
+        searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
+        ));
+        final SearchTaskRequestScenario availableTaskOnlyAsFalse =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
                 .expectedInPredicate(1).expectedConjunctions(7).build();
 
@@ -354,7 +432,8 @@ public class TaskResourceSpecificationTest {
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
                 .expectedInPredicate(2).expectedConjunctions(6).build();
 
-        return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg, availableTaskOnly);
+        return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg,
+            availableTaskOnly, availableTaskOnlyAsFalse);
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
