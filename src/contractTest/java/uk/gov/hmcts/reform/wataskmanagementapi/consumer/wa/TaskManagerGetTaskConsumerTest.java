@@ -156,7 +156,6 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         )
                         .stringType("description", "aDescription")
                         .stringType("tole_category", RoleCategory.LEGAL_OPERATIONS.name())
-
                 )).build();
     }
 
