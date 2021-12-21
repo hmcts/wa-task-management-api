@@ -106,7 +106,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -143,7 +143,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.warnings", is(false))
-            .body("task.permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"));
+            .body("task.case_management_category", equalTo("Protection"))
+            .body("task.work_type_id", equalTo("decision_making_work"))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Execute", "Cancel"))
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
 
@@ -301,8 +304,9 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
-            .body("task.description", notNullValue());
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.description", notNullValue())
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
     }
@@ -482,8 +486,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private void initiateTaskWithWarnings(TestVariables taskVariables, String taskType) {
         WarningValues warningValues = new WarningValues(
-            asList(new Warning("Code1", "Text1"),
-                new Warning("Code2", "Text2")));
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);

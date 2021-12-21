@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -734,7 +735,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "Some Case Management Category",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
-            "LEGAL_OPERATIONS",
+            RoleCategory.LEGAL_OPERATIONS.name(),
             "Description"
         );
     }
