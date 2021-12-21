@@ -41,6 +41,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
@@ -772,6 +773,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             headers
         );
 
+        final List<String> expectedStates = List.of("unconfigured", "unassigned", "configured", "assigned", "completed",
+            "cancelled", "terminated");
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
@@ -779,6 +783,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.name", everyItem(notNullValue()))
             .body("tasks.type", everyItem(notNullValue()))
             .body("tasks.task_state", everyItem(notNullValue()))
+            .body("tasks.task_state", everyItem(is(in(expectedStates))))
             .body("tasks.task_system", everyItem(notNullValue()))
             .body("tasks.security_classification", everyItem(notNullValue()))
             .body("tasks.task_title", everyItem(notNullValue()))
@@ -1137,7 +1142,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
-                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
+                new ArrayList<>(TASK_TYPE_WORK_TYPE_MAP.values())),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
@@ -1354,6 +1359,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(1)) //Default max results
             .body("tasks[0].id", equalTo(taskId2))
+            .body("tasks[0].task_state", is(either(is("unassigned")).or(is("assigned"))))
             .body("total_records", is(1));
 
         common.cleanUpTask(taskId1, taskId2);
@@ -1400,6 +1406,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(2)) //Default max results
             .body("tasks.id", hasItems(taskId1, taskId2))
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("total_records", is(2));
 
         common.cleanUpTask(taskId1, taskId2);

@@ -66,6 +66,12 @@ public final class TaskResourceSpecification {
         boolean andPermissions  = isAvailableTasksOnly(searchTaskRequest);
         if (andPermissions) {
             permissionsRequired.add(PermissionTypes.OWN);
+            constrainsSpec.and(searchByState(
+                List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)));
+        } else {
+            final EnumMap<SearchParameterKey, SearchParameterList> searchParameterListEnumMap =
+                asEnumMapForListOfStrings(searchTaskRequest);
+            constrainsSpec.and(searchByState(getCftTaskStates(searchParameterListEnumMap.get(STATE))));
         }
 
         final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
@@ -102,11 +108,17 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
     }
 
+    private void filterByAvailableTasksOnly(Specification<TaskResource> constrainsSpec,
+                                            List<PermissionTypes> permissionsRequired) {
+        permissionsRequired.add(PermissionTypes.OWN);
+        constrainsSpec.and(searchByState(
+            List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)));
+    }
+
     private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
         SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
-        SearchParameterList stateParam = keyMap.get(STATE);
         SearchParameterList locationParam = keyMap.get(LOCATION);
         SearchParameterList caseIdParam = keyMap.get(CASE_ID);
         SearchParameterList userParam = keyMap.get(USER);
@@ -114,12 +126,11 @@ public final class TaskResourceSpecification {
         SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
 
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
-            .and(searchByState(getCftTaskStates(stateParam))
             .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
             .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
             .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
             .and(searchByWorkType(workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
-            .and(searchByRoleCategory(roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())))))));
+            .and(searchByRoleCategory(roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues()))))));
     }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
