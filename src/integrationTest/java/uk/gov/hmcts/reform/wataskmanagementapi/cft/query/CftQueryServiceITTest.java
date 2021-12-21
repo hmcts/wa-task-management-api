@@ -109,12 +109,12 @@ public class CftQueryServiceITTest {
 
     @ParameterizedTest
     @MethodSource({
-        /* "grantTypeBasicErrorScenario",
+         "grantTypeBasicErrorScenario",
         "grantTypeSpecificErrorScenario",
         "grantTypeStandardErrorScenario",
         "grantTypeChallengedErrorScenario",
         "grantTypeWithStandardAndExcludedErrorScenario",
-        "grantTypeWithChallengedAndExcludedErrorScenario",*/
+        "grantTypeWithChallengedAndExcludedErrorScenario",
         "inValidBeginAndEndTime"
     })
     void shouldReturnEmptyTasksWithInvalidExUiSearchQuery(TaskQueryScenario scenario) {

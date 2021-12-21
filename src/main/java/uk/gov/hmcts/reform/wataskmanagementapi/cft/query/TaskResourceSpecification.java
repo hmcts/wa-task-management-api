@@ -63,10 +63,9 @@ public final class TaskResourceSpecification {
 
         final Specification<TaskResource> constrainsSpec = buildApplicationConstraints(searchTaskRequest);
 
-        boolean andPermissions  = false;
-        if (isAvailableTasksOnly(searchTaskRequest)) {
+        boolean andPermissions  = isAvailableTasksOnly(searchTaskRequest);
+        if (andPermissions) {
             permissionsRequired.add(PermissionTypes.OWN);
-            andPermissions = true;
         }
 
         final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
