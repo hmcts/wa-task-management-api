@@ -117,7 +117,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                         .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .stringType("work_type_id", "hearing_work")
                         .stringType("description", "aDescription")
-                        .stringType("tole_category", RoleCategory.LEGAL_OPERATIONS.name())
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
     }
 
@@ -155,7 +155,7 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                             )
                         )
                         .stringType("description", "aDescription")
-                        .stringType("tole_category", RoleCategory.LEGAL_OPERATIONS.name())
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
     }
 
