@@ -42,7 +42,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -152,7 +151,7 @@ public class GivensBuilder {
                     result.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
                         .contentType(APPLICATION_JSON_VALUE)
-                        .body("size()", greaterThanOrEqualTo(1));
+                        .body("size()", is(1));
 
                     response.set(
                         result.then()

@@ -37,7 +37,6 @@ class SearchRequestCustomDeserializerTest {
     @Autowired
     private JacksonTester<SearchParameter<?>> json;
 
-
     @Mock
     private JsonParser jsonParser;
 
@@ -53,7 +52,7 @@ class SearchRequestCustomDeserializerTest {
     private DeserializationContext deserializationContext;
 
     @Test
-    void testSearchParameterBooleanOperatorIsDeserialized() throws IOException {
+    void should_deserialize_boolean_operator() throws IOException {
         when(operatorNode.asText()).thenReturn("BOOLEAN");
         when(searchNode.get("operator")).thenReturn(operatorNode);
         when(jsonParser.getCodec()).thenReturn(objectMapper);
@@ -67,7 +66,7 @@ class SearchRequestCustomDeserializerTest {
     }
 
     @Test
-    void testSearchParameterListOperatorIsDeserialized() throws IOException {
+    void should_deserialize_in_operator() throws IOException {
         when(operatorNode.asText()).thenReturn("IN");
         when(searchNode.get("operator")).thenReturn(operatorNode);
         when(jsonParser.getCodec()).thenReturn(objectMapper);
@@ -81,33 +80,28 @@ class SearchRequestCustomDeserializerTest {
     }
 
     @Test
-    void testSearchParameterOperatorIsNull() throws IOException {
+    void should_throw_exception_when_operator_is_null() throws IOException {
         when(searchNode.get("operator")).thenReturn(null);
         when(jsonParser.getCodec()).thenReturn(objectMapper);
         when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
 
         SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
-        assertThrows(BadRequestException.class, () -> {
-            deserializer.deserialize(jsonParser, deserializationContext);
-        });
+        assertThrows(BadRequestException.class, () -> deserializer.deserialize(jsonParser, deserializationContext));
     }
 
     @Test
-    void testSearchParameterOperatorIsNotValid() throws IOException {
+    void should_throw_exception_when_operator_is_invalid() throws IOException {
         lenient().when(operatorNode.asText()).thenReturn("NotValid");
         when(searchNode.get("operator")).thenReturn(operatorNode);
         when(jsonParser.getCodec()).thenReturn(objectMapper);
         when(objectMapper.readTree(jsonParser)).thenReturn(searchNode);
 
         SearchRequestCustomDeserializer deserializer = new SearchRequestCustomDeserializer();
-        assertThrows(BadRequestException.class, () -> {
-            deserializer.deserialize(jsonParser, deserializationContext);
-        });
+        assertThrows(BadRequestException.class, () -> deserializer.deserialize(jsonParser, deserializationContext));
     }
 
-
     @Test
-    void testTheSearchParameterBooleanCanBeDeserialized() throws IOException {
+    void should_deserialize_with_snake_case_available_task_filter_with_boolean_operator() throws IOException {
         String jsonContent = searchParameterJson_withSearchParameterBooleanOnly();
 
         SearchParameterBoolean searchParameter = (SearchParameterBoolean) this.json.parse(jsonContent).getObject();
@@ -118,7 +112,7 @@ class SearchRequestCustomDeserializerTest {
     }
 
     @Test
-    void testTheSearchParameterListCanBeDeserialized() throws IOException {
+    void should_deserialize_jurisdiction_filter_with_list_operator() throws IOException {
         String jsonContent = searchParameterJson_withSearchParameterListOnly();
 
         SearchParameterList searchParameter = (SearchParameterList) this.json.parse(jsonContent).getObject();
