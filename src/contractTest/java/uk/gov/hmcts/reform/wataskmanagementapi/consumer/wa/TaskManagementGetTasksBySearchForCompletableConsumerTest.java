@@ -126,6 +126,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .stringType("description", "aDescription")
                         .stringType("tole_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
+
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {
