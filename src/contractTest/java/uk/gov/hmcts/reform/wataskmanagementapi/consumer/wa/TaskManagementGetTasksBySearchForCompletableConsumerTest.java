@@ -124,7 +124,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
                         .stringType("description", "aDescription")
-                        .stringType("tole_category", RoleCategory.LEGAL_OPERATIONS.name())
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
     }
 
@@ -163,7 +163,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                             )
                         )
                         .stringType("description", "aDescription")
-                        .stringType("tole_category", RoleCategory.LEGAL_OPERATIONS.name())
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
     }
 
