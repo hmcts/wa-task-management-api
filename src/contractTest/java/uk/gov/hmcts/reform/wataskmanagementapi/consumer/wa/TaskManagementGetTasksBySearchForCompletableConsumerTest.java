@@ -15,6 +15,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
@@ -123,6 +124,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
                         .stringType("description", "aDescription")
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
     }
 
@@ -161,6 +163,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                             )
                         )
                         .stringType("description", "aDescription")
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                 )).build();
     }
 

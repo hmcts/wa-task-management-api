@@ -39,7 +39,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DESCRIPTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
@@ -100,7 +99,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .body("tasks.size()", equalTo(1))
                 .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
-                .body("tasks[0].work_type_id", equalTo(scenario.workTypeId));
+                .body("tasks[0].work_type_id", equalTo(scenario.workTypeId))
+                .body("tasks[0].role_category", equalTo(scenario.roleCategory));
 
             common.cleanUpTask(testVariables.getTaskId());
         });
@@ -247,8 +247,11 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
-            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
-            .body("tasks[0].description", equalTo("aDescription"));
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("tasks[0].description", equalTo(
+                "[Request respondent evidence](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/requestRespondentEvidence)"
+            ))
+            .body("tasks[0].role_category", equalTo("LEGAL_OPERATIONS"));;
 
         common.cleanUpTask(taskId);
     }
@@ -301,6 +304,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].id", equalTo(taskId2))
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
+            .body("tasks[0].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(false))
             .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"));
@@ -636,8 +640,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
-            new TaskAttribute(TASK_AUTO_ASSIGNED, false),
-            new TaskAttribute(TASK_DESCRIPTION, "aDescription")
+            new TaskAttribute(TASK_AUTO_ASSIGNED, false)
         ));
 
         Response result = restApiActions.post(
@@ -656,17 +659,20 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             new CompletableTaskScenario(
                 "processApplication",
                 "decideAnApplication",
-                "applications"
+                "applications",
+                "LEGAL_OPERATIONS"
             ),
             new CompletableTaskScenario(
                 "reviewAdditionalEvidence",
                 "markEvidenceAsReviewed",
-                "decision_making_work"
+                "decision_making_work",
+                "LEGAL_OPERATIONS"
             ),
             new CompletableTaskScenario(
                 "reviewAdditionalHomeOfficeEvidence",
                 "markEvidenceAsReviewed",
-                "decision_making_work"
+                "decision_making_work",
+                "LEGAL_OPERATIONS"
             )
         );
     }
@@ -677,6 +683,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         private String taskId;
         private String eventId;
         private String workTypeId;
+        private String roleCategory;
     }
 }
 
