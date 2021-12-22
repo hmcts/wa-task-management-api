@@ -29,7 +29,6 @@ public class CreateTaskMessageBuilder {
     public CreateTaskMessageBuilder withCaseId(String caseId) {
         processVariables.put("caseId", stringValue(caseId));
         processVariables.put("taskId", stringValue("wa-task-configuration-api-task"));
-        processVariables.put("group", stringValue("TCW"));
         return this;
     }
 
@@ -42,7 +41,6 @@ public class CreateTaskMessageBuilder {
         processVariables.put("caseId", stringValue(caseId));
         processVariables.put("hasWarnings", new CamundaValue<>(false, "boolean"));
         processVariables.put("taskId", stringValue(taskTypeId));
-        processVariables.put("group", stringValue("TCW"));
         processVariables.put(
             "dueDate",
             stringValue(now().plusDays(2).format(PostConfigureTaskTest.CAMUNDA_DATA_TIME_FORMATTER))
