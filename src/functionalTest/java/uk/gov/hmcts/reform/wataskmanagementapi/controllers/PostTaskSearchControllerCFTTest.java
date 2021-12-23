@@ -359,14 +359,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             headers
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("unassigned")))
             .body("total_records", greaterThanOrEqualTo(1));
@@ -430,8 +430,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("total_records", greaterThanOrEqualTo(1));
@@ -573,15 +572,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             headers
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.id", hasItem(taskId))
+            .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.task_state", everyItem(is("unassigned")))
@@ -702,14 +700,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             headers
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.name", everyItem(notNullValue()))
             .body("tasks.type", everyItem(notNullValue()))
@@ -1288,7 +1286,6 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(1)) //Default max results
-            .body("tasks[0].id", equalTo(taskId2))
             .body("tasks[0].id", equalTo(taskId2))
             .body("tasks[0].permissions.values", hasItem("Own"))
             .body("total_records", is(1));
