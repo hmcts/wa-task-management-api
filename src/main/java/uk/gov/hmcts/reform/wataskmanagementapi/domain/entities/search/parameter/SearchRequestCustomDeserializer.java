@@ -43,8 +43,7 @@ public class SearchRequestCustomDeserializer extends StdDeserializer<SearchParam
 
         if (SearchOperator.BOOLEAN.getValue().equals(operatorNode.asText())) {
             return mapper.treeToValue(searchNode, SearchParameterBoolean.class);
-        } else if (SearchOperator.IN.getValue().equals(operatorNode.asText())
-                   || SearchOperator.AFTER.getValue().equals(operatorNode.asText())) {
+        } else if (SearchOperator.IN.getValue().equals(operatorNode.asText())) {
             return mapper.treeToValue(searchNode, SearchParameterList.class);
         } else {
             throw new BadRequestException(ERROR_MESSAGE);

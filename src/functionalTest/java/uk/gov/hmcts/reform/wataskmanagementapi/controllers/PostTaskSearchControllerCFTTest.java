@@ -169,37 +169,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_200_with_search_results() {
-
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        final String taskId = taskVariables.getTaskId();
-
-        common.setupCFTOrganisationalRoleAssignment(headers);
-
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            headers
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.permissions.values", everyItem(notNullValue()))
-            .body("total_records", greaterThanOrEqualTo(1));
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void should_return_a_200_with_warnings() {
+    public void should_return_a_200_with_search_results_and_warnings() {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
@@ -225,44 +195,6 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.warning_list.values", everyItem(notNullValue()));
 
         common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void should_return_a_200_with_max_50_tasks_without_pagination_parameter() {
-        //creating 3 tasks
-        String[] taskStates = {TaskState.ASSIGNED.value(), TaskState.UNASSIGNED.value(), TaskState.ASSIGNED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
-
-        tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
-        ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            searchTaskRequest,
-            headers
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", greaterThanOrEqualTo(3))
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
-            .body("total_records", greaterThanOrEqualTo(1));
-
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -491,14 +423,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
             headers
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(50)) //Default max results
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.jurisdiction", everyItem(is("IA")))
@@ -615,8 +547,12 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
+    /**
+     *  This scenario will test with default pagination i.e 50
+     *
+     */
     @Test
-    public void should_return_a_200_with_search_results_based_on_jurisdiction_location_and_state_filters() {
+    public void should_return_a_200_with_default_search_results_based_on_jurisdiction_location_and_state() {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
             CamundaVariableDefinition.LOCATION, "765324",
@@ -630,7 +566,6 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
-
         ));
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -1354,6 +1289,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(1)) //Default max results
             .body("tasks[0].id", equalTo(taskId2))
+            .body("tasks[0].id", equalTo(taskId2))
+            .body("tasks[0].permissions.values", hasItem("Own"))
             .body("total_records", is(1));
 
         common.cleanUpTask(taskId1, taskId2);
@@ -1400,6 +1337,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(2)) //Default max results
             .body("tasks.id", hasItems(taskId1, taskId2))
+            .body("tasks.permissions.values", everyItem(hasItem("Own")))
             .body("total_records", is(2));
 
         common.cleanUpTask(taskId1, taskId2);
