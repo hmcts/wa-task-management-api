@@ -425,11 +425,11 @@ task runProviderPactVerification(type: Test) {
   systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
-task fortifyScan(type: JavaExec)  {
-  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
-  classpath += sourceSets.test.runtimeClasspath
-  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
-}
+//task fortifyScan(type: JavaExec)  {
+//  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+//  classpath += sourceSets.test.runtimeClasspath
+//  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+//}
 
 runProviderPactVerification.dependsOn contract
 
