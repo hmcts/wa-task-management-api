@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,6 +19,8 @@ class SearchParameterKeyTest {
         final String taskTypeEnum = SearchParameterKey.TASK_TYPE.value();
         final String caseIdEnum = SearchParameterKey.CASE_ID.value();
         final String workTypeEnum = SearchParameterKey.WORK_TYPE.value();
+        final String availableTasksOnlyEnum = SearchParameterKey.AVAILABLE_TASKS_ONLY.value();
+        final String roleCategory = SearchParameterKey.ROLE_CATEGORY.value();
 
         assertEquals("location", locationEnum);
         assertEquals("user", userEnum);
@@ -27,13 +29,15 @@ class SearchParameterKeyTest {
         assertEquals("taskId", taskIdEnum);
         assertEquals("taskType", taskTypeEnum);
         assertEquals("caseId", caseIdEnum);
+        assertEquals("available_tasks_only", availableTasksOnlyEnum);
         assertEquals("work_type", workTypeEnum);
+        assertEquals("role_category", roleCategory);
     }
 
     @Test
     void update_test_whenever_additions_to_assign_enum_are_made() {
         int assigneeEnumLength = SearchParameterKey.values().length;
-        assertEquals(9, assigneeEnumLength);
+        assertEquals(10, assigneeEnumLength);
     }
 
 
@@ -47,10 +51,12 @@ class SearchParameterKeyTest {
             "TASK_ID, taskId",
             "TASK_TYPE, taskType",
             "CASE_ID, caseId",
-            "WORK_TYPE, work_type"
+            "WORK_TYPE, work_type",
+            "AVAILABLE_TASKS_ONLY, available_tasks_only",
+            "ROLE_CATEGORY, role_category",
         }
     )
-    public void should_return_id_when_toString_method_is_called(String input, String expected) {
+    void should_return_id_when_toString_method_is_called(String input, String expected) {
 
         assertEquals(expected, SearchParameterKey.valueOf(input).toString());
 
@@ -66,7 +72,7 @@ class SearchParameterKeyTest {
             "some-value"
         }
     )
-    public void should_throw_exception_when_input_is_invalid(String input) {
+    void should_throw_exception_when_input_is_invalid(String input) {
 
         assertThatThrownBy(() -> SearchParameterKey.valueOf(input))
             .isInstanceOf(IllegalArgumentException.class);
@@ -74,7 +80,7 @@ class SearchParameterKeyTest {
     }
 
     @Test
-    public void should_throw_exception_when_input_is_null() {
+    void should_throw_exception_when_input_is_null() {
 
         assertThatThrownBy(() -> SearchParameterKey.valueOf(null))
             .isInstanceOf(NullPointerException.class);

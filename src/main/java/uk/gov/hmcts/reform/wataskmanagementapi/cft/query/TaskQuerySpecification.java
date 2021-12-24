@@ -22,7 +22,6 @@ public final class TaskQuerySpecification {
     private static final String WORK_TYPE_ID = "id";
     private static final String ROLE_CATEGORY = "roleCategory";
 
-
     private TaskQuerySpecification() {
         // avoid creating object
     }
@@ -71,8 +70,12 @@ public final class TaskQuerySpecification {
             .value(users);
     }
 
-    public static Specification<TaskResource> searchByTaskId(String taskId) {
-        return (root, query, builder) -> builder.equal(root.get(TASK_ID), taskId);
+    public static Specification<TaskResource> searchByTaskIds(List<String> taskIds) {
+        if (isEmpty(taskIds)) {
+            return (root, query, builder) -> builder.conjunction();
+        }
+        return (root, query, builder) -> builder.in(root.get(TASK_ID))
+            .value(taskIds);
     }
 
     public static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {

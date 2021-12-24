@@ -13,10 +13,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -44,10 +44,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
@@ -80,7 +80,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.clearAllRoleAssignments(authenticationHeaders);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -105,8 +105,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-                new SearchParameter(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameterList(
                     CASE_ID,
                     SearchOperator.IN,
                     asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
@@ -133,8 +133,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         // Given query
         searchTaskRequest = new SearchTaskRequest(
             asList(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-                new SearchParameter(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+                new SearchParameterList(
                     CASE_ID,
                     SearchOperator.IN,
                     asList(taskVariablesForTask1.getCaseId(), taskVariablesForTask2.getCaseId()))
@@ -168,7 +168,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         Response result = restApiActions.post(
@@ -193,7 +193,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         Response result = restApiActions.post(
@@ -220,7 +220,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -255,7 +255,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -289,7 +289,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -323,7 +323,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -357,7 +357,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -391,7 +391,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         Response result = restApiActions.post(
@@ -427,7 +427,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("assigned"))
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned"))
         ));
 
         Response result = restApiActions.post(
@@ -457,8 +457,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -490,8 +490,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("17595"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("17595"))
         ));
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -522,8 +522,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId())),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324"))
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId())),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -556,9 +556,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
 
         ));
 
@@ -588,9 +588,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterList(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
         ));
 
 
@@ -631,9 +631,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("SSCS")),
-            new SearchParameter(LOCATION, SearchOperator.IN, asList("17595", "17594")),
-            new SearchParameter(STATE, SearchOperator.IN, singletonList("unassigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("SSCS")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, asList("17595", "17594")),
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -666,9 +666,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameter(JURISDICTION, SearchOperator.IN, singletonList("IA")),
-            new SearchParameter(LOCATION, SearchOperator.IN, singletonList("765324")),
-            new SearchParameter(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterList(STATE, SearchOperator.IN, asList("unassigned", "assigned"))
         ));
 
 

@@ -133,9 +133,9 @@ public class GivensBuilder {
         return this;
     }
 
-    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value) {
+    public List<CamundaTask> iRetrieveATasksWithProcessVariableFilter(String key, String value, String taskType) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
-        String filter = "?processVariables=" + key + "_eq_" + value;
+        String filter = "?processVariables=" + key + "_eq_" + value + ",taskId_eq_" + taskType;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)

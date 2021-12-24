@@ -62,7 +62,7 @@ public final class RoleAssignmentFilter {
 
     public static Specification<TaskResource> buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
-        AccessControlResponse accessControlResponse) {
+        AccessControlResponse accessControlResponse, boolean andPermissions) {
 
         return (root, query, builder) -> {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
@@ -90,7 +90,12 @@ public final class RoleAssignmentFilter {
             for (PermissionTypes type : permissionsRequired) {
                 permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
             }
-            final Predicate permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
+            Predicate permissionPredicate;
+            if (andPermissions) {
+                permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
+            } else {
+                permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
+            }
 
             query.distinct(true);
 

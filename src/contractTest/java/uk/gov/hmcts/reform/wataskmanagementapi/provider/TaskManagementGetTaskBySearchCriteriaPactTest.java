@@ -8,7 +8,6 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,10 +73,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
+        setInitMockForSearchTask();
+    }
+
+    @State({"appropriate tasks are returned by criteria with available tasks only"})
+    public void getTasksBySearchCriteriaWithAvailableTasksOnly() {
         setInitMockForSearchTask();
     }
 
@@ -209,10 +213,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             context.setTarget(testTarget);
         }
 
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
 
     }
 
