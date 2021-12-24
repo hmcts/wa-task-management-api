@@ -38,6 +38,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.either;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
@@ -1343,6 +1344,49 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
             .body("tasks.permissions.values", everyItem(hasItem("Own")))
             .body("total_records", is(2));
+
+        common.cleanUpTask(taskId1, taskId2);
+    }
+
+    @Test
+    public void should_return_a_200_with_search_results_when_queried_with_single_task_request_available_tasks_only() {
+
+        String taskType1 = "reviewAdditionalHomeOfficeEvidence";
+        String taskType2 = "reviewAdditionalAppellantEvidence";
+
+        String caseId = given.iCreateACcdCase();
+        List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        String taskId1 = camundaTasks.get(0).getId();
+
+        camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
+        String taskId2 = camundaTasks.get(0).getId();
+
+        common.setupCFTOrganisationalWithMultipleRoles(headers);
+
+        // insert taskId1
+        common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
+            taskType1, headers);
+
+        // insert taskId2
+        common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId2, "processInstanceId1"),
+            taskType2, headers);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED  + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            headers
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10))
+            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.permissions.values", everyItem(hasItem("Own")))
+            .body("total_records", greaterThan(1));
 
         common.cleanUpTask(taskId1, taskId2);
     }
