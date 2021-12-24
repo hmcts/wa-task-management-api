@@ -1076,7 +1076,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
-                new ArrayList<>(TASK_TYPE_WORK_TYPE_MAP.values())),
+                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
