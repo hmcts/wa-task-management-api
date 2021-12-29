@@ -1347,7 +1347,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_200_with_search_results_when_queried_with_single_task_request_available_tasks_only() {
+    public void should_return_a_200_with_search_results_when_queried_with_single_task_request_available_tasks_only_set_true() {
 
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
@@ -1390,7 +1390,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_200_with_empty_tasks_in_search_results_when_available_tasks_only_is_set_true() {
+    public void should_return_a_200_with_empty_tasks_in_search_results_when_available_tasks_only_is_set_true_with_out_own_permission() {
 
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
