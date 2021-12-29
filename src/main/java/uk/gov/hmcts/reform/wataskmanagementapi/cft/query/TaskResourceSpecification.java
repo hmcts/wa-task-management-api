@@ -67,7 +67,6 @@ public final class TaskResourceSpecification {
         if (andPermissions) {
             permissionsRequired.add(PermissionTypes.OWN);
         }
-
         final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse, andPermissions);
 
@@ -105,8 +104,16 @@ public final class TaskResourceSpecification {
     private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
+        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
+        List<CFTTaskState> cftTaskStates = new ArrayList<>();
+        if (availableTasksOnly) {
+            cftTaskStates.add(CFTTaskState.ASSIGNED);
+            cftTaskStates.add(CFTTaskState.UNASSIGNED);
+        } else {
+            SearchParameterList stateParam = keyMap.get(STATE);
+            cftTaskStates = getCftTaskStates(stateParam);
+        }
         SearchParameterList jurisdictionParam = keyMap.get(JURISDICTION);
-        SearchParameterList stateParam = keyMap.get(STATE);
         SearchParameterList locationParam = keyMap.get(LOCATION);
         SearchParameterList caseIdParam = keyMap.get(CASE_ID);
         SearchParameterList userParam = keyMap.get(USER);
@@ -114,7 +121,7 @@ public final class TaskResourceSpecification {
         SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
 
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
-            .and(searchByState(getCftTaskStates(stateParam))
+            .and(searchByState(cftTaskStates)
             .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
             .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
             .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())

@@ -280,7 +280,6 @@ public class TaskResourceSpecificationTest {
         );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
-        permissionsRequired.add(PermissionTypes.OWN);
 
         final Specification<TaskResource> spec = TaskResourceSpecification.buildTaskQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired
@@ -366,8 +365,6 @@ public class TaskResourceSpecificationTest {
         verify(criteriaBuilder, times(2)).in(any());
     }
 
-
-
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -388,7 +385,7 @@ public class TaskResourceSpecificationTest {
         ));
         final SearchTaskRequestScenario availableTaskOnly =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(1).expectedConjunctions(7).build();
+                .expectedInPredicate(2).expectedConjunctions(6).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
@@ -434,6 +431,7 @@ public class TaskResourceSpecificationTest {
 
         return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg,
             availableTaskOnly, availableTaskOnlyAsFalse);
+
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForCompletable() {
