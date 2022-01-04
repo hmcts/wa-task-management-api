@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task";
@@ -73,7 +75,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_200_empty_list_when_the_user_did_not_have_any_roles() {
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
         authenticationHeaders = authorizationHeadersProvider
             .getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
@@ -89,9 +91,13 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
+            .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
+            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
     }
 
     @Test
