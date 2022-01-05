@@ -16,10 +16,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.SearchTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
@@ -28,9 +28,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
-import java.util.Collections;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,6 +51,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
 class TaskSearchControllerTest {
@@ -65,7 +68,9 @@ class TaskSearchControllerTest {
     @Mock
     private CftQueryService cftQueryService;
     @Mock
-    LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    @Mock
+    private SystemDateProvider systemDateProvider;
 
     private TaskSearchController taskSearchController;
 
@@ -76,7 +81,8 @@ class TaskSearchControllerTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            systemDateProvider
         );
     }
 
@@ -226,20 +232,22 @@ class TaskSearchControllerTest {
     }
 
     @Test
-    void exception_handler_should_return_200_empty_list_for_no_role_assignments_found_exception() {
+    void should_return_403_when_no_role_assignments_are_found() {
 
         final String exceptionMessage = "Some exception message";
         final NoRoleAssignmentsFoundException exception =
             new NoRoleAssignmentsFoundException(exceptionMessage);
 
-        SearchTasksResponse expectedResponse = new SearchTasksResponse(Collections.emptyList());
-        ResponseEntity<SearchTasksResponse> response = taskSearchController.handleNoRoleAssignmentsException(exception);
+        String mockedTimestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
+        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
+        ResponseEntity<ErrorMessage> response = taskSearchController.handleNoRoleAssignmentsException(exception);
 
-        assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertEquals(expectedResponse, response.getBody());
-        assertEquals(emptyList(), response.getBody().getTasks());
-        assertEquals(0, response.getBody().getTasks().size());
+        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
+        assertEquals(HttpStatus.UNAUTHORIZED.getReasonPhrase(), response.getBody().getError());
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
+        assertEquals(exceptionMessage, response.getBody().getMessage());
 
     }
 

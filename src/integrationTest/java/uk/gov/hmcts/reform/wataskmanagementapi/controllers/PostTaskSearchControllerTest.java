@@ -907,6 +907,37 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.detail").value("Invalid request field: search_parameters.[0].key")));
     }
 
+    @Test
+    void should_return_400_bad_request_when_available_tasks_only_is_set_with_empty_value()
+        throws Exception {
+
+        mockMvc.perform(
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                         + "  \"search_parameters\": [\n"
+                         + "    {\n"
+                         + "      \"key\": \"available_tasks_only\",\n"
+                         + "      \"operator\": \"BOOLEAN\",\n"
+                         + "      \"value\": \n"
+                         + "    }\n"
+                         + "  ]\n"
+                         + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        )
+            .andExpect(
+                ResultMatcher.matchAll(
+                    status().isBadRequest(),
+                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                    jsonPath("$.type")
+                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                    jsonPath("$.title").value("Bad Request"),
+                    jsonPath("$.status").value(400),
+                    jsonPath("$.detail").value("Invalid request field: search_parameters.[0]: "
+                                               + "Unexpected character ('}' (code 125)): expected a value")));
+    }
+
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                              String jurisdiction,
                                                              String taskId) {

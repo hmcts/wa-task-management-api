@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
@@ -74,6 +75,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     @Autowired
     private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
+
+    @Autowired
+    private SystemDateProvider systemDateProvider;
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
@@ -206,7 +210,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            systemDateProvider
         ));
 
         if (context != null) {

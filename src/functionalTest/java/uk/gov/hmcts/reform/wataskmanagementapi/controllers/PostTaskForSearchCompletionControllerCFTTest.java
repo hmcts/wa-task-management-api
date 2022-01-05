@@ -23,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -31,6 +32,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
@@ -47,6 +49,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @Slf4j
 public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -107,7 +110,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
     }
 
     @Test
-    public void should_return_a_200_empty_list_when_the_user_is_did_not_have_any_roles() {
+    public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
@@ -124,9 +127,13 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
+            .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
+            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
 
         common.cleanUpTask(taskId);
     }
