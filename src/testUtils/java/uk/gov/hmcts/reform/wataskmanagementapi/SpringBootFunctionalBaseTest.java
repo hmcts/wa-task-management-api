@@ -1,11 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,16 +129,6 @@ public abstract class SpringBootFunctionalBaseTest {
         );
     }
 
-    public void cleanUp(String taskId) {
-        if (StringUtils.isNotBlank(taskId)) {
-            camundaApiActions.post(
-                ENDPOINT_COMPLETE_TASK,
-                taskId,
-                new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
-            );
-        }
-    }
-
     public AtomicReference<String> getTaskId(Object taskName, String filter) {
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
@@ -166,7 +154,6 @@ public abstract class SpringBootFunctionalBaseTest {
                 });
         return response;
     }
-
 
     public String createCcdCase() throws IOException {
         String userToken = waTestLawFirmIdamToken.generate();

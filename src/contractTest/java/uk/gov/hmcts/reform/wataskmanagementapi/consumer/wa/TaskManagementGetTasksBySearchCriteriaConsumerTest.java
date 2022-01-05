@@ -52,6 +52,24 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact testSearchQueryWithAvailableTasksOnly200(PactDslWithProvider builder) throws
+        JsonProcessingException {
+        return builder
+            .given("appropriate tasks are returned by criteria with available tasks only")
+            .uponReceiving("Provider receives a POST /task request from a WA API")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseWithAvailableTasks(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTask())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
     public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder)
         throws JsonProcessingException {
         return builder
@@ -70,8 +88,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithWarnings200(PactDslWithProvider builder)
-        throws JsonProcessingException {
+    public RequestResponsePact executeSearchQueryWithWarnings200(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with warnings only")
             .uponReceiving("Provider receives a POST /task request from a WA API")
@@ -88,8 +105,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithWorkTypeWithWarnings200(PactDslWithProvider builder)
-        throws JsonProcessingException {
+    public RequestResponsePact executeSearchQueryWithWorkTypeWithWarnings200(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with work-type with warnings only")
             .uponReceiving("Provider receives a POST /task request from a WA API")
@@ -107,12 +123,25 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
 
     @Test
     @PactTestFor(pactMethod = "executeSearchQuery200")
-    void testSearchQuery200Test(MockServer mockServer) throws IOException {
+    void testSearchQuery200Test(MockServer mockServer) {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
             .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200")
+    void testSearchQueryWithAvailableTasksOnly200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseWithAvailableTasks())
             .post(mockServer.getUrl() + WA_SEARCH_QUERY)
             .then()
             .statusCode(HttpStatus.OK.value());
@@ -157,7 +186,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .statusCode(HttpStatus.OK.value());
     }
 
-    private DslPart createResponseForGetTask() throws JsonProcessingException {
+    private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
                 .minArrayLike("tasks", 1, 1,
@@ -191,7 +220,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                 )).build();
     }
 
-    private DslPart createResponseForGetTaskWithWarnings() throws JsonProcessingException {
+    private DslPart createResponseForGetTaskWithWarnings() {
         return newJsonBody(
             o -> o
                 .minArrayLike("tasks", 1, 1,
@@ -280,6 +309,26 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "                \"error_management\",\n"
                + "                \"access_requests\"\n"
                + "            ]\n"
+               + "        }\n"
+               + "    ]\n"
+               + "}";
+    }
+
+    private String createSearchEventCaseWithAvailableTasks() {
+
+        return "{\n"
+               + "    \"search_parameters\": [\n"
+               + "        {\n"
+               + "            \"key\": \"jurisdiction\",\n"
+               + "            \"operator\": \"IN\",\n"
+               + "            \"values\": [\n"
+               + "                \"IA\"\n"
+               + "            ]\n"
+               + "        },\n"
+               + "        {\n"
+               + "            \"key\": \"available_tasks_only\",\n"
+               + "            \"operator\": \"BOOLEAN\",\n"
+               + "            \"value\": true"
                + "        }\n"
                + "    ]\n"
                + "}";

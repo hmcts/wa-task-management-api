@@ -14,6 +14,9 @@ public final class WorkTypeQuerySpecification {
     }
 
     public static Specification<WorkTypeResource> findByIds(Set<String> workTypeIds) {
+        if (workTypeIds.isEmpty()) {
+            return (root, query, builder) -> builder.conjunction();
+        }
         return (root, query, builder) -> builder.in(root.get(WORK_TYPE_ID)).value(workTypeIds);
     }
 

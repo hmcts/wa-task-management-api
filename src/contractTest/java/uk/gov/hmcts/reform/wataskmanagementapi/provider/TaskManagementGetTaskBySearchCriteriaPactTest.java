@@ -8,7 +8,6 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
@@ -74,10 +74,18 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
+
+    @Autowired
+    private SystemDateProvider systemDateProvider;
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
+        setInitMockForSearchTask();
+    }
+
+    @State({"appropriate tasks are returned by criteria with available tasks only"})
+    public void getTasksBySearchCriteriaWithAvailableTasksOnly() {
         setInitMockForSearchTask();
     }
 
@@ -202,17 +210,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            systemDateProvider
         ));
 
         if (context != null) {
             context.setTarget(testTarget);
         }
 
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
 
     }
 

@@ -1,10 +1,11 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 
 import java.util.List;
 import javax.validation.constraints.NotEmpty;
@@ -17,7 +18,7 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode
 @ToString
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-public class SearchParameter {
+public class SearchParameterList implements SearchParameter<List<String>> {
 
     @ApiModelProperty(
         required = true,
@@ -29,9 +30,6 @@ public class SearchParameter {
     private final SearchParameterKey key;
 
     @ApiModelProperty(allowableValues = "IN", example = "IN")
-    @NotNull(
-        message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
-    )
     private final SearchOperator operator;
 
     @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = false)
@@ -44,20 +42,23 @@ public class SearchParameter {
     private final List<String> values;
 
     @JsonCreator
-    public SearchParameter(SearchParameterKey key, SearchOperator operator, List<String> values) {
+    public SearchParameterList(SearchParameterKey key, SearchOperator operator, List<String> values) {
         this.key = key;
         this.operator = operator;
         this.values = values;
     }
 
+    @Override
     public SearchParameterKey getKey() {
         return key;
     }
 
+    @Override
     public SearchOperator getOperator() {
         return operator;
     }
 
+    @Override
     public List<String> getValues() {
         return values;
     }

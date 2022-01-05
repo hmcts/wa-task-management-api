@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
@@ -71,6 +72,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     private CftQueryService cftQueryService;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private SystemDateProvider systemDateProvider;
 
     @State({"appropriate tasks are returned by search for completable"})
     public void getTasksBySearchForCompletableCriteria() {
@@ -187,7 +190,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            systemDateProvider
         ));
 
         if (context != null) {

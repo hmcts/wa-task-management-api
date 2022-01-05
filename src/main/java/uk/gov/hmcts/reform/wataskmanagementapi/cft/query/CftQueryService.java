@@ -18,8 +18,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
@@ -84,9 +85,11 @@ public class CftQueryService {
         return new GetTasksResponse<>(tasks, pages.getTotalElements());
     }
 
-    public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
-                                                AccessControlResponse accessControlResponse,
-                                                List<PermissionTypes> permissionsRequired) {
+    public GetTasksCompletableResponse<Task> searchForCompletableTasks(
+        SearchEventAndCase searchEventAndCase,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired
+    ) {
 
         //Safe-guard against unsupported Jurisdictions and case types.
         if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
@@ -162,13 +165,16 @@ public class CftQueryService {
         List<Violation> violations = new ArrayList<>();
 
         //Validate work-type
-        List<SearchParameter> workType = searchTaskRequest.getSearchParameters().stream()
-            .filter(sp -> sp.getKey().equals(SearchParameterKey.WORK_TYPE))
-            .collect(Collectors.toList());
+        List<SearchParameterList> workType = new ArrayList<>();
+        for (SearchParameter<?> sp : searchTaskRequest.getSearchParameters()) {
+            if (sp.getKey().equals(SearchParameterKey.WORK_TYPE)) {
+                workType.add((SearchParameterList) sp);
+            }
+        }
 
         if (!workType.isEmpty()) {
             //validate work type
-            SearchParameter workTypeParameter = workType.get(0);
+            SearchParameterList workTypeParameter = workType.get(0);
             List<String> values = workTypeParameter.getValues();
             //Validate
             values.forEach(value -> {

@@ -1,15 +1,15 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class WarningTest {
+class SearchParameterListTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = Warning.class;
+        final Class<?> classUnderTest = SearchParameterList.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
@@ -19,5 +19,6 @@ class WarningTest {
             .testing(Method.HASH_CODE)
             .areWellImplemented();
     }
+
 
 }

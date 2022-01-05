@@ -203,9 +203,10 @@ sonarqube {
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/config/**," +
-      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java" +
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/Application.java," +
       "src/testUtils/java/uk/gov/hmcts/reform/wataskmanagementapi/**," +
-      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**"
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/clients/**,"+
+      "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/domain/entities/search/parameter/**"
   }
 }
 
@@ -424,11 +425,11 @@ task runProviderPactVerification(type: Test) {
   systemProperty 'pact.provider.version', project.pacticipantVersion
 }
 
-task fortifyScan(type: JavaExec)  {
-  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
-  classpath += sourceSets.test.runtimeClasspath
-  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
-}
+//task fortifyScan(type: JavaExec)  {
+//  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+//  classpath += sourceSets.test.runtimeClasspath
+//  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+//}
 
 runProviderPactVerification.dependsOn contract
 
