@@ -186,7 +186,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     stringValue("IA,WA"),
                     null,
                     null,
-                    null
+                    null,
+                    stringValue(null)
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
@@ -194,7 +195,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     null,
                     null,
                     null,
-                    null
+                    null,
+                    stringValue(null)
                 )
             ));
 
@@ -328,7 +330,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     stringValue("IA,WA"),
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
@@ -336,7 +339,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 )
             ));
 
@@ -443,7 +447,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     stringValue("IA,WA"),
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
@@ -451,7 +456,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 )
             ));
 

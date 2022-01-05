@@ -5,14 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
@@ -70,9 +73,15 @@ public class CaseConfigurationProviderService {
                 taskAttributesString
             );
 
+
+        List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
+            = permissionsDmnResults.stream()
+            .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
+            .collect(Collectors.toList());
+
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
             taskConfigurationDmnResults,
-            permissionsDmnResults
+            filteredPermissionDmnResults
         );
 
         // Enrich case configuration variables with extra variables
@@ -84,8 +93,29 @@ public class CaseConfigurationProviderService {
         return new TaskConfigurationResults(
             allCaseConfigurationValues,
             taskConfigurationDmnResults,
-            permissionsDmnResults
+            filteredPermissionDmnResults
         );
+    }
+
+    private boolean filterBasedOnCaseAccessCategory(CaseDetails caseDetails,
+                                                    PermissionsDmnEvaluationResponse dmnResult) {
+        CamundaValue<String> caseAccessCategory = dmnResult.getCaseAccessCategory();
+        if (caseAccessCategory == null || caseAccessCategory.getValue() == null
+            || caseAccessCategory.getValue().isBlank()) {
+            return true;
+        }
+
+        Object caseAccessCategoryFromCase = caseDetails.getData().get("caseAccessCategory");
+        if (caseAccessCategoryFromCase == null || ((String) caseAccessCategoryFromCase).isBlank()) {
+            return false;
+        }
+
+        List<String> caseAccessCategories = Arrays.asList(caseAccessCategory.getValue().split(","));
+        List<String> caseFromCategoriesFromCase
+            = Arrays.asList(((String) caseAccessCategoryFromCase).split(","));
+
+        return caseAccessCategories.containsAll(caseFromCategoriesFromCase)
+            || caseFromCategoriesFromCase.containsAll(caseAccessCategories);
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,

@@ -15,6 +15,7 @@ public final class PermissionsDmnEvaluationResponse implements EvaluationRespons
     private CamundaValue<Integer> assignmentPriority;
     private CamundaValue<Boolean> autoAssignable;
     private CamundaValue<String> roleCategory;
+    private CamundaValue<String> caseAccessCategory;
 
     public PermissionsDmnEvaluationResponse() {
         //No-op constructor for deserialization
@@ -25,13 +26,15 @@ public final class PermissionsDmnEvaluationResponse implements EvaluationRespons
                                             CamundaValue<String> authorisations,
                                             CamundaValue<Integer> assignmentPriority,
                                             CamundaValue<Boolean> autoAssignable,
-                                            CamundaValue<String> roleCategory) {
+                                            CamundaValue<String> roleCategory,
+                                            CamundaValue<String> caseAccessCategory) {
         this.name = name;
         this.value = value;
         this.authorisations = authorisations;
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;
         this.roleCategory = roleCategory;
+        this.caseAccessCategory = caseAccessCategory;
     }
 
     public CamundaValue<String> getName() {
@@ -56,5 +59,9 @@ public final class PermissionsDmnEvaluationResponse implements EvaluationRespons
 
     public CamundaValue<String> getRoleCategory() {
         return roleCategory;
+    }
+
+    public CamundaValue<String> getCaseAccessCategory() {
+        return caseAccessCategory;
     }
 }

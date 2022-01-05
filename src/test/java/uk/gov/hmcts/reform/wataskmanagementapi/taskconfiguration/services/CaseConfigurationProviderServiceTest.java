@@ -103,7 +103,8 @@ class CaseConfigurationProviderServiceTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("seniorTribunalCaseworker"),
@@ -111,7 +112,8 @@ class CaseConfigurationProviderServiceTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 )
             ));
 
