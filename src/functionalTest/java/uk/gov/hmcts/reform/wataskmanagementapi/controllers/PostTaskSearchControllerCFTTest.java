@@ -47,6 +47,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -402,10 +403,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             headers
         );
 
+        final String assignee = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10))
             .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.jurisdiction", everyItem(is("IA")))
+            .body("tasks.assignee", hasItem(assignee))
             .body("tasks.task_state", everyItem(is("assigned")))
             .body("total_records", greaterThanOrEqualTo(1));
 
