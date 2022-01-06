@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.path.json.JsonPath;
@@ -28,19 +28,19 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
-public class PostTaskInitiateByIdForWAControllerTest extends SpringBootFunctionalBaseTest {
+public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
     private Headers authenticationHeaders;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
+        authenticationHeaders = authorizationHeadersProvider.getWACaseworkerAAuthorization("wa-ft-test-r2");
     }
 
     @Test
     public void should_return_a_201_when_initiating_a_judge_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("WA", "WaCaseType", "CREATE", "COMPLETE");
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -97,7 +97,7 @@ public class PostTaskInitiateByIdForWAControllerTest extends SpringBootFunctiona
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
-            .body("task_role_resources.size()", equalTo(5));
+            .body("task_role_resources.size()", equalTo(3));
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
@@ -113,38 +113,7 @@ public class PostTaskInitiateByIdForWAControllerTest extends SpringBootFunctiona
                 entry("auto_assignable", false)
             )
         );
-        assertPermissions(
-            getTaskResource(result, "hearing-judge"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", true),
-                entry("manage", false),
-                entry("execute", false),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of("IA")),
-                entry("role_category", "JUDICIAL"),
-                entry("auto_assignable", true),
-                entry("assignment_priority", 1)
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "judge"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", true),
-                entry("manage", false),
-                entry("execute", false),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of("IA")),
-                entry("role_category", "JUDICIAL"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 1)
-            )
-        );
+
 
         assertPermissions(
             getTaskResource(result, "senior-tribunal-caseworker"),

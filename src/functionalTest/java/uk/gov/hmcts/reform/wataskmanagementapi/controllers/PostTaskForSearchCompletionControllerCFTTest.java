@@ -111,7 +111,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -177,7 +177,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
     @Ignore
     @Test
     public void should_return_a_200_and_retrieve_single_task_when_one_of_the_task_does_not_have_required_permissions() {
-        final String caseId = given.iCreateACcdCase();
+        final String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
 
         // create a 2 tasks for caseId
         sendMessage(caseId);
@@ -269,7 +269,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         final String assigneeId = getAssigneeId(authenticationHeaders);
 
         // create a caseId
-        final String caseId = given.iCreateACcdCase();
+        final String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
 
         // create a 2 tasks for caseId
         sendMessage(caseId);
@@ -331,7 +331,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         final String assigneeId = getAssigneeId(authenticationHeaders);
 
         // create a caseId
-        final String caseId = given.iCreateACcdCase();
+        final String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
 
         // create a 2 tasks for caseId
         sendMessageWithWarnings(caseId);
@@ -392,7 +392,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_not_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -420,7 +420,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     @Test
     public void should_return_a_200_and_when_event_id_does_not_match_not_ia() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -446,7 +446,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     @Test
     public void should_return_a_200_and_return_and_empty_list_when_event_id_does_match_but_not_found() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -474,7 +474,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     @Test
     public void should_return_a_200_and_when_performing_search_when_caseId_correct_eventId_incorrect() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -565,7 +565,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
 
     @Test
     public void should_return_a_200_and_when_performing_search_when_caseType_is_incorrect() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -604,7 +604,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
 
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables
+            = given.createDefaultTaskVariables(caseId, "IA", "Asylum");
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -623,7 +624,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
 
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariablesWithWarnings(caseId);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariablesWithWarnings(caseId,
+                                                                                                     "IA",
+                                                                                                     "Asylum");
 
         variablesOverride.keySet()
             .forEach(key -> processVariables

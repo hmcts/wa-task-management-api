@@ -75,7 +75,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -134,7 +134,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -163,7 +163,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
@@ -191,7 +191,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
@@ -254,7 +254,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -331,7 +331,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_succeed_and_return_204_when_a_task_that_was_already_claimed_and_privileged_auto_complete() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -365,7 +365,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_complete_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -420,7 +420,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_completion_options_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -447,7 +447,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_if_task_was_not_previously_assigned_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -471,7 +471,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_restricted_role_assignment_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
@@ -498,7 +498,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         Response result = restApiActions.post(
@@ -526,7 +526,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
 
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
@@ -563,7 +563,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(

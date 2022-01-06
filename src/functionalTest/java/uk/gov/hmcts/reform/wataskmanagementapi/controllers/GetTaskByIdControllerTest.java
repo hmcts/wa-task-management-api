@@ -65,7 +65,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.get(
@@ -88,7 +88,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match_organisational_role() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -146,7 +146,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
@@ -216,7 +216,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_task_and_correct_properties() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(

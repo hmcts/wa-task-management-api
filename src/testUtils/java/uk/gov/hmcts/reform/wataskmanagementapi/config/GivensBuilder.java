@@ -93,8 +93,13 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings) {
-        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId, warnings);
+    public GivensBuilder iCreateATaskWithCaseId(
+        String caseId,
+        boolean warnings,
+        String jurisdiction,
+        String caseTypeId) {
+        Map<String, CamundaValue<?>> processVariables
+            = initiateProcessVariables(caseId, warnings, jurisdiction, caseTypeId);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -239,11 +244,14 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(
+        String caseId,
+        String jurisdiction,
+        String caseTypeId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("jurisdiction", jurisdiction)
+            .withProcessVariable("caseTypeId", caseTypeId)
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "Taylor House")
@@ -303,14 +311,18 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(String caseId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(
+        String caseId,
+        String jurisdiction,
+        String caseTypeId
+    ) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                         + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("jurisdiction", jurisdiction)
+            .withProcessVariable("caseTypeId", caseTypeId)
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "Taylor House")
@@ -362,7 +374,7 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public String iCreateACcdCase() {
+    public String iCreateACcdCase(String jurisdiction, String caseTypeId, String startEventId, String submitEventId) {
         Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
@@ -374,9 +386,9 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
-            "startAppeal"
+            jurisdiction,
+            caseTypeId,
+            startEventId
         );
 
         String resourceFilename = "requests/ccd/case_data.json";
@@ -418,8 +430,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdiction,
+            caseTypeId,
             true,
             caseDataContent
         );
@@ -430,10 +442,10 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdiction,
+            caseTypeId,
             caseDetails.getId().toString(),
-            "submitAppeal"
+            submitEventId
         );
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
@@ -450,8 +462,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdiction,
+            caseTypeId,
             caseDetails.getId().toString(),
             true,
             submitCaseDataContent
@@ -495,11 +507,15 @@ public class GivensBuilder {
         }
     }
 
-    private Map<String, CamundaValue<?>> initiateProcessVariables(String caseId, boolean warnings) {
+    private Map<String, CamundaValue<?>> initiateProcessVariables(
+        String caseId,
+        boolean warnings,
+        String jurisdiction,
+        String caseTypeId) {
         if (warnings) {
-            return createDefaultTaskVariablesWithWarnings(caseId);
+            return createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseTypeId);
         } else {
-            return createDefaultTaskVariables(caseId);
+            return createDefaultTaskVariables(caseId, jurisdiction, caseTypeId);
         }
     }
 

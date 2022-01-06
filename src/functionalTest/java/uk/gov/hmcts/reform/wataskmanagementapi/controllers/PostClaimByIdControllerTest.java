@@ -61,7 +61,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
@@ -84,7 +84,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_204_when_claiming_a_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -105,7 +105,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_204_when_claiming_a_task_by_id_with_restricted_role_assignment() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
@@ -126,7 +126,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void endpoint_should_be_idempotent_should_return_a_204_when_claiming_a_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -158,7 +158,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -225,7 +225,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_204_and_claim_a_task_by_id_jurisdiction_location_and_region_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(

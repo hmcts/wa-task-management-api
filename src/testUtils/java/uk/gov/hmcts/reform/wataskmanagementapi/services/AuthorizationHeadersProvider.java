@@ -172,4 +172,22 @@ public class AuthorizationHeadersProvider {
         log.info("Test account created successfully");
         return new TestAccount(email, password);
     }
+
+    public Headers getWACaseworkerAAuthorization(String emailPrefix) {
+        /*
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
+         */
+        return new Headers(
+            getWACaseworkerAAuthorizationOnly(emailPrefix),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Header getWACaseworkerAAuthorizationOnly(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"));
+        TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
+        return getAuthorization(testAccount.getUsername(), testAccount.getPassword());
+
+    }
 }

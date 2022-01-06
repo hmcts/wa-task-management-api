@@ -82,7 +82,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     @Ignore("Need to investigate the content type not being set")
     public void should_return_a_400_when_the_notes_are_not_provided() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
@@ -109,7 +109,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     @Ignore("Need to investigate the content type not being set")
     public void should_return_a_400_when_the_notes_is_empty() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         NotesRequest notesRequest = new NotesRequest(Collections.emptyList());
@@ -136,7 +136,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
     @Test
     public void given_a_task_with_note_when_new_note_is_added_then_return_all_notes() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, true);
 
@@ -183,7 +183,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
 
     @Test
     public void given_a_task_when_new_note_is_added_then_return_all_notes() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables, false);
 

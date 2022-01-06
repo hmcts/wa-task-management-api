@@ -103,8 +103,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     @Test
     public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
         // create some tasks
-        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
-        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -169,7 +169,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -391,7 +391,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results_based_on_state_unassigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -418,7 +418,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_with_search_results_based_on_state_assigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
         String taskId = taskVariables.getTaskId();
         common.setupRestrictedRoleAssignment(taskId, authenticationHeaders);
         initiateTask(taskVariables);
