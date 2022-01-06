@@ -73,7 +73,6 @@ public class CaseConfigurationProviderService {
                 taskAttributesString
             );
 
-
         List<PermissionsDmnEvaluationResponse> filteredPermissionDmnResults
             = permissionsDmnResults.stream()
             .filter(dmnResult -> filterBasedOnCaseAccessCategory(caseDetails, dmnResult))
@@ -111,11 +110,12 @@ public class CaseConfigurationProviderService {
         }
 
         List<String> caseAccessCategories = Arrays.asList(caseAccessCategory.getValue().split(","));
-        List<String> caseFromCategoriesFromCase
-            = Arrays.asList(((String) caseAccessCategoryFromCase).split(","));
+        List<String> caseFromCategoriesFromCase = Arrays.asList(((String) caseAccessCategoryFromCase).split(","));
 
-        return caseAccessCategories.containsAll(caseFromCategoriesFromCase)
-            || caseFromCategoriesFromCase.containsAll(caseAccessCategories);
+        List<String> commonCategories = caseAccessCategories.stream()
+            .filter(caseFromCategoriesFromCase::contains)
+            .collect(Collectors.toList());
+        return !commonCategories.isEmpty();
     }
 
     private Map<String, Object> extractDmnResults(List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults,
