@@ -389,16 +389,18 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(headers);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), headers);
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned"))
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+            new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN,
+                singletonList(taskVariables.getCaseId()))
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            ENDPOINT_BEING_TESTED,
             searchTaskRequest,
             headers
         );
@@ -407,12 +409,11 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", lessThanOrEqualTo(10))
-            .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.jurisdiction", everyItem(is("IA")))
-            .body("tasks.assignee", hasItem(assignee))
-            .body("tasks.task_state", everyItem(is("assigned")))
-            .body("total_records", greaterThanOrEqualTo(1));
+            .body("tasks.size()", equalTo(1))
+            .body("tasks[0].id", equalTo(taskId))
+            .body("tasks[0].task_state", equalTo("assigned"))
+            .body("tasks[0].assignee", equalTo(assignee))
+            .body("total_records", equalTo(1));
 
         common.cleanUpTask(taskId);
     }
