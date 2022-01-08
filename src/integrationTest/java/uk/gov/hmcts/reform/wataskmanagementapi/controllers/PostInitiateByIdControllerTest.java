@@ -467,7 +467,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .grantType(GrantType.SPECIFIC)
                     .roleType(RoleType.ORGANISATION)
                     .classification(Classification.PUBLIC)
-                    .authorisations(asList("IA"))
+                    .authorisations(asList("373"))
                     .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
