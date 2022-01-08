@@ -517,9 +517,35 @@ public class Common {
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
-            "tribunal-caseworker",
+            "case-manager",
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json"
+        );
+    }
+
+    public void setupAutoAssignRoleAssignment(String caseId, Headers headers) {
+
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "jurisdiction", "IA",
+            "caseType", "Asylum",
+            "caseId", caseId
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates a restricted role for a particular ccdId
+        log.info("Creating auto assigned role-assignment");
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "case-manager",
+            null,
+            "requests/roleAssignment/set-auto-assigned-role-assignment-request.json"
         );
     }
 
