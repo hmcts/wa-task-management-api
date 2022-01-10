@@ -185,7 +185,9 @@ public class AuthorizationHeadersProvider {
     }
 
     public Header getWACaseworkerAAuthorizationOnly(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"));
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
+                                              new RoleCode("payments"),
+                                              new RoleCode("caseworker-wa"));
         TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
         return getAuthorization(testAccount.getUsername(), testAccount.getPassword());
 

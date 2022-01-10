@@ -69,7 +69,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
@@ -127,7 +127,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
     @Test
     public void should_return_a_204_when_cancelling_a_task_by_id() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
@@ -149,7 +149,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
     @Test
     public void should_return_a_204_when_cancelling_a_task_by_id_with_restricted_role_assignment() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 

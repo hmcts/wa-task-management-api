@@ -92,7 +92,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables);
@@ -118,7 +118,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match_organisational_role() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         initiateTask(taskVariables);
@@ -183,7 +183,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         Response result;
@@ -260,7 +260,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_return_a_200_with_task_and_correct_properties() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
@@ -353,7 +353,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
     @Test
     public void should_retrieve_a_task_by_id_jurisdiction_location_match_org_role_when_r2_endpoint_flag_is_on() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 

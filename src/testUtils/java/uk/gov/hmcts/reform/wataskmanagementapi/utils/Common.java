@@ -42,7 +42,17 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.R
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.*;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
 @Slf4j
 public class Common {
@@ -75,10 +85,11 @@ public class Common {
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-        Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+        Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
     ) {
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId, "IA", "Asylum");
+        String caseId = given.iCreateACcdCase();
+        Map<String, CamundaValue<?>> processVariables
+            = given.createDefaultTaskVariables(caseId, jurisdiction, caseType);
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -128,7 +139,7 @@ public class Common {
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
                                                                                          "IA",
                                                                                          "Asylum"
@@ -169,13 +180,9 @@ public class Common {
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
     }
 
-    public TestVariables setupTaskAndRetrieveIds(
-        String jurisdiction,
-        String caseTypeId,
-        String startEventId,
-        String submitEventId) {
+    public TestVariables setupTaskAndRetrieveIds() {
 
-        String caseId = given.iCreateACcdCase(jurisdiction, caseTypeId, startEventId, submitEventId);
+        String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, false, "IA", "Asylum")
@@ -191,7 +198,7 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIds(String taskType) {
 
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, taskType)
@@ -217,10 +224,26 @@ public class Common {
         // return taskId
         return response;
     }
+    
+    public TestVariables setupWATaskAndRetrieveIds() {
+
+        String caseId = given.iCreateWACcdCase();
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
 
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
 
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, true, "IA", "Asylum")

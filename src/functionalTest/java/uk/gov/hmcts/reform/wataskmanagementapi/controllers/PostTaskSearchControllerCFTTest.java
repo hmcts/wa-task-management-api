@@ -115,14 +115,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void given_sort_by_parameter_should_support_camelCase_and_snake_case() {
         // create some tasks
-        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds("IA",
-                                                                             "Asylum",
-                                                                             "startAppeal",
-                                                                             "submitAppeal");
-        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds("IA",
-                                                                             "Asylum",
-                                                                             "startAppeal",
-                                                                             "submitAppeal");
+        TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
 
@@ -362,7 +356,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_a_200_with_search_results_based_on_state_unassigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -391,7 +385,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_a_200_with_search_results_based_on_state_assigned() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(headers);
@@ -425,7 +419,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.LOCATION, "765324"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -460,7 +456,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.LOCATION, "765324"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -498,7 +496,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.LOCATION, "17595"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
@@ -532,7 +532,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -573,7 +575,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -756,7 +760,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_have_consistent_unassigned_state_in_camunda_and_cft_db() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -796,7 +800,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_200_status_with_task_description_matching_to_dmn_description_value() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -828,7 +832,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Test
     public void should_return_200_status_with_empty_task_description_when_dmn_description_value_not_exists() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -861,7 +865,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
      */
     @Test
     public void should_have_consistent_cancelled_state() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -897,7 +901,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
      */
     @Test
     public void should_have_consistent_completed_state() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupCFTOrganisationalRoleAssignment(headers);
@@ -1269,7 +1273,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType1 = "reviewHearingBundle";
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
         List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
 
@@ -1317,7 +1321,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
         List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
 
@@ -1365,7 +1369,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
         List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
 
@@ -1408,7 +1412,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
-        String caseId = given.iCreateACcdCase("IA", "Asylum", "startAppeal", "submitAppeal");
+        String caseId = given.iCreateACcdCase();
         List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
@@ -1454,7 +1458,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
                 CamundaVariableDefinition.TASK_STATE, state
             );
 
-            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                    "IA",
+                                                                                                    "Asylum");
             tasksCreated.add(taskVariables);
         }
 

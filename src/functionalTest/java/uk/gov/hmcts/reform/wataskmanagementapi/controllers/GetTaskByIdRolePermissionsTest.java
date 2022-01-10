@@ -34,7 +34,7 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
 
@@ -81,7 +81,7 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void should_return_200_and_retrieve_role_permission_information_for_given_task_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
 

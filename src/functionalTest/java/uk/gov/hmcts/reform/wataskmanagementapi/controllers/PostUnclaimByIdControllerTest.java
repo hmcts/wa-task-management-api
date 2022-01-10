@@ -59,7 +59,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
@@ -220,7 +220,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
     }
 
     private TestVariables setupScenario() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);

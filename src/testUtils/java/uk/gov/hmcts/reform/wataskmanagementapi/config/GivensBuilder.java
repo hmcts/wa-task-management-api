@@ -93,13 +93,9 @@ public class GivensBuilder {
         return this;
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(
-        String caseId,
-        boolean warnings,
-        String jurisdiction,
-        String caseTypeId) {
+    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
         Map<String, CamundaValue<?>> processVariables
-            = initiateProcessVariables(caseId, warnings, jurisdiction, caseTypeId);
+            = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
@@ -374,7 +370,7 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public String iCreateACcdCase(String jurisdiction, String caseTypeId, String startEventId, String submitEventId) {
+    public String iCreateACcdCase() {
         Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
@@ -386,9 +382,9 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            jurisdiction,
-            caseTypeId,
-            startEventId
+            "IA",
+            "Asylum",
+            "startAppeal"
         );
 
         String resourceFilename = "requests/ccd/case_data.json";
@@ -430,8 +426,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            jurisdiction,
-            caseTypeId,
+            "IA",
+            "Asylum",
             true,
             caseDataContent
         );
@@ -442,10 +438,10 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            jurisdiction,
-            caseTypeId,
+            "IA",
+            "Asylum",
             caseDetails.getId().toString(),
-            submitEventId
+            "submitAppeal"
         );
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
@@ -462,8 +458,107 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            jurisdiction,
-            caseTypeId,
+            "IA",
+            "Asylum",
+            caseDetails.getId().toString(),
+            true,
+            submitCaseDataContent
+        );
+        log.info("Submitted case [" + caseDetails.getId() + "]");
+
+        return caseDetails.getId().toString();
+    }
+
+    public String iCreateWACcdCase() {
+        Headers headers = authorizationHeadersProvider.getWACaseworkerAAuthorization("wa-ft-test-r2");
+        String userToken = headers.getValue(AUTHORIZATION);
+        String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
+
+        Document document = documentManagementFiles.getDocument(NOTICE_OF_APPEAL_PDF);
+
+        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            "CREATE"
+        );
+
+        String resourceFilename = "requests/ccd/wa_case_data.json";
+
+        Map data = null;
+        try {
+            String caseDataString =
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+                document.getDocumentUrl()
+            );
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+                document.getDocumentFilename()
+            );
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
+                document.getDocumentBinaryUrl()
+            );
+
+            data = new ObjectMapper().readValue(caseDataString, Map.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .eventToken(startCase.getToken())
+            .event(Event.builder()
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
+            .data(data)
+            .build();
+
+        //Fire submit event
+        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            true,
+            caseDataContent
+        );
+
+        log.info("Created case [" + caseDetails.getId() + "]");
+
+        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            caseDetails.getId().toString(),
+            "START_PROGRESS"
+        );
+
+        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
+            .eventToken(submitCase.getToken())
+            .event(Event.builder()
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
+            .data(data)
+            .build();
+
+        coreCaseDataApi.submitEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
             caseDetails.getId().toString(),
             true,
             submitCaseDataContent

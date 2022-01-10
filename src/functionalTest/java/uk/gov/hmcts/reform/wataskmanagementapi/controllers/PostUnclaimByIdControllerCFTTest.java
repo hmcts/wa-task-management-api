@@ -75,7 +75,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         ZonedDateTime createdDate = ZonedDateTime.now();
@@ -406,7 +406,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     }
 
     private TestVariables setupScenario() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         return taskVariables;
     }

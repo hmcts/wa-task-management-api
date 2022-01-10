@@ -39,8 +39,8 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     }
 
     @Test
-    public void should_return_a_201_when_initiating_a_judge_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("WA", "WaCaseType", "CREATE", "COMPLETE");
+    public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -50,10 +50,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "reviewHearingBundle"),
-            new TaskAttribute(TASK_NAME, "review Hearing Bundle"),
+            new TaskAttribute(TASK_TYPE, "processApplication"),
+            new TaskAttribute(TASK_NAME, "process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "review Hearing Bundle"),
+            new TaskAttribute(TASK_TITLE, "process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -66,25 +66,25 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         );
 
         //Note: this is the TaskResource.class
+        result.prettyPrint();
+
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("review Hearing Bundle"))
-            .body("task_type", equalTo("reviewHearingBundle"))
+            .body("task_name", equalTo("process Application"))
+            .body("task_type", equalTo("processApplication"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("review Hearing Bundle"))
+            .body("title", equalTo("process Application"))
             .body("created", notNullValue())
             .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
             .body("has_warnings", equalTo(false))
             .body("case_id", equalTo(taskVariables.getCaseId()))
-            .body("case_type_id", equalTo("Asylum"))
-            .body("case_name", equalTo("Bob Smith"))
-            .body("case_category", equalTo("Protection"))
-            .body("jurisdiction", equalTo("IA"))
+            .body("case_type_id", equalTo("WaCaseType"))
+            .body("jurisdiction", equalTo("WA"))
             .body("region", equalTo("1"))
             .body("location", equalTo("765324"))
             .body("location_name", equalTo("Taylor House"))
@@ -97,6 +97,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
+            .body("role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                             + "trigger/decideAnApplication)"))
             .body("task_role_resources.size()", equalTo(3));
 
         assertPermissions(

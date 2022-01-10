@@ -58,7 +58,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
@@ -109,7 +109,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_cancelling_a_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -128,7 +128,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void should_return_a_204_when_cancelling_a_task_by_id_with_restricted_role_assignment() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("IA", "Asylum", "startAppeal", "submitAppeal");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
         Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
