@@ -536,6 +536,18 @@ public class Common {
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/set-organisational-role-assignment-request-without-end-date.json"
+        );
+
         //Creates a restricted role for a particular ccdId
         log.info("Creating auto assigned role-assignment");
         postRoleAssignment(
