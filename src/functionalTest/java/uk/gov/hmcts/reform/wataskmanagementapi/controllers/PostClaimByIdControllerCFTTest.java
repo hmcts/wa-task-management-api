@@ -122,7 +122,12 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", userInfo.getUid(), caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskId,
+            "assignee",
+            userInfo.getUid(),
+            caseworkerCredentials.getHeaders()
+        );
         common.cleanUpTask(taskId);
 
     }
@@ -148,7 +153,12 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", userInfo.getUid(), caseworkerCredentials.getHeaders());
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskId,
+            "assignee",
+            userInfo.getUid(),
+            caseworkerCredentials.getHeaders()
+        );
         common.cleanUpTask(taskId);
 
     }
@@ -254,7 +264,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed./Users/Alejandro.Baeza/Documents/Github/HMCTS/wa-task-management-api/src/functionalTest/java/uk/gov/hmcts/reform/wataskmanagementapi/controllers/PostClaimByIdControllerCFTTest.java:151:"));
 
         common.cleanUpTask(taskId);
 
