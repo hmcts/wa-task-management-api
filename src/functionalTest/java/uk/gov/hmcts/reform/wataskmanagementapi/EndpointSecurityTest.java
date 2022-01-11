@@ -101,7 +101,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationHeadersProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .when()
@@ -112,7 +112,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationHeadersProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -124,7 +124,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationHeadersProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -136,7 +136,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationHeadersProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -148,7 +148,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationHeadersProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)

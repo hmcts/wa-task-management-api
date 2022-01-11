@@ -30,7 +30,7 @@ public class GetWorkTypesControllerCFTTest extends SpringBootFunctionalBaseTest 
     @Before
     public void setUp() {
         authenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+            .getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
     }
 
     @Test

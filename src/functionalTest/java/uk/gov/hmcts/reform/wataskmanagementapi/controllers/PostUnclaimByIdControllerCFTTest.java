@@ -45,7 +45,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
     @Before
     public void setUp() {
         authenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+            .getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
     }
 
     @Test
@@ -266,7 +266,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.CREATED.value());
 
         Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
+            .getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         common.setupCFTOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
         given.iClaimATaskWithIdAndAuthorization(
@@ -321,7 +321,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value());
         Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
+            .getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
 
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
         common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders);

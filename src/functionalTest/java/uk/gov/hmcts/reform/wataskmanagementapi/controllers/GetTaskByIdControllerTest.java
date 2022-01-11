@@ -34,7 +34,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
     }
 
     @Test

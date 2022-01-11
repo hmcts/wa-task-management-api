@@ -74,7 +74,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Before
     public void setUp() {
-        headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        headers = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
     }
 
     @Test

@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.RoleCode;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAccount;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,6 @@ public class AuthorizationHeadersProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     private final Map<String, UserInfo> userInfo = new ConcurrentHashMap<>();
-    private final Map<String, TestAccount> accounts = new ConcurrentHashMap<>();
     @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
     @Value("${idam.scope}") protected String userScope;
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
@@ -41,6 +41,11 @@ public class AuthorizationHeadersProvider {
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
 
+    public void deleteAccount(String username) {
+        log.info("Deleting test account '{}'", username);
+        idamServiceApi.deleteTestUser(username);
+    }
+
     public Header getServiceAuthorizationHeader() {
         String serviceToken = tokens.computeIfAbsent(
             SERVICE_AUTHORIZATION,
@@ -50,46 +55,33 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
-    public Headers getTribunalCaseworkerAAuthorization(String emailPrefix) {
+    public Headers getTribunalCaseworkerAuthorization(String emailPrefix) {
         /*
          * This user is used to assign role assignments to on a per test basis.
          * A clean up before assigning new role assignments is needed.
          */
         return new Headers(
-            getCaseworkerAAuthorizationOnly(emailPrefix),
+            getCaseworkerAuthorizationOnly(emailPrefix),
             getServiceAuthorizationHeader()
         );
     }
 
-    public Headers getTribunalCaseworkerBAuthorization(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        return new Headers(
-            getCaseworkerBAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }
-
-    public Headers getLawFirmAuthorization() {
+    public TestAuthenticationCredentials getLawFirmAuthorization() {
         /*
          * This user is used to create cases in ccd
          */
-        return new Headers(
-            getLawFirmAuthorizationOnly(),
+        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(lawfirm),
             getServiceAuthorizationHeader()
         );
+
+        return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
     }
 
 
-    public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
-        TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
-        return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
-
-    }
-
-    public Header getCaseworkerBAuthorizationOnly(String emailPrefix) {
+    public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
 
@@ -100,6 +92,10 @@ public class AuthorizationHeadersProvider {
         TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
         return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
+    }
+
+    public Header getAuthorizationOnly(TestAccount account) {
+        return getAuthorization(account.getUsername(), account.getPassword());
     }
 
     public UserInfo getUserInfo(String userToken) {
@@ -122,6 +118,7 @@ public class AuthorizationHeadersProvider {
             username,
             user -> "Bearer " + idamWebApi.token(body).getAccessToken()
         );
+
         return new Header(AUTHORIZATION, accessToken);
     }
 

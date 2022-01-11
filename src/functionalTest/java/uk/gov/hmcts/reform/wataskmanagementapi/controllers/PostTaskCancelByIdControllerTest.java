@@ -26,7 +26,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
     }
 
     @Test
@@ -131,7 +131,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
 
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), headers);
 

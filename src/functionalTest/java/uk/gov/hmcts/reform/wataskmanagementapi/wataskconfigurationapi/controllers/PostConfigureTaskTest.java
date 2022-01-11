@@ -32,7 +32,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void given_configure_task_then_expect_task_state_is_assigned() throws Exception {
-        caseId = createCcdCase();
+        caseId = given.iCreateACcdCase();
 
         String taskTypeId = "followUpOverdueReasonsForAppeal";
         createTaskMessage = createBasicMessageForTask(taskTypeId, caseId).build();
@@ -81,7 +81,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void given_configure_task_then_expect_task_state_is_unassigned() throws IOException {
-        caseId = createCcdCase();
+        caseId = given.iCreateACcdCase();
         createTaskMessage = createBasicMessageForTask("wa-task-configuration-api-task", UUID.randomUUID().toString())
             .withCaseId(caseId)
             .build();

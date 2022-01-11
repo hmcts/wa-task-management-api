@@ -45,7 +45,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
     }
 
     @Test
@@ -342,7 +342,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         );
 
         //S2S service name is wa_task_management_api
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
+        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
@@ -376,7 +376,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         );
 
         //S2S service name is wa_task_management_api
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
+        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));

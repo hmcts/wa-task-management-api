@@ -49,7 +49,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
     }
 
     @Test

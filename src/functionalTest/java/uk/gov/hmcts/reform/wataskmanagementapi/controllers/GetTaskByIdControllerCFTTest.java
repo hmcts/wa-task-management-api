@@ -64,7 +64,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
 
     }
 

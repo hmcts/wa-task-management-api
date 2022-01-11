@@ -49,7 +49,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
     }
 
     @Test

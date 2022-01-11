@@ -46,7 +46,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
 
     }
 
@@ -202,7 +202,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             authenticationHeaders
         );
 
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
+        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
 
         Response result = restApiActions.post(

@@ -13,14 +13,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleAssignmentRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request.RoleRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
@@ -37,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
-import static java.util.Collections.singletonList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
@@ -240,14 +232,11 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(
-        String caseId,
-        String jurisdiction,
-        String caseTypeId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", jurisdiction)
-            .withProcessVariable("caseTypeId", caseTypeId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "Taylor House")
@@ -367,12 +356,12 @@ public class GivensBuilder {
     }
 
     public String iCreateACcdCase() {
-        Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
-        String userToken = headers.getValue(AUTHORIZATION);
-        String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
+        TestAuthenticationCredentials lawFirmCredentials = authorizationHeadersProvider.getLawFirmAuthorization();
+        String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
 
-        Document document = documentManagementFiles.getDocument(NOTICE_OF_APPEAL_PDF);
+        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
 
         StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
             userToken,
@@ -462,6 +451,8 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
+        authorizationHeadersProvider.deleteAccount(lawFirmCredentials.getAccount().getUsername());
+
         return caseDetails.getId().toString();
     }
 
@@ -509,10 +500,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                       .id(startCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(startCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 
@@ -542,10 +533,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                       .id(submitCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(submitCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 

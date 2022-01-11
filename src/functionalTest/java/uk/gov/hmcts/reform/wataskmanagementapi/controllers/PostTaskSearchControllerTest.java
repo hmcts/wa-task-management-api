@@ -58,7 +58,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-mvp-ft-test-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-mvp-ft-test-");
     }
 
     @Test
@@ -78,7 +78,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
         authenticationHeaders = authorizationHeadersProvider
-            .getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
+            .getTribunalCaseworkerAuthorization("wa-ft-test-r2");
         common.clearAllRoleAssignments(authenticationHeaders);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(

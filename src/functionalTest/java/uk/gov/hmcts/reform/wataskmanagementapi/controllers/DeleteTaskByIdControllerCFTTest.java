@@ -35,7 +35,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
     }
 
     @Test
