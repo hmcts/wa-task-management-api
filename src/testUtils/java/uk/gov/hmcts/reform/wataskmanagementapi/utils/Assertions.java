@@ -5,7 +5,7 @@ import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.util.Map;
 
@@ -18,13 +18,13 @@ public class Assertions {
 
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
-    private final AuthorizationHeadersProvider authorizationHeadersProvider;
+    private final AuthorizationProvider authorizationProvider;
 
     public Assertions(RestApiActions camundaApiActions, RestApiActions restApiActions,
-                      AuthorizationHeadersProvider authorizationHeadersProvider) {
+                      AuthorizationProvider authorizationProvider) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
-        this.authorizationHeadersProvider = authorizationHeadersProvider;
+        this.authorizationProvider = authorizationProvider;
     }
 
     public void taskVariableWasUpdated(String processInstanceId, String variable, String value) {
@@ -37,7 +37,7 @@ public class Assertions {
         Response result = camundaApiActions.post(
             "/history/variable-instance",
             request,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.prettyPrint();

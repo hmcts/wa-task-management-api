@@ -25,7 +25,7 @@ public class DocumentManagementFiles {
     private final Map<DocumentNames, Document> documents = new ConcurrentHashMap<>();
     private Collection<Resource> documentResources;
     @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
+    private AuthorizationProvider authorizationProvider;
     @Autowired
     private DocumentManagementUploader documentManagementUploader;
 
@@ -68,7 +68,7 @@ public class DocumentManagementFiles {
 
             String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
             String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
-            UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
+            UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
 
             return documentManagementUploader.upload(
                 documentResource,

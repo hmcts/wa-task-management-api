@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
@@ -42,14 +43,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Autowired
     private ObjectMapper objectMapper;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
     }
 
     @Test
@@ -69,12 +70,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "Asylum"
         );
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             decideAnApplicationSearchRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -97,7 +98,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -130,7 +131,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         String executePermission = "Manage";
         common.overrideTaskPermissions(taskId, executePermission);
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
@@ -138,7 +139,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -167,10 +168,10 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         final String taskId1 = tasksList.get(0).getId();
         String executePermission = "Manage";
         common.overrideTaskPermissions(taskId1, executePermission);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         final String taskId2 = tasksList.get(1).getId();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         // search for completable
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -179,7 +180,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -207,7 +208,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                                                                                                 "Asylum");
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
@@ -215,7 +216,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -235,7 +236,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_retrieve_single_task_by_event_and_case_match_and_assignee() {
-        final String assigneeId = getAssigneeId(authenticationHeaders);
+        final String assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
 
         // create a caseId
         final String caseId = given.iCreateACcdCase();
@@ -249,7 +250,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         // assign user to taskId2
         final String taskId2 = tasksList.get(1).getId();
         // assign user to taskId2
@@ -257,7 +258,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "task/{task-id}/assign",
             taskId2,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         // search for completable
@@ -267,7 +268,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -294,7 +295,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_retrieve_single_task_by_event_and_case_match_and_assignee_with_warnings() {
-        final String assigneeId = getAssigneeId(authenticationHeaders);
+        final String assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
 
         // create a caseId
         final String caseId = given.iCreateACcdCase();
@@ -308,7 +309,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         // assign user to taskId2
         final String taskId2 = tasksList.get(1).getId();
         // assign user to taskId2
@@ -316,7 +317,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "task/{task-id}/assign",
             taskId2,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         // search for completable
@@ -326,7 +327,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -357,7 +358,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     @Test
     public void should_return_a_200_and_retrieve_multiple_tasks_by_event_and_case_match_and_assignee() {
-        final String assigneeId = getAssigneeId(authenticationHeaders);
+        final String assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
 
         // create a caseId
         final String caseId = given.iCreateACcdCase();
@@ -372,14 +373,14 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         // No user assigned to this task
         final String taskId1 = tasksList.get(0).getId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         // assign user to taskId2
         final String taskId2 = tasksList.get(1).getId();
         restApiActions.post(
             "task/{task-id}/assign",
             taskId2,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         // assign user to taskId3
@@ -388,7 +389,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "task/{task-id}/assign",
             taskId3,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         // search for completable
@@ -398,7 +399,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -425,12 +426,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "solicitorCreateApplication", "IA", "Asylum");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -450,12 +451,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "solicitorCreateApplication", "PROBATE", "GrantOfRepresentation");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -473,12 +474,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "reviewHearingRequirements", "IA", "Asylum");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -498,12 +499,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "someEventId", "IA", "Asylum");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -532,12 +533,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "invalidCaseId", "requestCmaRequirements", "IA", "Asylum");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -557,12 +558,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "jurisdiction", "Asylum");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -582,12 +583,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "caseType");
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchEventAndCase,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -599,7 +600,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
     }
 
     private String getAssigneeId(Headers headers) {
-        return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
+        return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
     private void sendMessage(String caseId) {
@@ -654,7 +655,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 () -> {
                     Response result = camundaApiActions.get(
                         "/task" + filter,
-                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                        authorizationProvider.getServiceAuthorizationHeader()
                     );
 
                     result.then().assertThat()

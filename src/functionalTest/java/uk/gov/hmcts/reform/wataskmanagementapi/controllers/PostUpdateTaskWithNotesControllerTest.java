@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
@@ -15,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -44,19 +44,19 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/notes";
     private static final String GET_TASK_ENDPOINT = "task/{task-id}";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
         //Reset role assignments
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
     }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         String notesRequest = addNotes();
 
@@ -64,7 +64,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             notesRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -89,7 +89,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             ENDPOINT_BEING_TESTED,
             taskId,
             null,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -117,7 +117,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             ENDPOINT_BEING_TESTED,
             taskId,
             notesRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -146,13 +146,13 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             ENDPOINT_BEING_TESTED,
             taskId,
             notesRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -162,7 +162,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         result = restApiActions.get(
             GET_TASK_ENDPOINT,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -193,13 +193,13 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             ENDPOINT_BEING_TESTED,
             taskId,
             notesRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat().statusCode(HttpStatus.NO_CONTENT.value());
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -209,7 +209,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
         result = restApiActions.get(
             GET_TASK_ENDPOINT,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -230,15 +230,15 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
     @NotNull
     private String addNotes() {
         return "{\"notes\": "
-            + "["
-            + "{"
-            + "\"code\": \"TA02\","
-            + "\"note_type\": \"WARNING\","
-            + "\"user_id\": \"some-user\","
-            + "\"content\": \"Description2\""
-            + "}"
-            + "]"
-            + "}";
+               + "["
+               + "{"
+               + "\"code\": \"TA02\","
+               + "\"note_type\": \"WARNING\","
+               + "\"user_id\": \"some-user\","
+               + "\"content\": \"Description2\""
+               + "}"
+               + "]"
+               + "}";
     }
 
     private void initiateTask(TestVariables testVariables, boolean hasWarnings) {
@@ -277,7 +277,7 @@ public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalB
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()

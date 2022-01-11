@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -26,23 +26,23 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/complete";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
     }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -64,15 +64,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -88,12 +88,12 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -115,15 +115,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -142,7 +142,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -165,11 +165,11 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
@@ -177,7 +177,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -200,7 +200,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -209,13 +209,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -230,16 +230,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
 
         //Create temporary role-assignment to assign task
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //Delete role-assignment and re-create
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -251,7 +251,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -272,23 +272,24 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //S2S service name is wa_task_management_api
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
-        common.setupOrganisationalRoleAssignment(otherUserHeaders);
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+        common.setupOrganisationalRoleAssignment(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             completeTaskRequest,
-            otherUserHeaders
+            otherUser.getHeaders()
         );
 
         result.then().assertThat()
@@ -304,23 +305,24 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //S2S service name is wa_task_management_api
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
-        common.setupOrganisationalRoleAssignment(otherUserHeaders);
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+        common.setupOrganisationalRoleAssignment(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             completeTaskRequest,
-            otherUserHeaders
+            otherUser.getHeaders()
         );
 
         result.then().assertThat()
@@ -340,13 +342,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_404_if_task_does_not_exist_with_completion_options_assign_and_complete_true() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -368,16 +370,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -393,13 +395,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -415,16 +417,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -444,7 +446,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -467,11 +469,11 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
@@ -480,7 +482,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -503,7 +505,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -512,14 +514,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -534,16 +536,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         String taskId = taskVariables.getTaskId();
 
         //Create temporary role-assignment to assign task
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //Delete role-assignment and re-create
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -556,7 +558,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()

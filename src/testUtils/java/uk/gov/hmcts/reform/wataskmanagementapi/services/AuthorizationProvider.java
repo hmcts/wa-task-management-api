@@ -26,7 +26,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 
 @Slf4j
 @Service
-public class AuthorizationHeadersProvider {
+public class AuthorizationProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     private final Map<String, UserInfo> userInfo = new ConcurrentHashMap<>();
@@ -55,18 +55,22 @@ public class AuthorizationHeadersProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
-    public Headers getTribunalCaseworkerAuthorization(String emailPrefix) {
+    public TestAuthenticationCredentials getNewTribunalCaseworker(String emailPrefix) {
         /*
          * This user is used to assign role assignments to on a per test basis.
          * A clean up before assigning new role assignments is needed.
          */
-        return new Headers(
-            getCaseworkerAuthorizationOnly(emailPrefix),
+        TestAccount caseworker = getIdamLawFirmCredentials(emailPrefix);
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(caseworker),
             getServiceAuthorizationHeader()
         );
+
+        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
-    public TestAuthenticationCredentials getLawFirmAuthorization() {
+    public TestAuthenticationCredentials getNewLawFirm() {
         /*
          * This user is used to create cases in ccd
          */

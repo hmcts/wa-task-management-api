@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
@@ -59,7 +59,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RestApiActions camundaApiActions;
     protected RestApiActions launchDarklyActions;
     @Autowired
-    protected AuthorizationHeadersProvider authorizationHeadersProvider;
+    protected AuthorizationProvider authorizationProvider;
     @Autowired
     protected CoreCaseDataApi coreCaseDataApi;
     @Autowired
@@ -87,7 +87,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-        assertions = new Assertions(camundaApiActions, restApiActions, authorizationHeadersProvider);
+        assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
         documentManagementFiles.prepare();
@@ -95,7 +95,7 @@ public abstract class SpringBootFunctionalBaseTest {
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,
-            authorizationHeadersProvider,
+            authorizationProvider,
             coreCaseDataApi,
             documentManagementFiles
         );
@@ -104,7 +104,7 @@ public abstract class SpringBootFunctionalBaseTest {
             given,
             restApiActions,
             camundaApiActions,
-            authorizationHeadersProvider,
+            authorizationProvider,
             idamService,
             roleAssignmentServiceApi
         );
@@ -119,7 +119,7 @@ public abstract class SpringBootFunctionalBaseTest {
                 () -> {
                     Response camundaGetTaskResult = camundaApiActions.get(
                         "/task" + filter,
-                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                        authorizationProvider.getServiceAuthorizationHeader()
                     );
                     camundaGetTaskResult.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
@@ -141,7 +141,7 @@ public abstract class SpringBootFunctionalBaseTest {
         Response camundaResult = camundaApiActions.post(
             "/message",
             createTaskMessage,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         camundaResult.then().assertThat()

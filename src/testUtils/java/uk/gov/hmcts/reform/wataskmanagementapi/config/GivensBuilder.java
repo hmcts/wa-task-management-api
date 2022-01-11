@@ -20,7 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
 import java.io.IOException;
@@ -47,20 +47,20 @@ public class GivensBuilder {
 
     private final RestApiActions camundaApiActions;
     private final RestApiActions restApiActions;
-    private final AuthorizationHeadersProvider authorizationHeadersProvider;
+    private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
 
     private final CoreCaseDataApi coreCaseDataApi;
 
     public GivensBuilder(RestApiActions camundaApiActions,
                          RestApiActions restApiActions,
-                         AuthorizationHeadersProvider authorizationHeadersProvider,
+                         AuthorizationProvider authorizationProvider,
                          CoreCaseDataApi coreCaseDataApi,
                          DocumentManagementFiles documentManagementFiles
     ) {
         this.camundaApiActions = camundaApiActions;
         this.restApiActions = restApiActions;
-        this.authorizationHeadersProvider = authorizationHeadersProvider;
+        this.authorizationProvider = authorizationProvider;
         this.coreCaseDataApi = coreCaseDataApi;
         this.documentManagementFiles = documentManagementFiles;
 
@@ -76,7 +76,7 @@ public class GivensBuilder {
         Response result = camundaApiActions.post(
             "message",
             request,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
@@ -97,7 +97,7 @@ public class GivensBuilder {
         Response result = camundaApiActions.post(
             "message",
             request,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
@@ -117,7 +117,7 @@ public class GivensBuilder {
         Response result = camundaApiActions.post(
             "message",
             request,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
@@ -138,7 +138,7 @@ public class GivensBuilder {
                 () -> {
                     Response result = camundaApiActions.get(
                         "/task" + filter,
-                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                        authorizationProvider.getServiceAuthorizationHeader()
                     );
 
                     result.then().assertThat()
@@ -169,7 +169,7 @@ public class GivensBuilder {
                 () -> {
                     Response result = camundaApiActions.get(
                         "/task" + filter,
-                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                        authorizationProvider.getServiceAuthorizationHeader()
                     );
 
                     result.then().assertThat()
@@ -209,7 +209,7 @@ public class GivensBuilder {
             "/task/{task-id}/variables",
             taskId,
             new Modifications(processVariables),
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
@@ -223,7 +223,7 @@ public class GivensBuilder {
             "/task/{task-id}/variables",
             taskId,
             new Modifications(processVariables),
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
@@ -356,10 +356,10 @@ public class GivensBuilder {
     }
 
     public String iCreateACcdCase() {
-        TestAuthenticationCredentials lawFirmCredentials = authorizationHeadersProvider.getLawFirmAuthorization();
+        TestAuthenticationCredentials lawFirmCredentials = authorizationProvider.getNewLawFirm();
         String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
+        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
 
         Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
 
@@ -451,7 +451,7 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        authorizationHeadersProvider.deleteAccount(lawFirmCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(lawFirmCredentials.getAccount().getUsername());
 
         return caseDetails.getId().toString();
     }

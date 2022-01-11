@@ -56,7 +56,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             ENDPOINT_BEING_TESTED,
             taskId,
             new ConfigureTaskRequest(requiredProcessVariables),
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.prettyPeek();
@@ -98,7 +98,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             ENDPOINT_BEING_TESTED,
             taskId,
             new ConfigureTaskRequest(requiredProcessVariables),
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()

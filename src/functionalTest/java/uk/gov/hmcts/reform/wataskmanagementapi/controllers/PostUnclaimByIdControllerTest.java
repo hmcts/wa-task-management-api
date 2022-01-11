@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -24,23 +24,23 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/unclaim";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
     }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -65,7 +65,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -86,11 +86,11 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = setupScenario();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
 
         );
         result.then().assertThat()
@@ -106,12 +106,12 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = setupScenario();
         String taskId = taskVariables.getTaskId();
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
 
         );
         result.then().assertThat()
@@ -127,18 +127,18 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization(
-            "wa-ft-test-");
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-        common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupOrganisationalRoleAssignment(otherUser.getHeaders(), "tribunal-caseworker");
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            otherUserAuthenticationHeaders
+            otherUser.getHeaders()
         );
 
         result.then().assertThat()
@@ -159,21 +159,20 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
         String taskId = taskVariables.getTaskId();
 
-        Headers otherUserAuthenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization(
-            "wa-ft-test-");
-
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
-        common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "senior-tribunal-caseworker");
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupOrganisationalRoleAssignment(otherUser.getHeaders(), "senior-tribunal-caseworker");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            otherUserAuthenticationHeaders
+            otherUser.getHeaders()
         );
 
         result.then().assertThat()
@@ -191,7 +190,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(REGION, "1"));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -202,7 +201,7 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -223,11 +222,11 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         return taskVariables;

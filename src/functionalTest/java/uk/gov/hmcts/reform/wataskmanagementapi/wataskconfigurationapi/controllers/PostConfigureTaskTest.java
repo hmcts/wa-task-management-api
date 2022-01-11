@@ -45,7 +45,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
+            new Headers(authorizationProvider.getServiceAuthorizationHeader())
         );
         result.prettyPeek();
 
@@ -56,7 +56,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
         Response camundaResult = camundaApiActions.get(
             "/task/{task-id}/variables",
             taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         camundaResult.then().assertThat()
@@ -91,7 +91,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            new Headers(authorizationHeadersProvider.getServiceAuthorizationHeader())
+            new Headers(authorizationProvider.getServiceAuthorizationHeader())
         );
 
         result.then().assertThat()
@@ -101,7 +101,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
         Response camundaResult = camundaApiActions.get(
             "/task/{task-id}/variables",
             taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         camundaResult.then().assertThat()

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -12,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -42,11 +42,11 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
 
     }
 
@@ -55,12 +55,12 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -84,7 +84,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -107,22 +107,22 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
         initiateTask(taskVariables);
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
-        String serviceToken = authenticationHeaders.getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(serviceToken);
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",userInfo.getUid(), authenticationHeaders);
+        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
+        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", userInfo.getUid(), caseworkerCredentials.getHeaders());
         common.cleanUpTask(taskId);
 
     }
@@ -133,22 +133,22 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
-        String serviceToken = authenticationHeaders.getValue(AUTHORIZATION);
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(serviceToken);
-        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee",userInfo.getUid(), authenticationHeaders);
+        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
+        String serviceToken = caseworkerCredentials.getHeaders().getValue(AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(serviceToken);
+        assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", userInfo.getUid(), caseworkerCredentials.getHeaders());
         common.cleanUpTask(taskId);
 
     }
@@ -160,12 +160,12 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         initiateTask(taskVariables);
 
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -176,14 +176,14 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         Response resultAfterClaimedBySameUser = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         resultAfterClaimedBySameUser.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
+        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -195,20 +195,21 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerAuthorization("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(otherUserHeaders);
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        common.setupCFTOrganisationalRoleAssignment(otherUser.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            otherUserHeaders
+            otherUser.getHeaders()
         );
 
 
@@ -236,13 +237,13 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             JURISDICTION, "SSCS"
         );
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         initiateTask(taskVariables);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -268,7 +269,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -278,14 +279,14 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", authenticationHeaders);
+        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -301,7 +302,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
 
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -311,7 +312,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -338,7 +339,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         initiateTask(taskVariables);
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "baseLocation", "698118",
@@ -349,7 +350,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -387,7 +388,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
