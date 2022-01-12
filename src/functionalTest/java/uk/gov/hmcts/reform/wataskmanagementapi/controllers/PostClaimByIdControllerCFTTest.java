@@ -264,7 +264,7 @@ public class PostClaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed./Users/Alejandro.Baeza/Documents/Github/HMCTS/wa-task-management-api/src/functionalTest/java/uk/gov/hmcts/reform/wataskmanagementapi/controllers/PostClaimByIdControllerCFTTest.java:151:"));
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
 
