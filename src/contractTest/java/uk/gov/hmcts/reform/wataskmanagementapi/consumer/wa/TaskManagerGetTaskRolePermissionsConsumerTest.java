@@ -76,7 +76,7 @@ public class TaskManagerGetTaskRolePermissionsConsumerTest extends SpringBootCon
                                 .stringType(PermissionTypes.EXECUTE.value()))
                         .array("authorisations",
                             authorisation -> authorisation
-                                .stringType("IAC")
+                                .stringType("373")
                                 .stringType("SCSS"))
                 )).build();
     }

@@ -115,7 +115,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -144,7 +144,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -171,7 +171,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -200,7 +200,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -226,7 +226,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();

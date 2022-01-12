@@ -127,7 +127,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("execute", false),
                 entry("cancel", false),
                 entry("task_id", taskId),
-                entry("authorizations", List.of("IA")),
+                entry("authorizations", List.of("373")),
                 entry("role_category", "JUDICIAL"),
                 entry("auto_assignable", true),
                 entry("assignment_priority", 1)
@@ -143,7 +143,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("execute", false),
                 entry("cancel", false),
                 entry("task_id", taskId),
-                entry("authorizations", List.of("IA")),
+                entry("authorizations", List.of("373")),
                 entry("role_category", "JUDICIAL"),
                 entry("auto_assignable", false),
                 entry("assignment_priority", 1)
@@ -294,7 +294,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("execute", true),
                 entry("cancel", false),
                 entry("task_id", taskId),
-                entry("authorizations", List.of("IA")),
+                entry("authorizations", List.of("373")),
                 entry("role_category", "JUDICIAL"),
                 entry("auto_assignable", false),
                 entry("assignment_priority", 2)
