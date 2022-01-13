@@ -26,6 +26,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
         RestAssured.useRelaxedHTTPSValidation();
     }
 
+
     /**
      * Open Id verification should trigger first therefore it should return a 401.
      * if no bearer token is provided
