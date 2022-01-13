@@ -276,7 +276,7 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
-    void should_consider_permissions_when_case_access_category_column_does_not_matches() {
+    void should_return_empty_permissions_when_case_access_category_column_does_not_matches() {
         String someCaseId = "someCaseId";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
@@ -314,7 +314,7 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
-    void should_consider_permissions_when_case_access_category_column_is_present_but_case_field_is_null() {
+    void should_return_empty_permissions_when_case_access_category_column_is_present_but_case_field_is_null() {
         String someCaseId = "someCaseId";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
@@ -350,7 +350,7 @@ class CaseConfigurationProviderServiceTest {
     }
 
     @Test
-    void should_consider_permissions_when_case_access_category_column_is_present_but_case_field_is_empty() {
+    void should_return_empty_permissions_when_case_access_category_column_is_present_but_case_field_is_empty() {
         String someCaseId = "someCaseId";
 
         when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
