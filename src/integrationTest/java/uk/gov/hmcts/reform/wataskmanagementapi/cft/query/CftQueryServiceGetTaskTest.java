@@ -118,7 +118,7 @@ public class CftQueryServiceGetTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE", "IA"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -134,7 +134,7 @@ public class CftQueryServiceGetTaskTest {
         Set<TaskRoleResource> taskRoleResourceSet = task.get().getTaskRoleResources();
         Assertions.assertThat(taskRoleResourceSet).isNotEmpty();
         taskRoleResourceSet.stream().forEach(taskRoleResource -> {
-            assertArrayEquals(new String[]{"DIVORCE", "IA"}, taskRoleResource.getAuthorizations());
+            assertArrayEquals(new String[]{"DIVORCE", "373"}, taskRoleResource.getAuthorizations());
             Assertions.assertThat(taskRoleResource.getAssignmentPriority()).isEqualTo(8);
             Assertions.assertThat(taskRoleResource.getAutoAssignable()).isTrue();
         });
@@ -155,7 +155,7 @@ public class CftQueryServiceGetTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -184,7 +184,7 @@ public class CftQueryServiceGetTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -211,7 +211,7 @@ public class CftQueryServiceGetTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -237,7 +237,7 @@ public class CftQueryServiceGetTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","IA"))
+            .authorisations(List.of("DIVORCE","373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();

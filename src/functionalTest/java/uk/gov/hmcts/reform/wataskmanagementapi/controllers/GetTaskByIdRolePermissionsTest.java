@@ -104,7 +104,7 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
             .body("roles[1].role_category", is("JUDICIAL"))
             .body("roles[1].role_name", is("judge"))
             .body("roles[1].permissions", hasItems("Read", "Refer", "Execute"))
-            .body("roles[1].authorisations", hasItems("IA"))
+            .body("roles[1].authorisations", hasItems("373"))
             .body("roles[2].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[2].role_name", is("senior-tribunal-caseworker"))
             .body("roles[2].permissions", hasItems("Read", "Own", "Refer"))
