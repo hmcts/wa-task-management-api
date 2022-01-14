@@ -56,7 +56,8 @@ class DmnEvaluationServiceTest {
                 null,
                 null,
                 null,
-                stringValue("LEGAL_OPERATIONS")
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue(null)
             ),
             new PermissionsDmnEvaluationResponse(
                 stringValue("senior-tribunal-caseworker"),
@@ -64,7 +65,8 @@ class DmnEvaluationServiceTest {
                 null,
                 null,
                 null,
-                stringValue("LEGAL_OPERATIONS")
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue(null)
             )
         );
 
