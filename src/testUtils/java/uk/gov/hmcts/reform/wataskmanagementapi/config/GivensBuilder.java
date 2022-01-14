@@ -26,7 +26,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
@@ -232,11 +231,14 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(
+        String caseId,
+        String jurisdiction,
+        String caseTypeId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("jurisdiction", jurisdiction)
+            .withProcessVariable("caseTypeId", caseTypeId)
             .withProcessVariable("region", "1")
             .withProcessVariable("location", "765324")
             .withProcessVariable("locationName", "Taylor House")
@@ -331,31 +333,27 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    public Map<String, CamundaValue<?>> createTaskVariablesForSCSS(String caseId) {
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("jurisdiction", "SCSS")
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "A Hearing Centre")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("warningList", (new WarningValues()).toString())
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
-
-        return processVariables.getProcessVariablesMap();
+    public String iCreateACcdCase() {
+        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
+            "IA",
+            "Asylum",
+            "startAppeal",
+            "submitAppeal"
+        );
     }
 
-    public String iCreateACcdCase() {
+    public String iCreateWACcdCase() {
+        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent("WA",
+            "WaCaseType",
+            "CREATE",
+            "START_PROGRESS"
+        );
+    }
+
+    private String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
+                                                                    String caseType,
+                                                                    String startEventId,
+                                                                    String submitEventId) {
         TestAuthenticationCredentials lawFirmCredentials = authorizationProvider.getNewLawFirm();
         String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
@@ -367,9 +365,9 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
-            "startAppeal"
+            jurisdiction,
+            caseType,
+            startEventId
         );
 
         String resourceFilename = "requests/ccd/case_data.json";
@@ -411,8 +409,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdiction,
+            caseType,
             true,
             caseDataContent
         );
@@ -423,10 +421,10 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdiction,
+            caseType,
             caseDetails.getId().toString(),
-            "submitAppeal"
+            submitEventId
         );
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
@@ -443,8 +441,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdiction,
+            caseType,
             caseDetails.getId().toString(),
             true,
             submitCaseDataContent
@@ -454,139 +452,6 @@ public class GivensBuilder {
         authorizationProvider.deleteAccount(lawFirmCredentials.getAccount().getUsername());
 
         return caseDetails.getId().toString();
-    }
-
-    public String iCreateWACcdCase() {
-        Headers headers = authorizationHeadersProvider.getWACaseworkerAAuthorization("wa-ft-test-r2");
-        String userToken = headers.getValue(AUTHORIZATION);
-        String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
-
-        Document document = documentManagementFiles.getDocument(NOTICE_OF_APPEAL_PDF);
-
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            "CREATE"
-        );
-
-        String resourceFilename = "requests/ccd/wa_case_data.json";
-
-        Map data = null;
-        try {
-            String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
-
-            data = new ObjectMapper().readValue(caseDataString, Map.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            true,
-            caseDataContent
-        );
-
-        log.info("Created case [" + caseDetails.getId() + "]");
-
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            caseDetails.getId().toString(),
-            "START_PROGRESS"
-        );
-
-        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
-        );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        return caseDetails.getId().toString();
-    }
-
-    private RoleAssignmentRequest createRoleAssignmentRequest(String userId, String roleName, String caseId) {
-        String process = "case-allocation";
-        String reference = caseId + "/" + roleName;
-        RoleRequest roleRequest = new RoleRequest(userId, process, reference, true);
-        Map<String, String> attributes = Map.of(
-            "caseId", caseId
-        );
-        RoleAssignment roleAssignment = new RoleAssignment(
-            ActorIdType.IDAM,
-            userId,
-            RoleType.CASE,
-            roleName,
-            Classification.RESTRICTED,
-            GrantType.SPECIFIC,
-            RoleCategory.LEGAL_OPERATIONS,
-            false,
-            attributes
-        );
-
-        return new RoleAssignmentRequest(
-            roleRequest,
-            singletonList(roleAssignment)
-        );
-    }
-
-    private void waitSeconds(int seconds) {
-        try {
-            log.info("Waiting for {} second(s)", seconds);
-            TimeUnit.SECONDS.sleep(seconds);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private Map<String, CamundaValue<?>> initiateProcessVariables(
