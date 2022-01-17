@@ -457,7 +457,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
         common.cleanUpTask(taskId);
     }
-    
+
     private void initiateTask(TestVariables taskVariables) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();

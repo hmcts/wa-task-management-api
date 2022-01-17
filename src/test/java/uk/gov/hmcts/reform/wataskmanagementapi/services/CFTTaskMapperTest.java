@@ -374,7 +374,8 @@ class CFTTaskMapperTest {
                     stringValue("IA,WA"),
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
@@ -382,7 +383,8 @@ class CFTTaskMapperTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 )
             );
 
@@ -471,7 +473,8 @@ class CFTTaskMapperTest {
                     stringValue("IA,WA"),
                     integerValue(2),
                     booleanValue(true),
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue("categoryB")
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
@@ -479,7 +482,8 @@ class CFTTaskMapperTest {
                     null,
                     integerValue(1),
                     booleanValue(false),
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue("categoryA,categoryF")
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("some-caseworker"),
@@ -487,6 +491,7 @@ class CFTTaskMapperTest {
                     null,
                     integerValue(null),
                     booleanValue(null),
+                    stringValue(null),
                     stringValue(null)
                 )
             );

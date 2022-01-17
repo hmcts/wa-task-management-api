@@ -85,10 +85,11 @@ public class Common {
     }
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariablesOverride(
-        Map<CamundaVariableDefinition, String> variablesToUseAsOverride
+        Map<CamundaVariableDefinition, String> variablesToUseAsOverride, String jurisdiction, String caseType
     ) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables
+            = given.createDefaultTaskVariables(caseId, jurisdiction, caseType);
 
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables.put(
@@ -117,7 +118,11 @@ public class Common {
                                                       Map<CamundaVariableDefinition, String> variablesToUseAsOverride
 
     ) {
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(task.getCaseId());
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(
+            task.getCaseId(),
+            "IA",
+            "Asylum"
+        );
         variablesToUseAsOverride.keySet()
             .forEach(key -> processVariables
                 .put(key.value(), new CamundaValue<>(variablesToUseAsOverride.get(key), "String")));
@@ -135,7 +140,10 @@ public class Common {
 
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+                                                                                         "IA",
+                                                                                         "Asylum"
+        );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
         List<CamundaTask> response = given
@@ -154,7 +162,10 @@ public class Common {
         CamundaVariableDefinition key, String value
     ) {
         final String caseId = UUID.randomUUID().toString();
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
+                                                                                         "IA",
+                                                                                         "Asylum"
+        );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
         List<CamundaTask> response = given
@@ -174,7 +185,7 @@ public class Common {
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false)
+            .iCreateATaskWithCaseId(caseId, false, "IA", "Asylum")
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
@@ -213,13 +224,29 @@ public class Common {
         // return taskId
         return response;
     }
+    
+    public TestVariables setupWATaskAndRetrieveIds() {
+
+        String caseId = given.iCreateWACcdCase();
+
+        List<CamundaTask> response = given
+            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
+            .and()
+            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+
+        if (response.size() > 1) {
+            fail("Search was not an exact match and returned more than one task used: " + caseId);
+        }
+
+        return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
+    }
 
     public TestVariables setupTaskWithWarningsAndRetrieveIds() {
 
         String caseId = given.iCreateACcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, true)
+            .iCreateATaskWithCaseId(caseId, true, "IA", "Asylum")
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 

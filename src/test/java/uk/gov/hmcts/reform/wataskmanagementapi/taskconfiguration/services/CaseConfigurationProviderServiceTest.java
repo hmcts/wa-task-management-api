@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -103,7 +105,8 @@ class CaseConfigurationProviderServiceTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("seniorTribunalCaseworker"),
@@ -111,7 +114,8 @@ class CaseConfigurationProviderServiceTest {
                     null,
                     null,
                     null,
-                    stringValue("LEGAL_OPERATIONS")
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
                 )
             ));
 
@@ -155,5 +159,233 @@ class CaseConfigurationProviderServiceTest {
 
         assertThat(mappedData.getProcessVariables(), is(expectedMappedData));
 
+    }
+
+    @Test
+    void should_consider_permissions_when_case_access_category_column_matches_with_different_sets() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", "categoryA,categoryB"));
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryA,categoryC")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB,categoryD")
+            )
+        );
+
+        String caseData = "{\"caseAccessCategory\":\"categoryA,categoryB\"}";
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, "{}"))
+            .thenReturn(permissions);
+
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        assertThat(mappedData.getPermissionsDmnResponse(), is(permissions));
+    }
+
+    @Test
+    void should_consider_permissions_when_case_access_category_column_matches() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", "categoryA,categoryB"));
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryA")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB")
+            )
+        );
+
+        String caseData = "{\"caseAccessCategory\":\"categoryA,categoryB\"}";
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, "{}"))
+            .thenReturn(permissions);
+
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        assertThat(mappedData.getPermissionsDmnResponse(), is(permissions));
+    }
+
+    @Test
+    void should_consider_permissions_when_case_access_category_column_is_empty() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", "categoryA"));
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                null
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("")
+            )
+        );
+
+        String caseData = "{\"caseAccessCategory\":\"categoryA\"}";
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, "{}"))
+            .thenReturn(permissions);
+
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        assertThat(mappedData.getPermissionsDmnResponse(), is(permissions));
+    }
+
+    @Test
+    void should_return_empty_permissions_when_case_access_category_column_does_not_matches() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", "categoryA"));
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryC")
+            )
+        );
+
+        String caseData = "{\"caseAccessCategory\":\"categoryA\"}";
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, "{}"))
+            .thenReturn(permissions);
+
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_permissions_when_case_access_category_column_is_present_but_case_field_is_null() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryC")
+            )
+        );
+
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", "{}", "{}"))
+            .thenReturn(permissions);
+
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+    }
+
+    @Test
+    void should_return_empty_permissions_when_case_access_category_column_is_present_but_case_field_is_empty() {
+        String someCaseId = "someCaseId";
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", ""));
+
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryC")
+            )
+        );
+
+        String caseData = "{\"caseAccessCategory\":\"\"}";
+
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, "{}"))
+            .thenReturn(permissions);
+
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, Map.of());
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
     }
 }

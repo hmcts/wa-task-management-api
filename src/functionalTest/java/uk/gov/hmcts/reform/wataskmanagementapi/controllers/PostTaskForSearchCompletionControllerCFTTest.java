@@ -73,7 +73,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 Map.of(
                     CamundaVariableDefinition.TASK_TYPE, scenario.taskId,
                     CamundaVariableDefinition.TASK_ID, scenario.taskId
-                ));
+                ),
+                "IA",
+                "Asylum");
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
@@ -149,7 +151,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         common.overrideTaskPermissions(taskId, "Manage");
@@ -226,7 +230,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum",
             CamundaVariableDefinition.DESCRIPTION, "aDescription"
         );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
@@ -509,7 +515,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.TASK_STATE, "unassigned",
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -604,7 +612,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
 
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId);
+        Map<String, CamundaValue<?>> processVariables
+            = given.createDefaultTaskVariables(caseId, "IA", "Asylum");
 
         variablesOverride.keySet()
             .forEach(key -> processVariables
@@ -623,7 +632,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             CamundaVariableDefinition.CASE_TYPE_ID, "Asylum"
         );
 
-        Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariablesWithWarnings(caseId);
+        Map<String, CamundaValue<?>> processVariables
+            = given.createDefaultTaskVariablesWithWarnings(caseId, "IA", "Asylum");
 
         variablesOverride.keySet()
             .forEach(key -> processVariables

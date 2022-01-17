@@ -459,7 +459,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.LOCATION, "765324"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -492,7 +494,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.LOCATION, "17595"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -524,7 +528,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -558,7 +564,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             CamundaVariableDefinition.TASK_STATE, "unassigned"
         );
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+        TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                "IA",
+                                                                                                "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -757,7 +765,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 CamundaVariableDefinition.TASK_STATE, state
             );
 
-            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride);
+            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
+                                                                                                    "IA",
+                                                                                                    "Asylum");
             tasksCreated.add(taskVariables);
         }
 
