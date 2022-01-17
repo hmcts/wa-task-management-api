@@ -272,7 +272,7 @@ public class TaskActionsController extends BaseController {
 
     @ApiOperation("Retrieve the role permissions information for the task identified by the given task-id.")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTaskResponse.class),
+        @ApiResponse(code = 200, message = OK, response = GetTaskRolePermissionsResponse.class),
         @ApiResponse(code = 400, message = BAD_REQUEST),
         @ApiResponse(code = 403, message = FORBIDDEN),
         @ApiResponse(code = 401, message = UNAUTHORIZED),
