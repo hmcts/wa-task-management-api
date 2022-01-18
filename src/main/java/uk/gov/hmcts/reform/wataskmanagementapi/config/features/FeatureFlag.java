@@ -6,9 +6,6 @@ public enum FeatureFlag {
     PRIVILEGED_ACCESS_FEATURE("wa-task-management-privileged-access-feature"),
 
     //Release 2 Features
-    RELEASE_2_CANCELLATION_COMPLETION_FEATURE("wa-r2-task-cancellation-completion-feature"),
-
-    //Release 2 Features
     RELEASE_2_TASK_QUERY("wa-r2-endpoints-task-query"),
 
     //Release 2 endpoints

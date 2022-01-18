@@ -118,7 +118,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
             IDAM_USER_ID,
             IDAM_USER_EMAIL
         )).thenReturn(true);
