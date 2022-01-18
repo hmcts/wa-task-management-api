@@ -334,33 +334,39 @@ public class GivensBuilder {
     }
 
     public String iCreateACcdCase() {
+        TestAuthenticationCredentials lawFirmCredentials =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-r2-");
         return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
             "IA",
             "Asylum",
             "startAppeal",
-            "submitAppeal"
+            "submitAppeal",
+            lawFirmCredentials
         );
     }
 
     public String iCreateWACcdCase() {
+        TestAuthenticationCredentials lawFirmCredentials =
+            authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
         return createCCDCaseWithJurisdictionAndCaseTypeAndEvent("WA",
             "WaCaseType",
             "CREATE",
-            "START_PROGRESS"
+            "START_PROGRESS",
+            lawFirmCredentials
         );
     }
 
     private String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
                                                                     String caseType,
                                                                     String startEventId,
-                                                                    String submitEventId) {
-        TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
-        String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
-        String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
+                                                                    String submitEventId,
+                                                                    TestAuthenticationCredentials credentials) {
+
+        String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
 
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
+        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
 
         StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
             userToken,
@@ -450,7 +456,7 @@ public class GivensBuilder {
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
-        authorizationProvider.deleteAccount(lawFirmCredentials.getAccount().getUsername());
+        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
 
         return caseDetails.getId().toString();
     }
