@@ -333,12 +333,8 @@ public class TaskManagementService {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
         }
-        final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail()
-        );
-        if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
+
+        if (isRelease2EndpointsFeatureEnabled) {
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.CANCELLED);
@@ -406,13 +402,8 @@ public class TaskManagementService {
                 permissionsRequired
             );
         }
-        final boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            userId,
-            userEmail
-        );
 
-        if (isFeatureEnabled || isRelease2EndpointsFeatureEnabled) {
+        if (isRelease2EndpointsFeatureEnabled) {
 
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
@@ -474,13 +465,8 @@ public class TaskManagementService {
 
             }
 
-            boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail()
-            );
-            if (isFeatureEnabled
-                || isRelease2EndpointsFeatureEnabled) {
+
+            if (isRelease2EndpointsFeatureEnabled) {
                 //Lock & update Task
                 TaskResource task = findByIdAndObtainLock(taskId);
                 task.setState(CFTTaskState.COMPLETED);
