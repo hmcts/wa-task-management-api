@@ -40,10 +40,17 @@ public class AuthorizationProvider {
     private IdamServiceApi idamServiceApi;
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
+    @Value("${idam.test.userCleanupEnabled}")
+    private boolean testUserDeletionEnabled;
 
     public void deleteAccount(String username) {
-        log.info("Deleting test account '{}'", username);
-        idamServiceApi.deleteTestUser(username);
+
+        if (testUserDeletionEnabled) {
+            log.info("Deleting test account '{}'", username);
+            idamServiceApi.deleteTestUser(username);
+        } else {
+            log.info("Test User deletion feature flag was not enabled, user '{}' was not deleted", username);
+        }
     }
 
     public Header getServiceAuthorizationHeader() {
@@ -129,6 +136,26 @@ public class AuthorizationProvider {
         return new Headers(getServiceAuthorizationHeader());
     }
 
+    public Headers getWACaseworkerAAuthorization(String emailPrefix) {
+        /*
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
+         */
+        return new Headers(
+            getWACaseworkerAAuthorizationOnly(emailPrefix),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Header getWACaseworkerAAuthorizationOnly(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
+            new RoleCode("payments"),
+            new RoleCode("caseworker-wa"));
+        TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
+        return getAuthorization(testAccount.getUsername(), testAccount.getPassword());
+
+    }
+
     private Header getAuthorization(String username, String password) {
 
         MultiValueMap<String, String> body = createIdamRequest(username, password);
@@ -194,25 +221,5 @@ public class AuthorizationProvider {
 
         log.info("Test account created successfully");
         return new TestAccount(email, password);
-    }
-
-    public Headers getWACaseworkerAAuthorization(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        return new Headers(
-            getWACaseworkerAAuthorizationOnly(emailPrefix),
-            getServiceAuthorizationHeader()
-        );
-    }
-
-    public Header getWACaseworkerAAuthorizationOnly(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
-                                              new RoleCode("payments"),
-                                              new RoleCode("caseworker-wa"));
-        TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
-        return getAuthorization(testAccount.getUsername(), testAccount.getPassword());
-
     }
 }
