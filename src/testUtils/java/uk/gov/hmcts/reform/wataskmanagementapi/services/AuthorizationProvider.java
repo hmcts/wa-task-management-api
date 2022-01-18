@@ -40,7 +40,7 @@ public class AuthorizationProvider {
     private IdamServiceApi idamServiceApi;
     @Autowired
     private AuthTokenGenerator serviceAuthTokenGenerator;
-    @Value("${idam.test.userCleanupEnabled}")
+    @Value("${idam.test.userCleanupEnabled:false}")
     private boolean testUserDeletionEnabled;
 
     public void deleteAccount(String username) {
