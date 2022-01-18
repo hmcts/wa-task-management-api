@@ -70,6 +70,21 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
+    public TestAuthenticationCredentials getNewWaTribunalCaseworker(String emailPrefix) {
+        /*
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
+         */
+        TestAccount caseworker = getIdamWaTribunalCaseworkerCredentials(emailPrefix);
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(caseworker),
+            getServiceAuthorizationHeader()
+        );
+
+        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
+    }
+
     public TestAuthenticationCredentials getNewLawFirm() {
         /*
          * This user is used to create cases in ccd
@@ -136,6 +151,13 @@ public class AuthorizationProvider {
             new RoleCode("caseworker-ia-legalrep-solicitor"),
             new RoleCode("payments")
         );
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
+
+    private TestAccount getIdamWaTribunalCaseworkerCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
+            new RoleCode("payments"),
+            new RoleCode("caseworker-wa"));
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
