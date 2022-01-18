@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.consumer.
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -30,7 +31,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -43,7 +44,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServ
 @PactTestFor(providerName = "am_roleAssignment_queryAssignment", port = "8991")
 @ContextConfiguration(classes = {RoleAssignmentConsumerApplication.class})
 public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest {
-
 
     private final String assigneeId = "14a21569-eb80-4681-b62c-6ae2ed069e5f";
     private final String caseId = "1212121212121213";
@@ -94,7 +94,7 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentForQueryRoleAssignments")
+    @PactTestFor(pactMethod = "generatePactFragmentForQueryRoleAssignments", pactVersion = PactSpecVersion.V3)
     public void verifyQueryRoleAssignments() {
         List<RoleAssignment> queryRoleAssignmentResponse = roleAssignmentService
             .performSearch(buildQueryRequest()).getRoleAssignmentResponse();

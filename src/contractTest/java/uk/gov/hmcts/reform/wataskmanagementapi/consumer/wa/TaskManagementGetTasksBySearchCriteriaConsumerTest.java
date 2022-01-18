@@ -4,9 +4,9 @@ import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.restassured.http.ContentType;
 import net.serenitybdd.rest.SerenityRest;
@@ -19,10 +19,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
-import java.io.IOException;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -35,7 +34,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     private static final String WA_SEARCH_QUERY = "/task";
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQuery200(PactDslWithProvider builder) throws JsonProcessingException {
+    public RequestResponsePact executeSearchQuery200(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria")
             .uponReceiving("Provider receives a POST /task request from a WA API")
@@ -52,8 +51,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact testSearchQueryWithAvailableTasksOnly200(PactDslWithProvider builder) throws
-        JsonProcessingException {
+    public RequestResponsePact testSearchQueryWithAvailableTasksOnly200(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with available tasks only")
             .uponReceiving("Provider receives a POST /task request from a WA API")
@@ -70,8 +68,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
-    public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder)
-        throws JsonProcessingException {
+    public RequestResponsePact executeSearchQueryWithWorkType200(PactDslWithProvider builder) {
         return builder
             .given("appropriate tasks are returned by criteria with work-type")
             .uponReceiving("Provider receives a POST /task request from a WA API")
@@ -122,7 +119,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchQuery200")
+    @PactTestFor(pactMethod = "executeSearchQuery200", pactVersion = PactSpecVersion.V3)
     void testSearchQuery200Test(MockServer mockServer) {
         SerenityRest
             .given()
@@ -135,7 +132,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200")
+    @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200", pactVersion = PactSpecVersion.V3)
     void testSearchQueryWithAvailableTasksOnly200Test(MockServer mockServer) {
         SerenityRest
             .given()
@@ -148,7 +145,20 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200")
+    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWithWarnings200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequest())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkType200", pactVersion = PactSpecVersion.V3)
     void testSearchQueryWithWorkType200Test(MockServer mockServer) {
         SerenityRest
             .given()
@@ -161,20 +171,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWarnings200")
-    void testSearchQueryWithWarnings200Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body(createSearchEventCaseRequest())
-            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
-            .then()
-            .statusCode(HttpStatus.OK.value());
-    }
-
-    @Test
-    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200")
+    @PactTestFor(pactMethod = "executeSearchQueryWithWorkTypeWithWarnings200", pactVersion = PactSpecVersion.V3)
     void testSearchQueryWithWorkTypeWithWarnings200Test(MockServer mockServer) {
         SerenityRest
             .given()
@@ -269,20 +266,20 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     private String createSearchEventCaseRequest() {
-        String request = "";
-        request = "{\n"
-                  + "    \"search_parameters\": [\n"
-                  + "         {\n"
-                  + "             \"key\": \"jurisdiction\",\n"
-                  + "             \"operator\": \"IN\",\n"
-                  + "             \"values\":"
-                  + "                 [\n"
-                  + "                     \"IA\"\n"
-                  + "                 ]\n"
-                  + "          }\n"
-                  + "      ]\n"
-                  + "  }\n";
-        return request;
+
+        return "{\n"
+               + "    \"search_parameters\": [\n"
+               + "         {\n"
+               + "             \"key\": \"jurisdiction\",\n"
+               + "             \"operator\": \"IN\",\n"
+               + "             \"values\":"
+               + "                 [\n"
+               + "                     \"IA\"\n"
+               + "                 ]\n"
+               + "          }\n"
+               + "      ]\n"
+               + "  }\n";
+
     }
 
     private String createSearchEventCaseWithWorkTypeRequest() {
