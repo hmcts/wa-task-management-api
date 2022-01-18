@@ -354,7 +354,8 @@ public class GivensBuilder {
                                                                     String caseType,
                                                                     String startEventId,
                                                                     String submitEventId) {
-        TestAuthenticationCredentials lawFirmCredentials = authorizationProvider.getNewLawFirm();
+        TestAuthenticationCredentials lawFirmCredentials =
+            authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
         String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
