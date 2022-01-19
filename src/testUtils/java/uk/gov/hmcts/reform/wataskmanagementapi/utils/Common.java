@@ -585,6 +585,38 @@ public class Common {
             .statusCode(HttpStatus.CREATED.value());
     }
 
+    public void insertTaskInCftTaskDbWithoutWarnings(TestVariables testVariables, String taskType,
+                                                     Headers authenticationHeaders) {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        Response result = restApiActions.post(
+            TASK_INITIATION_ENDPOINT_BEING_TESTED,
+            testVariables.getTaskId(),
+            req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value());
+    }
+
     private String toJsonString(Map<String, String> attributes) {
         String json = null;
 
