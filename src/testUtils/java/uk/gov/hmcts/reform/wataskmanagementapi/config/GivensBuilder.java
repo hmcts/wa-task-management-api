@@ -341,7 +341,8 @@ public class GivensBuilder {
             "Asylum",
             "startAppeal",
             "submitAppeal",
-            lawFirmCredentials
+            lawFirmCredentials,
+            "requests/ccd/case_data.json"
         );
     }
 
@@ -352,7 +353,8 @@ public class GivensBuilder {
             "WaCaseType",
             "CREATE",
             "START_PROGRESS",
-            lawFirmCredentials
+            lawFirmCredentials,
+            "requests/ccd/wa_case_data.json"
         );
     }
 
@@ -360,7 +362,8 @@ public class GivensBuilder {
                                                                     String caseType,
                                                                     String startEventId,
                                                                     String submitEventId,
-                                                                    TestAuthenticationCredentials credentials) {
+                                                                    TestAuthenticationCredentials credentials,
+                                                                    String resourceFilename) {
 
         String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
@@ -377,12 +380,12 @@ public class GivensBuilder {
             startEventId
         );
 
-        String resourceFilename = "requests/ccd/case_data.json";
-
         Map data = null;
         try {
-            String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
+            String caseDataString = FileUtils.readFileToString(
+                ResourceUtils.getFile("classpath:" + resourceFilename),
+                "UTF-8");
+
             caseDataString = caseDataString.replace(
                 "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
                 document.getDocumentUrl()
