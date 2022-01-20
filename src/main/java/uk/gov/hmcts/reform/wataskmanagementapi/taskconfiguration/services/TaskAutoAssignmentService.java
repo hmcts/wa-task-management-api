@@ -75,29 +75,8 @@ public class TaskAutoAssignmentService {
             taskResource.setAssignee(null);
             taskResource.setState(CFTTaskState.UNASSIGNED);
         } else {
-            // the lowest assignment priority takes precedence.
-            List<TaskRoleResource> rolesList = new ArrayList<>(taskResource.getTaskRoleResources());
-            rolesList.sort(comparing(TaskRoleResource::getAssignmentPriority, nullsLast(Comparator.naturalOrder())));
 
-            Map<String, TaskRoleResource> roleResourceMap = rolesList.stream()
-                .collect(toMap(
-                    TaskRoleResource::getRoleName,
-                    taskRoleResource -> taskRoleResource,
-                    (a, b) -> b
-                ));
-
-            List<RoleAssignment> orderedRoleAssignments = orderRoleAssignments(rolesList, roleAssignments);
-            Optional<RoleAssignment> match = orderedRoleAssignments.stream()
-                .filter(roleAssignment -> {
-                    TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
-
-                    if (taskRoleResource.getAuthorizations() == null
-                        || taskRoleResource.getAuthorizations().length == 0
-                        || roleAssignment.getAuthorisations().isEmpty()) {
-                        return false;
-                    }
-                    return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
-                }).findFirst();
+            Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
 
             if (match.isPresent()) {
                 //The actorId of the role assignment selected in stage above is the IdAM ID of the user who is
@@ -113,6 +92,41 @@ public class TaskAutoAssignmentService {
         }
 
         return taskResource;
+    }
+
+    public boolean checkAssigneeIsStillValid(TaskResource taskResource, String assignee) {
+
+        List<RoleAssignment> roleAssignments = taskConfigurationRoleAssignmentService.getRolesByUserId(assignee);
+
+        Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
+        return match.isPresent();
+    }
+
+    private Optional<RoleAssignment> runRoleAssignmentAutoAssignVerification(TaskResource taskResource,
+                                                                             List<RoleAssignment> roleAssignments) {
+        // the lowest assignment priority takes precedence.
+        List<TaskRoleResource> rolesList = new ArrayList<>(taskResource.getTaskRoleResources());
+        rolesList.sort(comparing(TaskRoleResource::getAssignmentPriority, nullsLast(Comparator.naturalOrder())));
+
+        Map<String, TaskRoleResource> roleResourceMap = rolesList.stream()
+            .collect(toMap(
+                TaskRoleResource::getRoleName,
+                taskRoleResource -> taskRoleResource,
+                (a, b) -> b
+            ));
+
+        List<RoleAssignment> orderedRoleAssignments = orderRoleAssignments(rolesList, roleAssignments);
+        return orderedRoleAssignments.stream()
+            .filter(roleAssignment -> {
+                TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
+
+                if (taskRoleResource.getAuthorizations() == null
+                    || taskRoleResource.getAuthorizations().length == 0
+                    || roleAssignment.getAuthorisations().isEmpty()) {
+                    return false;
+                }
+                return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
+            }).findFirst();
     }
 
     private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {
