@@ -244,16 +244,16 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         ));
 
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(someOtherReq))
-        ).andExpectAll(
-            status().isServiceUnavailable(),
-            content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
-        );
+                .content(asJsonString(someOtherReq)))
+            .andExpectAll(
+                status().isServiceUnavailable(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            );
 
         Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);
         assertTrue(actualTask.isPresent());
@@ -283,13 +283,12 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(APPLICATION_JSON_VALUE)
-                    .content(asJsonString(req))
-            )
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
             .andDo(print())
             .andExpectAll(status().isInternalServerError());
 
@@ -355,58 +354,58 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(asJsonString(req))
-        ).andExpectAll(
-            status().isCreated(),
-            content().contentType(APPLICATION_JSON_VALUE),
-            jsonPath("$.task_id").value(taskId),
-            jsonPath("$.task_name").value("follow Up Overdue Reasons For Appeal"),
-            jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
-            jsonPath("$.state").value("UNASSIGNED"),
-            jsonPath("$.task_system").value("SELF"),
-            jsonPath("$.security_classification").value("PUBLIC"),
-            jsonPath("$.title").value("follow Up Overdue Reasons For Appeal"),
-            jsonPath("$.auto_assigned").value(false),
-            jsonPath("$.has_warnings").value("false"),
-            jsonPath("$.case_id").value("someCaseId"),
-            jsonPath("$.case_type_id").value("Asylum"),
-            jsonPath("$.case_name").value("someName"),
-            jsonPath("$.case_category").value("Protection"),
-            jsonPath("$.jurisdiction").value("IA"),
-            jsonPath("$.region").value("1"),
-            jsonPath("$.location").value("765324"),
-            jsonPath("$.location_name").value("Taylor House"),
-            jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
-            jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
-            jsonPath("$.execution_type_code.description").value(
-                "The task requires a case management event to be executed by the user. "
-                + "(Typically this will be in CCD.)"),
-            jsonPath("$.task_role_resources.[0].task_id").value(taskId),
-            jsonPath("$.task_role_resources.[0].role_name")
-                .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
-            jsonPath("$.task_role_resources.[0].read").value(true),
-            jsonPath("$.task_role_resources.[0].own").value(true),
-            jsonPath("$.task_role_resources.[0].execute").value(false),
-            jsonPath("$.task_role_resources.[0].manage").value(true),
-            jsonPath("$.task_role_resources.[0].cancel").value(true),
-            jsonPath("$.task_role_resources.[0].refer").value(true),
-            jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
-            jsonPath("$.task_role_resources.[1].task_id").value(taskId),
-            jsonPath("$.task_role_resources.[1].role_name")
-                .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
-            jsonPath("$.task_role_resources.[1].read").value(true),
-            jsonPath("$.task_role_resources.[1].own").value(true),
-            jsonPath("$.task_role_resources.[1].execute").value(false),
-            jsonPath("$.task_role_resources.[1].manage").value(true),
-            jsonPath("$.task_role_resources.[1].cancel").value(true),
-            jsonPath("$.task_role_resources.[1].refer").value(true),
-            jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
-        );
+                .content(asJsonString(req)))
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("follow Up Overdue Reasons For Appeal"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("UNASSIGNED"),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("follow Up Overdue Reasons For Appeal"),
+                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.has_warnings").value("false"),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                    + "(Typically this will be in CCD.)"),
+                jsonPath("$.task_role_resources.[0].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[0].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[0].read").value(true),
+                jsonPath("$.task_role_resources.[0].own").value(true),
+                jsonPath("$.task_role_resources.[0].execute").value(false),
+                jsonPath("$.task_role_resources.[0].manage").value(true),
+                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].refer").value(true),
+                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                jsonPath("$.task_role_resources.[1].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[1].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[1].read").value(true),
+                jsonPath("$.task_role_resources.[1].own").value(true),
+                jsonPath("$.task_role_resources.[1].execute").value(false),
+                jsonPath("$.task_role_resources.[1].manage").value(true),
+                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].refer").value(true),
+                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            );
 
     }
 
@@ -482,13 +481,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(req))
-            ).andDo(MockMvcResultHandlers.print())
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
+            .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -537,7 +536,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
     }
-
 
     @Test
     void should_return_201_with_task_assigned_when_valid_old_assignee() throws Exception {
@@ -612,13 +610,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(req))
-            ).andDo(MockMvcResultHandlers.print())
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
+            .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
@@ -744,13 +742,13 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        mockMvc.perform(
-                post(ENDPOINT_BEING_TESTED)
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .content(asJsonString(req))
-            ).andDo(MockMvcResultHandlers.print())
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
+            .andDo(MockMvcResultHandlers.print())
             .andExpectAll(
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
