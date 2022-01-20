@@ -251,7 +251,8 @@ class TaskManagementServiceTest extends
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
-            when(accessControlResponse.getRoleAssignments()).thenReturn(singletonList(RoleAssignmentMother.complete().build()));
+            when(accessControlResponse.getRoleAssignments())
+                .thenReturn(singletonList(RoleAssignmentMother.complete().build()));
             TaskResource taskResource = spy(TaskResource.class);
             when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(READ)))
                 .thenReturn(Optional.of(taskResource));

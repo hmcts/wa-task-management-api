@@ -316,7 +316,8 @@ public class CFTTaskMapper {
                 }
 
                 Integer assignmentPriority = null;
-                if (permission.getAssignmentPriority() != null && permission.getAssignmentPriority().getValue() != null) {
+                if (permission.getAssignmentPriority() != null
+                    && permission.getAssignmentPriority().getValue() != null) {
                     assignmentPriority = permission.getAssignmentPriority().getValue();
                 }
                 boolean autoAssignable = false;

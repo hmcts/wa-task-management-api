@@ -14,6 +14,10 @@ import java.util.UUID;
 import static java.util.Collections.singletonList;
 
 public class RoleAssignmentMother {
+    private RoleAssignmentMother() {
+        //Hidden constructor
+    }
+
     public static RoleAssignment.RoleAssignmentBuilder complete() {
         return RoleAssignment.builder()
             .id(UUID.randomUUID().toString())
