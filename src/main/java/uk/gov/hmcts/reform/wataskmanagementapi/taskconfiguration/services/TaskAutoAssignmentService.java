@@ -83,6 +83,7 @@ public class TaskAutoAssignmentService {
                 //to be assigned the task.
                 taskResource.setAssignee(match.get().getActorId());
                 taskResource.setState(CFTTaskState.ASSIGNED);
+                taskResource.setAutoAssigned(true);
             } else {
                 //If stage above produces an empty result of matching role assignment, then the task is
                 //to be left unassigned.

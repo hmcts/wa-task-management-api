@@ -7,7 +7,6 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -65,6 +64,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
@@ -141,18 +141,17 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isForbidden(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type")
-                    .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
-                jsonPath("$.title").value("Forbidden"),
-                jsonPath("$.status").value(403),
-                jsonPath("$.detail").value(
-                    "Forbidden: The action could not be completed because the client/user "
-                    + "had insufficient rights to a resource.")
-            ));
+        ).andExpectAll(
+            status().isForbidden(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+            jsonPath("$.type")
+                .value("https://github.com/hmcts/wa-task-management-api/problem/forbidden"),
+            jsonPath("$.title").value("Forbidden"),
+            jsonPath("$.status").value(403),
+            jsonPath("$.detail").value(
+                "Forbidden: The action could not be completed because the client/user "
+                + "had insufficient rights to a resource.")
+        );
     }
 
     @Test
@@ -223,11 +222,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                         .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(asJsonString(req))
-                ).andExpect(
-                    ResultMatcher.matchAll(
-                        status().isCreated(),
-                        content().contentType(APPLICATION_JSON_VALUE)
-                    ));
+                ).andExpectAll(
+                    status().isCreated(),
+                    content().contentType(APPLICATION_JSON_VALUE)
+                );
             } catch (Exception e) {
                 fail();
             }
@@ -252,11 +250,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(someOtherReq))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isServiceUnavailable(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            ));
+        ).andExpectAll(
+            status().isServiceUnavailable(),
+            content().contentType(APPLICATION_PROBLEM_JSON_VALUE)
+        );
 
         Optional<TaskResource> actualTask = taskResourceRepository.getByTaskId(taskId);
         assertTrue(actualTask.isPresent());
@@ -294,7 +291,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .content(asJsonString(req))
             )
             .andDo(print())
-            .andExpect(ResultMatcher.matchAll(status().isInternalServerError()));
+            .andExpectAll(status().isInternalServerError());
 
         assertFalse(taskResourceRepository.getByTaskId(taskId).isPresent());
     }
@@ -364,56 +361,54 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(req))
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().isCreated(),
-                content().contentType(APPLICATION_JSON_VALUE),
-                jsonPath("$.task_id").value(taskId),
-                jsonPath("$.task_name").value("follow Up Overdue Reasons For Appeal"),
-                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
-                jsonPath("$.state").value("UNASSIGNED"),
-                jsonPath("$.task_system").value("SELF"),
-                jsonPath("$.security_classification").value("PUBLIC"),
-                jsonPath("$.title").value("follow Up Overdue Reasons For Appeal"),
-                jsonPath("$.auto_assigned").value(false),
-                jsonPath("$.has_warnings").value("false"),
-                jsonPath("$.case_id").value("someCaseId"),
-                jsonPath("$.case_type_id").value("Asylum"),
-                jsonPath("$.case_name").value("someName"),
-                jsonPath("$.case_category").value("Protection"),
-                jsonPath("$.jurisdiction").value("IA"),
-                jsonPath("$.region").value("1"),
-                jsonPath("$.location").value("765324"),
-                jsonPath("$.location_name").value("Taylor House"),
-                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
-                jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
-                jsonPath("$.execution_type_code.description").value(
-                    "The task requires a case management event to be executed by the user. "
-                    + "(Typically this will be in CCD.)"),
-                jsonPath("$.task_role_resources.[0].task_id").value(taskId),
-                jsonPath("$.task_role_resources.[0].role_name")
-                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
-                jsonPath("$.task_role_resources.[0].read").value(true),
-                jsonPath("$.task_role_resources.[0].own").value(true),
-                jsonPath("$.task_role_resources.[0].execute").value(false),
-                jsonPath("$.task_role_resources.[0].manage").value(true),
-                jsonPath("$.task_role_resources.[0].cancel").value(true),
-                jsonPath("$.task_role_resources.[0].refer").value(true),
-                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
-                jsonPath("$.task_role_resources.[1].task_id").value(taskId),
-                jsonPath("$.task_role_resources.[1].role_name")
-                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
-                jsonPath("$.task_role_resources.[1].read").value(true),
-                jsonPath("$.task_role_resources.[1].own").value(true),
-                jsonPath("$.task_role_resources.[1].execute").value(false),
-                jsonPath("$.task_role_resources.[1].manage").value(true),
-                jsonPath("$.task_role_resources.[1].cancel").value(true),
-                jsonPath("$.task_role_resources.[1].refer").value(true),
-                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
-            ));
+        ).andExpectAll(
+            status().isCreated(),
+            content().contentType(APPLICATION_JSON_VALUE),
+            jsonPath("$.task_id").value(taskId),
+            jsonPath("$.task_name").value("follow Up Overdue Reasons For Appeal"),
+            jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+            jsonPath("$.state").value("UNASSIGNED"),
+            jsonPath("$.task_system").value("SELF"),
+            jsonPath("$.security_classification").value("PUBLIC"),
+            jsonPath("$.title").value("follow Up Overdue Reasons For Appeal"),
+            jsonPath("$.auto_assigned").value(false),
+            jsonPath("$.has_warnings").value("false"),
+            jsonPath("$.case_id").value("someCaseId"),
+            jsonPath("$.case_type_id").value("Asylum"),
+            jsonPath("$.case_name").value("someName"),
+            jsonPath("$.case_category").value("Protection"),
+            jsonPath("$.jurisdiction").value("IA"),
+            jsonPath("$.region").value("1"),
+            jsonPath("$.location").value("765324"),
+            jsonPath("$.location_name").value("Taylor House"),
+            jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+            jsonPath("$.execution_type_code.execution_name").value("Case Management Task"),
+            jsonPath("$.execution_type_code.description").value(
+                "The task requires a case management event to be executed by the user. "
+                + "(Typically this will be in CCD.)"),
+            jsonPath("$.task_role_resources.[0].task_id").value(taskId),
+            jsonPath("$.task_role_resources.[0].role_name")
+                .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+            jsonPath("$.task_role_resources.[0].read").value(true),
+            jsonPath("$.task_role_resources.[0].own").value(true),
+            jsonPath("$.task_role_resources.[0].execute").value(false),
+            jsonPath("$.task_role_resources.[0].manage").value(true),
+            jsonPath("$.task_role_resources.[0].cancel").value(true),
+            jsonPath("$.task_role_resources.[0].refer").value(true),
+            jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+            jsonPath("$.task_role_resources.[1].task_id").value(taskId),
+            jsonPath("$.task_role_resources.[1].role_name")
+                .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+            jsonPath("$.task_role_resources.[1].read").value(true),
+            jsonPath("$.task_role_resources.[1].own").value(true),
+            jsonPath("$.task_role_resources.[1].execute").value(false),
+            jsonPath("$.task_role_resources.[1].manage").value(true),
+            jsonPath("$.task_role_resources.[1].cancel").value(true),
+            jsonPath("$.task_role_resources.[1].refer").value(true),
+            jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+        );
 
     }
-
 
     @Test
     void should_return_201_with_task_assigned() throws Exception {
@@ -494,54 +489,317 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
                     .content(asJsonString(req))
             ).andDo(MockMvcResultHandlers.print())
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isCreated(),
-                    content().contentType(APPLICATION_JSON_VALUE),
-                    jsonPath("$.task_id").value(taskId),
-                    jsonPath("$.task_name").value("aTaskName"),
-                    jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
-                    jsonPath("$.state").value("ASSIGNED"),
-                    jsonPath("$.task_system").value("SELF"),
-                    jsonPath("$.security_classification").value("PUBLIC"),
-                    jsonPath("$.title").value("aTaskName"),
-                    jsonPath("$.auto_assigned").value(false),
-                    jsonPath("$.has_warnings").value("false"),
-                    jsonPath("$.case_id").value("someCaseId"),
-                    jsonPath("$.case_type_id").value("Asylum"),
-                    jsonPath("$.case_name").value("someName"),
-                    jsonPath("$.case_category").value("Protection"),
-                    jsonPath("$.jurisdiction").value("IA"),
-                    jsonPath("$.region").value("1"),
-                    jsonPath("$.location").value("765324"),
-                    jsonPath("$.location_name").value("Taylor House"),
-                    jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
-                    jsonPath("$.execution_type_code.execution_name")
-                        .value("Case Management Task"),
-                    jsonPath("$.execution_type_code.description").value(
-                        "The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)"),
-                    jsonPath("$.task_role_resources.[0].task_id").value(taskId),
-                    jsonPath("$.task_role_resources.[0].role_name")
-                        .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
-                    jsonPath("$.task_role_resources.[0].read").value(true),
-                    jsonPath("$.task_role_resources.[0].own").value(true),
-                    jsonPath("$.task_role_resources.[0].execute").value(false),
-                    jsonPath("$.task_role_resources.[0].manage").value(true),
-                    jsonPath("$.task_role_resources.[0].cancel").value(true),
-                    jsonPath("$.task_role_resources.[0].refer").value(true),
-                    jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
-                    jsonPath("$.task_role_resources.[1].task_id").value(taskId),
-                    jsonPath("$.task_role_resources.[1].role_name")
-                        .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
-                    jsonPath("$.task_role_resources.[1].read").value(true),
-                    jsonPath("$.task_role_resources.[1].own").value(true),
-                    jsonPath("$.task_role_resources.[1].execute").value(false),
-                    jsonPath("$.task_role_resources.[1].manage").value(true),
-                    jsonPath("$.task_role_resources.[1].cancel").value(true),
-                    jsonPath("$.task_role_resources.[1].refer").value(true),
-                    jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
-                ));
+            .andExpectAll(
+
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.has_warnings").value("false"),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name")
+                    .value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                    + "(Typically this will be in CCD.)"),
+                jsonPath("$.task_role_resources.[0].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[0].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[0].read").value(true),
+                jsonPath("$.task_role_resources.[0].own").value(true),
+                jsonPath("$.task_role_resources.[0].execute").value(false),
+                jsonPath("$.task_role_resources.[0].manage").value(true),
+                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].refer").value(true),
+                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                jsonPath("$.task_role_resources.[1].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[1].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[1].read").value(true),
+                jsonPath("$.task_role_resources.[1].own").value(true),
+                jsonPath("$.task_role_resources.[1].execute").value(false),
+                jsonPath("$.task_role_resources.[1].manage").value(true),
+                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].refer").value(true),
+                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            );
+    }
+
+
+    @Test
+    void should_return_201_with_task_assigned_when_valid_old_assignee() throws Exception {
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+            ));
+
+        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("IA,WA"),
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(
+                Collections.singletonList(RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("someAssignee")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(asList("IA"))
+                    .build())));
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andDo(MockMvcResultHandlers.print())
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.assignee").value("someAssignee"),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.has_warnings").value("false"),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name")
+                    .value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                    + "(Typically this will be in CCD.)"),
+                jsonPath("$.task_role_resources.[0].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[0].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[0].read").value(true),
+                jsonPath("$.task_role_resources.[0].own").value(true),
+                jsonPath("$.task_role_resources.[0].execute").value(false),
+                jsonPath("$.task_role_resources.[0].manage").value(true),
+                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].refer").value(true),
+                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                jsonPath("$.task_role_resources.[1].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[1].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[1].read").value(true),
+                jsonPath("$.task_role_resources.[1].own").value(true),
+                jsonPath("$.task_role_resources.[1].execute").value(false),
+                jsonPath("$.task_role_resources.[1].manage").value(true),
+                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].refer").value(true),
+                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            );
+    }
+
+    @Test
+    void should_return_201_with_task_assigned_when_invalid_old_assignee_auto_assign_case() throws Exception {
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+            ));
+
+        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("IA,WA"),
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    null,
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(
+                Collections.singletonList(RoleAssignment.builder()
+                    .id("someId")
+                    .actorIdType(ActorIdType.IDAM)
+                    .actorId("anotherAssignee")
+                    .roleName("tribunal-caseworker")
+                    .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+                    .grantType(GrantType.SPECIFIC)
+                    .roleType(RoleType.ORGANISATION)
+                    .classification(Classification.PUBLIC)
+                    .authorisations(asList("IA"))
+                    .build())));
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        mockMvc.perform(
+                post(ENDPOINT_BEING_TESTED)
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(asJsonString(req))
+            ).andDo(MockMvcResultHandlers.print())
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.assignee").value("anotherAssignee"),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.auto_assigned").value(true),
+                jsonPath("$.has_warnings").value(false),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name")
+                    .value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                    + "(Typically this will be in CCD.)"),
+                jsonPath("$.task_role_resources.[0].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[0].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[0].read").value(true),
+                jsonPath("$.task_role_resources.[0].own").value(true),
+                jsonPath("$.task_role_resources.[0].execute").value(false),
+                jsonPath("$.task_role_resources.[0].manage").value(true),
+                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].refer").value(true),
+                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                jsonPath("$.task_role_resources.[1].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[1].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[1].read").value(true),
+                jsonPath("$.task_role_resources.[1].own").value(true),
+                jsonPath("$.task_role_resources.[1].execute").value(false),
+                jsonPath("$.task_role_resources.[1].manage").value(true),
+                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].refer").value(true),
+                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            );
     }
 }
 
