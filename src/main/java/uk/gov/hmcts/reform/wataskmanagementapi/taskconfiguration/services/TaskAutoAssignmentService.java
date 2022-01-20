@@ -120,13 +120,16 @@ public class TaskAutoAssignmentService {
         return orderedRoleAssignments.stream()
             .filter(roleAssignment -> {
                 TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
-
-                if (taskRoleResource.getAuthorizations() == null
-                    || taskRoleResource.getAuthorizations().length == 0
-                    || roleAssignment.getAuthorisations().isEmpty()) {
+                if (taskRoleResource == null
+                    || taskRoleResource.getAuthorizations() == null
+                    || taskRoleResource.getAuthorizations().length == 0) {
                     return false;
+                } else if (roleAssignment.getAuthorisations() == null
+                           || roleAssignment.getAuthorisations().isEmpty()) {
+                    return false;
+                } else {
+                    return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
                 }
-                return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
             }).findFirst();
     }
 

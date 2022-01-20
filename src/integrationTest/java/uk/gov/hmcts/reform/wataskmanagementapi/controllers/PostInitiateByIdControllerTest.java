@@ -490,7 +490,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .content(asJsonString(req))
             ).andDo(MockMvcResultHandlers.print())
             .andExpectAll(
-
                 status().isCreated(),
                 content().contentType(APPLICATION_JSON_VALUE),
                 jsonPath("$.task_id").value(taskId),
@@ -500,7 +499,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_system").value("SELF"),
                 jsonPath("$.security_classification").value("PUBLIC"),
                 jsonPath("$.title").value("aTaskName"),
-                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.auto_assigned").value(true),
                 jsonPath("$.has_warnings").value("false"),
                 jsonPath("$.case_id").value("someCaseId"),
                 jsonPath("$.case_type_id").value("Asylum"),
