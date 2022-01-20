@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -130,7 +131,13 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
-            return cftTaskMapper.mapToTask(taskResource);
+            Set<PermissionTypes> permissionsUnionForUser =
+                cftTaskMapper.extractUnionOfPermissionsForUser(
+                    taskResource.getTaskRoleResources(),
+                    accessControlResponse.getRoleAssignments()
+                );
+
+            return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
@@ -691,8 +698,8 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
-            cftTaskMapper::mapToTaskRolePermissions)
+        return taskResourceQueryResult.get().getTaskRoleResources().stream()
+            .map(cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );
