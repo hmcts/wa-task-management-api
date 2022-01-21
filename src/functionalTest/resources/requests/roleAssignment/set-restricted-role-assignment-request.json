@@ -10,7 +10,9 @@
       "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "CASE",
       "attributes": {
-        "caseId": "{CASE_ID_PLACEHOLDER}"
+        "caseId": "{CASE_ID_PLACEHOLDER}",
+        "caseType": "Asylum",
+        "jurisdiction": "IA"
       }
     }
   ],
