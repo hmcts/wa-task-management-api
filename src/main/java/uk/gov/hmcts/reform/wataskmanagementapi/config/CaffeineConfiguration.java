@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Ticker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -21,9 +22,21 @@ public class CaffeineConfiguration {
     private TimeUnit cacheDurationUnit;
 
     @Bean
-    public CacheManager cacheManager() {
+    public Ticker ticker() {
+        return Ticker.systemTicker();
+    }
+
+    @Bean
+    public Caffeine<Object, Object> caffeineConfig(Ticker ticker) {
+        return Caffeine.newBuilder()
+            .expireAfterWrite(cacheDuration, cacheDurationUnit)
+            .ticker(ticker);
+    }
+
+    @Bean
+    public CacheManager cacheManager(Caffeine<Object, Object> caffeine) {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCaffeine(Caffeine.newBuilder().expireAfterWrite(cacheDuration, cacheDurationUnit));
+        caffeineCacheManager.setCaffeine(caffeine);
         return caffeineCacheManager;
     }
 }
