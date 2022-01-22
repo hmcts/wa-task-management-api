@@ -639,7 +639,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -680,7 +681,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -805,7 +807,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -845,7 +848,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
