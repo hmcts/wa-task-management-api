@@ -148,7 +148,7 @@ public class IdamTokenGeneratorCacheTest {
         }
 
         /**
-         * Helper method to generate random values for bearer tokens to guarantee uniqueness between tests
+         * Helper method to generate random values for bearer tokens to guarantee uniqueness between tests.
          *
          * @return a random bearer token value as a string
          */
@@ -196,7 +196,6 @@ public class IdamTokenGeneratorCacheTest {
 
             verify(idamWebApi, times(1)).token(request);
         }
-
 
         @Test
         void given_repeated_calls__and_different_users_it_should_cache_bearer_tokens_based_on_username() {
