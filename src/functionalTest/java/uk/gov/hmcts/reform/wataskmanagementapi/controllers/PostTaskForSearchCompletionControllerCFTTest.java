@@ -102,7 +102,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .statusCode(HttpStatus.OK.value())
                 .contentType(APPLICATION_JSON_VALUE)
                 .body("tasks.size()", equalTo(1))
-                .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
+                .body("tasks[0].permissions.values", hasItems("Read","Refer","Own"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
                 .body("tasks[0].work_type_id", equalTo(scenario.workTypeId))
                 .body("tasks[0].role_category", equalTo(scenario.roleCategory));
@@ -260,7 +260,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"))
             .body("tasks[0].description", equalTo(
                 "[Request respondent evidence](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/requestRespondentEvidence)"
             ))
