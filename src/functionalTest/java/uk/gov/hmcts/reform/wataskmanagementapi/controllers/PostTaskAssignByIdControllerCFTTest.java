@@ -181,7 +181,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+                "Role Assignment Verification: "
+                + "The user assigning the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -213,7 +214,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
             .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+                "Role Assignment Verification: "
+                + "The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
