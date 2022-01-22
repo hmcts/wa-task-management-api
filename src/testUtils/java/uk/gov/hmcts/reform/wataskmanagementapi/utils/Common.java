@@ -224,7 +224,7 @@ public class Common {
         // return taskId
         return response;
     }
-    
+
     public TestVariables setupWATaskAndRetrieveIds() {
 
         String caseId = given.iCreateWACcdCase();
@@ -341,7 +341,7 @@ public class Common {
 
     }
 
-    public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName) {
+    public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName, String jurisdictionId) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -349,7 +349,7 @@ public class Common {
             "primaryLocation", "765324",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", "IA"
+            "jurisdiction", jurisdictionId
         );
 
         //Clean/Reset user
@@ -368,7 +368,7 @@ public class Common {
         );
     }
 
-    public void setupCFTOrganisationalRoleAssignment(Headers headers) {
+    public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdictionId) {
 
         UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -377,7 +377,7 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", "IA"
+            "jurisdiction", jurisdictionId
         );
 
         //Clean/Reset user
@@ -397,7 +397,7 @@ public class Common {
 
     }
 
-    public void setupCFTOrganisationalWithMultipleRoles(Headers headers) {
+    public void setupCFTOrganisationalWithMultipleRoles(Headers headers, String jurisdictionId) {
 
         UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -406,7 +406,7 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", "IA"
+            "jurisdiction", jurisdictionId
         );
 
         //Clean/Reset user

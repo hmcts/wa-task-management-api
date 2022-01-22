@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
+package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -45,7 +45,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationHeadersProvider.getWACaseworkerAAuthorization("wa-ft-test-r2-");
     }
 
     @Test
@@ -53,7 +53,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -75,10 +75,10 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -86,11 +86,11 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
+            new TaskAttribute(TASK_TYPE, "processApplication"),
+            new TaskAttribute(TASK_NAME, "process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_TITLE, "process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -137,7 +137,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

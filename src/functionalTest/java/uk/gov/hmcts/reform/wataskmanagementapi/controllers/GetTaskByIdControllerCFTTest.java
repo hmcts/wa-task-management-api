@@ -70,7 +70,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
@@ -419,7 +419,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds("reviewTheAppeal");
         String taskId = taskVariables1.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
 
         initiateTaskWithWarnings(taskVariables1, "reviewTheAppeal");
 

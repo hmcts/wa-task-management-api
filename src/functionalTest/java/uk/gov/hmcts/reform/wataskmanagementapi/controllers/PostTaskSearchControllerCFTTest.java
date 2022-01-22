@@ -118,7 +118,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariablesForTask1, "followUpOverdueReasonsForAppeal", headers);
         common.insertTaskInCftTaskDb(taskVariablesForTask2, "followUpOverdueReasonsForAppeal", headers);
@@ -182,7 +182,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
@@ -359,7 +359,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
@@ -429,7 +429,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
@@ -508,7 +508,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("17595"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -542,7 +542,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
@@ -586,7 +586,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
@@ -763,7 +763,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
 
@@ -803,7 +803,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "decideOnTimeExtension", headers);
 
@@ -835,7 +835,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueCaseBuilding", headers);
 
@@ -868,7 +868,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         // insert task in CftTaskDb
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
@@ -904,7 +904,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         // insert task in CftTaskDb
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
@@ -938,7 +938,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
@@ -1020,7 +1020,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType = "reviewTheAppeal";
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
 
@@ -1046,7 +1046,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         final String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
@@ -1123,7 +1123,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
@@ -1158,7 +1158,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
@@ -1194,7 +1194,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(headers, "IA");
 
         common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
 
@@ -1280,7 +1280,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalWithMultipleRoles(headers);
+        common.setupCFTOrganisationalWithMultipleRoles(headers, "IA");
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
@@ -1328,7 +1328,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalWithMultipleRoles(headers);
+        common.setupCFTOrganisationalWithMultipleRoles(headers, "IA");
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
@@ -1376,7 +1376,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalWithMultipleRoles(headers);
+        common.setupCFTOrganisationalWithMultipleRoles(headers, "IA");
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),

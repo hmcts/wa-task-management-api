@@ -42,7 +42,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
