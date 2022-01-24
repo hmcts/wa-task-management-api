@@ -768,7 +768,7 @@ class TaskManagementServiceTest extends
         }
 
         @Test
-        void assignTask_should_throw_role_assignment_verification_exception_when_assigner_has_access_returns_false() {
+        void assignTask_should_throw_role_assignment_verification_exception_when_assignee_has_access_returns_false() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
 
             UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
@@ -815,7 +815,7 @@ class TaskManagementServiceTest extends
 
 
         @Test
-        void assignTask_should_throw_role_assignment_verification_exception_when_assignee_has_access_returns_false() {
+        void assignTask_should_throw_role_assignment_verification_exception_when_assigner_has_access_returns_false() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
             UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             lenient().when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
