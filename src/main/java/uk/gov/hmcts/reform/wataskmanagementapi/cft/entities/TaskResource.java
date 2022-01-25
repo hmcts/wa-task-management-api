@@ -163,6 +163,7 @@ public class TaskResource implements Serializable {
         this.state = state;
         this.dueDateTime = dueDateTime;
     }
+
     public TaskResource(String taskId,
                         String taskName,
                         String taskType,
