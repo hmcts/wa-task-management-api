@@ -63,12 +63,19 @@ public final class TaskResourceSpecification {
         List<PermissionTypes> permissionsRequired
     ) {
 
-        final Specification<TaskResource> constrainsSpec = buildApplicationConstraints(searchTaskRequest);
-
         boolean andPermissions = isAvailableTasksOnly(searchTaskRequest);
+        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
+
         if (andPermissions) {
             permissionsRequired.add(PermissionTypes.OWN);
         }
+
+        log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
+        log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
+
+        final Specification<TaskResource> constrainsSpec =
+            buildApplicationConstraints(searchTaskRequest, availableTasksOnly);
+
         final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
             permissionsRequired, accessControlResponse, andPermissions);
 
@@ -103,11 +110,10 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
     }
 
-    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
+    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest,
+                                                                           boolean availableTasksOnly) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
-        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
-        log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
 
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
