@@ -83,6 +83,16 @@ public class AuthorizationHeadersProvider {
     }
 
 
+    public Headers getJudgeAuthorization(String emailPrefix) {
+        /*
+         * This user is used to create cases in ccd
+         */
+        return new Headers(
+            getJudgeAuthorizationOnly(emailPrefix),
+            getServiceAuthorizationHeader()
+        );
+    }
+
     public Header getCaseworkerAAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
@@ -98,6 +108,13 @@ public class AuthorizationHeadersProvider {
     public Header getLawFirmAuthorizationOnly() {
 
         TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
+        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
+
+    }
+
+    public Header getJudgeAuthorizationOnly(String emailPrefix) {
+
+        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
         return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }
@@ -134,6 +151,14 @@ public class AuthorizationHeadersProvider {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
             new RoleCode("caseworker-ia-legalrep-solicitor"),
             new RoleCode("payments")
+        );
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
+
+    private TestAccount getIdamJudgeCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
+                                              new RoleCode("caseworker-ia-judiciary"),
+                                              new RoleCode("payments")
         );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }

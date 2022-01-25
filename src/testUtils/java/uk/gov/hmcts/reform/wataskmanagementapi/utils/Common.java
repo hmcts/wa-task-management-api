@@ -224,7 +224,7 @@ public class Common {
         // return taskId
         return response;
     }
-    
+
     public TestVariables setupWATaskAndRetrieveIds() {
 
         String caseId = given.iCreateWACcdCase();
@@ -308,7 +308,9 @@ public class Common {
             userInfo,
             roleName,
             toJsonString(attributes),
-            "requests/roleAssignment/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
     }
 
@@ -336,7 +338,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
 
     }
@@ -364,7 +368,9 @@ public class Common {
             userInfo,
             roleName,
             toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
     }
 
@@ -392,7 +398,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
 
     }
@@ -421,7 +429,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
 
         postRoleAssignment(
@@ -431,7 +441,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
 
     }
@@ -461,7 +473,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
     }
 
@@ -489,8 +503,41 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/set-organisational-role-assignment-request-without-end-date.json"
+            "requests/roleAssignment/set-organisational-role-assignment-request-without-end-date.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
+    }
+
+    public void setupCFTJudicialOrganisationalRoleAssignment(Headers headers, String grantType) {
+
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "jurisdiction", "IA"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "judge",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request-for-judicial.json",
+            grantType,
+            "JUDICIAL"
+        );
+
     }
 
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
@@ -509,7 +556,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
     }
 
@@ -534,7 +583,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
 
         //Creates a restricted role for a particular ccdId
@@ -546,7 +597,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             null,
-            "requests/roleAssignment/set-restricted-role-assignment-request.json"
+            "requests/roleAssignment/set-restricted-role-assignment-request.json",
+            "SPECIFIC",
+            "LEGAL_OPERATIONS"
         );
     }
 
@@ -603,11 +656,13 @@ public class Common {
                                     UserInfo userInfo,
                                     String roleName,
                                     String attributes,
-                                    String resourceFilename) {
+                                    String resourceFilename,
+                                    String grantType,
+                                    String roleCategory) {
 
         try {
             roleAssignmentServiceApi.createRoleAssignment(
-                getBody(caseId, userInfo, roleName, resourceFilename, attributes),
+                getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
                 bearerUserToken,
                 s2sToken
             );
@@ -668,7 +723,9 @@ public class Common {
                            final UserInfo userInfo,
                            final String roleName,
                            final String resourceFilename,
-                           final String attributes) {
+                           final String attributes,
+                           final String grantType,
+                           String roleCategory) {
         String assignmentRequestBody = null;
         try {
             assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile(
@@ -677,8 +734,10 @@ public class Common {
             assignmentRequestBody = assignmentRequestBody.replace("{ACTOR_ID_PLACEHOLDER}", userInfo.getUid());
             assignmentRequestBody = assignmentRequestBody.replace("{ASSIGNER_ID_PLACEHOLDER}", userInfo.getUid());
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);
+            assignmentRequestBody = assignmentRequestBody.replace("{GRANT_TYPE}", grantType);
+            assignmentRequestBody = assignmentRequestBody.replace("{ROLE_CATEGORY}", roleCategory);
             if (attributes != null) {
-                assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
+                assignmentRequestBody = assignmentRequestBody.replace("{ATTRIBUTES_PLACEHOLDER}", attributes);
             }
             if (caseId != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("{CASE_ID_PLACEHOLDER}", caseId);
