@@ -153,8 +153,7 @@ public class CFTTaskMapper {
         return taskResource;
     }
 
-    public Task mapToTask(TaskResource taskResource) {
-        Set<PermissionTypes> permissionsUnion = extractUnionOfPermissions(taskResource.getTaskRoleResources());
+    public Task mapToTaskWithPermissions(TaskResource taskResource, Set<PermissionTypes> permissionsUnionForUser) {
         return new Task(
             taskResource.getTaskId(),
             taskResource.getTaskName(),
@@ -180,10 +179,20 @@ public class CFTTaskMapper {
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory(),
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
-            new TaskPermissions(permissionsUnion),
+            new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription()
         );
+    }
+
+
+    public Task mapToTaskAndExtractPermissionsUnion(TaskResource taskResource, List<RoleAssignment> roleAssignments) {
+        Set<PermissionTypes> permissionsUnionForUser =
+            extractUnionOfPermissionsForUser(
+                taskResource.getTaskRoleResources(),
+                roleAssignments
+            );
+        return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
 
     @SuppressWarnings("unchecked")
@@ -210,9 +219,25 @@ public class CFTTaskMapper {
         });
     }
 
-    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
-        return workTypeId == null ? null : new WorkTypeResource(workTypeId);
+    public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
+                                                                 List<RoleAssignment> roleAssignments) {
+
+        List<String> userRoleNames = roleAssignments.stream()
+            .map(RoleAssignment::getRoleName)
+            .collect(Collectors.toList());
+
+        TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
+
+        if (taskRoleResources != null) {
+            taskRoleResources.forEach(taskRoleResource -> {
+                if (userRoleNames.contains(taskRoleResource.getRoleName())) {
+                    Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(taskRoleResource);
+                    permissionsFound.addAll(permissionTypes);
+                }
+            });
+        }
+
+        return permissionsFound;
     }
 
     public TaskRolePermissions mapToTaskRolePermissions(TaskRoleResource taskRoleResource) {
@@ -227,83 +252,100 @@ public class CFTTaskMapper {
             authorisations);
     }
 
+    private Set<PermissionTypes> evaluatePermissionsFoundAndCollectResults(TaskRoleResource taskRoleResource) {
+        Set<PermissionTypes> accumulator = new HashSet<>();
+        if (taskRoleResource.getRead()) {
+            accumulator.add(PermissionTypes.READ);
+        }
+        if (taskRoleResource.getManage()) {
+            accumulator.add(PermissionTypes.MANAGE);
+        }
+        if (taskRoleResource.getExecute()) {
+            accumulator.add(PermissionTypes.EXECUTE);
+        }
+        if (taskRoleResource.getCancel()) {
+            accumulator.add(PermissionTypes.CANCEL);
+        }
+        if (taskRoleResource.getOwn()) {
+            accumulator.add(PermissionTypes.OWN);
+        }
+        if (taskRoleResource.getRefer()) {
+            accumulator.add(PermissionTypes.REFER);
+        }
+        return accumulator;
+    }
+
+    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
+        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
+        return workTypeId == null ? null : new WorkTypeResource(workTypeId);
+    }
+
     private Set<PermissionTypes> extractUnionOfPermissions(Set<TaskRoleResource> taskRoleResources) {
         //Using TreeSet to benefit from SortedSet
         TreeSet<PermissionTypes> permissionsFound = new TreeSet<>();
         if (taskRoleResources != null) {
-            taskRoleResources.forEach(taskRoleResource -> {
-                if (taskRoleResource.getRead()) {
-                    permissionsFound.add(PermissionTypes.READ);
+            taskRoleResources.forEach(
+                taskRoleResource -> {
+                    Set<PermissionTypes> permissionTypes = evaluatePermissionsFoundAndCollectResults(taskRoleResource);
+                    permissionsFound.addAll(permissionTypes);
                 }
-                if (taskRoleResource.getManage()) {
-                    permissionsFound.add(PermissionTypes.MANAGE);
-                }
-                if (taskRoleResource.getExecute()) {
-                    permissionsFound.add(PermissionTypes.EXECUTE);
-                }
-                if (taskRoleResource.getCancel()) {
-                    permissionsFound.add(PermissionTypes.CANCEL);
-                }
-                if (taskRoleResource.getOwn()) {
-                    permissionsFound.add(PermissionTypes.OWN);
-                }
-                if (taskRoleResource.getRefer()) {
-                    permissionsFound.add(PermissionTypes.REFER);
-                }
-            });
+            );
         }
         return permissionsFound;
     }
 
     private Set<TaskRoleResource> mapPermissions(
-        List<PermissionsDmnEvaluationResponse> permissions, TaskResource taskResource
+        List<PermissionsDmnEvaluationResponse> permissions,
+        TaskResource taskResource
     ) {
 
-        return permissions.stream().map(permission -> {
+        return permissions.stream()
+            .map(permission -> {
+                Objects.requireNonNull(permission.getName(), "Permissions name cannot be null");
+                Objects.requireNonNull(permission.getValue(), "Permissions value cannot be null");
+                final String roleName = permission.getName().getValue();
+                final String permissionsValue = permission.getValue().getValue();
 
-            Objects.requireNonNull(permission.getName(), "Permissions name cannot be null");
-            Objects.requireNonNull(permission.getValue(), "Permissions value cannot be null");
-            final String roleName = permission.getName().getValue();
-            final String permissionsValue = permission.getValue().getValue();
+                final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
+                    .map(p -> PermissionTypes.from(p).orElse(null))
+                    .collect(Collectors.toSet());
 
-            final Set<PermissionTypes> permissionsFound = Arrays.stream(permissionsValue.split(","))
-                .map(p -> PermissionTypes.from(p).orElse(null))
-                .collect(Collectors.toSet());
-            List<String> authorisations = new ArrayList<>();
-            if (permission.getAuthorisations() != null && permission.getAuthorisations().getValue() != null) {
-                authorisations.addAll(asList(permission.getAuthorisations().getValue().split(",")));
-            }
+                List<String> authorisations = new ArrayList<>();
+                if (permission.getAuthorisations() != null && permission.getAuthorisations().getValue() != null) {
+                    authorisations.addAll(asList(permission.getAuthorisations().getValue().split(",")));
+                }
 
-            Integer assignmentPriority = null;
-            if (permission.getAssignmentPriority() != null && permission.getAssignmentPriority().getValue() != null) {
-                assignmentPriority = permission.getAssignmentPriority().getValue();
-            }
-            boolean autoAssignable = false;
-            if (permission.getAutoAssignable() != null && permission.getAutoAssignable().getValue() != null) {
-                autoAssignable = Boolean.TRUE.equals(permission.getAutoAssignable().getValue());
-            }
+                Integer assignmentPriority = null;
+                if (permission.getAssignmentPriority() != null
+                    && permission.getAssignmentPriority().getValue() != null) {
+                    assignmentPriority = permission.getAssignmentPriority().getValue();
+                }
+                boolean autoAssignable = false;
+                if (permission.getAutoAssignable() != null && permission.getAutoAssignable().getValue() != null) {
+                    autoAssignable = Boolean.TRUE.equals(permission.getAutoAssignable().getValue());
+                }
 
-            String roleCategory = null;
-            if (permission.getRoleCategory() != null && permission.getRoleCategory().getValue() != null) {
-                roleCategory = permission.getRoleCategory().getValue();
-            }
+                String roleCategory = null;
+                if (permission.getRoleCategory() != null && permission.getRoleCategory().getValue() != null) {
+                    roleCategory = permission.getRoleCategory().getValue();
+                }
 
-            return new TaskRoleResource(
-                roleName,
-                permissionsFound.contains(PermissionTypes.READ),
-                permissionsFound.contains(PermissionTypes.OWN),
-                permissionsFound.contains(PermissionTypes.EXECUTE),
-                permissionsFound.contains(PermissionTypes.MANAGE),
-                permissionsFound.contains(PermissionTypes.CANCEL),
-                permissionsFound.contains(PermissionTypes.REFER),
-                authorisations.toArray(new String[0]),
-                assignmentPriority,
-                autoAssignable,
-                roleCategory,
-                taskResource.getTaskId(),
-                ZonedDateTime.now().toOffsetDateTime()
-            );
-        }).collect(Collectors.toSet());
+                return new TaskRoleResource(
+                    roleName,
+                    permissionsFound.contains(PermissionTypes.READ),
+                    permissionsFound.contains(PermissionTypes.OWN),
+                    permissionsFound.contains(PermissionTypes.EXECUTE),
+                    permissionsFound.contains(PermissionTypes.MANAGE),
+                    permissionsFound.contains(PermissionTypes.CANCEL),
+                    permissionsFound.contains(PermissionTypes.REFER),
+                    authorisations.toArray(new String[0]),
+                    assignmentPriority,
+                    autoAssignable,
+                    roleCategory,
+                    taskResource.getTaskId(),
+                    ZonedDateTime.now().toOffsetDateTime()
+                );
+            }).collect(Collectors.toSet());
     }
 
     private void mapVariableToTaskResourceProperty(TaskResource taskResource, String key, Object value) {
