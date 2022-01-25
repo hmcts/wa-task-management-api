@@ -68,7 +68,7 @@ withNightlyPipeline(type, product, component) {
   env.PACT_BROKER_PORT = "443"
   env.PACT_BROKER_SCHEME = "https"
   env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
-  env.MAX_FT_TESTS_PARALLEL_FORKS = 5
+  env.MAX_FT_TESTS_PARALLEL_FORKS = true
 
   enableSecurityScan()
 //  disabled until we can ignore dirs from being scanned. A false positive is reported about a variable called password in a test class
