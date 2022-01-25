@@ -63,6 +63,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
+        OffsetDateTime created = OffsetDateTime.parse("2022-05-08T20:15:45.345875+01:00");
+        OffsetDateTime dueDate = OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00");
+
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
             "some task name",
@@ -70,8 +73,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             CFTTaskState.ASSIGNED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
-        OffsetDateTime created = OffsetDateTime.parse("2022-05-08T20:15:45.345875+01:00");
-        OffsetDateTime dueDate = OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00");
+        taskResource.setCreated(created);
 
         executorService.execute(() -> {
             taskResourceRepository.insertAndLock(taskResource.getTaskId(), created, dueDate);
@@ -86,6 +88,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             CFTTaskState.ASSIGNED,
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
+        otherTaskResource.setCreated(created);
 
         assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId(), created, dueDate));
         checkTaskWasSaved(taskResource.getTaskId());

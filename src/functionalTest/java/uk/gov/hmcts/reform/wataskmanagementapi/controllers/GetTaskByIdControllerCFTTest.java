@@ -115,7 +115,6 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     }
 
-
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match_organisational_role() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
