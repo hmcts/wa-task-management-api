@@ -106,7 +106,9 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
+
         if (isFeatureEnabled) {
+            log.debug("Search request received '{}'", searchTaskRequest);
             //Release 2
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(READ);
