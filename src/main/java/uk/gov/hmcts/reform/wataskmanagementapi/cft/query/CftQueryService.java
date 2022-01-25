@@ -77,10 +77,16 @@ public class CftQueryService {
 
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
+
         final List<TaskResource> taskResources = pages.toList();
 
-        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
-        ).collect(Collectors.toList());
+        final List<Task> tasks = taskResources.stream()
+            .map(taskResource ->
+                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    accessControlResponse.getRoleAssignments())
+            )
+            .collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, pages.getTotalElements());
     }
@@ -119,8 +125,13 @@ public class CftQueryService {
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
-        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
-        ).collect(Collectors.toList());
+        final List<Task> tasks = taskResources.stream()
+            .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    accessControlResponse.getRoleAssignments()
+                )
+            )
+            .collect(Collectors.toList());
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }

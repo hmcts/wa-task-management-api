@@ -173,8 +173,11 @@ public class TaskSearchController extends BaseController {
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
             response = cftQueryService.searchForCompletableTasks(
-                searchEventAndCase, accessControlResponse, permissionsRequired);
-        }  else {
+                searchEventAndCase,
+                accessControlResponse,
+                permissionsRequired
+            );
+        } else {
             response = taskManagementService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse
