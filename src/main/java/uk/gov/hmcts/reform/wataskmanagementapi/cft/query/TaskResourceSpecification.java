@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -42,12 +43,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
+@Slf4j
 @SuppressWarnings({
-        "PMD.DataflowAnomalyAnalysis",
-        "PMD.TooManyMethods",
-        "PMD.LawOfDemeter",
-        "PMD.ExcessiveImports",
-    })
+    "PMD.DataflowAnomalyAnalysis",
+    "PMD.TooManyMethods",
+    "PMD.LawOfDemeter",
+    "PMD.ExcessiveImports",
+})
 public final class TaskResourceSpecification {
 
 
@@ -63,7 +65,7 @@ public final class TaskResourceSpecification {
 
         final Specification<TaskResource> constrainsSpec = buildApplicationConstraints(searchTaskRequest);
 
-        boolean andPermissions  = isAvailableTasksOnly(searchTaskRequest);
+        boolean andPermissions = isAvailableTasksOnly(searchTaskRequest);
         if (andPermissions) {
             permissionsRequired.add(PermissionTypes.OWN);
         }
@@ -105,6 +107,8 @@ public final class TaskResourceSpecification {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
         final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
+        log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
+
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
             cftTaskStates.add(CFTTaskState.ASSIGNED);
@@ -122,11 +126,11 @@ public final class TaskResourceSpecification {
 
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
             .and(searchByState(cftTaskStates)
-            .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
-            .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
-            .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
-            .and(searchByWorkType(workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
-            .and(searchByRoleCategory(roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())))))));
+                .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
+                    .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
+                        .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
+                            .and(searchByWorkType(workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
+                                .and(searchByRoleCategory(roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())))))));
     }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
