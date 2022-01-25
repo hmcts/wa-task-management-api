@@ -77,7 +77,11 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         taskResource.setCreated(created);
 
         executorService.execute(() -> {
-            taskResourceRepository.insertAndLock(taskResource.getTaskId(), created, dueDate);
+            taskResourceRepository.insertAndLock(
+                taskResource.getTaskId(),
+                taskResource.getCreated(),
+                taskResource.getDueDateTime()
+            );
             await().timeout(10, TimeUnit.SECONDS);
             taskResourceRepository.save(taskResource);
         });
@@ -91,7 +95,12 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             dueDate
         );
 
-        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(otherTaskResource.getTaskId(), created, dueDate));
+        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(
+            otherTaskResource.getTaskId(),
+            otherTaskResource.getCreated(),
+            otherTaskResource.getDueDateTime()
+        ));
+
         checkTaskWasSaved(taskResource.getTaskId());
         checkTaskWasSaved(otherTaskResource.getTaskId());
 
