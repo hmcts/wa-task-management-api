@@ -46,15 +46,14 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
 
         initiateTaskForJudicial(taskVariables);
 
-        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders, GrantType.STANDARD.name());
+        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders,
+                                                            GrantType.STANDARD.name(), taskVariables.getCaseId());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
-
-        result.prettyPrint();
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -94,15 +93,15 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
 
         initiateTaskForJudicial(taskVariables);
 
-        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders, GrantType.CHALLENGED.name());
+        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders,
+                                                            GrantType.CHALLENGED.name(),
+                                                            taskVariables.getCaseId());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
             authenticationHeaders
         );
-
-        result.prettyPrint();
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())

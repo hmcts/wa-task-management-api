@@ -509,7 +509,7 @@ public class Common {
         );
     }
 
-    public void setupCFTJudicialOrganisationalRoleAssignment(Headers headers, String grantType) {
+    public void setupCFTJudicialOrganisationalRoleAssignment(Headers headers, String grantType, String caseId) {
 
         UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -518,6 +518,7 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
+            "caseId", caseId,
             "jurisdiction", "IA"
         );
 
