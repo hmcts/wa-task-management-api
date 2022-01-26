@@ -79,7 +79,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("ADMINISTRATOR"));
 
@@ -127,7 +127,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("ADMINISTRATOR"));
 
