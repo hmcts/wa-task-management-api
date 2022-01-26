@@ -737,7 +737,7 @@ public class Common {
             assignmentRequestBody = assignmentRequestBody.replace("{GRANT_TYPE}", grantType);
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_CATEGORY}", roleCategory);
             if (attributes != null) {
-                assignmentRequestBody = assignmentRequestBody.replace("{ATTRIBUTES_PLACEHOLDER}", attributes);
+                assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
             }
             if (caseId != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("{CASE_ID_PLACEHOLDER}", caseId);

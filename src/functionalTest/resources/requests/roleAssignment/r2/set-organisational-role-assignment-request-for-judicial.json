@@ -25,10 +25,7 @@
       "roleType": "ORGANISATION",
       "beginTime": "2020-01-01T00:00Z",
       "endTime": "2030-01-01T00:00Z",
-      "attributes": {
-        "jurisdiction": "IA",
-        "primaryLocation": "765324"
-      }
+      "attributes": "{ATTRIBUTES_PLACEHOLDER}"
     },
     {
       "actorId": "{ACTOR_ID_PLACEHOLDER}",
@@ -41,10 +38,7 @@
       "roleType": "ORGANISATION",
       "beginTime": "2020-01-01T00:00Z",
       "endTime": "2030-01-01T00:00Z",
-      "attributes": {
-        "jurisdiction": "IA",
-        "primaryLocation": "765324"
-      },
+      "attributes": "{ATTRIBUTES_PLACEHOLDER}",
       "authorisations": ["373"]
     },
     {
@@ -58,10 +52,7 @@
       "roleType": "ORGANISATION",
       "beginTime": "2020-01-01T00:00Z",
       "endTime": "2030-01-01T00:00Z",
-      "attributes": {
-        "jurisdiction": "IA",
-        "primaryLocation": "765324"
-      }
+      "attributes": "{ATTRIBUTES_PLACEHOLDER}"
     }
   ],
   "roleRequest": {
