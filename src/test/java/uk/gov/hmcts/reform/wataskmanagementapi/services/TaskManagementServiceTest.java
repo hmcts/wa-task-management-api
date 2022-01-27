@@ -30,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentMother;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -249,19 +250,22 @@ class TaskManagementServiceTest extends
             Task mockedMappedTask = mock(Task.class);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+
+            when(accessControlResponse.getRoleAssignments())
+                .thenReturn(singletonList(RoleAssignmentMother.complete().build()));
             TaskResource taskResource = spy(TaskResource.class);
             when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(READ)))
                 .thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
             doReturn(mockedMappedTask)
-                .when(cftTaskMapper).mapToTask(taskResource);
+                .when(cftTaskMapper).mapToTaskWithPermissions(eq(taskResource), any());
 
             Task response = taskManagementService.getTask(taskId, accessControlResponse);
 
@@ -281,9 +285,9 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -305,9 +309,9 @@ class TaskManagementServiceTest extends
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -401,9 +405,9 @@ class TaskManagementServiceTest extends
             when(cftQueryService.getTask(taskId, accessControlResponse, asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
@@ -427,9 +431,9 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -516,9 +520,9 @@ class TaskManagementServiceTest extends
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -549,9 +553,9 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -639,7 +643,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -680,7 +685,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -736,9 +742,9 @@ class TaskManagementServiceTest extends
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                SECONDARY_IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    SECONDARY_IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -766,7 +772,7 @@ class TaskManagementServiceTest extends
         }
 
         @Test
-        void assignTask_should_throw_role_assignment_verification_exception_when_assigner_has_access_returns_false() {
+        void assignTask_should_throw_role_assignment_verification_exception_when_assignee_has_access_returns_false() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
 
             UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
@@ -784,9 +790,9 @@ class TaskManagementServiceTest extends
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                SECONDARY_IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    SECONDARY_IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -805,14 +811,15 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
 
 
         @Test
-        void assignTask_should_throw_role_assignment_verification_exception_when_assignee_has_access_returns_false() {
+        void assignTask_should_throw_role_assignment_verification_exception_when_assigner_has_access_returns_false() {
             AccessControlResponse assignerAccessControlResponse = mock(AccessControlResponse.class);
             UserInfo userInfo = UserInfo.builder().uid(SECONDARY_IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             lenient().when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
@@ -820,9 +827,9 @@ class TaskManagementServiceTest extends
                 .thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                SECONDARY_IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    SECONDARY_IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -845,7 +852,8 @@ class TaskManagementServiceTest extends
             ))
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
-                .hasMessage("Role Assignment Verification: The request failed the Role Assignment checks performed.");
+                .hasMessage("Role Assignment Verification: "
+                            + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -909,16 +917,16 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
@@ -946,15 +954,15 @@ class TaskManagementServiceTest extends
             )).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
@@ -1026,15 +1034,15 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
@@ -1058,16 +1066,16 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1102,16 +1110,16 @@ class TaskManagementServiceTest extends
             )).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
@@ -1133,9 +1141,9 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1179,9 +1187,9 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1222,15 +1230,15 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
@@ -1261,15 +1269,15 @@ class TaskManagementServiceTest extends
             )).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
             boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals("COMPLETED");
@@ -1372,15 +1380,15 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(false);
 
@@ -1413,9 +1421,9 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1434,9 +1442,9 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1469,9 +1477,9 @@ class TaskManagementServiceTest extends
             when(taskResource.getAssignee()).thenReturn(null);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
             assertThatThrownBy(() -> taskManagementService.completeTask(
@@ -1514,9 +1522,9 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1574,16 +1582,16 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -1617,16 +1625,16 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -1688,15 +1696,15 @@ class TaskManagementServiceTest extends
                     .thenReturn(Optional.empty());
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -1744,15 +1752,15 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -1788,15 +1796,15 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -1892,16 +1900,16 @@ class TaskManagementServiceTest extends
                     .thenReturn(Optional.empty());
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -1959,16 +1967,16 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
@@ -2002,16 +2010,16 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
                 boolean taskStateIsAssignedAlready = mockedVariables.get("taskState").getValue().equals("ASSIGNED");
@@ -2031,9 +2039,9 @@ class TaskManagementServiceTest extends
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2061,9 +2069,9 @@ class TaskManagementServiceTest extends
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
@@ -2114,15 +2122,15 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
@@ -2158,15 +2166,15 @@ class TaskManagementServiceTest extends
                     .thenReturn(Optional.of(taskResource));
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
@@ -2202,15 +2210,15 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(false);
 
@@ -2231,9 +2239,9 @@ class TaskManagementServiceTest extends
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
                 TaskResource taskResource = spy(TaskResource.class);
@@ -2269,9 +2277,9 @@ class TaskManagementServiceTest extends
                 when(taskResource.getAssignee()).thenReturn(null);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -2302,9 +2310,9 @@ class TaskManagementServiceTest extends
                     .thenReturn(Optional.empty());
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
