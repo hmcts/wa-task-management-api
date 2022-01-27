@@ -53,7 +53,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -160,7 +160,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "task-supervisor");
+        common.setupOrganisationalRoleAssignmentWithRoleName(authenticationHeaders, "task-supervisor");
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -267,8 +267,8 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
             .getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
-        common.setupCFTOrganisationalRoleAssignment(otherUserAuthenticationHeaders, "tribunal-caseworker");
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignmentWithRoleName(otherUserAuthenticationHeaders, "tribunal-caseworker");
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -323,7 +323,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         Headers otherUserAuthenticationHeaders = authorizationHeadersProvider
             .getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         common.setupOrganisationalRoleAssignment(otherUserAuthenticationHeaders);
 
         given.iClaimATaskWithIdAndAuthorization(
@@ -407,7 +407,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
     private TestVariables setupScenario() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         return taskVariables;
     }
 

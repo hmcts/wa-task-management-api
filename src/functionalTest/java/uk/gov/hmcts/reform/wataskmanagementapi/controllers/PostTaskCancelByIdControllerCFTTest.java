@@ -48,7 +48,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -102,7 +102,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         );
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -131,7 +131,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

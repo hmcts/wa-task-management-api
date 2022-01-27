@@ -55,7 +55,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         if (isFeatureEnabled) {
             String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-            common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+            common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
             Response result = restApiActions.post(
                 ENDPOINT_BEING_TESTED,
@@ -83,7 +83,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
     public void should_return_a_204_when_assigning_a_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         initiateTask(taskVariables);
 
         Response result = restApiActions.post(
@@ -163,7 +163,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.overrideTaskPermissions(taskId, noManagePermission);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         initiateTask(taskVariables);
 
         Response result = restApiActions.post(
@@ -196,7 +196,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.overrideTaskPermissions(taskId, noOwnPermission);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         initiateTask(taskVariables);
 
         Response result = restApiActions.post(

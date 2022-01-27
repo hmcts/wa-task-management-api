@@ -46,7 +46,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("cancelled")
@@ -73,7 +73,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("completed")
@@ -158,7 +158,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -178,7 +178,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
