@@ -7,6 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
+import io.restassured.filter.log.ErrorLoggingFilter;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -26,22 +29,6 @@ public class RestApiActions {
     public RestApiActions(final String baseUri, final PropertyNamingStrategy propertyNamingStrategy) {
         this.baseUri = baseUri;
         this.propertyNamingStrategy = propertyNamingStrategy;
-    }
-
-    protected RequestSpecification given() {
-        return RestAssured.given()
-            .spec(specification)
-            .config(RestAssured.config()
-                        .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                            (type, s) -> {
-                                ObjectMapper objectMapper = new ObjectMapper();
-                                objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
-                                objectMapper.registerModule(new Jdk8Module());
-                                objectMapper.registerModule(new JavaTimeModule());
-                                return objectMapper;
-                            }
-                        ))
-            ).relaxedHTTPSValidation();
     }
 
     public RestApiActions setUp() {
@@ -69,7 +56,6 @@ public class RestApiActions {
     public Response get(String path, String resourceId, String accept, Headers headers) {
         return this.get(path, resourceId, APPLICATION_JSON_VALUE, accept, headers);
     }
-
 
     public Response get(String path, String resourceId, String contentType, String accept, Headers headers) {
 
@@ -133,6 +119,24 @@ public class RestApiActions {
         return deleteWithBody(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
     }
 
+    protected RequestSpecification given() {
+        return RestAssured.given()
+            .spec(specification)
+            .config(RestAssured.config()
+                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                    (type, s) -> {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
+                        objectMapper.registerModule(new Jdk8Module());
+                        objectMapper.registerModule(new JavaTimeModule());
+                        return objectMapper;
+                    })
+                )
+            )
+            .relaxedHTTPSValidation()
+            .filters(new RequestLoggingFilter(), new ResponseLoggingFilter(), new ErrorLoggingFilter());
+    }
+
     private Response postWithBody(String path,
                                   String resourceId,
                                   Object body,
@@ -147,9 +151,7 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
-                .log().all()
-                .post(path, resourceId)
-                .prettyPeek();
+                .post(path, resourceId);
 
         } else {
             log.info("Calling POST {}", path);
@@ -159,9 +161,7 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
-                .log().all()
-                .post(path)
-                .prettyPeek();
+                .post(path);
         }
     }
 
@@ -178,9 +178,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .log().all()
-                .post(path, resourceId)
-                .prettyPeek();
+                .post(path, resourceId);
         } else {
             log.info("Calling POST {}", path);
             return given()
@@ -188,9 +186,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .log().all()
-                .post(path)
-                .prettyPeek();
+                .post(path);
         }
     }
 
@@ -210,8 +206,7 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
-                .delete(path, resourceId)
-                .prettyPeek();
+                .delete(path, resourceId);
         } else {
             log.info("Calling DELETE {}", path);
             return given()
@@ -220,8 +215,7 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
-                .delete(path)
-                .prettyPeek();
+                .delete(path);
         }
     }
 
@@ -238,8 +232,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .delete(path, resourceId)
-                .prettyPeek();
+                .delete(path, resourceId);
         } else {
             log.info("Calling DELETE {}", path);
             return given()
@@ -247,29 +240,7 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .delete(path)
-                .prettyPeek();
+                .delete(path);
         }
     }
-
-    private String jsonBodyWithFeatureToggled(boolean featureToggled) {
-        return "["
-               +    " { "
-               +        "\"op\": \"replace\", "
-               +        "\"path\": \"/environments/test/on\", "
-               +        "\"value\": " + featureToggled
-               +    "}\n"
-               + "]";
-    }
-
-    private String getFeatureToggledJsonBody(boolean featureToggled) {
-        return "["
-               +    " { "
-               +        "\"it\": \"test\", "
-               +        "\"path\": \"/environments/test/on\", "
-               +        "\"value\": " + featureToggled
-               +    "}\n"
-               + "]";
-    }
-
 }
