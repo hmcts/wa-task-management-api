@@ -289,7 +289,7 @@ public class Common {
         createRoleAssignment(
             headers,
             roleName,
-            "requests/roleAssignment/r2/set-organisational-role-assignment-multiple-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
         );
     }
 
