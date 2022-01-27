@@ -163,7 +163,10 @@ public class PostUnclaimByIdControllerTest extends SpringBootFunctionalBaseTest 
             "wa-ft-test-");
 
         common.setupOrganisationalRoleAssignment(authenticationHeaders);
-        common.setupOrganisationalRoleAssignmentWithRoleName(otherUserAuthenticationHeaders, "senior-tribunal-caseworker");
+        common.setupOrganisationalRoleAssignmentWithRoleName(
+            otherUserAuthenticationHeaders,
+            "senior-tribunal-caseworker"
+        );
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
