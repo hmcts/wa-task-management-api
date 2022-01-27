@@ -106,14 +106,12 @@ test {
   failFast = true
 }
 
-tasks.withType(Test) {
+task functional(type: Test) {
+
   systemProperties["junit.jupiter.execution.parallel.enabled"] = true
   systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
-  maxParallelForks = (System.getenv('ENABLPostTaskSearchControllerCFTTest.java:217E_FT_TESTS_PARALLEL_FORKS') ? Runtime.runtime.availableProcessors() : 1) as int
+  maxParallelForks = (System.getenv('ENABLE_FT_TESTS_PARALLEL_FORKS') ? Runtime.runtime.availableProcessors() : 1) as int
   forkEvery = 50
-}
-
-task functional(type: Test) {
 
   description = "Runs functional tests"
   group = "Verification"
