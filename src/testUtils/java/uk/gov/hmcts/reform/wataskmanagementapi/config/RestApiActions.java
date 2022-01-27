@@ -80,7 +80,8 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path, resourceId);
+                .get(path, resourceId)
+                .prettyPeek();
         } else {
             log.info("Calling GET {}", path);
             return given()
@@ -88,7 +89,8 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path);
+                .get(path)
+                .prettyPeek();
         }
     }
 
@@ -146,7 +148,8 @@ public class RestApiActions {
                 .body(body)
                 .when()
                 .log().all()
-                .post(path, resourceId);
+                .post(path, resourceId)
+                .prettyPeek();
 
         } else {
             log.info("Calling POST {}", path);
@@ -157,7 +160,8 @@ public class RestApiActions {
                 .body(body)
                 .when()
                 .log().all()
-                .post(path);
+                .post(path)
+                .prettyPeek();
         }
     }
 
@@ -175,7 +179,8 @@ public class RestApiActions {
                 .headers(headers)
                 .when()
                 .log().all()
-                .post(path, resourceId);
+                .post(path, resourceId)
+                .prettyPeek();
         } else {
             log.info("Calling POST {}", path);
             return given()
@@ -184,7 +189,8 @@ public class RestApiActions {
                 .headers(headers)
                 .when()
                 .log().all()
-                .post(path);
+                .post(path)
+                .prettyPeek();
         }
     }
 
@@ -204,7 +210,8 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
-                .delete(path, resourceId);
+                .delete(path, resourceId)
+                .prettyPeek();
         } else {
             log.info("Calling DELETE {}", path);
             return given()
@@ -213,7 +220,8 @@ public class RestApiActions {
                 .headers(headers)
                 .body(body)
                 .when()
-                .delete(path);
+                .delete(path)
+                .prettyPeek();
         }
     }
 
@@ -230,7 +238,8 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .delete(path, resourceId);
+                .delete(path, resourceId)
+                .prettyPeek();
         } else {
             log.info("Calling DELETE {}", path);
             return given()
@@ -238,7 +247,8 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .delete(path);
+                .delete(path)
+                .prettyPeek();
         }
     }
 
