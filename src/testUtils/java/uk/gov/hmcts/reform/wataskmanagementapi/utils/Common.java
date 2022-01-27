@@ -408,7 +408,7 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "set-organisational-role-assignment-request-case-allocator.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request-case-allocator.json"
         );
 
         //Creates a restricted role for a particular ccdId
