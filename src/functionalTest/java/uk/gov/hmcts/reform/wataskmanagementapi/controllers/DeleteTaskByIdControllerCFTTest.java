@@ -106,6 +106,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
             authenticationHeaders
         );
 
+        result.prettyPrint();
+
         if (value == null) {
             //Should assert that it doesn't exist
             result.then().assertThat()
