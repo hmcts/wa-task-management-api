@@ -106,7 +106,7 @@ test {
   failFast = true
 }
 
-tasks.withType<Test> {
+tasks.withType(Test) {
   systemProperties["junit.jupiter.execution.parallel.enabled"] = true
   systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
   maxParallelForks = (System.getenv('ENABLE_FT_TESTS_PARALLEL_FORKS') ? Runtime.runtime.availableProcessors() : 1) as int
