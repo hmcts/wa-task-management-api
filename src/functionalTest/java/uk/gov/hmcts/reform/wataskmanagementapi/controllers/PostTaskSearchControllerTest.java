@@ -20,9 +20,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -460,8 +461,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -495,8 +496,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -529,8 +530,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -565,8 +566,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -759,19 +760,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     private List<TestVariables> createMultipleTasks(String[] states) {
-        List<TestVariables> tasksCreated = new ArrayList<>();
-        for (String state : states) {
-            Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
-                CamundaVariableDefinition.TASK_STATE, state
-            );
-
-            TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                    "IA",
-                                                                                                    "Asylum");
-            tasksCreated.add(taskVariables);
-        }
-
-        return tasksCreated;
+        return Arrays.stream(states)
+            .map(state -> Map.of(CamundaVariableDefinition.TASK_STATE, state))
+            .map(variablesOverride ->
+                common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(
+                    variablesOverride,
+                    "IA",
+                    "Asylum")
+            )
+            .collect(Collectors.toList());
     }
 
 }

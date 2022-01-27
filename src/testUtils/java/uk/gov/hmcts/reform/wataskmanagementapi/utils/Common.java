@@ -57,9 +57,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Slf4j
 public class Common {
 
+    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
@@ -102,14 +102,6 @@ public class Common {
             .and()
             .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
 
-        if (response.isEmpty()) {
-            fail("Search did not yield any results for case id: " + caseId);
-        }
-
-        if (response.size() > 1) {
-            fail("Search was not an exact match and returned more than one task used: " + caseId);
-        }
-
         return new TestVariables(caseId, response.get(0).getId(), response.get(0).getProcessInstanceId());
 
     }
@@ -141,8 +133,8 @@ public class Common {
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "IA",
-                                                                                         "Asylum"
+            "IA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -163,8 +155,8 @@ public class Common {
     ) {
         final String caseId = UUID.randomUUID().toString();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "IA",
-                                                                                         "Asylum"
+            "IA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -224,7 +216,7 @@ public class Common {
         // return taskId
         return response;
     }
-    
+
     public TestVariables setupWATaskAndRetrieveIds() {
 
         String caseId = given.iCreateWACcdCase();
@@ -446,7 +438,7 @@ public class Common {
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA",
-            "workType","hearing_work,upper_tribunal,routine_work"
+            "workType", "hearing_work,upper_tribunal,routine_work"
         );
 
         //Clean/Reset user
