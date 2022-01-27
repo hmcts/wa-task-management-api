@@ -154,7 +154,7 @@ public class TaskRoleResource implements Serializable {
         this.manage = manage;
         this.cancel = cancel;
         this.refer = refer;
-        this.authorizations = authorizations.clone();
+        this.authorizations = authorizations == null ? new String[]{} : authorizations.clone();
         this.assignmentPriority = assignmentPriority;
         this.autoAssignable = autoAssignable;
         this.roleCategory = roleCategory;
@@ -195,7 +195,7 @@ public class TaskRoleResource implements Serializable {
     }
 
     public void setAuthorizations(String[] authorizations) {
-        this.authorizations = authorizations.clone();
+        this.authorizations = authorizations == null ? new String[]{} : authorizations.clone();
     }
 
     public void setAssignmentPriority(Integer assignmentPriority) {
