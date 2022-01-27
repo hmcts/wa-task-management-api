@@ -33,7 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -41,6 +41,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.anyOf;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -181,7 +183,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     stringValue("IA,WA"),
                     null,
                     null,
@@ -190,7 +192,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     null,
                     null,
                     null,
@@ -200,7 +202,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             ));
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
+            .thenReturn(new RoleAssignmentResource(emptyList()));
 
         ExecutorService executorService = new ScheduledThreadPoolExecutor(2);
         executorService.execute(() -> {
@@ -322,7 +324,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     stringValue("IA,WA"),
                     null,
                     null,
@@ -331,7 +333,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     null,
                     null,
                     null,
@@ -341,7 +343,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             ));
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
+            .thenReturn(new RoleAssignmentResource(emptyList()));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -391,8 +393,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].read").value(true),
                 jsonPath("$.task_role_resources.[0].own").value(true),
                 jsonPath("$.task_role_resources.[0].execute").value(false),
-                jsonPath("$.task_role_resources.[0].manage").value(true),
-                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].manage").value(false),
+                jsonPath("$.task_role_resources.[0].cancel").value(false),
                 jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
@@ -401,8 +403,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].read").value(true),
                 jsonPath("$.task_role_resources.[1].own").value(true),
                 jsonPath("$.task_role_resources.[1].execute").value(false),
-                jsonPath("$.task_role_resources.[1].manage").value(true),
-                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].manage").value(false),
+                jsonPath("$.task_role_resources.[1].cancel").value(false),
                 jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
@@ -437,7 +439,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     stringValue("IA,WA"),
                     null,
                     null,
@@ -446,7 +448,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     null,
                     null,
                     null,
@@ -458,7 +460,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
-                Collections.singletonList(RoleAssignment.builder()
+                singletonList(RoleAssignment.builder()
                     .id("someId")
                     .actorIdType(ActorIdType.IDAM)
                     .actorId(IDAM_USER_ID)
@@ -520,8 +522,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].read").value(true),
                 jsonPath("$.task_role_resources.[0].own").value(true),
                 jsonPath("$.task_role_resources.[0].execute").value(false),
-                jsonPath("$.task_role_resources.[0].manage").value(true),
-                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].manage").value(false),
+                jsonPath("$.task_role_resources.[0].cancel").value(false),
                 jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
@@ -530,8 +532,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].read").value(true),
                 jsonPath("$.task_role_resources.[1].own").value(true),
                 jsonPath("$.task_role_resources.[1].execute").value(false),
-                jsonPath("$.task_role_resources.[1].manage").value(true),
-                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].manage").value(false),
+                jsonPath("$.task_role_resources.[1].cancel").value(false),
                 jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
@@ -565,7 +567,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     stringValue("IA,WA"),
                     null,
                     null,
@@ -574,7 +576,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     null,
                     null,
                     null,
@@ -586,7 +588,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
-                Collections.singletonList(RoleAssignment.builder()
+                List.of(RoleAssignment.builder()
                     .id("someId")
                     .actorIdType(ActorIdType.IDAM)
                     .actorId("someAssignee")
@@ -595,7 +597,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .grantType(GrantType.SPECIFIC)
                     .roleType(RoleType.ORGANISATION)
                     .classification(Classification.PUBLIC)
-                    .authorisations(asList("IA"))
+                    .authorisations(List.of("IA"))
                     .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -650,8 +652,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].read").value(true),
                 jsonPath("$.task_role_resources.[0].own").value(true),
                 jsonPath("$.task_role_resources.[0].execute").value(false),
-                jsonPath("$.task_role_resources.[0].manage").value(true),
-                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].manage").value(false),
+                jsonPath("$.task_role_resources.[0].cancel").value(false),
                 jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
@@ -660,8 +662,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].read").value(true),
                 jsonPath("$.task_role_resources.[1].own").value(true),
                 jsonPath("$.task_role_resources.[1].execute").value(false),
-                jsonPath("$.task_role_resources.[1].manage").value(true),
-                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].manage").value(false),
+                jsonPath("$.task_role_resources.[1].cancel").value(false),
                 jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
@@ -695,7 +697,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(asList(
                 new PermissionsDmnEvaluationResponse(
                     stringValue("tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     stringValue("IA,WA"),
                     null,
                     null,
@@ -704,7 +706,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 ),
                 new PermissionsDmnEvaluationResponse(
                     stringValue("senior-tribunal-caseworker"),
-                    stringValue("Read,Refer,Own,Manage,Cancel"),
+                    stringValue("Read,Refer,Own"),
                     null,
                     null,
                     null,
@@ -715,10 +717,10 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
 
         when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
-            .thenReturn(new RoleAssignmentResource(Collections.emptyList()));
+            .thenReturn(new RoleAssignmentResource(emptyList()));
         when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
             .thenReturn(new RoleAssignmentResource(
-                Collections.singletonList(RoleAssignment.builder()
+                singletonList(RoleAssignment.builder()
                     .id("someId")
                     .actorIdType(ActorIdType.IDAM)
                     .actorId("anotherAssignee")
@@ -727,7 +729,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     .grantType(GrantType.SPECIFIC)
                     .roleType(RoleType.ORGANISATION)
                     .classification(Classification.PUBLIC)
-                    .authorisations(asList("IA"))
+                    .authorisations(List.of("IA"))
                     .build())));
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -782,8 +784,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].read").value(true),
                 jsonPath("$.task_role_resources.[0].own").value(true),
                 jsonPath("$.task_role_resources.[0].execute").value(false),
-                jsonPath("$.task_role_resources.[0].manage").value(true),
-                jsonPath("$.task_role_resources.[0].cancel").value(true),
+                jsonPath("$.task_role_resources.[0].manage").value(false),
+                jsonPath("$.task_role_resources.[0].cancel").value(false),
                 jsonPath("$.task_role_resources.[0].refer").value(true),
                 jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
@@ -792,8 +794,129 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].read").value(true),
                 jsonPath("$.task_role_resources.[1].own").value(true),
                 jsonPath("$.task_role_resources.[1].execute").value(false),
-                jsonPath("$.task_role_resources.[1].manage").value(true),
-                jsonPath("$.task_role_resources.[1].cancel").value(true),
+                jsonPath("$.task_role_resources.[1].manage").value(false),
+                jsonPath("$.task_role_resources.[1].cancel").value(false),
+                jsonPath("$.task_role_resources.[1].refer").value(true),
+                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+            );
+    }
+
+    @Test
+    void should_return_201_with_task_unassigned_when_invalid_old_assignee_and_no_auto_assign_case() throws Exception {
+
+        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
+            .thenReturn(true);
+
+        when(caseDetails.getCaseType()).thenReturn("Asylum");
+        when(caseDetails.getJurisdiction()).thenReturn("IA");
+        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+
+        when(ccdDataServiceApi.getCase(any(), any(), eq("someCaseId")))
+            .thenReturn(caseDetails);
+
+        when(camundaTaskConfig.evaluateConfigurationDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("caseName"), stringValue("someName")),
+                new ConfigurationDmnEvaluationResponse(stringValue("appealType"), stringValue("protection")),
+                new ConfigurationDmnEvaluationResponse(stringValue("region"), stringValue("1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("location"), stringValue("765324")),
+                new ConfigurationDmnEvaluationResponse(stringValue("locationName"), stringValue("Taylor House")),
+                new ConfigurationDmnEvaluationResponse(stringValue("workType"), stringValue("decision_making_work")),
+                new ConfigurationDmnEvaluationResponse(stringValue("caseManagementCategory"), stringValue("Protection"))
+            ));
+
+        when(camundaTaskConfig.evaluatePermissionsDmnTable(any(), any(), any(), any()))
+            .thenReturn(asList(
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    stringValue("IA,WA"),
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                ),
+                new PermissionsDmnEvaluationResponse(
+                    stringValue("senior-tribunal-caseworker"),
+                    stringValue("Read,Refer,Own"),
+                    null,
+                    null,
+                    null,
+                    stringValue("LEGAL_OPERATIONS"),
+                    stringValue(null)
+                )
+            ));
+
+
+        when(roleAssignmentServiceApi.getRolesForUser(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(emptyList()));
+        when(roleAssignmentServiceApi.queryRoleAssignments(any(), any(), any()))
+            .thenReturn(new RoleAssignmentResource(emptyList()));
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_ASSIGNEE, "someAssignee"),
+            new TaskAttribute(TASK_STATE, "UNCONFIGURED"),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, "someCaseId"),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        mockMvc
+            .perform(post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(req)))
+            .andDo(MockMvcResultHandlers.print())
+            .andExpectAll(
+                status().isCreated(),
+                content().contentType(APPLICATION_JSON_VALUE),
+                jsonPath("$.task_id").value(taskId),
+                jsonPath("$.task_name").value("aTaskName"),
+                jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
+                jsonPath("$.state").value("UNASSIGNED"),
+                jsonPath("$.assignee").doesNotExist(),
+                jsonPath("$.task_system").value("SELF"),
+                jsonPath("$.security_classification").value("PUBLIC"),
+                jsonPath("$.title").value("aTaskName"),
+                jsonPath("$.auto_assigned").value(false),
+                jsonPath("$.has_warnings").value(false),
+                jsonPath("$.case_id").value("someCaseId"),
+                jsonPath("$.case_type_id").value("Asylum"),
+                jsonPath("$.case_name").value("someName"),
+                jsonPath("$.case_category").value("Protection"),
+                jsonPath("$.jurisdiction").value("IA"),
+                jsonPath("$.region").value("1"),
+                jsonPath("$.location").value("765324"),
+                jsonPath("$.location_name").value("Taylor House"),
+                jsonPath("$.execution_type_code.execution_code").value("CASE_EVENT"),
+                jsonPath("$.execution_type_code.execution_name")
+                    .value("Case Management Task"),
+                jsonPath("$.execution_type_code.description").value(
+                    "The task requires a case management event to be executed by the user. "
+                    + "(Typically this will be in CCD.)"),
+                jsonPath("$.task_role_resources.[0].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[0].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[0].read").value(true),
+                jsonPath("$.task_role_resources.[0].own").value(true),
+                jsonPath("$.task_role_resources.[0].execute").value(false),
+                jsonPath("$.task_role_resources.[0].manage").value(false),
+                jsonPath("$.task_role_resources.[0].cancel").value(false),
+                jsonPath("$.task_role_resources.[0].refer").value(true),
+                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
+                jsonPath("$.task_role_resources.[1].task_id").value(taskId),
+                jsonPath("$.task_role_resources.[1].role_name")
+                    .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
+                jsonPath("$.task_role_resources.[1].read").value(true),
+                jsonPath("$.task_role_resources.[1].own").value(true),
+                jsonPath("$.task_role_resources.[1].execute").value(false),
+                jsonPath("$.task_role_resources.[1].manage").value(false),
+                jsonPath("$.task_role_resources.[1].cancel").value(false),
                 jsonPath("$.task_role_resources.[1].refer").value(true),
                 jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
             );
