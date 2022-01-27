@@ -75,6 +75,18 @@ public class TaskConfigurationRoleAssignmentService {
         return roleAssignmentResponse.getRoleAssignmentResponse();
     }
 
+    public List<RoleAssignment> getRolesByUserId(String userId) {
+        requireNonNull(userId, "userId cannot be null");
+
+        RoleAssignmentResource roleAssignmentResponse = roleAssignmentServiceApi.getRolesForUser(
+            userId,
+            systemUserIdamToken.generate(),
+            serviceAuthTokenGenerator.generate()
+        );
+
+        return roleAssignmentResponse.getRoleAssignmentResponse();
+    }
+
     public RoleAssignmentResource performSearch(MultipleQueryRequest multipleQueryRequest) {
         try {
             return roleAssignmentServiceApi.queryRoleAssignments(
