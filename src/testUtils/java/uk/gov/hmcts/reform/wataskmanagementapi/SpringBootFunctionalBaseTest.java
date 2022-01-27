@@ -64,8 +64,6 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final String LOG_MSG_COULD_NOT_COMPLETE_TASK_WITH_ID_NOT_ASSIGNED =
         "Could not complete task with id: %s as task was not previously assigned";
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    private static final String ENDPOINT_HISTORY_TASK = "history/task";
 
     protected GivensBuilder given;
     protected Assertions assertions;
@@ -86,21 +84,21 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
-    private IdamTokenGenerator systemUserIdamToken;
-    @Autowired
-    private IdamTokenGenerator waTestLawFirmIdamToken;
-    @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    protected LaunchDarklyClient launchDarklyClient;
+    @Autowired
+    private IdamTokenGenerator systemUserIdamToken;
+    @Autowired
+    private IdamTokenGenerator waTestLawFirmIdamToken;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")
     private String testUrl;
     @Value("${launch_darkly.url}")
     private String launchDarklyUrl;
-    @Autowired
-    protected LaunchDarklyClient launchDarklyClient;
 
     @Before
     public void setUpGivens() throws IOException {
