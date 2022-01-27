@@ -85,54 +85,6 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
-    @Test
-    public void should_return_a_200_with_allocateHearingJudge_task_and_challenged_grant_type() {
-
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("allocateHearingJudge");
-        String taskId = taskVariables.getTaskId();
-
-        initiateTaskForJudicial(taskVariables);
-
-        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders,
-                                                            GrantType.CHALLENGED.name(),
-                                                            taskVariables.getCaseId());
-
-        Response result = restApiActions.get(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("task.id", notNullValue())
-            .body("task.name", notNullValue())
-            .body("task.type", notNullValue())
-            .body("task.task_state", notNullValue())
-            .body("task.task_system", notNullValue())
-            .body("task.security_classification", notNullValue())
-            .body("task.task_title", notNullValue())
-            .body("task.created_date", notNullValue())
-            .body("task.due_date", notNullValue())
-            .body("task.location_name", notNullValue())
-            .body("task.location", notNullValue())
-            .body("task.execution_type", notNullValue())
-            .body("task.jurisdiction", notNullValue())
-            .body("task.region", notNullValue())
-            .body("task.case_type_id", notNullValue())
-            .body("task.case_id", notNullValue())
-            .body("task.case_category", equalTo("Protection"))
-            .body("task.case_name", notNullValue())
-            .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
-            .body("task.description", notNullValue())
-            .body("task.role_category", equalTo("ADMINISTRATOR"));
-
-        common.cleanUpTask(taskId);
-    }
-
     private void initiateTaskForJudicial(TestVariables taskVariables) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
