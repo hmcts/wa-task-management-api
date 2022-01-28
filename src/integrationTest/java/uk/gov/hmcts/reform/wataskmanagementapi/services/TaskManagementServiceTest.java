@@ -409,6 +409,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
                 when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
+                when(camundaServiceApi.getTask(any(), any()))
+                    .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
 
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).searchHistory(any(), any());
@@ -436,6 +438,9 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 createAndSaveTestTask(taskId);
+                when(camundaServiceApi.getTask(any(), any()))
+                    .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
+
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).searchHistory(any(), any());
 
@@ -462,6 +467,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             void should_rollback_transaction_when_exception_occurs_calling_camunda() {
 
                 createAndSaveTestTask(taskId);
+
+                when(camundaServiceApi.getTask(any(), any()))
+                    .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
+
                 doThrow(FeignException.FeignServerException.class)
                     .when(camundaServiceApi).searchHistory(any(), any());
 

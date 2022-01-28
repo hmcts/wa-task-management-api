@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
@@ -110,6 +111,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
             insertDummyTaskInDb(taskId, cftTaskDatabaseService);
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+            when(camundaServiceApi.getTask(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
@@ -172,6 +175,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
             insertDummyTaskInDb(taskId, cftTaskDatabaseService);
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+            when(camundaServiceApi.getTask(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
 
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
@@ -234,6 +239,8 @@ class DeleteTerminateByIdControllerTest extends SpringBootIntegrationBaseTest {
             CFTTaskDatabaseService cftTaskDatabaseService = new CFTTaskDatabaseService(taskResourceRepository);
             insertDummyTaskInDb(taskId, cftTaskDatabaseService);
             when(authTokenGenerator.generate()).thenReturn(SERVICE_AUTHORIZATION_TOKEN);
+            when(camundaServiceApi.getTask(eq(SERVICE_AUTHORIZATION_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
             when(camundaServiceApi.searchHistory(eq(SERVICE_AUTHORIZATION_TOKEN), any())).thenReturn(emptyList());
             when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
                 .thenReturn(true);
