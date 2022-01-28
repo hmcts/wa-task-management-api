@@ -923,6 +923,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             terminateTaskRequest,
             headers
         );
+
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 

@@ -43,6 +43,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         claimAndCancelTask(taskVariables);
 
         String historyVariableId = assertions.checkHistoryVariable(
+            taskVariables.getProcessInstanceId(),
             taskVariables.getTaskId(),
             "cftTaskState",
             "pendingTermination"
@@ -74,6 +75,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         initiateTask(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         String historyVariableId = assertions.checkHistoryVariable(
+            taskVariables.getProcessInstanceId(),
             taskVariables.getTaskId(),
             "cftTaskState",
             "pendingTermination"

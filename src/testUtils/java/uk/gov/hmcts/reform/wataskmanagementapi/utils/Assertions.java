@@ -52,9 +52,10 @@ public class Assertions {
      * @param variable the variable name to look for
      * @param value    the value used in the assertion
      */
-    public String checkHistoryVariable(String taskId, String variable, String value) {
+    public String checkHistoryVariable(String processInstanceId, String taskId, String variable, String value) {
 
         Map<String, Object> request = Map.of(
+            "processInstanceId", processInstanceId,
             "variableName", variable,
             "variableValue", value,
             "taskIdIn", singleton(taskId),
