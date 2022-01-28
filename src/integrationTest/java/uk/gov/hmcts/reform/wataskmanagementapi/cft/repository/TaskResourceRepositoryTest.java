@@ -101,6 +101,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             otherTaskResource.getDueDateTime()
         ));
 
+        await().timeout(2, TimeUnit.SECONDS);
+
         checkTaskWasSaved(taskResource.getTaskId());
         checkTaskWasSaved(otherTaskResource.getTaskId());
 
