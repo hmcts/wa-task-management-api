@@ -13,12 +13,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.Termi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
-import java.util.Map;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -44,7 +41,12 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         initiateTask(taskVariables);
 
         claimAndCancelTask(taskVariables);
-        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
+
+        String historyVariableId = assertions.checkHistoryVariable(
+            taskVariables.getTaskId(),
+            "cftTaskState",
+            "pendingTermination"
+        );
 
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -62,7 +64,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", null);
+        assertions.checkHistoryVariableWasDeleted(historyVariableId);
     }
 
 
@@ -71,7 +73,11 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         initiateTask(taskVariables);
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
-        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
+        String historyVariableId = assertions.checkHistoryVariable(
+            taskVariables.getTaskId(),
+            "cftTaskState",
+            "pendingTermination"
+        );
 
         common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
 
@@ -89,41 +95,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", null);
+        assertions.checkHistoryVariableWasDeleted(historyVariableId);
 
-    }
-
-    private void checkHistoryVariable(String taskId, String variable, String value) {
-
-        Map<String, Object> request = Map.of(
-            "variableName", variable,
-            "taskIdIn", singleton(taskId),
-            "maxResults", 1
-        );
-
-        Response result = camundaApiActions.post(
-            "/history/variable-instance",
-            request,
-            authenticationHeaders
-        );
-
-        if (value == null) {
-            //Should assert that it doesn't exist
-            result.then().assertThat()
-                .statusCode(HttpStatus.OK.value())
-                .and()
-                .contentType(APPLICATION_JSON_VALUE)
-                .body("size()", equalTo(0));
-        } else {
-            //Should assert that value matches
-            result.then().assertThat()
-                .statusCode(HttpStatus.OK.value())
-                .and()
-                .contentType(APPLICATION_JSON_VALUE)
-                .body("size()", equalTo(1))
-                .body("name", hasItem(variable))
-                .body("value", hasItem(value));
-        }
     }
 
     private void initiateTask(TestVariables testVariables) {

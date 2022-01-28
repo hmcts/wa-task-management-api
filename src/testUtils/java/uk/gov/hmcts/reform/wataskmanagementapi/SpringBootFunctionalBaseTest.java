@@ -267,5 +267,4 @@ public abstract class SpringBootFunctionalBaseTest {
     protected boolean isR2FeatureEnabled() {
         return featureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE, EMPTY, EMPTY);
     }
-
 }
