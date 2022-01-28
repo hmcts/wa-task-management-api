@@ -35,10 +35,7 @@ public class Assertions {
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("size()", equalTo(0));
+            .statusCode(HttpStatus.NOT_FOUND.value());
     }
 
     /**
