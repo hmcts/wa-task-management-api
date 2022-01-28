@@ -97,7 +97,8 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
         Map<String, Object> request = Map.of(
             "variableName", variable,
-            "taskIdIn", singleton(taskId)
+            "taskIdIn", singleton(taskId),
+            "maxResults", 1
         );
 
         Response result = camundaApiActions.post(
