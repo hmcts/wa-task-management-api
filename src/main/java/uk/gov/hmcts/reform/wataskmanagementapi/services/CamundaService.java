@@ -356,14 +356,20 @@ public class CamundaService {
      * @param taskId the task id
      */
     public void deleteCftTaskState(String taskId) {
-
-        Map<String, Object> body = Map.of(
-            "variableName", CFT_TASK_STATE.value(),
-            "taskIdIn", singleton(taskId),
-            "maxResults", 1
-        );
-
         try {
+
+            CamundaTask camundaTask = camundaServiceApi.getTask(
+                authTokenGenerator.generate(),
+                taskId
+            );
+
+            Map<String, Object> body = Map.of(
+                "processInstanceId", camundaTask.getProcessInstanceId(),
+                "variableName", CFT_TASK_STATE.value(),
+                "taskIdIn", singleton(taskId),
+                "maxResults", 1
+            );
+
             List<HistoryVariableInstance> results = camundaServiceApi.searchHistory(
                 authTokenGenerator.generate(),
                 body

@@ -562,6 +562,9 @@ class CamundaServiceTest extends CamundaHelpers {
                 "someValue"
             );
 
+            when(camundaServiceApi.getTask(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
+
             when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
                 .thenReturn(singletonList(historyVariableInstance));
 
@@ -584,6 +587,9 @@ class CamundaServiceTest extends CamundaHelpers {
         @Test
         void deleteCftTaskState_should_not_call_camunda_if_no_variable_found() {
 
+            when(camundaServiceApi.getTask(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
+
             when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
                 .thenReturn(emptyList());
 
@@ -600,7 +606,23 @@ class CamundaServiceTest extends CamundaHelpers {
         }
 
         @Test
+        void deleteCftTaskState_should_throw_a_server_error_exception_when_get_task_call_fails() {
+            doThrow(FeignException.FeignServerException.class)
+                .when(camundaServiceApi).getTask(eq(BEARER_SERVICE_TOKEN), any());
+
+            assertThatThrownBy(() -> camundaService.deleteCftTaskState(taskId))
+                .isInstanceOf(ServerErrorException.class)
+                .hasCauseInstanceOf(FeignException.class)
+                .hasMessage(
+                    "There was a problem when deleting the historic cftTaskState"
+                );
+        }
+
+        @Test
         void deleteCftTaskState_should_throw_a_server_error_exception_when_historic_call_fails() {
+
+            when(camundaServiceApi.getTask(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).searchHistory(eq(BEARER_SERVICE_TOKEN), any());
@@ -621,6 +643,8 @@ class CamundaServiceTest extends CamundaHelpers {
                 CFT_TASK_STATE.value(),
                 "someValue"
             );
+            when(camundaServiceApi.getTask(eq(BEARER_SERVICE_TOKEN), any()))
+                .thenReturn(CamundaTask.builder().processInstanceId("someId").build());
 
             when(camundaServiceApi.searchHistory(eq(BEARER_SERVICE_TOKEN), any()))
                 .thenReturn(singletonList(historyVariableInstance));
@@ -709,7 +733,6 @@ class CamundaServiceTest extends CamundaHelpers {
                             + "Task assign and complete partially succeeded. "
                             + "The Task was assigned to the user making the request but the "
                             + "Task could not be completed.");
-
         }
 
         @Test
