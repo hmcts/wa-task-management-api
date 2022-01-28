@@ -160,7 +160,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "task-supervisor");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "task-supervisor", "IA");
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
