@@ -367,6 +367,8 @@ public class CamundaService {
                 "processInstanceId", camundaTask.getProcessInstanceId(),
                 "variableName", CFT_TASK_STATE.value(),
                 "taskIdIn", singleton(taskId),
+                "includeDeleted", false,
+                "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY,
                 "maxResults", 1
             );
 

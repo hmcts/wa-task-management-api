@@ -12,6 +12,7 @@ import java.util.Map;
 import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 public class Assertions {
 
@@ -56,6 +57,8 @@ public class Assertions {
             "variableName", variable,
             "variableValue", value,
             "taskIdIn", singleton(taskId),
+            "includeDeleted", false,
+            "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY,
             "maxResults", 1
         );
 
@@ -82,6 +85,8 @@ public class Assertions {
             "variableName", variable,
             "variableValue", value,
             "processInstanceId", processInstanceId,
+            "includeDeleted", false,
+            "processDefinitionKey", WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY,
             "maxResults", 1
         );
 
