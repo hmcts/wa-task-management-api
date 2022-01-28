@@ -83,7 +83,8 @@ public class Assertions {
         Map<String, Object> request = Map.of(
             "variableName", variable,
             "variableValue", value,
-            "processInstanceId", processInstanceId
+            "processInstanceId", processInstanceId,
+            "maxResults", 1
         );
 
         Response result = camundaApiActions.post(
