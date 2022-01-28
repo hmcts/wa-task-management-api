@@ -359,7 +359,8 @@ public class CamundaService {
 
         Map<String, Object> body = Map.of(
             "variableName", CFT_TASK_STATE.value(),
-            "taskIdIn", singleton(taskId)
+            "taskIdIn", singleton(taskId),
+            "maxResults", 1
         );
 
         try {
@@ -368,16 +369,12 @@ public class CamundaService {
                 body
             );
 
-            Optional<HistoryVariableInstance> maybeCftTaskState = results.stream()
-                .filter(r -> r.getName().equals(CFT_TASK_STATE.value()))
-                .findFirst();
-
-            maybeCftTaskState.ifPresent(
-                historyVariableInstance -> camundaServiceApi.deleteVariableFromHistory(
+            if (!results.isEmpty()) {
+                camundaServiceApi.deleteVariableFromHistory(
                     authTokenGenerator.generate(),
-                    historyVariableInstance.getId()
-                )
-            );
+                    results.get(0).getId()
+                );
+            }
         } catch (FeignException ex) {
             throw new ServerErrorException("There was a problem when deleting the historic cftTaskState", ex);
         }
