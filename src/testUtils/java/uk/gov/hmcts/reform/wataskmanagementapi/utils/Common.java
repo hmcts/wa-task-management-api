@@ -341,7 +341,7 @@ public class Common {
 
     }
 
-    public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName, String jurisdictionId) {
+    public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -349,7 +349,7 @@ public class Common {
             "primaryLocation", "765324",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", jurisdictionId
+            "jurisdiction", "IA"
         );
 
         //Clean/Reset user
@@ -368,7 +368,7 @@ public class Common {
         );
     }
 
-    public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdictionId) {
+    public void setupCFTOrganisationalRoleAssignment(Headers headers) {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -377,7 +377,7 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", jurisdictionId
+            "jurisdiction", "IA"
         );
 
         //Clean/Reset user
@@ -425,7 +425,7 @@ public class Common {
 
     }
 
-    public void setupCFTOrganisationalWithMultipleRoles(Headers headers, String jurisdictionId) {
+    public void setupCFTOrganisationalWithMultipleRoles(Headers headers) {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
@@ -434,7 +434,7 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", jurisdictionId
+            "jurisdiction", "IA"
         );
 
         //Clean/Reset user

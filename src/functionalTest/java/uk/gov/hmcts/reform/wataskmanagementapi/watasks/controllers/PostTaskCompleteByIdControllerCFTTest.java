@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -45,7 +46,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getWACaseworkerAAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationProvider.getWACaseworkerAAuthorization("wa-ft-test-r2-");
     }
 
     @Test
@@ -341,7 +342,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         );
 
         //S2S service name is wa_task_management_api
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
@@ -349,7 +351,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             ENDPOINT_BEING_TESTED,
             taskId,
             completeTaskRequest,
-            otherUserHeaders
+            otherUser.getHeaders()
         );
 
         result.then().assertThat()
@@ -375,15 +377,16 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         );
 
         //S2S service name is wa_task_management_api
-        Headers otherUserHeaders = authorizationHeadersProvider.getTribunalCaseworkerBAuthorization("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignment(otherUserHeaders, "WA");
+        TestAuthenticationCredentials otherUser =
+            authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        common.setupCFTOrganisationalRoleAssignmentForWA(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(false));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             completeTaskRequest,
-            otherUserHeaders
+            otherUser.getHeaders()
         );
 
         result.then().assertThat()
