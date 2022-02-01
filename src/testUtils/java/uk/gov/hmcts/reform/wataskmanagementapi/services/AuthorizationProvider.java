@@ -177,7 +177,10 @@ public class AuthorizationProvider {
     }
 
     private TestAccount getIdamCaseWorkerCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
+        List<RoleCode> requiredRoles = asList(
+            new RoleCode("caseworker-ia"),
+            new RoleCode("caseworker-ia-caseofficer")
+        );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
@@ -225,7 +228,13 @@ public class AuthorizationProvider {
         body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
 
-        idamServiceApi.createTestUser(body);
+        try {
+            idamServiceApi.createTestUser(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("Could not create IDAM user account");
+        }
+
 
         log.info("Test account created successfully");
         return new TestAccount(email, password);
