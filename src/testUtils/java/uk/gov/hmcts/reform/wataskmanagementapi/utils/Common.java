@@ -568,7 +568,7 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request-for-admin.json",
             grantType,
-            "ADMINISTRATOR"
+            "ADMIN"
         );
 
     }

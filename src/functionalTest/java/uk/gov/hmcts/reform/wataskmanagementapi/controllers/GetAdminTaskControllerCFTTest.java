@@ -82,7 +82,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
             .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
             .body("task.permissions.values", hasSize(3))
             .body("task.description", notNullValue())
-            .body("task.role_category", equalTo("ADMINISTRATOR"));
+            .body("task.role_category", equalTo("ADMIN"));
 
         common.cleanUpTask(taskId);
     }
