@@ -105,7 +105,7 @@ class WorkTypesControllerTest {
     @Test
     void should_return_a_list_of_work_types_when_user_has_many_work_types() {
 
-        String workTypeKey = RoleAttributeDefinition.WORK_TYPE.value();
+        String workTypeKey = RoleAttributeDefinition.WORK_TYPES.value();
         RoleAssignment roleAssignment = new RoleAssignment(ActorIdType.IDAM,
             "1258555",
             RoleType.CASE,
