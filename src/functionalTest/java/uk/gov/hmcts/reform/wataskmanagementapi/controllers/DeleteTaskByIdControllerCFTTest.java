@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -31,11 +32,16 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -46,7 +52,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         claimAndCancelTask(taskVariables);
         checkHistoryVariable(taskVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("cancelled")
@@ -56,7 +62,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
             ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             terminateTaskRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -73,7 +79,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables testVariables = claimAndCompleteTask(taskVariables);
         checkHistoryVariable(testVariables.getTaskId(), "cftTaskState", "pendingTermination");
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         TerminateTaskRequest terminateTaskRequest = new TerminateTaskRequest(
             new TerminateInfo("completed")
@@ -83,7 +89,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
             ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             terminateTaskRequest,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -103,7 +109,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = camundaApiActions.post(
             "/history/variable-instance",
             request,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         if (value == null) {
@@ -143,7 +149,7 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -158,15 +164,15 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
     private TestVariables claimAndCancelTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             "task/{task-id}/cancel",
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -178,15 +184,15 @@ public class DeleteTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTes
 
     private TestVariables claimAndCompleteTask(TestVariables taskVariables) {
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             "task/{task-id}/complete",
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()

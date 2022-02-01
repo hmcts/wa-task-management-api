@@ -2,11 +2,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -22,26 +24,31 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/assign";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
     private String assigneeId;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
-        assigneeId = getAssigneeId(authenticationHeaders);
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+        assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -63,12 +70,12 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         TestVariables testVariables = common.setupTaskAndRetrieveIds();
         String taskId = testVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -84,13 +91,13 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -110,7 +117,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             ENDPOINT_BEING_TESTED,
             taskId,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -132,12 +139,12 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         String taskId = taskVariables.getTaskId();
 
         common.overrideTaskPermissions(taskId, noManagePermission);
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -162,13 +169,13 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.overrideTaskPermissions(taskId, noOwnPermission);
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new AssignTaskRequest(assigneeId),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -187,7 +194,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
     }
 
     private String getAssigneeId(Headers headers) {
-        return authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
+        return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
 }

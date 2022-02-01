@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -36,11 +37,16 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/cancel";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -48,12 +54,12 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -76,7 +82,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -102,12 +108,12 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         );
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -131,12 +137,12 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -153,14 +159,12 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        Headers headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
-
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), headers);
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -191,7 +195,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
