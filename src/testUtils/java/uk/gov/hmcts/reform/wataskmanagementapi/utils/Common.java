@@ -224,7 +224,7 @@ public class Common {
         // return taskId
         return response;
     }
-    
+
     public TestVariables setupWATaskAndRetrieveIds() {
 
         String caseId = given.iCreateWACcdCase();
@@ -446,7 +446,7 @@ public class Common {
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA",
-            "workType","hearing_work,upper_tribunal,routine_work"
+            "workTypes","hearing_work,upper_tribunal,routine_work"
         );
 
         //Clean/Reset user
