@@ -30,6 +30,8 @@ public class AuthorizationProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     private final Map<String, UserInfo> userInfo = new ConcurrentHashMap<>();
+    private final Map<String, TestAccount> accounts = new ConcurrentHashMap<>();
+
     @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
     @Value("${idam.scope}") protected String userScope;
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
@@ -96,10 +98,13 @@ public class AuthorizationProvider {
         /*
          * This user is used to create cases in ccd
          */
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
+        TestAccount lawfirm = accounts.computeIfAbsent(
+            "ia-lawfirm",
+            acc -> getIdamLawFirmCredentials("wa-ft-lawfirm-")
+        );
 
         Headers authenticationHeaders = new Headers(
-            getAuthorizationOnly(lawfirm),
+            getLawFirmAuthorizationOnly(),
             getServiceAuthorizationHeader()
         );
 
@@ -115,7 +120,10 @@ public class AuthorizationProvider {
 
     public Header getLawFirmAuthorizationOnly() {
 
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
+        TestAccount lawfirm = accounts.computeIfAbsent(
+            "ia-lawfirm",
+            acc -> getIdamLawFirmCredentials("wa-ft-lawfirm-")
+        );
         return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }

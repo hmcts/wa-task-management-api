@@ -335,7 +335,7 @@ public class GivensBuilder {
 
     public String iCreateACcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getNewTribunalCaseworker("wa-ft-r2-");
+            authorizationProvider.getNewLawFirm();
         return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
             "IA",
             "Asylum",
