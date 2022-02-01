@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -57,6 +58,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
     }
 
+    @Disabled("RWA-1053: Needs updating see ticket")
     @Test
     void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed()
         throws InterruptedException {

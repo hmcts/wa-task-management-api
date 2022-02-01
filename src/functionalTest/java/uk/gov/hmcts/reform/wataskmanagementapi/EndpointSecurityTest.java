@@ -26,6 +26,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
         RestAssured.useRelaxedHTTPSValidation();
     }
 
+
     /**
      * Open Id verification should trigger first therefore it should return a 401.
      * if no bearer token is provided
@@ -101,7 +102,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .when()
@@ -112,7 +113,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -124,7 +125,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -136,7 +137,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
@@ -148,7 +149,7 @@ public class EndpointSecurityTest extends SpringBootFunctionalBaseTest {
 
         given()
             .relaxedHTTPSValidation()
-            .header(authorizationHeadersProvider.getCaseworkerAAuthorizationOnly("wa-ft-test-"))
+            .header(authorizationProvider.getCaseworkerAuthorizationOnly("wa-ft-test-"))
             .contentType(MediaType.APPLICATION_JSON_VALUE)
             .baseUri(testUrl)
             .pathParam("task-id", taskId)
