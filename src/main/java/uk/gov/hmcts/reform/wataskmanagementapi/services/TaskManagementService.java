@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -130,7 +131,13 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
-            return cftTaskMapper.mapToTask(taskResource);
+            Set<PermissionTypes> permissionsUnionForUser =
+                cftTaskMapper.extractUnionOfPermissionsForUser(
+                    taskResource.getTaskRoleResources(),
+                    accessControlResponse.getRoleAssignments()
+                );
+
+            return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
@@ -696,8 +703,8 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
 
-        return taskResourceQueryResult.get().getTaskRoleResources().stream().map(
-                cftTaskMapper::mapToTaskRolePermissions)
+        return taskResourceQueryResult.get().getTaskRoleResources().stream()
+            .map(cftTaskMapper::mapToTaskRolePermissions)
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );
@@ -732,7 +739,25 @@ public class TaskManagementService {
         try {
             TaskResource taskResource = createTaskSkeleton(taskId, initiateTaskRequest);
             taskResource = configureTask(taskResource);
-            taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            boolean isOldAssigneeValid = false;
+
+            if (taskResource.getAssignee() != null) {
+                log.info("Task '{}' had previous assignee, checking validity.", taskId);
+                //Task had previous assignee
+                isOldAssigneeValid =
+                    taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, taskResource.getAssignee());
+            }
+
+            if (isOldAssigneeValid) {
+                log.info("Task '{}' had previous assignee, and was valid, keeping assignee.", taskId);
+                //Keep old assignee from skeleton task and change state
+                taskResource.setState(CFTTaskState.ASSIGNED);
+            } else {
+                log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
+                //Otherwise attempt auto-assignment
+                taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+            }
+
             updateCftTaskState(taskResource.getTaskId(), taskResource);
             return cftTaskDatabaseService.saveTask(taskResource);
         } catch (Exception e) {
