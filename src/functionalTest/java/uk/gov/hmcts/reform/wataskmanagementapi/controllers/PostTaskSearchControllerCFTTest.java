@@ -1420,7 +1420,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers,"task-supervisor");
+        common.setupCFTOrganisationalRoleAssignment(headers,"task-supervisor", "IA");
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),

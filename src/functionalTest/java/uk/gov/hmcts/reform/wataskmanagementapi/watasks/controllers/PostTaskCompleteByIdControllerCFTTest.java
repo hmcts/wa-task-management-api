@@ -224,7 +224,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -291,7 +291,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         //Create temporary role-assignment to assign task
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -334,7 +334,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -368,7 +368,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
@@ -398,7 +398,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     public void should_return_a_404_if_task_does_not_exist_with_completion_options_assign_and_complete_true() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -423,7 +423,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -450,7 +450,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -529,7 +529,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
 
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
         initiateTask(taskVariables);
 
         restApiActions.post(
@@ -602,7 +602,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         //Create temporary role-assignment to assign task
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "IA");
+        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders, "WA");
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
