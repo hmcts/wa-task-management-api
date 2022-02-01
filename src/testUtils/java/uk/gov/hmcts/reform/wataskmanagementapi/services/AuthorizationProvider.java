@@ -69,7 +69,7 @@ public class AuthorizationProvider {
          * This user is used to assign role assignments to on a per test basis.
          * A clean up before assigning new role assignments is needed.
          */
-        TestAccount caseworker = getIdamLawFirmCredentials(emailPrefix);
+        TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
 
         Headers authenticationHeaders = new Headers(
             getAuthorizationOnly(caseworker),
