@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -63,7 +63,7 @@ public class Common {
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
-    private final AuthorizationHeadersProvider authorizationHeadersProvider;
+    private final AuthorizationProvider authorizationProvider;
 
     private final IdamService idamService;
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -73,13 +73,13 @@ public class Common {
     public Common(GivensBuilder given,
                   RestApiActions restApiActions,
                   RestApiActions camundaApiActions,
-                  AuthorizationHeadersProvider authorizationHeadersProvider,
+                  AuthorizationProvider authorizationProvider,
                   IdamService idamService,
                   RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.given = given;
         this.restApiActions = restApiActions;
         this.camundaApiActions = camundaApiActions;
-        this.authorizationHeadersProvider = authorizationHeadersProvider;
+        this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
@@ -261,14 +261,14 @@ public class Common {
         Stream.of(taskId).forEach(task -> {
             log.info("Cleaning task {}", task);
             camundaApiActions.post(ENDPOINT_COMPLETE_TASK, task,
-                authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+                authorizationProvider.getServiceAuthorizationHeadersOnly());
         });
     }
 
     public void cleanUpAndValidateCftTaskState(String taskId, String reason) {
         log.info("Cleaning task {}", taskId);
         Response response = camundaApiActions.post(ENDPOINT_COMPLETE_TASK, taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+            authorizationProvider.getServiceAuthorizationHeadersOnly());
 
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value())
@@ -277,7 +277,7 @@ public class Common {
 
     public Response getCamundaTask(String taskId) {
         return camundaApiActions.get("/task", taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+            authorizationProvider.getServiceAuthorizationHeadersOnly());
     }
 
     public void clearAllRoleAssignments(Headers headers) {
@@ -314,7 +314,7 @@ public class Common {
 
     public void setupOrganisationalRoleAssignment(Headers headers) {
 
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -370,7 +370,7 @@ public class Common {
 
     public void setupCFTOrganisationalRoleAssignment(Headers headers, String jurisdictionId) {
 
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -397,9 +397,37 @@ public class Common {
 
     }
 
+    public void setupCFTOrganisationalRoleAssignmentForWA(Headers headers) {
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+        );
+
+    }
+
     public void setupCFTOrganisationalWithMultipleRoles(Headers headers, String jurisdictionId) {
 
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -438,7 +466,7 @@ public class Common {
 
     public void setupOrganisationalRoleAssignmentWithWorkTypes(Headers headers) {
 
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
@@ -446,7 +474,7 @@ public class Common {
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA",
-            "workType","hearing_work,upper_tribunal,routine_work"
+            "workTypes","hearing_work,upper_tribunal,routine_work"
         );
 
         //Clean/Reset user
@@ -467,7 +495,7 @@ public class Common {
 
     public void setupOrganisationalRoleAssignmentWithOutEndDate(Headers headers) {
 
-        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
