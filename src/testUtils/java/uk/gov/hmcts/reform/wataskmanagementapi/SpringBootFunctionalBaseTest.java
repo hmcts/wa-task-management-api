@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
@@ -12,32 +11,22 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.ccd.client.model.Event;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationHeadersProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.LaunchDarklyClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
-import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
@@ -45,11 +34,9 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -72,7 +59,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RestApiActions camundaApiActions;
     protected RestApiActions launchDarklyActions;
     @Autowired
-    protected AuthorizationHeadersProvider authorizationHeadersProvider;
+    protected AuthorizationProvider authorizationProvider;
     @Autowired
     protected CoreCaseDataApi coreCaseDataApi;
     @Autowired
@@ -89,10 +76,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     protected LaunchDarklyClient launchDarklyClient;
-    @Autowired
-    private IdamTokenGenerator systemUserIdamToken;
-    @Autowired
-    private IdamTokenGenerator waTestLawFirmIdamToken;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")
@@ -104,7 +87,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public void setUpGivens() throws IOException {
         restApiActions = new RestApiActions(testUrl, SNAKE_CASE).setUp();
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-        assertions = new Assertions(camundaApiActions, restApiActions, authorizationHeadersProvider);
+        assertions = new Assertions(camundaApiActions, restApiActions, authorizationProvider);
 
         launchDarklyActions = new RestApiActions(launchDarklyUrl, LOWER_CAMEL_CASE).setUp();
         documentManagementFiles.prepare();
@@ -112,7 +95,7 @@ public abstract class SpringBootFunctionalBaseTest {
         given = new GivensBuilder(
             camundaApiActions,
             restApiActions,
-            authorizationHeadersProvider,
+            authorizationProvider,
             coreCaseDataApi,
             documentManagementFiles
         );
@@ -121,7 +104,7 @@ public abstract class SpringBootFunctionalBaseTest {
             given,
             restApiActions,
             camundaApiActions,
-            authorizationHeadersProvider,
+            authorizationProvider,
             idamService,
             roleAssignmentServiceApi
         );
@@ -136,7 +119,7 @@ public abstract class SpringBootFunctionalBaseTest {
                 () -> {
                     Response camundaGetTaskResult = camundaApiActions.get(
                         "/task" + filter,
-                        authorizationHeadersProvider.getServiceAuthorizationHeader()
+                        authorizationProvider.getServiceAuthorizationHeader()
                     );
                     camundaGetTaskResult.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
@@ -153,102 +136,12 @@ public abstract class SpringBootFunctionalBaseTest {
         return response;
     }
 
-    public String createCcdCase() throws IOException {
-        String userToken = waTestLawFirmIdamToken.generate();
-        UserInfo userInfo = waTestLawFirmIdamToken.getUserInfo(userToken);
-        String serviceToken = authorizationHeadersProvider.getServiceAuthorizationHeader().getValue();
-        Document document = documentManagementFiles.getDocument(NOTICE_OF_APPEAL_PDF);
-
-        final StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "IA",
-            "Asylum",
-            "startAppeal"
-        );
-
-        String caseData = new String(
-            (Objects.requireNonNull(Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("requests/ccd/case_data.json"))).readAllBytes()
-        );
-
-        caseData = caseData.replace(
-            "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-            document.getDocumentUrl()
-        );
-        caseData = caseData.replace(
-            "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-            document.getDocumentFilename()
-        );
-        caseData = caseData.replace(
-            "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-            document.getDocumentBinaryUrl()
-        );
-        var data = new ObjectMapper().readValue(caseData, Map.class);
-        final CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        final CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "IA",
-            "Asylum",
-            true,
-            caseDataContent
-        );
-
-        log.info("Created case [" + caseDetails.getId() + "]");
-
-        final StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "IA",
-            "Asylum",
-            caseDetails.getId().toString(),
-            "submitAppeal"
-        );
-
-        final CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "IA",
-            "Asylum",
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
-        );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        return caseDetails.getId().toString();
-    }
-
     public String createTask(CreateTaskMessage createTaskMessage) {
 
         Response camundaResult = camundaApiActions.post(
             "/message",
             createTaskMessage,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         camundaResult.then().assertThat()
@@ -262,10 +155,6 @@ public abstract class SpringBootFunctionalBaseTest {
 
         return response.get();
 
-    }
-
-    protected boolean isR2FeatureEnabled() {
-        return featureFlagProvider.getBooleanValue(FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE, EMPTY, EMPTY);
     }
 
 }

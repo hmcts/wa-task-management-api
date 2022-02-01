@@ -35,7 +35,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getJudgeAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationProvider.getJudgeAuthorization("wa-ft-test-r2-");
 
     }
 
@@ -82,7 +82,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
             .body("task.permissions.values", hasSize(3))
             .body("task.description", notNullValue())
-            .body("task.role_category", equalTo("ADMINISTRATOR"));
+            .body("task.role_category", equalTo("ADMIN"));
 
         common.cleanUpTask(taskId);
     }

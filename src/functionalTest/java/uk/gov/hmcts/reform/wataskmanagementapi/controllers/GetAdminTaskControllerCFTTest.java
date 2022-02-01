@@ -35,7 +35,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getAdminUserAuthorization("wa-ft-test-r2-");
+        authenticationHeaders = authorizationProvider.getAdminUserAuthorization("wa-ft-test-r2-");
 
     }
 
@@ -45,7 +45,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("allocateHearingJudge");
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskForJudicial(taskVariables);
+        initiateTaskForAdmin(taskVariables);
 
         common.setupCFTAdministrativeOrganisationalRoleAssignment(authenticationHeaders,
                                                             GrantType.STANDARD.name(), taskVariables.getCaseId());
@@ -87,7 +87,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
         common.cleanUpTask(taskId);
     }
 
-    private void initiateTaskForJudicial(TestVariables taskVariables) {
+    private void initiateTaskForAdmin(TestVariables taskVariables) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -101,7 +101,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
-            new TaskAttribute(TASK_ROLE_CATEGORY, "JUDICIAL")
+            new TaskAttribute(TASK_ROLE_CATEGORY, "ADMIN")
 
         ));
         Response result = restApiActions.post(
