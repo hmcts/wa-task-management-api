@@ -1,14 +1,19 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CaffeineConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
+@CacheConfig(cacheNames = {CaffeineConfiguration.CACHE_NAME})
+@Component
 public class IdamTokenGenerator {
 
     private final UserIdamTokenGeneratorInfo userIdamTokenGeneratorInfo;
