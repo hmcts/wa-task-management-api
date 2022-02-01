@@ -106,7 +106,7 @@ public class AuthorizationProvider {
         );
 
         Headers authenticationHeaders = new Headers(
-            getLawFirmAuthorizationOnly(),
+            getAuthorizationOnly(lawfirm),
             getServiceAuthorizationHeader()
         );
 
@@ -117,16 +117,6 @@ public class AuthorizationProvider {
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
         return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
-
-    }
-
-    public Header getLawFirmAuthorizationOnly() {
-
-        TestAccount lawfirm = accounts.computeIfAbsent(
-            "ia-lawfirm",
-            acc -> getIdamLawFirmCredentials("wa-ft-lawfirm-")
-        );
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }
 
