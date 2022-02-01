@@ -175,22 +175,6 @@ public class IdamTokenGeneratorCacheTest {
             verify(idamWebApi, times(1)).token(request);
         }
 
-
-        @Test
-        void given_lots_repeated_calls_it_should_cache_bearer_tokens() {
-
-            String username = UUID.randomUUID().toString();
-            String pass = UUID.randomUUID().toString();
-            MultiValueMap<String, String> request = buildRequestForUser(username, pass);
-
-            when(idamWebApi.token(request)).thenReturn(new Token("Bearer Token", "Scope"));
-
-            IntStream.range(0, 500).forEach(i -> systemUserIdamToken.getUserBearerToken(username, pass));
-
-            verify(idamWebApi, times(1)).token(request);
-        }
-
-
         @Test
         void given_repeated_calls_when_first_call_fails_it_should_return_cached_bearer_token() {
 
