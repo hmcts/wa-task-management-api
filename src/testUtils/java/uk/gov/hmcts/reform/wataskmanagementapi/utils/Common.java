@@ -541,6 +541,38 @@ public class Common {
 
     }
 
+    public void setupCFTAdministrativeOrganisationalRoleAssignment(Headers headers, String grantType, String caseId) {
+
+        UserInfo userInfo = authorizationHeadersProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            //This value must match the camunda task location variable for the permission check to pass
+            "baseLocation", "765324",
+            "caseId", caseId,
+            "jurisdiction", "IA"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "hearing-centre-admin",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request-for-admin.json",
+            grantType,
+            "ADMINISTRATOR"
+        );
+
+    }
+
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));

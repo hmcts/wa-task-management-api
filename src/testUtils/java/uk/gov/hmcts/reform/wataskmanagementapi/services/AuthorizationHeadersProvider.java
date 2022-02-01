@@ -82,13 +82,22 @@ public class AuthorizationHeadersProvider {
         );
     }
 
-
     public Headers getJudgeAuthorization(String emailPrefix) {
         /*
          * This user is used to create cases in ccd
          */
         return new Headers(
             getJudgeAuthorizationOnly(emailPrefix),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Headers getAdminUserAuthorization(String emailPrefix) {
+        /*
+         * This user is used to create cases in ccd
+         */
+        return new Headers(
+            getAdminUserAuthorizationOnly(emailPrefix),
             getServiceAuthorizationHeader()
         );
     }
@@ -115,6 +124,13 @@ public class AuthorizationHeadersProvider {
     public Header getJudgeAuthorizationOnly(String emailPrefix) {
 
         TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
+        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
+
+    }
+
+    public Header getAdminUserAuthorizationOnly(String emailPrefix) {
+
+        TestAccount lawfirm = getAdministativeCredentials(emailPrefix);
         return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }
@@ -158,6 +174,14 @@ public class AuthorizationHeadersProvider {
     private TestAccount getIdamJudgeCredentials(String emailPrefix) {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
                                               new RoleCode("caseworker-ia-judiciary"),
+                                              new RoleCode("payments")
+        );
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
+
+    private TestAccount getAdministativeCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
+                                              new RoleCode("caseworker-ia-admofficer"),
                                               new RoleCode("payments")
         );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
