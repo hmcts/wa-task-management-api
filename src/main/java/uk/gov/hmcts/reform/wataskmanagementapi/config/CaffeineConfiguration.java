@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class CaffeineConfiguration {
 
-    public static final String CACHE_NAME = "CeffeineCache";
+    public static final String CACHE_NAME = "CaffeineCache";
 
     @Value("${caffeine.timeout.duration}")
     private Integer cacheDuration;
