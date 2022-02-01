@@ -52,6 +52,12 @@ public enum ErrorMessages {
     ROLE_ASSIGNMENT_VERIFICATIONS_FAILED(
         "The request failed the Role Assignment checks performed."),
 
+    ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE(
+        "The user being assigned the Task has failed the Role Assignment checks performed."),
+
+    ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER(
+        "The user assigning the Task has failed the Role Assignment checks performed."),
+
     GENERIC_FORBIDDEN_ERROR(
         "The action could not be completed because the client/user had insufficient rights to a resource."),
 

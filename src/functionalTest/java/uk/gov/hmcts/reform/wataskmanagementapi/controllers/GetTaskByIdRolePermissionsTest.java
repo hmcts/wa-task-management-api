@@ -1,11 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -23,25 +24,33 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/roles";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
+        common.insertTaskInCftTaskDb(
+            taskVariables,
+            "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders()
+        );
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -59,14 +68,14 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -83,14 +92,18 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
     public void should_return_200_and_retrieve_role_permission_information_for_given_task_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
+        common.insertTaskInCftTaskDb(
+            taskVariables,
+            "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders()
+        );
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -99,22 +112,27 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
             .body("roles.size()", equalTo(5))
             .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
             .body("roles[0].role_name", is("case-manager"))
+            .body("roles[0].permissions.size()",  equalTo(3))
             .body("roles[0].permissions", hasItems("Read", "Own", "Refer"))
             .body("roles[0].authorisations", empty())
             .body("roles[1].role_category", is("JUDICIAL"))
             .body("roles[1].role_name", is("judge"))
+            .body("roles[1].permissions.size()",  equalTo(3))
             .body("roles[1].permissions", hasItems("Read", "Refer", "Execute"))
             .body("roles[1].authorisations", hasItems("373"))
             .body("roles[2].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("roles[2].role_name", is("senior-tribunal-caseworker"))
+            .body("roles[2].permissions.size()",  equalTo(3))
             .body("roles[2].permissions", hasItems("Read", "Own", "Refer"))
             .body("roles[2].authorisations", empty())
             .body("roles[3].role_category", nullValue())
             .body("roles[3].role_name", is("task-supervisor"))
+            .body("roles[3].permissions.size()",  equalTo(4))
             .body("roles[3].permissions", hasItems("Read", "Cancel", "Manage", "Refer"))
             .body("roles[3].authorisations", empty())
             .body("roles[4].role_category", is("LEGAL_OPERATIONS"))
             .body("roles[4].role_name", is("tribunal-caseworker"))
+            .body("roles[4].permissions.size()",  equalTo(3))
             .body("roles[4].permissions", hasItems("Read", "Own", "Refer"))
             .body("roles[4].authorisations", empty());
 
