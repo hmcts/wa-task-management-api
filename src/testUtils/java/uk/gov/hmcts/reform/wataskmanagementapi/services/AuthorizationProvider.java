@@ -3,12 +3,14 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.RoleCode;
@@ -170,10 +172,20 @@ public class AuthorizationProvider {
 
         String accessToken = tokens.computeIfAbsent(
             username,
-            user -> "Bearer " + idamWebApi.token(body).getAccessToken()
+            user -> getBearerToken(body)
         );
 
         return new Header(AUTHORIZATION, accessToken);
+    }
+
+    private String getBearerToken(MultiValueMap<String, String> body) {
+        try {
+            Token token = idamWebApi.token(body);
+            return "Bearer " + token.getAccessToken();
+        } catch (Exception e) {
+            Assert.fail("Could not generate bearer token from IDAM user account. Exception " + e);
+        }
+        return null;
     }
 
     private TestAccount getIdamCaseWorkerCredentials(String emailPrefix) {
@@ -230,13 +242,11 @@ public class AuthorizationProvider {
 
         try {
             idamServiceApi.createTestUser(body);
+            log.info("Test account created successfully");
+            return new TestAccount(email, password);
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Could not create IDAM user account");
+            Assert.fail("Could not create IDAM user account. Exception " + e);
         }
-
-
-        log.info("Test account created successfully");
-        return new TestAccount(email, password);
+        return null;
     }
 }
