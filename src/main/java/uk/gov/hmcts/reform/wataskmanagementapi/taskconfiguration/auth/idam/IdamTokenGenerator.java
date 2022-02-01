@@ -16,20 +16,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entit
 @Component
 public class IdamTokenGenerator {
 
-    private final UserIdamTokenGeneratorInfo userIdamTokenGeneratorInfo;
+    private final UserIdamTokenGeneratorInfo systemUserIdamInfo;
     private final IdamWebApi idamWebApi;
 
     @Autowired
-    public IdamTokenGenerator(UserIdamTokenGeneratorInfo userIdamTokenGeneratorInfo,
+    public IdamTokenGenerator(UserIdamTokenGeneratorInfo systemUserIdamInfo,
                               IdamWebApi idamWebApi) {
-        this.userIdamTokenGeneratorInfo = userIdamTokenGeneratorInfo;
+        this.systemUserIdamInfo = systemUserIdamInfo;
         this.idamWebApi = idamWebApi;
     }
 
     public String generate() {
         return getUserBearerToken(
-            userIdamTokenGeneratorInfo.getUserName(),
-            userIdamTokenGeneratorInfo.getUserPassword()
+            systemUserIdamInfo.getUserName(),
+            systemUserIdamInfo.getUserPassword()
         );
     }
 
@@ -37,12 +37,12 @@ public class IdamTokenGenerator {
     public String getUserBearerToken(String username, String password) {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "password");
-        map.add("redirect_uri", userIdamTokenGeneratorInfo.getIdamRedirectUrl());
-        map.add("client_id", userIdamTokenGeneratorInfo.getIdamClientId());
-        map.add("client_secret", userIdamTokenGeneratorInfo.getIdamClientSecret());
+        map.add("redirect_uri", systemUserIdamInfo.getIdamRedirectUrl());
+        map.add("client_id", systemUserIdamInfo.getIdamClientId());
+        map.add("client_secret", systemUserIdamInfo.getIdamClientSecret());
         map.add("username", username);
         map.add("password", password);
-        map.add("scope", userIdamTokenGeneratorInfo.getIdamScope());
+        map.add("scope", systemUserIdamInfo.getIdamScope());
         Token tokenResponse = idamWebApi.token(map);
 
         return "Bearer " + tokenResponse.getAccessToken();
