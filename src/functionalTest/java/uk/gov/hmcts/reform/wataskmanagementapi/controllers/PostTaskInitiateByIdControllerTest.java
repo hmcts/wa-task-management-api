@@ -264,7 +264,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
-                entry("role_category", "ADMINISTRATOR"),
+                entry("role_category", "ADMIN"),
                 entry("auto_assignable", false),
                 entry("assignment_priority", 1)
             )
@@ -414,7 +414,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 entry("cancel", false),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
-                entry("role_category", "ADMINISTRATOR"),
+                entry("role_category", "ADMIN"),
                 entry("auto_assignable", false),
                 entry("assignment_priority", 1)
             )

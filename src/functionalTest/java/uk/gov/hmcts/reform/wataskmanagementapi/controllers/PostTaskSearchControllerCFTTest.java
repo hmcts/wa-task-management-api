@@ -1165,7 +1165,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                singletonList("ADMINISTRATOR")),
+                singletonList("ADMIN")),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
@@ -1182,7 +1182,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId))
-            .body("tasks.role_category", everyItem(is("ADMINISTRATOR")))
+            .body("tasks.role_category", everyItem(is("ADMIN")))
             .body("total_records", equalTo(1));
 
 
@@ -1245,7 +1245,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                List.of("LEGAL_OPERATIONS", "ADMINISTRATOR")),
+                List.of("LEGAL_OPERATIONS", "ADMIN")),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
@@ -1262,7 +1262,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItems(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
             .body("tasks.id", hasItems(taskId1, taskId2))
-            .body("tasks.role_category", hasItems("LEGAL_OPERATIONS", "ADMINISTRATOR"))
+            .body("tasks.role_category", hasItems("LEGAL_OPERATIONS", "ADMIN"))
             .body("total_records", equalTo(2));
 
         common.cleanUpTask(taskId1);
