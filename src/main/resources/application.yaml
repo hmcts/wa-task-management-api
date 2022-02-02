@@ -121,6 +121,7 @@ logging:
     root: INFO
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
+    org.springframework.cache: TRACE
 
 logbook:
   include: /task/**
