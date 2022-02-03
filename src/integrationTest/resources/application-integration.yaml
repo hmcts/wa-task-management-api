@@ -46,8 +46,3 @@ logging:
 #      type.descriptor.sql.BasicBinder: debug
 #      engine: debug
     uk.gov.hmcts.reform: debug
-
-caffeine:
-  timeout:
-    duration: 5
-    unit: SECONDS
