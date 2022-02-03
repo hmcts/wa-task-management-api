@@ -26,6 +26,7 @@ public class IdamTokenGenerator {
         this.idamWebApi = idamWebApi;
     }
 
+    @Cacheable(cacheNames="idam_sys_user_token_cache", key="'system_user_token'")
     public String generate() {
         return getUserBearerToken(
             systemUserIdamInfo.getUserName(),
@@ -33,7 +34,7 @@ public class IdamTokenGenerator {
         );
     }
 
-    @Cacheable(value = "bearer_token_cache", key = "#username", sync = true)
+    @Cacheable(value = "idam_sys_user_token_cache", key = "#username", sync = true)
     public String getUserBearerToken(String username, String password) {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "password");
@@ -48,7 +49,7 @@ public class IdamTokenGenerator {
         return "Bearer " + tokenResponse.getAccessToken();
     }
 
-    @Cacheable(value = "user_info_cache", key = "#bearerAccessToken", sync = true)
+    @Cacheable(value = "idam_sys_user_user_info_cache", key = "#bearerAccessToken", sync = true)
     public UserInfo getUserInfo(String bearerAccessToken) {
         return idamWebApi.userInfo(bearerAccessToken);
     }
