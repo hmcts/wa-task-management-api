@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -9,7 +8,6 @@ import org.springframework.util.MultiValueMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.CaffeineConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
 @Component
@@ -25,7 +23,7 @@ public class IdamTokenGenerator {
         this.idamWebApi = idamWebApi;
     }
 
-    @Cacheable(cacheNames="idam_sys_user_token_cache", key="'system_user_token'", sync = true)
+    @Cacheable(cacheNames = "idam_sys_user_token_cache", key = "'system_user_token'", sync = true)
     public String generate() {
         return getUserBearerToken(
             systemUserIdamInfo.getUserName(),
