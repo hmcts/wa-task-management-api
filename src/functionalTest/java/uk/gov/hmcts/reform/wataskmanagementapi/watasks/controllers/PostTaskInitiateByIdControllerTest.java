@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.Before;
@@ -9,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -31,18 +31,18 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBaseTest {
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getWACaseworkerAAuthorization("wa-ft-test-r2");
+        caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2");
     }
 
     @Test
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -62,7 +62,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //Note: this is the TaskResource.class

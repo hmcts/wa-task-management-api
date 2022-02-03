@@ -1,14 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -30,23 +31,28 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -71,7 +77,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -92,7 +98,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -102,7 +108,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -122,12 +128,12 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         );
         String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -150,7 +156,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -161,7 +167,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -183,7 +189,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -193,7 +199,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -220,7 +226,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -231,7 +237,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -268,7 +274,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -279,7 +285,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
