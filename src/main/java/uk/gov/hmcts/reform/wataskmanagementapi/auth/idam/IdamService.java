@@ -21,13 +21,13 @@ public class IdamService {
         this.idamWebApi = idamWebApi;
     }
 
-    @Cacheable(value = "idam_user_info_cache", key = "#accessToken")
+    @Cacheable(value = "idam_user_info_cache", key = "accessToken")
     public UserInfo getUserInfo(String accessToken) {
         requireNonNull(accessToken, "access token must not be null");
         return idamWebApi.userInfo(accessToken);
     }
 
-    @Cacheable(value = "idam_user_id_cache", key = "#accessToken")
+    @Cacheable(value = "idam_user_id_cache", key = "accessToken")
     public String getUserId(String accessToken) {
         UserInfo userInfo = getUserInfo(accessToken);
         requireNonNull(userInfo.getUid(), "User id must not be null");
