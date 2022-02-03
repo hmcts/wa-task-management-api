@@ -1037,25 +1037,25 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         ).thenReturn(true);
 
         mockMvc.perform(
-                post("/task")
-                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                    .content("{\n"
-                             + "  \"search_parameters\": [\n"
-                             + "    {\n"
-                             + "      \"key\": \"available_tasks_only\",\n"
-                             + "      \"operator\": \"BOOLEAN\",\n"
-                             + "      \"value\": false\n"
-                             + "    },\n"
-                             + "    {\n"
-                             + "      \"key\": \"jurisdiction\",\n"
-                             + "      \"operator\": \"IN\",\n"
-                             + "      \"values\": [ \"IA\" ]\n"
-                             + "    }\n"
-                             + "  ]\n"
-                             + "}\n")
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-            ).andExpect(status().isOk());
+            post("/task")
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .content("{\n"
+                         + "  \"search_parameters\": [\n"
+                         + "    {\n"
+                         + "      \"key\": \"available_tasks_only\",\n"
+                         + "      \"operator\": \"BOOLEAN\",\n"
+                         + "      \"value\": false\n"
+                         + "    },\n"
+                         + "    {\n"
+                         + "      \"key\": \"jurisdiction\",\n"
+                         + "      \"operator\": \"IN\",\n"
+                         + "      \"values\": [ \"IA\" ]\n"
+                         + "    }\n"
+                         + "  ]\n"
+                         + "}\n")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+        ).andExpect(status().isOk());
 
         SearchTaskRequest expectedReq = new SearchTaskRequest(
             asList(
