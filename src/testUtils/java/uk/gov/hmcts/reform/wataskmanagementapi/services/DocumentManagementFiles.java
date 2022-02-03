@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import io.restassured.http.Headers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.Document;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.documents.DocumentNames;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.BinaryResourceLoader;
@@ -22,10 +22,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfigurati
 @Component
 public class DocumentManagementFiles {
 
-    private final Map<String, Document> storedDocuments = new ConcurrentHashMap<>();
+    private final Map<DocumentNames, Document> documents = new ConcurrentHashMap<>();
     private Collection<Resource> documentResources;
     @Autowired
-    private AuthorizationHeadersProvider authorizationHeadersProvider;
+    private AuthorizationProvider authorizationProvider;
     @Autowired
     private DocumentManagementUploader documentManagementUploader;
 
@@ -36,7 +36,7 @@ public class DocumentManagementFiles {
                 .values();
     }
 
-    public Document uploadDocument(DocumentNames document) {
+    public Document uploadDocumentAs(DocumentNames document, TestAuthenticationCredentials credentials) {
 
         Optional<Resource> maybeResource = documentResources.stream()
             .filter(res -> {
@@ -66,10 +66,9 @@ public class DocumentManagementFiles {
                 throw new RuntimeException("Missing content type mapping for document: " + filename);
             }
 
-            Headers headers = authorizationHeadersProvider.getLawFirmAuthorization();
-            String userToken = headers.getValue(AUTHORIZATION);
-            String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
-            UserInfo userInfo = authorizationHeadersProvider.getUserInfo(userToken);
+            String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
+            String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
+            UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
 
             return documentManagementUploader.upload(
                 documentResource,
@@ -84,8 +83,11 @@ public class DocumentManagementFiles {
         }
     }
 
-    public Document getDocument(DocumentNames document) {
-        return uploadDocument(document);
+    public Document getDocumentAs(DocumentNames document, TestAuthenticationCredentials credentials) {
+        return documents.computeIfAbsent(
+            document,
+            doc -> uploadDocumentAs(document, credentials)
+        );
     }
 
     private String formatFileName(String fileName) {

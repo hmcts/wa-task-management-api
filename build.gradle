@@ -361,7 +361,7 @@ dependencies {
 
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
-
+  testCompile 'com.google.guava:guava-testlib:31.0-jre'
   //Pact contract testing
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestCompile group: 'au.com.dius.pact.consumer', name: 'java8', version: versions.pactVersion
