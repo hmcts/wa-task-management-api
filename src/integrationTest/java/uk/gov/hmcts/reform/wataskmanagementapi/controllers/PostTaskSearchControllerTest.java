@@ -954,7 +954,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
@@ -1018,7 +1018,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles =
             mockServices.createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
