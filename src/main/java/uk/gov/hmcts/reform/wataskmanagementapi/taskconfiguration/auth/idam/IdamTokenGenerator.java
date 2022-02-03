@@ -26,7 +26,7 @@ public class IdamTokenGenerator {
         this.idamWebApi = idamWebApi;
     }
 
-    @Cacheable(cacheNames="idam_sys_user_token_cache", key="'system_user_token'")
+    @Cacheable(cacheNames="idam_sys_user_token_cache", key="'system_user_token'", sync = true)
     public String generate() {
         return getUserBearerToken(
             systemUserIdamInfo.getUserName(),
