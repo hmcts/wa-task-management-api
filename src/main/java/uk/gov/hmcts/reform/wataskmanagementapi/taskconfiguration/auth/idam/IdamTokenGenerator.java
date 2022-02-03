@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.CaffeineConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
-@CacheConfig(cacheNames = {CaffeineConfiguration.CACHE_NAME})
 @Component
 public class IdamTokenGenerator {
 

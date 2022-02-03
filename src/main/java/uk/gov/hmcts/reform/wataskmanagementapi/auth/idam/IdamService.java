@@ -1,16 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.CaffeineConfiguration;
 
 import static java.util.Objects.requireNonNull;
 
-@CacheConfig(cacheNames = {CaffeineConfiguration.CACHE_NAME})
 @Component
 public class IdamService {
 
