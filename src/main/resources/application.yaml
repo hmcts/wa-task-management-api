@@ -122,6 +122,7 @@ logging:
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
     org.springframework.cache: TRACE
+    com.github.benmanes.caffeine: trace
 
 logbook:
   include: /task/**
