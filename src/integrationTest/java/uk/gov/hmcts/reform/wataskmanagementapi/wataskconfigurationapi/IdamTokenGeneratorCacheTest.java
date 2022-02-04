@@ -19,12 +19,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -252,6 +254,71 @@ public class IdamTokenGeneratorCacheTest {
             request.add("password", pass);
             request.add("scope", "openid profile roles");
             return request;
+        }
+    }
+
+    @Nested
+    @DisplayName("generate()")
+    class Generate {
+
+        @MockBean(name = "systemUserIdamInfo")
+        UserIdamTokenGeneratorInfo systemUserIdamInfo;
+
+        @Test
+        void given_repeated_calls_it_should_cache_bearer_tokens() {
+
+            when(idamWebApi.token(any())).thenReturn(new Token("Bearer Token", "Scope"));
+
+            when(systemUserIdamInfo.getUserName()).thenReturn("someUser");
+            when(systemUserIdamInfo.getUserPassword()).thenReturn("somePass");
+
+            IntStream.range(0, 4).forEach(i -> systemUserIdamToken.generate());
+
+            verify(idamWebApi, times(1)).token(any());
+        }
+
+        @Test
+        void given_repeated_calls_when_first_call_fails_it_should_return_cached_bearer_token() {
+
+            when(systemUserIdamInfo.getUserName()).thenReturn("someUser");
+            when(systemUserIdamInfo.getUserPassword()).thenReturn("somePass");
+
+            when(idamWebApi.token(any()))
+                .thenThrow(FeignException.FeignServerException.class)
+                .thenReturn(new Token("Bearer Token", "Scope"))
+                .thenReturn(new Token("Bearer Token", "Scope"));
+
+            try {
+                IntStream.range(0, 3).forEach(i -> systemUserIdamToken.generate());
+            } catch (Exception e) {
+                //Do nothing
+            }
+
+            verify(idamWebApi, times(1)).token(any());
+        }
+
+        @Test
+        void should_reload_bearer_token_when_cache_expires() {
+            when(systemUserIdamInfo.getUserName()).thenReturn("someUser");
+            when(systemUserIdamInfo.getUserPassword()).thenReturn("somePass");
+
+            when(idamWebApi.token(any())).thenReturn(new Token("Bearer Token", "Scope"));
+
+            systemUserIdamToken.generate();
+            verify(idamWebApi, times(1)).token(any());
+
+            //Cache is configured to 30 minutes
+            //Advance ticker 29 minutes
+            OverrideBean.FAKE_TICKER.advance(29, TimeUnit.MINUTES);
+            // Data should still be cached
+            systemUserIdamToken.generate();
+            verify(idamWebApi, times(1)).token(any());
+
+            //Advance ticker 1 more minute
+            OverrideBean.FAKE_TICKER.advance(1, TimeUnit.MINUTES);
+            // Data should still be expired
+            systemUserIdamToken.generate();
+            verify(idamWebApi, times(2)).token(any());
         }
     }
 
