@@ -13,7 +13,7 @@ import java.util.Set;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
 
 @Slf4j
 @Service
@@ -58,7 +58,7 @@ public class WorkTypesService {
         Set<String> roleWorkTypes = new HashSet<>();
 
         for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPE.value());
+            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
             if (assignedWorkedList != null) {
                 roleWorkTypes.addAll(asList(assignedWorkedList.split(",")));
             }

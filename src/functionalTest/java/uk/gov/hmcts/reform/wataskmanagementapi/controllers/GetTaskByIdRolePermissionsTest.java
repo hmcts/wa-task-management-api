@@ -1,11 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -23,25 +24,33 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/roles";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
+        common.insertTaskInCftTaskDb(
+            taskVariables,
+            "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders()
+        );
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -59,14 +68,14 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -83,14 +92,18 @@ public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest
     public void should_return_200_and_retrieve_role_permission_information_for_given_task_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", authenticationHeaders);
+        common.insertTaskInCftTaskDb(
+            taskVariables,
+            "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders()
+        );
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
