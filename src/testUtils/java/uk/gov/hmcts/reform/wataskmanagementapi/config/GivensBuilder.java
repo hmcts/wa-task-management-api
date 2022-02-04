@@ -284,6 +284,7 @@ public class GivensBuilder {
             //for testing-purposes
             .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("judge", "Read,Refer,Execute")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("workingDaysAllowed", "2")
