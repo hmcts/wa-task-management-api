@@ -92,6 +92,7 @@ public class CftQueryServiceGetTaskTest {
             .endTime(LocalDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
+            .authorisations(List.of("373"))
             .build();
         roleAssignments.add(roleAssignment);
 
