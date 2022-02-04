@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,12 +34,26 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("integration")
 public class IdamTokenGeneratorCacheTest {
 
+    @MockBean(name = "systemUserIdamInfo")
+    UserIdamTokenGeneratorInfo systemUserIdamInfo;
+
     @MockBean
     private IdamWebApi idamWebApi;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
+    private MultiValueMap<String, String> buildRequestForUser(String user, String pass) {
+        MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
+        request.add("grant_type", "password");
+        request.add("redirect_uri", "http://localhost:3002/oauth2/callback");
+        request.add("client_id", "wa");
+        request.add("client_secret", "something");
+        request.add("username", user);
+        request.add("password", pass);
+        request.add("scope", "openid profile roles");
+        return request;
+    }
 
     @TestConfiguration
     public static class OverrideBean {
@@ -162,6 +175,19 @@ public class IdamTokenGeneratorCacheTest {
     @Nested
     @DisplayName("getUserBearerToken()")
     class GetUserBearerToken {
+        @BeforeEach
+        void setup() {
+
+            String username = UUID.randomUUID().toString();
+            String pass = UUID.randomUUID().toString();
+            when(systemUserIdamInfo.getUserName()).thenReturn(username);
+            when(systemUserIdamInfo.getUserPassword()).thenReturn(pass);
+            when(systemUserIdamInfo.getIdamClientId()).thenReturn("wa");
+            when(systemUserIdamInfo.getIdamClientSecret()).thenReturn("something");
+            when(systemUserIdamInfo.getIdamRedirectUrl()).thenReturn("http://localhost:3002/oauth2/callback");
+            when(systemUserIdamInfo.getIdamScope()).thenReturn("openid profile roles");
+
+        }
 
         @Test
         void given_repeated_calls_it_should_cache_bearer_tokens() {
@@ -244,46 +270,42 @@ public class IdamTokenGeneratorCacheTest {
             verify(idamWebApi, times(2)).token(request);
         }
 
-        private MultiValueMap<String, String> buildRequestForUser(String user, String pass) {
-            MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
-            request.add("grant_type", "password");
-            request.add("redirect_uri", "http://localhost:3002/oauth2/callback");
-            request.add("client_id", "wa");
-            request.add("client_secret", "something");
-            request.add("username", user);
-            request.add("password", pass);
-            request.add("scope", "openid profile roles");
-            return request;
-        }
     }
 
     @Nested
     @DisplayName("generate()")
     class Generate {
+        MultiValueMap<String, String> request;
+        String username;
+        String pass;
 
-        @MockBean(name = "systemUserIdamInfo")
-        UserIdamTokenGeneratorInfo systemUserIdamInfo;
+        @BeforeEach
+        void setup() {
+            username = UUID.randomUUID().toString();
+            pass = UUID.randomUUID().toString();
+            when(systemUserIdamInfo.getUserName()).thenReturn(username);
+            when(systemUserIdamInfo.getUserPassword()).thenReturn(pass);
+            when(systemUserIdamInfo.getIdamClientId()).thenReturn("wa");
+            when(systemUserIdamInfo.getIdamClientSecret()).thenReturn("something");
+            when(systemUserIdamInfo.getIdamRedirectUrl()).thenReturn("http://localhost:3002/oauth2/callback");
+            when(systemUserIdamInfo.getIdamScope()).thenReturn("openid profile roles");
+            request = buildRequestForUser(username, pass);
+        }
 
         @Test
         void given_repeated_calls_it_should_cache_bearer_tokens() {
 
-            when(idamWebApi.token(any())).thenReturn(new Token("Bearer Token", "Scope"));
-
-            when(systemUserIdamInfo.getUserName()).thenReturn("someUser");
-            when(systemUserIdamInfo.getUserPassword()).thenReturn("somePass");
+            when(idamWebApi.token(request)).thenReturn(new Token("Bearer Token", "Scope"));
 
             IntStream.range(0, 4).forEach(i -> systemUserIdamToken.generate());
 
-            verify(idamWebApi, times(1)).token(any());
+            verify(idamWebApi, times(1)).token(request);
         }
 
         @Test
         void given_repeated_calls_when_first_call_fails_it_should_return_cached_bearer_token() {
 
-            when(systemUserIdamInfo.getUserName()).thenReturn("someUser");
-            when(systemUserIdamInfo.getUserPassword()).thenReturn("somePass");
-
-            when(idamWebApi.token(any()))
+            when(idamWebApi.token(request))
                 .thenThrow(FeignException.FeignServerException.class)
                 .thenReturn(new Token("Bearer Token", "Scope"))
                 .thenReturn(new Token("Bearer Token", "Scope"));
@@ -294,32 +316,8 @@ public class IdamTokenGeneratorCacheTest {
                 //Do nothing
             }
 
-            verify(idamWebApi, times(1)).token(any());
+            verify(idamWebApi, times(1)).token(request);
         }
 
-        @Test
-        void should_reload_bearer_token_when_cache_expires() {
-            when(systemUserIdamInfo.getUserName()).thenReturn("someUser");
-            when(systemUserIdamInfo.getUserPassword()).thenReturn("somePass");
-
-            when(idamWebApi.token(any())).thenReturn(new Token("Bearer Token", "Scope"));
-
-            systemUserIdamToken.generate();
-            verify(idamWebApi, times(1)).token(any());
-
-            //Cache is configured to 30 minutes
-            //Advance ticker 29 minutes
-            OverrideBean.FAKE_TICKER.advance(29, TimeUnit.MINUTES);
-            // Data should still be cached
-            systemUserIdamToken.generate();
-            verify(idamWebApi, times(1)).token(any());
-
-            //Advance ticker 1 more minute
-            OverrideBean.FAKE_TICKER.advance(1, TimeUnit.MINUTES);
-            // Data should still be expired
-            systemUserIdamToken.generate();
-            verify(idamWebApi, times(2)).token(any());
-        }
     }
-
 }
