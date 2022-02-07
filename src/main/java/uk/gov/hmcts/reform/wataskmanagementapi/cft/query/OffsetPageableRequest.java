@@ -10,6 +10,7 @@ import java.io.Serializable;
 
 @EqualsAndHashCode
 @ToString
+@SuppressWarnings({"PMD.ShortMethodName", "PMD.AvoidLiteralsInIfCondition"})
 public class OffsetPageableRequest implements Pageable, Serializable {
 
     private static final long serialVersionUID = 5127306127952604824L;
@@ -107,5 +108,4 @@ public class OffsetPageableRequest implements Pageable, Serializable {
     public boolean hasPrevious() {
         return offset > limit;
     }
-
 }

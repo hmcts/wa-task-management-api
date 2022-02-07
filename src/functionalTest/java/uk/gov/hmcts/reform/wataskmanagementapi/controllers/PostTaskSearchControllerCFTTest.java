@@ -250,7 +250,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_firstResult_pagination() {
+    public void should_return_a_400_with_empty_search_results_with_negative_firstResult_pagination() {
         //creating 1 task
         String[] taskStates = {TaskState.ASSIGNED.value()};
 
