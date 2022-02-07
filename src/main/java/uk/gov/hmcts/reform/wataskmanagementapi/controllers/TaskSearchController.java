@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 
 import static java.util.Arrays.asList;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -49,6 +51,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
+@Validated
 @SuppressWarnings({"PMD.ExcessiveImports"})
 public class TaskSearchController extends BaseController {
 
@@ -90,8 +93,11 @@ public class TaskSearchController extends BaseController {
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
         @RequestHeader("Authorization") String authToken,
-        @RequestParam(required = false, name = "first_result") Optional<Integer> firstResult,
-        @RequestParam(required = false, name = "max_results") Optional<Integer> maxResults,
+
+        @RequestParam(required = false, name = "first_result")
+        @Min(value = 0, message = "first_result must not be less than zero") Integer firstResult,
+        @RequestParam(required = false, name = "max_results")
+        @Min(value = 1, message = "max_results must not be less than one") Integer maxResults,
         @Valid @RequestBody SearchTaskRequest searchTaskRequest
     ) {
 
@@ -113,8 +119,8 @@ public class TaskSearchController extends BaseController {
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
-                firstResult.orElse(0),
-                maxResults.orElse(defaultMaxResults),
+                Optional.ofNullable(firstResult).orElse(0),
+                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchTaskRequest,
                 accessControlResponse,
                 permissionsRequired
@@ -127,7 +133,9 @@ public class TaskSearchController extends BaseController {
         } else {
             //Release 1
             List<Task> tasks = taskManagementService.searchWithCriteria(
-                searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
+                searchTaskRequest,
+                Optional.ofNullable(firstResult).orElse(0),
+                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 accessControlResponse
             );
 
