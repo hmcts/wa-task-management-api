@@ -147,6 +147,6 @@ public class OffsetPageableRequestTest {
         assertEquals(OffsetPageableRequest.of(25, 25), request.previous());
         assertEquals(OffsetPageableRequest.of(0, 25), request.first()); //Should be the same
         assertTrue(request.hasPrevious());
-        assertEquals(OffsetPageableRequest.of(25, 25), request.previousOrFirst()); //should return same page since it does not have a previous
+        assertEquals(OffsetPageableRequest.of(25, 25), request.previousOrFirst());
     }
 }
