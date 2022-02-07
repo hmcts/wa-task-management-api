@@ -113,21 +113,25 @@ public class CftQueryService {
 
         final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
 
-        if (taskResources.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
-        final List<Task> tasks = taskResources.stream()
+        final List<Task> tasks = getTasks(accessControlResponse, taskResources);
+
+        return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
+    }
+
+    private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
+        if (taskResources.isEmpty()) {
+            return emptyList();
+        }
+
+        return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    accessControlResponse.getRoleAssignments()
+                taskResource,
+                accessControlResponse.getRoleAssignments()
                 )
             )
             .collect(Collectors.toList());
-
-        return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
 
     public Optional<TaskResource> getTask(String taskId,

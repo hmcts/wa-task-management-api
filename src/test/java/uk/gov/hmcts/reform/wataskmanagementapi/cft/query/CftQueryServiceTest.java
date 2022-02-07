@@ -713,7 +713,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             assertNotNull(response);
             assertTrue(response.getTasks().isEmpty());
-            assertFalse(response.isTaskRequiredForEvent());
+            assertTrue(response.isTaskRequiredForEvent());
 
             verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
         }
