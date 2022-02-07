@@ -651,7 +651,6 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
 
-
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
             Map.of(
@@ -1146,8 +1145,11 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                singletonList("JUDICIAL")),
+            new SearchParameterList(
+                ROLE_CATEGORY,
+                SearchOperator.IN,
+                singletonList("JUDICIAL")
+            ),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
