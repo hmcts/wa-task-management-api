@@ -203,12 +203,7 @@ public final class RoleAssignmentFilter {
         Predicate securityClassification = mapSecurityClassification(
             root, builder, roleAssignment
         );
-        Predicate authorizations;
-        if (CHALLENGED.equals(roleAssignment.getGrantType())) {
-            authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
-        } else {
-            authorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
-        }
+        Predicate authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
 
         if (roleAssignment.getAttributes() != null) {
             Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
