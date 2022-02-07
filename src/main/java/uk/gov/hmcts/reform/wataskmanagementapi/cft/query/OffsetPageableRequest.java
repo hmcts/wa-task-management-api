@@ -1,14 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.builder.EqualsBuilder;
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.builder.HashCodeBuilder;
-import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.builder.ToStringBuilder;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 
 
+@EqualsAndHashCode
+@ToString
 public class OffsetPageableRequest implements Pageable, Serializable {
 
     private static final long serialVersionUID = 5127306127952604824L;
@@ -105,39 +106,6 @@ public class OffsetPageableRequest implements Pageable, Serializable {
     @Override
     public boolean hasPrevious() {
         return offset > limit;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-
-        if (!(o instanceof OffsetPageableRequest)) return false;
-
-        OffsetPageableRequest that = (OffsetPageableRequest) o;
-
-        return new EqualsBuilder()
-            .append(limit, that.limit)
-            .append(offset, that.offset)
-            .append(sort, that.sort)
-            .isEquals();
-    }
-
-    @Override
-    public int hashCode() {
-        return new HashCodeBuilder(17, 37)
-            .append(limit)
-            .append(offset)
-            .append(sort)
-            .toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-            .append("limit", limit)
-            .append("offset", offset)
-            .append("sort", sort)
-            .toString();
     }
 
 }
