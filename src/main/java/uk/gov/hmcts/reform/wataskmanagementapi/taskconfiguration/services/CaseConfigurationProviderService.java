@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,8 @@ public class CaseConfigurationProviderService {
                 taskAttributesString
             );
 
+        updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults);
+
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
                 jurisdiction,
@@ -94,6 +97,30 @@ public class CaseConfigurationProviderService {
             taskConfigurationDmnResults,
             filteredPermissionDmnResults
         );
+    }
+
+    private List<ConfigurationDmnEvaluationResponse> updateTaskConfigurationDmnResultsForAdditionalProperties(
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
+
+        Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
+            .filter(r -> r.getName().getValue().contains("additionalProperties_"))
+            .map(this::removeAdditionalFromCamundaName)
+            .collect(toMap(r -> r.getName().getValue(), r -> r.getValue().getValue()));
+
+        ConfigurationDmnEvaluationResponse additionalPropertiesDmn = new ConfigurationDmnEvaluationResponse(
+            CamundaValue.stringValue("additionalProperties"),
+            CamundaValue.stringValue(writeValueAsString(additionalProperties))
+        );
+
+        List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
+            .filter(r -> r.getName().getValue().contains("additionalProperties_")).collect(Collectors.toList());
+        configResponses.add(additionalPropertiesDmn);
+        return configResponses;
+    }
+
+    private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(ConfigurationDmnEvaluationResponse resp) {
+        String additionalPropKey = resp.getName().getValue().replace("additionalProperties_", "");
+        return new ConfigurationDmnEvaluationResponse(CamundaValue.stringValue(additionalPropKey), resp.getValue());
     }
 
     private boolean filterBasedOnCaseAccessCategory(CaseDetails caseDetails,
