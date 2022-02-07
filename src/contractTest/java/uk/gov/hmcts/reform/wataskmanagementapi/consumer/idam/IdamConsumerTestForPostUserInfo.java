@@ -5,6 +5,7 @@ import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslJsonRootValue;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ public class IdamConsumerTestForPostUserInfo extends SpringBootContractBaseTest 
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentUserInfo")
+    @PactTestFor(pactMethod = "generatePactFragmentUserInfo", pactVersion = PactSpecVersion.V3)
     public void verifyIdamUserDetailsRolesPactUserInfo() {
         UserInfo userInfo = idamApi.userInfo(AUTH_TOKEN);
         assertEquals(PACT_TEST_EMAIL_VALUE, userInfo.getEmail(), "User is not Case Officer");

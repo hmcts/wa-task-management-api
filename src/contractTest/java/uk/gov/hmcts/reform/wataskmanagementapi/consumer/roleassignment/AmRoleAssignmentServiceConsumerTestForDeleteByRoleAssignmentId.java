@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment;
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.restassured.http.ContentType;
@@ -23,18 +24,6 @@ public class AmRoleAssignmentServiceConsumerTestForDeleteByRoleAssignmentId exte
     private static final String AM_RAS_URL = "/am/role-assignments";
     private static final String RAS_DELETE_ACTOR_BY_ID = AM_RAS_URL + "/" + ASSIGMENT_ID;
 
-    @Test
-    @PactTestFor(pactMethod = "executeDeleteActorByIdAndGet204")
-    void deleteActorByIdAndGet204Test(MockServer mockServer) {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .delete(mockServer.getUrl() + RAS_DELETE_ACTOR_BY_ID)
-            .then()
-            .statusCode(204);
-    }
-
     @Pact(provider = "am_roleAssignment_deleteAssignment", consumer = "wa_task_management_api")
     public RequestResponsePact executeDeleteActorByIdAndGet204(PactDslWithProvider builder) {
 
@@ -48,6 +37,18 @@ public class AmRoleAssignmentServiceConsumerTestForDeleteByRoleAssignmentId exte
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeDeleteActorByIdAndGet204", pactVersion = PactSpecVersion.V3)
+    void deleteActorByIdAndGet204Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .delete(mockServer.getUrl() + RAS_DELETE_ACTOR_BY_ID)
+            .then()
+            .statusCode(204);
     }
 
 }

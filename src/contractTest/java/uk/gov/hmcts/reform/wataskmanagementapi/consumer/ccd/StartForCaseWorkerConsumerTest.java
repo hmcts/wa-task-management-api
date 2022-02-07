@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -50,8 +50,8 @@ public class StartForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "startForCaseWorker")
-    public void verifyStartEventForCaseworker() throws JSONException {
+    @PactTestFor(pactMethod = "startForCaseWorker", pactVersion = PactSpecVersion.V3)
+    public void verifyStartEventForCaseworker() {
 
         StartEventResponse startEventResponse = coreCaseDataApi.startForCaseworker(
             AUTH_TOKEN,
