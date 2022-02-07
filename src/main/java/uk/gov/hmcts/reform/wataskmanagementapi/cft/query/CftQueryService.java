@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -48,7 +47,8 @@ public class CftQueryService {
     private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
 
-    public CftQueryService(CamundaService camundaService, CFTTaskMapper cftTaskMapper,
+    public CftQueryService(CamundaService camundaService,
+                           CFTTaskMapper cftTaskMapper,
                            TaskResourceRepository taskResourceRepository) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
@@ -65,18 +65,12 @@ public class CftQueryService {
         validateRequest(searchTaskRequest);
 
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
-        Pageable page;
-        try {
-            page = PageRequest.of(firstResult, maxResults, sort);
-        } catch (IllegalArgumentException exp) {
-            return new GetTasksResponse<>(emptyList(), 0);
-        }
+        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
 
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
 
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
-
 
         final List<TaskResource> taskResources = pages.toList();
 
