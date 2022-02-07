@@ -120,20 +120,6 @@ public class CftQueryService {
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
 
-    private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
-        if (taskResources.isEmpty()) {
-            return emptyList();
-        }
-
-        return taskResources.stream()
-            .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                taskResource,
-                accessControlResponse.getRoleAssignments()
-                )
-            )
-            .collect(Collectors.toList());
-    }
-
     public Optional<TaskResource> getTask(String taskId,
                                           AccessControlResponse accessControlResponse,
                                           List<PermissionTypes> permissionsRequired
@@ -149,6 +135,20 @@ public class CftQueryService {
 
         return taskResourceRepository.findOne(taskResourceSpecification);
 
+    }
+
+    private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
+        if (taskResources.isEmpty()) {
+            return emptyList();
+        }
+
+        return taskResources.stream()
+            .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    accessControlResponse.getRoleAssignments()
+                )
+            )
+            .collect(Collectors.toList());
     }
 
     private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {

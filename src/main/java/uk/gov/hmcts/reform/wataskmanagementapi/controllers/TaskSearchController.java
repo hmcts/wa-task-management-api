@@ -100,7 +100,6 @@ public class TaskSearchController extends BaseController {
         @Min(value = 1, message = "max_results must not be less than one") Integer maxResults,
         @Valid @RequestBody SearchTaskRequest searchTaskRequest
     ) {
-
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();

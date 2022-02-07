@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -131,7 +130,7 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(60, SECONDS)
             .until(
                 () -> {
@@ -162,7 +161,7 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
+            .pollInterval(2, SECONDS)
             .atMost(60, SECONDS)
             .until(
                 () -> {
