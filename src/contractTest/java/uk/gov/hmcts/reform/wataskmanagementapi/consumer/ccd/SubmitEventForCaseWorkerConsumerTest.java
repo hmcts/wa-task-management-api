@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.json.JSONException;
@@ -54,7 +55,7 @@ public class SubmitEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "submitEventForCaseWorker")
+    @PactTestFor(pactMethod = "submitEventForCaseWorker", pactVersion = PactSpecVersion.V3)
     public void verifySubmitEventForCaseworker() throws Exception {
 
         final CaseDetails caseDetails = coreCaseDataApi.submitEventForCaseWorker(

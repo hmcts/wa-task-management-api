@@ -4,6 +4,7 @@ import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.Maps;
@@ -20,7 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -30,8 +31,24 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
 
     private static final String RAS_CREATE_ROLE_ASSIGNMENT_URL = "/am/role-assignments";
 
+    @Pact(provider = "am_roleAssignment_createAssignment", consumer = "wa_task_management_api")
+    public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
+
+        return builder
+            .given("The assignment request is valid with one requested role and replaceExisting flag as true")
+            .uponReceiving("Provider receives a POST /am/role-assignments request from a WA API")
+            .path(RAS_CREATE_ROLE_ASSIGNMENT_URL)
+            .method(HttpMethod.POST.toString())
+            .body(createRoleAssignmentRequest(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.CREATED.value())
+            .headers(getRoleAssignmentResponseHeaders())
+            .body(createRoleAssignmentResponse())
+            .toPact();
+    }
+
     @Test
-    @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201")
+    @PactTestFor(pactMethod = "executeCreateRoleAssignmentOneRoleAndGet201", pactVersion = PactSpecVersion.V3)
     void createRoleAssignmentOneRoleAndGet201Test(MockServer mockServer)
         throws JSONException {
         String actualResponseBody =
@@ -53,49 +70,33 @@ public class AmRoleAssignmentServiceConsumerTestForCreateRoleAssignment extends 
 
     }
 
-    @Pact(provider = "am_roleAssignment_createAssignment", consumer = "wa_task_management_api")
-    public RequestResponsePact executeCreateRoleAssignmentOneRoleAndGet201(PactDslWithProvider builder) {
-
-        return builder
-            .given("The assignment request is valid with one requested role and replaceExisting flag as true")
-            .uponReceiving("Provider receives a POST /am/role-assignments request from a WA API")
-            .path(RAS_CREATE_ROLE_ASSIGNMENT_URL)
-            .method(HttpMethod.POST.toString())
-            .body(createRoleAssignmentRequest(), String.valueOf(ContentType.JSON))
-            .willRespondWith()
-            .status(HttpStatus.CREATED.value())
-            .headers(getRoleAssignmentResponseHeaders())
-            .body(createRoleAssignmentResponse())
-            .toPact();
-    }
-
     private String createRoleAssignmentRequest() {
-        String request = "";
-        request = "{\n"
-                  + "  \"requestedRoles\": [\n"
-                  + "    {\n"
-                  + "      \"actorId\": \"14a21569-eb80-4681-b62c-6ae2ed069e5f\",\n"
-                  + "      \"actorIdType\": \"IDAM\",\n"
-                  + "      \"classification\": \"PUBLIC\",\n"
-                  + "      \"grantType\": \"STANDARD\",\n"
-                  + "      \"readOnly\": false,\n"
-                  + "      \"roleCategory\": \"LEGAL_OPERATIONS\",\n"
-                  + "      \"roleName\": \"tribunal-caseworker\",\n"
-                  + "      \"roleType\": \"ORGANISATION\",\n"
-                  + "      \"attributes\": {\n"
-                  + "        \"jurisdiction\": \"IA\",\n"
-                  + "        \"primaryLocation\": \"765324\"\n"
-                  + "      }\n"
-                  + "    }\n"
-                  + "  ],\n"
-                  + "  \"roleRequest\": {\n"
-                  + "    \"assignerId\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
-                  + "    \"process\": \"staff-organisational-role-mapping\",\n"
-                  + "    \"reference\": \"14a21569-eb80-4681-b62c-6ae2ed069e5f\",\n"
-                  + "    \"replaceExisting\": true\n"
-                  + "  }\n"
-                  + "}\n";
-        return request;
+
+        return "{\n"
+               + "  \"requestedRoles\": [\n"
+               + "    {\n"
+               + "      \"actorId\": \"14a21569-eb80-4681-b62c-6ae2ed069e5f\",\n"
+               + "      \"actorIdType\": \"IDAM\",\n"
+               + "      \"classification\": \"PUBLIC\",\n"
+               + "      \"grantType\": \"STANDARD\",\n"
+               + "      \"readOnly\": false,\n"
+               + "      \"roleCategory\": \"LEGAL_OPERATIONS\",\n"
+               + "      \"roleName\": \"tribunal-caseworker\",\n"
+               + "      \"roleType\": \"ORGANISATION\",\n"
+               + "      \"attributes\": {\n"
+               + "        \"jurisdiction\": \"IA\",\n"
+               + "        \"primaryLocation\": \"765324\"\n"
+               + "      }\n"
+               + "    }\n"
+               + "  ],\n"
+               + "  \"roleRequest\": {\n"
+               + "    \"assignerId\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
+               + "    \"process\": \"staff-organisational-role-mapping\",\n"
+               + "    \"reference\": \"14a21569-eb80-4681-b62c-6ae2ed069e5f\",\n"
+               + "    \"replaceExisting\": true\n"
+               + "  }\n"
+               + "}\n";
+
     }
 
     private DslPart createRoleAssignmentResponse() {
