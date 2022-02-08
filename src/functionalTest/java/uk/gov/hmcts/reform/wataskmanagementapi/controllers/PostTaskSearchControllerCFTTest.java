@@ -1259,7 +1259,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(1)) //Default max results
             .body("tasks[0].id", equalTo(taskId2))
-            .body("tasks[0].task_state", is(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks[0].task_state", is("unassigned"))
             .body("tasks[0].permissions.values", hasItem("Own"))
             .body("total_records", is(1));
 
@@ -1271,13 +1271,15 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
+        String taskType3 = "reviewTheAppeal";
 
         String caseId = given.iCreateACcdCase();
         List<CamundaTask> camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        camundaTasks.addAll(common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2));
+        camundaTasks.addAll(common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType3));
         String taskId1 = camundaTasks.get(0).getId();
-
-        camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
-        String taskId2 = camundaTasks.get(0).getId();
+        String taskId2 = camundaTasks.get(1).getId();
+        String taskId3 = camundaTasks.get(2).getId();
 
         common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
@@ -1288,6 +1290,13 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         // insert taskId2
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId2, "processInstanceId1"),
             taskType2, caseworkerCredentials.getHeaders());
+
+        // insert taskId3
+        common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId3, "processInstanceId1"),
+            taskType3, caseworkerCredentials.getHeaders());
+
+        //Claim a task to set state to assigned
+        given.iClaimATaskWithIdAndAuthorization(taskId3, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -1305,13 +1314,13 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", is(2)) //Default max results
+            .body("tasks.size()", is(2))
             .body("tasks.id", hasItems(taskId1, taskId2))
-            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("tasks.permissions.values", everyItem(hasItem("Own")))
             .body("total_records", is(2));
 
-        common.cleanUpTask(taskId1, taskId2);
+        common.cleanUpTask(taskId1, taskId2, taskId3);
     }
 
     @Test
@@ -1350,7 +1359,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10))
-            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("tasks.permissions.values", everyItem(hasItem("Own")))
             .body("total_records", greaterThan(1));
 
