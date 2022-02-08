@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Objects;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
@@ -140,6 +141,11 @@ public class Task {
         notes = "A value describing the role category")
     private String roleCategory;
 
+    @ApiModelProperty(required = true,
+        notes = "A value describing the additional properties")
+    private Map<String, String> additionalProperties;
+
+
     private Task() {
         //Hidden constructor
         super();
@@ -171,8 +177,8 @@ public class Task {
                 String workTypeId,
                 TaskPermissions taskPermissions,
                 String roleCategory,
-                String description
-    ) {
+                String description,
+                Map<String, String> additionalProperties) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -202,6 +208,7 @@ public class Task {
         this.permissions = taskPermissions;
         this.roleCategory = roleCategory;
         this.description = description;
+        this.additionalProperties = additionalProperties;
     }
 
     public String getId() {
@@ -310,6 +317,10 @@ public class Task {
 
     public String getDescription() {
         return description;
+    }
+
+    public Map<String, String> getAdditionalProperties() {
+        return additionalProperties;
     }
 }
 

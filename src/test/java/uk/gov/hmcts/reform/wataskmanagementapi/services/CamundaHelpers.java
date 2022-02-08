@@ -58,8 +58,8 @@ public class CamundaHelpers {
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             null,
-            "a description"
-        );
+            "a description",
+            null);
     }
 
     protected CamundaTask createMockedUnmappedTask() {

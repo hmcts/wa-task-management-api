@@ -1060,8 +1060,8 @@ class CFTTaskMapperTest {
             "Some termination reason",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             taskRoleResources,
-            "caseCategory"
-        );
+            "caseCategory",
+            null);
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
 
@@ -1484,8 +1484,8 @@ class CFTTaskMapperTest {
             null,
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             singleton(roleResource),
-            "caseCategory"
-        );
+            "caseCategory",
+            null);
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,10 @@ public class CamundaObjectMapper {
 
     public <T> Optional<T> read(CamundaVariable variable, Class<T> type) {
         return this.map(variable, type);
+    }
+
+    public <T> Optional<T> read(CamundaVariable variable, TypeReference<T> typeReference) {
+        return this.map(variable, typeReference);
     }
 
     public String asJsonString(final Object obj) {
@@ -55,6 +60,13 @@ public class CamundaObjectMapper {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> Optional<T> map(CamundaVariable variable, TypeReference<T> typeReference) {
+        T value = defaultMapper.convertValue(variable, typeReference);
+
+        return value == null ? Optional.empty() : Optional.of(value);
     }
 }
 

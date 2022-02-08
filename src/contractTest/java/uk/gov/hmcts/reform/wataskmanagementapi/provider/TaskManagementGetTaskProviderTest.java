@@ -162,8 +162,8 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.REFER
                     ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
-        );
+            "a description",
+            null);
     }
 
     private Task createTaskWithWarnings() {
@@ -207,8 +207,8 @@ public class TaskManagementGetTaskProviderTest {
                         PermissionTypes.REFER
                     ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
-        );
+            "a description",
+            null);
     }
 
 }

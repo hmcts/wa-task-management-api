@@ -11,7 +11,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.ccd.CaseDetails;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +65,8 @@ public class CaseConfigurationProviderService {
                 taskAttributesString
             );
 
-        updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults);
+        List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResultsWithAdditionalProperties
+            = updateTaskConfigurationDmnResultsForAdditionalProperties(taskConfigurationDmnResults);
 
         List<PermissionsDmnEvaluationResponse> permissionsDmnResults =
             dmnEvaluationService.evaluateTaskPermissionsDmn(
@@ -82,7 +82,7 @@ public class CaseConfigurationProviderService {
             .collect(Collectors.toList());
 
         Map<String, Object> caseConfigurationVariables = extractDmnResults(
-            taskConfigurationDmnResults,
+            taskConfigurationDmnResultsWithAdditionalProperties,
             filteredPermissionDmnResults
         );
 
@@ -94,7 +94,7 @@ public class CaseConfigurationProviderService {
 
         return new TaskConfigurationResults(
             allCaseConfigurationValues,
-            taskConfigurationDmnResults,
+            taskConfigurationDmnResultsWithAdditionalProperties,
             filteredPermissionDmnResults
         );
     }
@@ -113,8 +113,10 @@ public class CaseConfigurationProviderService {
         );
 
         List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
-            .filter(r -> r.getName().getValue().contains("additionalProperties_")).collect(Collectors.toList());
-        configResponses.add(additionalPropertiesDmn);
+            .filter(r -> !r.getName().getValue().contains("additionalProperties_")).collect(Collectors.toList());
+        if (!additionalProperties.isEmpty()) {
+            configResponses.add(additionalPropertiesDmn);
+        }
         return configResponses;
     }
 

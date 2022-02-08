@@ -43,13 +43,15 @@ class TaskTest {
             false,
             new WarningValues(Arrays.asList(
                 new Warning("123", "some warning"),
-                new Warning("456", "some more warning"))
+                new Warning("456", "some more warning")
+            )
             ),
             "some-case-management-category",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            null
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -112,13 +114,15 @@ class TaskTest {
             false,
             new WarningValues(Arrays.asList(
                 new Warning("123", "some warning"),
-                new Warning("456", "some more warning"))
+                new Warning("456", "some more warning")
+            )
             ),
             "some-case-management-category",
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            null
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();

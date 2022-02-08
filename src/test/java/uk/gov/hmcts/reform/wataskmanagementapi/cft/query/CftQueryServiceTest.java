@@ -138,8 +138,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "taskId",
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
-            "caseCategory"
-        );
+            "caseCategory",
+            null);
     }
 
     private Task getTask() {
@@ -170,8 +170,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "Description"
-        );
+            "Description",
+            null);
     }
 
     private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {

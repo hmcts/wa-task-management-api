@@ -420,8 +420,8 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             "Some termination reason",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             Collections.emptySet(),
-            "caseCategory"
-        );
+            "caseCategory",
+            null);
     }
 
 }

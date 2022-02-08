@@ -214,7 +214,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 taskId,
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
-            "caseCategory"
-        );
+            "caseCategory",
+            null);
     }
 }

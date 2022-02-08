@@ -146,8 +146,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                         PermissionTypes.REFER
                     ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
-        );
+            "a description",
+            null);
     }
 
     public Task createTaskWithWarnings() {
@@ -191,8 +191,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
                         PermissionTypes.REFER
                     ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
-        );
+            "a description",
+            null);
     }
 
     @TestTemplate

@@ -122,8 +122,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.REFER
                     ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
-        );
+            "a description",
+            null);
 
         return singletonList(task);
     }
@@ -169,8 +169,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
                         PermissionTypes.REFER
                     ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
-        );
+            "a description",
+            null);
 
         return singletonList(taskWithWarnings);
     }

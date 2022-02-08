@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -124,6 +125,10 @@ public class TaskResource implements Serializable {
     @ToString.Exclude
     @OneToMany(mappedBy = "taskResource", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
+
+    @Type(type = "jsonb")
+    @Column(columnDefinition = "jsonb")
+    private Map<String, String> additionalProperties;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -252,7 +257,8 @@ public class TaskResource implements Serializable {
                         String terminationReason,
                         OffsetDateTime created,
                         Set<TaskRoleResource> taskRoleResources,
-                        String caseCategory) {
+                        String caseCategory, Map<String,
+        String> additionalProperties) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -285,6 +291,7 @@ public class TaskResource implements Serializable {
         this.created = created;
         this.taskRoleResources = taskRoleResources;
         this.caseCategory = caseCategory;
+        this.additionalProperties = additionalProperties;
     }
 
     public void setTaskId(String taskId) {
@@ -413,5 +420,9 @@ public class TaskResource implements Serializable {
 
     public void setCaseCategory(String caseCategory) {
         this.caseCategory = caseCategory;
+    }
+
+    public void setAdditionalProperties(Map<String, String> additionalProperties) {
+        this.additionalProperties = additionalProperties;
     }
 }
