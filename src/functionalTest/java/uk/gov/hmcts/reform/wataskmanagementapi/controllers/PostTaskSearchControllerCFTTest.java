@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -338,6 +339,11 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned"))
@@ -1098,6 +1104,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Needs Review")
     @Test
     public void should_search_by_role_category_administrator_and_return_tasks_with_role_category_as_administrator() {
         String taskType = "arrangeOfflinePayment";
@@ -1109,10 +1116,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                singletonList("ADMIN")),
-            new SearchParameterList(CASE_ID, SearchOperator.IN,
-                singletonList(taskVariables.getCaseId()))
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("ADMIN")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
         ));
 
         Response result = restApiActions.post(
@@ -1172,6 +1177,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Needs Review")
     @Test
     public void should_search_by_any_role_category_and_return_tasks_with_appropriate_role_category() {
         //initiate first task
@@ -1192,8 +1198,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                List.of("LEGAL_OPERATIONS", "ADMIN")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, List.of("LEGAL_OPERATIONS", "ADMIN")),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));

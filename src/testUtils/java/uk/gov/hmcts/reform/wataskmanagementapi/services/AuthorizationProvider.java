@@ -189,6 +189,10 @@ public class AuthorizationProvider {
 
     }
 
+    public String getUserId(Headers headers) {
+        return getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
+    }
+
     private Header getAuthorization(String username, String password) {
 
         MultiValueMap<String, String> body = createIdamRequest(username, password);
@@ -216,16 +220,16 @@ public class AuthorizationProvider {
 
     private TestAccount getIdamJudgeCredentials(String emailPrefix) {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-                                              new RoleCode("caseworker-ia-judiciary"),
-                                              new RoleCode("payments")
+            new RoleCode("caseworker-ia-judiciary"),
+            new RoleCode("payments")
         );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
     private TestAccount getAdministativeCredentials(String emailPrefix) {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-                                              new RoleCode("caseworker-ia-admofficer"),
-                                              new RoleCode("payments")
+            new RoleCode("caseworker-ia-admofficer"),
+            new RoleCode("payments")
         );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
