@@ -69,9 +69,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_AUTHORIZATION_TOKEN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.IDAM_USER_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
@@ -441,8 +442,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                     stringValue("tribunal-caseworker"),
                     stringValue("Read,Refer,Own"),
                     stringValue("IA,WA"),
-                    null,
-                    null,
+                    integerValue(1),
+                    booleanValue(true),
                     stringValue("LEGAL_OPERATIONS"),
                     stringValue(null)
                 ),
@@ -463,7 +464,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 singletonList(RoleAssignment.builder()
                     .id("someId")
                     .actorIdType(ActorIdType.IDAM)
-                    .actorId(IDAM_USER_ID)
+                    .actorId("someAssignee")
                     .roleName("tribunal-caseworker")
                     .roleCategory(RoleCategory.LEGAL_OPERATIONS)
                     .grantType(GrantType.SPECIFIC)
@@ -497,6 +498,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_name").value("aTaskName"),
                 jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
                 jsonPath("$.state").value("ASSIGNED"),
+                jsonPath("$.assignee").value("someAssignee"),
                 jsonPath("$.task_system").value("SELF"),
                 jsonPath("$.security_classification").value("PUBLIC"),
                 jsonPath("$.title").value("aTaskName"),
@@ -525,7 +527,6 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[0].manage").value(false),
                 jsonPath("$.task_role_resources.[0].cancel").value(false),
                 jsonPath("$.task_role_resources.[0].refer").value(true),
-                jsonPath("$.task_role_resources.[0].auto_assignable").value(false),
                 jsonPath("$.task_role_resources.[1].task_id").value(taskId),
                 jsonPath("$.task_role_resources.[1].role_name")
                     .value(anyOf(is("tribunal-caseworker"), is("senior-tribunal-caseworker"))),
@@ -534,8 +535,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_role_resources.[1].execute").value(false),
                 jsonPath("$.task_role_resources.[1].manage").value(false),
                 jsonPath("$.task_role_resources.[1].cancel").value(false),
-                jsonPath("$.task_role_resources.[1].refer").value(true),
-                jsonPath("$.task_role_resources.[1].auto_assignable").value(false)
+                jsonPath("$.task_role_resources.[0].refer").value(true)
             );
     }
 
@@ -670,7 +670,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void should_return_201_with_task_assigned_when_invalid_old_assignee_auto_assign_case() throws Exception {
+    void should_return_201_with_task_unassigned_when_invalid_old_assignee_auto_assign_case() throws Exception {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(true);
@@ -757,12 +757,11 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
                 jsonPath("$.task_id").value(taskId),
                 jsonPath("$.task_name").value("aTaskName"),
                 jsonPath("$.task_type").value("followUpOverdueReasonsForAppeal"),
-                jsonPath("$.state").value("ASSIGNED"),
-                jsonPath("$.assignee").value("anotherAssignee"),
+                jsonPath("$.state").value("UNASSIGNED"),
                 jsonPath("$.task_system").value("SELF"),
                 jsonPath("$.security_classification").value("PUBLIC"),
                 jsonPath("$.title").value("aTaskName"),
-                jsonPath("$.auto_assigned").value(true),
+                jsonPath("$.auto_assigned").value(false),
                 jsonPath("$.has_warnings").value(false),
                 jsonPath("$.case_id").value("someCaseId"),
                 jsonPath("$.case_type_id").value("Asylum"),
