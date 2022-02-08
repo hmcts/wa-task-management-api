@@ -4,7 +4,6 @@ import io.restassured.response.Response;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -1104,7 +1103,6 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Needs Review")
     @Test
     public void should_search_by_role_category_administrator_and_return_tasks_with_role_category_as_administrator() {
         String taskType = "arrangeOfflinePayment";
@@ -1177,7 +1175,6 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Needs Review")
     @Test
     public void should_search_by_any_role_category_and_return_tasks_with_appropriate_role_category() {
         //initiate first task
