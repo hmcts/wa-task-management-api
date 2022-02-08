@@ -1274,12 +1274,12 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType3 = "reviewTheAppeal";
 
         String caseId = given.iCreateACcdCase();
-        List<CamundaTask> camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
-        camundaTasks.addAll(common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2));
-        camundaTasks.addAll(common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType3));
-        String taskId1 = camundaTasks.get(0).getId();
-        String taskId2 = camundaTasks.get(1).getId();
-        String taskId3 = camundaTasks.get(2).getId();
+        List<CamundaTask> camundaTasks1 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        List<CamundaTask> camundaTasks2 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
+        List<CamundaTask> camundaTasks3 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType3);
+        String taskId1 = camundaTasks1.get(0).getId();
+        String taskId2 = camundaTasks2.get(0).getId();
+        String taskId3 = camundaTasks3.get(0).getId();
 
         common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
