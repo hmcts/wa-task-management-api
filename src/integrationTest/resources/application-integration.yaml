@@ -13,6 +13,8 @@ spring:
       hibernate:
         default_schema: cft_task_db
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+#        show_sql: true
+#        format_sql: true
   flyway:
     enabled: true
     baselineOnMigrate: true
@@ -39,13 +41,8 @@ logging:
       dao: debug
       transaction: debug
       jdbc.core.JdbcTemplate: info
-    org.hibernate:
-      SQL: debug
-      type.descriptor.sql.BasicBinder: debug
-      engine: debug
+#    org.hibernate:
+#      SQL: debug
+#      type.descriptor.sql.BasicBinder: debug
+#      engine: debug
     uk.gov.hmcts.reform: debug
-
-caffeine:
-  timeout:
-    duration: 5
-    unit: SECONDS

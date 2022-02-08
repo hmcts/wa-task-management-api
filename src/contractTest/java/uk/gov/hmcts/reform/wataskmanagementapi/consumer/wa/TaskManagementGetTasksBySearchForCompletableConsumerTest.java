@@ -4,6 +4,7 @@ import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.ImmutableMap;
@@ -15,13 +16,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
-import java.io.IOException;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -69,8 +71,8 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchForCompletable200")
-    void testSearchForCompletable200Test(MockServer mockServer) throws IOException {
+    @PactTestFor(pactMethod = "executeSearchForCompletable200", pactVersion = PactSpecVersion.V3)
+    void testSearchForCompletable200Test(MockServer mockServer) {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -82,8 +84,8 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeSearchForCompletableWithWarnings200")
-    void testSearchForCompletableWithWarnings200Test(MockServer mockServer) throws IOException {
+    @PactTestFor(pactMethod = "executeSearchForCompletableWithWarnings200", pactVersion = PactSpecVersion.V3)
+    void testSearchForCompletableWithWarnings200Test(MockServer mockServer) {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
@@ -122,6 +124,19 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
+                        .object("permissions", (value) -> {
+                            value
+                                .unorderedArray("values", (p) -> p
+                                    .stringValue(PermissionTypes.READ.value())
+                                    .stringValue(PermissionTypes.OWN.value())
+                                    .stringValue(PermissionTypes.EXECUTE.value())
+                                    .stringValue(PermissionTypes.CANCEL.value())
+                                    .stringValue(PermissionTypes.MANAGE.value())
+                                    .stringValue(PermissionTypes.REFER.value()));
+                        })
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
+                        .stringType("description", "a description")
+
                 )).build();
     }
 
@@ -151,14 +166,27 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .stringType("case_category", "refusalOfHumanRights")
                         .stringType("case_name", "Bob Smith")
                         .booleanType("auto_assigned", true)
-                        .stringType("work_type_id", "hearing_work")
                         .booleanType("warnings", true)
+                        .stringType("work_type_id", "hearing_work")
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .object("permissions", (value) -> {
+                            value
+                                .unorderedArray("values", (p) -> p
+                                    .stringValue(PermissionTypes.READ.value())
+                                    .stringValue(PermissionTypes.OWN.value())
+                                    .stringValue(PermissionTypes.EXECUTE.value())
+                                    .stringValue(PermissionTypes.CANCEL.value())
+                                    .stringValue(PermissionTypes.MANAGE.value())
+                                    .stringValue(PermissionTypes.REFER.value()));
+                        })
+                        .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
+                        .stringType("description", "a description")
+
                 )).build();
     }
 
@@ -172,13 +200,13 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
     }
 
     private String creteSearchEventCaseRequest() {
-        String request = "";
-        request = "{\n"
-                  + "    \"case_id\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
-                  + "    \"event_id\": \"requestRespondentEvidence\",\n"
-                  + "    \"case_jurisdiction\": \"IA\",\n"
-                  + "    \"case_type\": \"Asylum\",\n"
-                  + "  }\n";
-        return request;
+
+        return "{\n"
+               + "    \"case_id\": \"14a21569-eb80-4681-b62c-6ae2ed069e4f\",\n"
+               + "    \"event_id\": \"requestRespondentEvidence\",\n"
+               + "    \"case_jurisdiction\": \"IA\",\n"
+               + "    \"case_type\": \"Asylum\",\n"
+               + "  }\n";
+
     }
 }

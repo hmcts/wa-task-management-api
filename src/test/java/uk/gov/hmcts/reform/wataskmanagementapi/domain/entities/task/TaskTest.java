@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -46,7 +47,9 @@ class TaskTest {
             ),
             "some-case-management-category",
             "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -77,6 +80,8 @@ class TaskTest {
         Assertions.assertThat(task.getAssignee()).isEqualTo("some-assignee");
         Assertions.assertThat(task.isAutoAssigned()).isTrue();
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.READ);
+        Assertions.assertThat(task.getRoleCategory()).isEqualTo("LEGAL_OPERATIONS");
+        Assertions.assertThat(task.getDescription()).isEqualTo("a description");
     }
 
 
@@ -111,12 +116,15 @@ class TaskTest {
             ),
             "some-case-management-category",
             "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN)))
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN))),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
         Assertions.assertThat(task.getAssignee()).isNull();
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.OWN);
-
+        Assertions.assertThat(task.getDescription()).isEqualTo("a description");
+        Assertions.assertThat(task.getRoleCategory()).isEqualTo(RoleCategory.LEGAL_OPERATIONS.name());
     }
 }

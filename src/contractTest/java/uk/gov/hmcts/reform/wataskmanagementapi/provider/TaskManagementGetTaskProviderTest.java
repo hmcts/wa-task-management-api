@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
@@ -32,24 +33,21 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
 //Uncomment this and comment the @PactBroker line to test TaskManagementGetTaskProviderTest local consumer.
+//using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("pacts")
 @PactBroker(
-    scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}",
-    port = "${PACT_BROKER_PORT:9292}",
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
@@ -125,6 +123,17 @@ public class TaskManagementGetTaskProviderTest {
     }
 
     private Task createTask() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -150,25 +159,28 @@ public class TaskManagementGetTaskProviderTest {
             new WarningValues(Collections.emptyList()),
             "Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    )))
-
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
     }
 
     private Task createTaskWithWarnings() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
-        WarningValues warningValues = new WarningValues(warnings);
+
         return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -191,19 +203,12 @@ public class TaskManagementGetTaskProviderTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            warningValues,
+            new WarningValues(warnings),
             "Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    )))
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
     }
 

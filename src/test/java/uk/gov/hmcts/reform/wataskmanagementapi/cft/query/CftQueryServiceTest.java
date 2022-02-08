@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -31,12 +32,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentMother;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -56,6 +58,8 @@ import java.util.Optional;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -67,12 +71,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.USER;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchParameterKey.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 public class CftQueryServiceTest extends CamundaHelpers {
@@ -87,18 +92,167 @@ public class CftQueryServiceTest extends CamundaHelpers {
     @InjectMocks
     private CftQueryService cftQueryService;
 
+    private TaskResource createTaskResource() {
+        return new TaskResource(
+            "taskId",
+            "aTaskName",
+            "startAppeal",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            CFTTaskState.COMPLETED,
+            TaskSystem.SELF,
+            SecurityClassification.PUBLIC,
+            "title",
+            "a description",
+            null,
+            0,
+            0,
+            "someAssignee",
+            false,
+            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
+            new WorkTypeResource("routine_work", "Routine work"),
+            "JUDICIAL",
+            false,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "Asylum",
+            "TestCase",
+            "IA",
+            "1",
+            "TestRegion",
+            "765324",
+            "Taylor House",
+            BusinessContext.CFT_TASK,
+            "Some termination reason",
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            singleton(new TaskRoleResource(
+                "tribunal-caseworker",
+                true,
+                false,
+                false,
+                false,
+                false,
+                false,
+                new String[]{"SPECIFIC", "BASIC"},
+                0,
+                false,
+                "JUDICIAL",
+                "taskId",
+                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
+            )),
+            "caseCategory"
+        );
+    }
+
+    private Task getTask() {
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Review the appeal",
+            "reviewTheAppeal",
+            "assigned",
+            "SELF",
+            "PUBLIC",
+            "Review the appeal",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            "10bac6bf-80a7-4c81-b2db-516aba826be6",
+            true,
+            "Case Management Task",
+            "IA",
+            "1",
+            "765324",
+            "Taylor House",
+            "Asylum",
+            "1617708245335311",
+            "refusalOfHumanRights",
+            "Bob Smith",
+            true,
+            null,
+            "Some Case Management Category",
+            "hearing_work",
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "Description"
+        );
+    }
+
+    private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .classification(classification)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> specificAttributes = Map.of(
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(specificAttributes)
+            .grantType(GrantType.SPECIFIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> stdAttributes = Map.of(
+            RoleAttributeDefinition.REGION.value(), "1",
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(stdAttributes)
+            .grantType(GrantType.STANDARD)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> challengedAttributes = Map.of(
+            RoleAttributeDefinition.JURISDICTION.value(), "IA"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(challengedAttributes)
+            .authorisations(List.of("DIVORCE", "PROBATE"))
+            .grantType(GrantType.CHALLENGED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        final Map<String, String> excludeddAttributes = Map.of(
+            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
+        );
+        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .classification(classification)
+            .attributes(excludeddAttributes)
+            .grantType(GrantType.EXCLUDED)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
     @Nested
     @DisplayName("searchForTasks()")
     class SearchForTasks {
         @Test
         void shouldReturnAllTasks() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameter(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -110,7 +264,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             Page<TaskResource> taskResources = new PageImpl<>(List.of(createTaskResource()));
-            when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
             when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
 
             GetTasksResponse<Task> taskResourceList
@@ -126,11 +280,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldReturnAllTasksWhenWorkTypeIsNotSent() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -142,7 +296,39 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             Page<TaskResource> taskResources = new PageImpl<>(List.of(createTaskResource()));
-            when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
+
+            GetTasksResponse<Task> taskResourceList
+                = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired);
+
+            assertNotNull(taskResourceList);
+            assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
+
+            verify(taskResourceRepository, times(1)).findAll(any(), any(Pageable.class));
+        }
+
+        @Test
+        void shouldReturnAvailableTasksOnly() {
+            final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                new SearchParameterList(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, asList("true"))
+            ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+            final AccessControlResponse accessControlResponse = new AccessControlResponse(
+                null,
+                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+            );
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(PermissionTypes.READ);
+
+            Page<TaskResource> taskResources = new PageImpl<>(List.of(createTaskResource()));
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
             when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
 
             GetTasksResponse<Task> taskResourceList
@@ -158,12 +344,12 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldThrowExceptionWhenInvalidWorkTypeIsSent() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameter(WORK_TYPE, SearchOperator.IN, asList("unknown"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("unknown"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -176,21 +362,21 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             assertThrows(
                 CustomConstraintViolationException.class, () ->
-                cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired)
+                    cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired)
             );
 
-            verify(cftTaskMapper, Mockito.never()).mapToTask(any());
+            verify(cftTaskMapper, Mockito.never()).mapToTaskWithPermissions(any(), any());
             verify(taskResourceRepository, Mockito.never()).findAll(any(), any(Pageable.class));
         }
 
         @Test
         void shouldReturnAllTasksWithNullValues() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -204,7 +390,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             final TaskResource taskResource = createTaskResource();
 
             Page<TaskResource> taskResources = new PageImpl<>(List.of(taskResource));
-            when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
             when(taskResourceRepository.findAll(any(), any(Pageable.class))).thenReturn(taskResources);
 
             GetTasksResponse<Task> taskResourceList
@@ -223,11 +409,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void shouldReturnEmptyListWhenNoTasksInDatabase() {
             final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -251,13 +437,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void shouldHandleInvalidPagination() {
+        void should_raise_exception_when_invalid_offset() {
             SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-                new SearchParameter(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameter(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameter(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameter(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameter(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
             ),
                 List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -268,16 +454,44 @@ public class CftQueryServiceTest extends CamundaHelpers {
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
 
-            GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(
-                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+            assertThatThrownBy(() -> cftQueryService.searchForTasks(
+                -1,
+                25,
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Offset index must not be less than zero");
+        }
+
+        @Test
+        void should_raise_exception_when_invalid_limit() {
+            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+            ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                null,
+                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
             );
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(PermissionTypes.READ);
 
-            assertNotNull(taskResourceList);
-            assertTrue(taskResourceList.getTasks().isEmpty());
-
-            verify(taskResourceRepository, times(0))
-                .findAll(any(), any(Pageable.class));
+            assertThatThrownBy(() -> cftQueryService.searchForTasks(
+                0,
+                0,
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Limit must not be less than one");
         }
 
     }
@@ -416,7 +630,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "IA",
                 "Asylum"
             );
-
+            when(accessControlResponse.getRoleAssignments())
+                .thenReturn(singletonList(RoleAssignmentMother.complete().build()));
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
                 .thenReturn(mockTaskCompletionDMNResponse());
             when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
@@ -424,7 +639,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(taskResourceRepository.findAll(any()))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -441,7 +656,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
         @Test
         void should_succeed_and_return_search_results_with_task_required_as_false() {
-            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            AccessControlResponse accessControlResponse =
+                new AccessControlResponse(null, singletonList(RoleAssignmentMother.complete().build()));
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
@@ -451,12 +667,14 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
                 .thenReturn(mockTaskCompletionDMNResponses());
-            when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
+
+            when(camundaService.getVariableValue(any(), any()))
+                .thenReturn("reviewTheAppeal");
 
             when(taskResourceRepository.findAll(any()))
                 .thenReturn(List.of(createTaskResource()));
 
-            when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
+            when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -465,6 +683,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             );
 
             assertNotNull(response);
+            assertFalse(response.getTasks().isEmpty());
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", response.getTasks().get(0).getId());
             assertFalse(response.isTaskRequiredForEvent());
         }
@@ -494,9 +713,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             assertNotNull(response);
             assertTrue(response.getTasks().isEmpty());
-            assertFalse(response.isTaskRequiredForEvent());
+            assertTrue(response.isTaskRequiredForEvent());
 
-            verify(cftTaskMapper, times(0)).mapToTask(any());
+            verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
         }
 
         @Test
@@ -523,7 +742,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertFalse(response.isTaskRequiredForEvent());
 
             verify(camundaService, times(0)).getVariableValue(any(), any());
-            verify(cftTaskMapper, times(0)).mapToTask(any());
+            verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
             verify(taskResourceRepository, times(0)).findAll(any());
         }
 
@@ -551,156 +770,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertTrue(response.getTasks().isEmpty());
             assertFalse(response.isTaskRequiredForEvent());
 
-            verify(cftTaskMapper, times(0)).mapToTask(any());
+            verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
             verify(taskResourceRepository, times(0)).findAll(any());
         }
 
-    }
-
-    private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(classification)
-            .grantType(GrantType.BASIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> specificAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(specificAttributes)
-            .grantType(GrantType.SPECIFIC)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> stdAttributes = Map.of(
-            RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(stdAttributes)
-            .grantType(GrantType.STANDARD)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> challengedAttributes = Map.of(
-            RoleAttributeDefinition.JURISDICTION.value(), "IA"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(challengedAttributes)
-            .authorisations(List.of("DIVORCE", "PROBATE"))
-            .grantType(GrantType.CHALLENGED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        final Map<String, String> excludeddAttributes = Map.of(
-            RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
-        );
-        roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
-            .attributes(excludeddAttributes)
-            .grantType(GrantType.EXCLUDED)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        return roleAssignments;
-    }
-
-    private TaskResource createTaskResource() {
-        return new TaskResource(
-            "taskId",
-            "aTaskName",
-            "startAppeal",
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-            CFTTaskState.COMPLETED,
-            TaskSystem.SELF,
-            SecurityClassification.PUBLIC,
-            "title",
-            "a description",
-            null,
-            0,
-            0,
-            "someAssignee",
-            false,
-            new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"),
-            new WorkTypeResource("routine_work", "Routine work"),
-            "JUDICIAL",
-            false,
-            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-            "1623278362430412",
-            "Asylum",
-            "TestCase",
-            "IA",
-            "1",
-            "TestRegion",
-            "765324",
-            "Taylor House",
-            BusinessContext.CFT_TASK,
-            "Some termination reason",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
-            singleton(new TaskRoleResource(
-                "tribunal-caseofficer",
-                true,
-                false,
-                false,
-                false,
-                false,
-                false,
-                new String[]{"SPECIFIC", "BASIC"},
-                0,
-                false,
-                "JUDICIAL",
-                "taskId",
-                OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
-            )),
-            "caseCategory"
-        );
-    }
-
-    private Task getTask() {
-        return new Task(
-            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
-            "Review the appeal",
-            "reviewTheAppeal",
-            "assigned",
-            "SELF",
-            "PUBLIC",
-            "Review the appeal",
-            ZonedDateTime.now(),
-            ZonedDateTime.now(),
-            "10bac6bf-80a7-4c81-b2db-516aba826be6",
-            true,
-            "Case Management Task",
-            "IA",
-            "1",
-            "765324",
-            "Taylor House",
-            "Asylum",
-            "1617708245335311",
-            "refusalOfHumanRights",
-            "Bob Smith",
-            true,
-            null,
-            "Some Case Management Category",
-            "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
-        );
     }
 }

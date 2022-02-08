@@ -56,7 +56,9 @@ public class CamundaHelpers {
             new WarningValues(Collections.emptyList()),
             "someCaseManagementCategory",
             "hearing_work",
-            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ)))
+            new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
+            null,
+            "a description"
         );
     }
 

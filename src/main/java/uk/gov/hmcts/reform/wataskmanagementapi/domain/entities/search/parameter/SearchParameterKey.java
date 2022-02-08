@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
+package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -11,7 +11,10 @@ public enum SearchParameterKey {
     TASK_ID("taskId"),
     TASK_TYPE("taskType"),
     CASE_ID("caseId"),
-    WORK_TYPE("work_type"); //R2 should be snake_case only
+    //R2 should be snake_case only,
+    WORK_TYPE("work_type"),
+    AVAILABLE_TASKS_ONLY("available_tasks_only"),
+    ROLE_CATEGORY("role_category");
 
     @JsonValue
     private final String id;
@@ -28,4 +31,5 @@ public enum SearchParameterKey {
     public String value() {
         return id;
     }
+
 }

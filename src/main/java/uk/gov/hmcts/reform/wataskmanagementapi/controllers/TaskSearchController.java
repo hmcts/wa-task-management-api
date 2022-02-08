@@ -8,7 +8,9 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,23 +25,25 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.SearchTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
@@ -47,6 +51,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 @Slf4j
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
+@Validated
 @SuppressWarnings({"PMD.ExcessiveImports"})
 public class TaskSearchController extends BaseController {
 
@@ -55,6 +60,7 @@ public class TaskSearchController extends BaseController {
     private final AccessControlService accessControlService;
     private final CftQueryService cftQueryService;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+    private final SystemDateProvider systemDateProvider;
 
     @Value("${config.search.defaultMaxResults}")
     private int defaultMaxResults;
@@ -64,13 +70,15 @@ public class TaskSearchController extends BaseController {
     public TaskSearchController(TaskManagementService taskManagementService,
                                 AccessControlService accessControlService,
                                 CftQueryService cftQueryService,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
+                                SystemDateProvider systemDateProvider
     ) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.cftQueryService = cftQueryService;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
+        this.systemDateProvider = systemDateProvider;
     }
 
     @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
@@ -85,11 +93,13 @@ public class TaskSearchController extends BaseController {
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
         @RequestHeader("Authorization") String authToken,
-        @RequestParam(required = false, name = "first_result") Optional<Integer> firstResult,
-        @RequestParam(required = false, name = "max_results") Optional<Integer> maxResults,
+
+        @RequestParam(required = false, name = "first_result")
+        @Min(value = 0, message = "first_result must not be less than zero") Integer firstResult,
+        @RequestParam(required = false, name = "max_results")
+        @Min(value = 1, message = "max_results must not be less than one") Integer maxResults,
         @Valid @RequestBody SearchTaskRequest searchTaskRequest
     ) {
-
         //Safe-guard
         if (searchTaskRequest.getSearchParameters() == null || searchTaskRequest.getSearchParameters().isEmpty()) {
             return ResponseEntity.badRequest().build();
@@ -101,12 +111,15 @@ public class TaskSearchController extends BaseController {
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
+
         if (isFeatureEnabled) {
+            log.debug("Search request received '{}'", searchTaskRequest);
             //Release 2
-            List<PermissionTypes> permissionsRequired = singletonList(READ);
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(READ);
             GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
-                firstResult.orElse(0),
-                maxResults.orElse(defaultMaxResults),
+                Optional.ofNullable(firstResult).orElse(0),
+                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchTaskRequest,
                 accessControlResponse,
                 permissionsRequired
@@ -119,7 +132,9 @@ public class TaskSearchController extends BaseController {
         } else {
             //Release 1
             List<Task> tasks = taskManagementService.searchWithCriteria(
-                searchTaskRequest, firstResult.orElse(0), maxResults.orElse(defaultMaxResults),
+                searchTaskRequest,
+                Optional.ofNullable(firstResult).orElse(0),
+                Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 accessControlResponse
             );
 
@@ -165,14 +180,16 @@ public class TaskSearchController extends BaseController {
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
             response = cftQueryService.searchForCompletableTasks(
-                searchEventAndCase, accessControlResponse, permissionsRequired);
-        }  else {
+                searchEventAndCase,
+                accessControlResponse,
+                permissionsRequired
+            );
+        } else {
             response = taskManagementService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse
             );
         }
-
         return ResponseEntity
             .ok()
             .cacheControl(CacheControl.noCache())
@@ -180,10 +197,14 @@ public class TaskSearchController extends BaseController {
     }
 
     @ExceptionHandler(NoRoleAssignmentsFoundException.class)
-    public ResponseEntity<SearchTasksResponse> handleNoRoleAssignmentsException(Exception ex) {
+    public ResponseEntity<ErrorMessage> handleNoRoleAssignmentsException(Exception ex) {
         LOG.warn("No role assignments found");
-        return ResponseEntity.ok()
+        return status(HttpStatus.UNAUTHORIZED)
             .cacheControl(CacheControl.noCache())
-            .body(new SearchTasksResponse(Collections.emptyList()));
+            .body(new ErrorMessage(
+                ex,
+                HttpStatus.UNAUTHORIZED,
+                systemDateProvider.nowWithTime()
+            ));
     }
 }

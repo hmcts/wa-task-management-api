@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.roleassignment;
 import au.com.dius.pact.consumer.dsl.DslPart;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.Maps;
@@ -22,7 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import java.util.List;
 import java.util.Map;
 
-import static io.pactfoundation.consumer.dsl.LambdaDsl.newJsonBody;
+import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
@@ -50,7 +51,7 @@ public class AmRoleAssignmentServiceConsumerTestForGetActorById extends SpringBo
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200")
+    @PactTestFor(pactMethod = "executeGetActorByIdOrgRoleAssignmentAndGet200", pactVersion = PactSpecVersion.V3)
     void verifyGetActorById() {
         List<RoleAssignment> roleAssignmentsResponse =
             roleAssignmentService.getRolesForUser(ORG_ROLE_ACTOR_ID, AUTH_TOKEN);

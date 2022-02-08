@@ -17,6 +17,7 @@ ccd_gateway:
 
 idam:
   test:
+    userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
     username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
     password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
 

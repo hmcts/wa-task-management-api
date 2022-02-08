@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
@@ -27,6 +28,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -59,24 +61,29 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
 
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -98,14 +105,14 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -113,7 +120,6 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
 
     }
-
 
     @Test
     public void should_return_a_200_and_retrieve_a_task_by_id_jurisdiction_location_match_organisational_role() {
@@ -124,7 +130,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result;
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -134,15 +140,19 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.warnings", is(false));
-
+            .body("task.warnings", is(false))
+            .body("task.case_management_category", equalTo("Protection"))
+            .body("task.work_type_id", equalTo("decision_making_work"))
+            .body("task.permissions.values.size()",  equalTo(3))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
 
@@ -157,12 +167,12 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -184,7 +194,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         initiateTask(taskVariables);
         Response result;
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -195,7 +205,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -218,10 +228,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskWithWarnings(taskVariables);
+        initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -231,14 +241,16 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
-            .body("task.warnings", is(true));
+            .body("task.warnings", is(true))
+            .body("task.permissions.values.size()",  equalTo(3))
+            .body("task.permissions.values", hasItems("Read","Refer","Own"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -258,10 +270,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskWithWarnings(taskVariables);
+        initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -272,7 +284,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -298,7 +310,11 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
-            .body("task.warnings", notNullValue());
+            .body("task.warnings", notNullValue())
+            .body("task.permissions.values.size()",  equalTo(3))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("task.description", notNullValue())
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
     }
@@ -314,7 +330,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA",
@@ -325,7 +341,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -351,7 +367,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -361,7 +377,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -380,10 +396,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskWithWarnings(taskVariables);
+        initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -393,7 +409,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -406,6 +422,49 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_a_200_with_task_description_property() {
+        TestVariables taskVariables1 = common.setupTaskAndRetrieveIds("reviewTheAppeal");
+        String taskId = taskVariables1.getTaskId();
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+
+        initiateTaskWithWarnings(taskVariables1, "reviewTheAppeal");
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("task.id", notNullValue())
+            .body("task.name", notNullValue())
+            .body("task.type", notNullValue())
+            .body("task.task_state", notNullValue())
+            .body("task.task_system", notNullValue())
+            .body("task.security_classification", notNullValue())
+            .body("task.task_title", notNullValue())
+            .body("task.created_date", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.location_name", notNullValue())
+            .body("task.location", notNullValue())
+            .body("task.execution_type", notNullValue())
+            .body("task.jurisdiction", notNullValue())
+            .body("task.region", notNullValue())
+            .body("task.case_type_id", notNullValue())
+            .body("task.case_id", notNullValue())
+            .body("task.case_type_id", notNullValue())
+            .body("task.case_category", notNullValue())
+            .body("task.case_name", notNullValue())
+            .body("task.auto_assigned", notNullValue())
+            .body("task.warnings", notNullValue())
+            .body("task.description", notNullValue());
+
+        common.cleanUpTask(taskId);
+    }
 
     private void initiateTask(TestVariables taskVariables) {
 
@@ -426,17 +485,19 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value());
     }
 
-    private void initiateTaskWithWarnings(TestVariables taskVariables) {
+    private void initiateTaskWithWarnings(TestVariables taskVariables, String taskType) {
         WarningValues warningValues = new WarningValues(
-            asList(new Warning("Code1", "Text1"),
-                new Warning("Code2", "Text2")));
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -444,7 +505,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
+            new TaskAttribute(TASK_TYPE, taskType),
             new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
@@ -469,7 +530,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -477,4 +538,3 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     }
 }
-

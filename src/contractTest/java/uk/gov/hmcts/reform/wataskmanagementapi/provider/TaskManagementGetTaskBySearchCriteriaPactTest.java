@@ -8,7 +8,6 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -30,14 +30,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -48,11 +49,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 //Uncomment this and comment the @PactBroker line to test WorkTypeConsumerTest local consumer.
+//using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("pacts")
 @PactBroker(
-    scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}",
-    port = "${PACT_BROKER_PORT:9292}",
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
@@ -73,10 +73,18 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
+
+    @Autowired
+    private SystemDateProvider systemDateProvider;
 
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
+        setInitMockForSearchTask();
+    }
+
+    @State({"appropriate tasks are returned by criteria with available tasks only"})
+    public void getTasksBySearchCriteriaWithAvailableTasksOnly() {
         setInitMockForSearchTask();
     }
 
@@ -101,6 +109,17 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     public Task createTaskWithNoWarnings() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -123,23 +142,27 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(emptyList()),
-            "Some Case Management Category",
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    )))
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
     }
 
     public Task createTaskWithWarnings() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
@@ -169,16 +192,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             new WarningValues(warnings),
             "Some Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    )))
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
     }
 
@@ -197,17 +213,15 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            systemDateProvider
         ));
 
         if (context != null) {
             context.setTarget(testTarget);
         }
 
-        testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+        testTarget.setMessageConverters(mappingJackson2HttpMessageConverter);
 
     }
 

@@ -34,7 +34,6 @@ class CamundaObjectMapperTest {
         CamundaProcessVariables testObject = processVariables()
             .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
             .build();
 
@@ -43,8 +42,7 @@ class CamundaObjectMapperTest {
         String expected = "{\"processVariablesMap\":"
                           + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
                           + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 
@@ -66,7 +64,6 @@ class CamundaObjectMapperTest {
         CamundaProcessVariables testObject = processVariables()
             .withProcessVariable("caseId", "0000000")
             .withProcessVariable("taskId", "wa-task-configuration-api-task")
-            .withProcessVariable("group", "TCW")
             .withProcessVariable("dueDate", "2020-09-27")
             .build();
 
@@ -75,8 +72,7 @@ class CamundaObjectMapperTest {
         String expected = "{\"process_variables_map\":"
                           + "{\"caseId\":{\"value\":\"0000000\",\"type\":\"String\"},"
                           + "\"dueDate\":{\"value\":\"2020-09-27\",\"type\":\"String\"},"
-                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"},"
-                          + "\"group\":{\"value\":\"TCW\",\"type\":\"String\"}}}";
+                          + "\"taskId\":{\"value\":\"wa-task-configuration-api-task\",\"type\":\"String\"}}}";
         assertEquals(expected, result);
     }
 

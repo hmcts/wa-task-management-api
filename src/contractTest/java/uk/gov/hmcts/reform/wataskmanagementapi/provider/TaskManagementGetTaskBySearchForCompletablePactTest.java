@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -31,28 +32,27 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search_completable")
+//Uncomment this and comment the @PactBroker line to test TaskManagementGetTaskBySearchForCompletablePactTest
+// local consumer using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("pacts")
 @PactBroker(
-    scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}",
-    port = "${PACT_BROKER_PORT:9292}",
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
@@ -68,6 +68,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     private TaskManagementService taskManagementService;
     @Mock
     private CftQueryService cftQueryService;
+    @Mock
+    private SystemDateProvider systemDateProvider;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -82,6 +85,17 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     public List<Task> createTasks() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         Task task = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -103,22 +117,14 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "1617708245335311",
             "refusalOfHumanRights",
             "Bob Smith",
-            true,
-            new WarningValues(emptyList()),
-            "Some Case Management Category",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    )))
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
-
         return singletonList(task);
     }
 
@@ -126,7 +132,18 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
-        WarningValues warningValues = new WarningValues(warnings);
+
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         Task taskWithWarnings = new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -149,19 +166,12 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             true,
-            warningValues,
-            "Some Case Management Category",
+            new WarningValues(warnings),
+            "Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    )))
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "a description"
         );
 
         return singletonList(taskWithWarnings);
@@ -182,7 +192,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider
+            launchDarklyFeatureFlagProvider,
+            systemDateProvider
         ));
 
         if (context != null) {
@@ -232,4 +243,3 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
 }
-

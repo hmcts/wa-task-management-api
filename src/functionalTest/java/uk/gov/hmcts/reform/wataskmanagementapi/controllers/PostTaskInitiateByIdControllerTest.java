@@ -1,14 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -34,18 +36,23 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
     public void should_return_a_201_when_initiating_a_judge_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -65,7 +72,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //Note: this is the TaskResource.class
@@ -96,51 +103,89 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
-            .body("task_role_resources.size()", equalTo(3));
+            .body("task_role_resources.size()", equalTo(5));
 
         assertPermissions(
-            getTaskResource(result, "hearing-judge"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of("IA"),
-                   "role_category", "JUDICIAL",
-                   "auto_assignable", true
+            getTaskResource(result, "task-supervisor"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
             )
         );
         assertPermissions(
-            getTaskResource(result, "task-supervisor"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", false,
-                   "manage", true,
-                   "execute", false,
-                   "cancel", true,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "auto_assignable", false
+            getTaskResource(result, "hearing-judge"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of("373")),
+                entry("role_category", "JUDICIAL"),
+                entry("auto_assignable", true),
+                entry("assignment_priority", 1)
             )
         );
         assertPermissions(
             getTaskResource(result, "judge"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of("IA"),
-                   "role_category", "JUDICIAL",
-                   "auto_assignable", false
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of("373")),
+                entry("role_category", "JUDICIAL"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 1)
+            )
+        );
+
+        assertPermissions(
+            getTaskResource(result, "senior-tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
             )
         );
 
@@ -157,7 +202,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_hearing_centre_admin_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -177,7 +222,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.prettyPrint();
@@ -208,38 +253,89 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", nullValue())
             .body("work_type_resource.label", nullValue())
-            .body("task_role_resources.size()", equalTo(2));
+            .body("task_role_resources.size()", equalTo(5));
 
         assertPermissions(
             getTaskResource(result, "hearing-centre-admin"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "role_category", "ADMINISTRATOR",
-                   "auto_assignable", false
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "ADMIN"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 1)
             )
         );
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", false,
-                   "manage", true,
-                   "execute", false,
-                   "cancel", true,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "auto_assignable", false
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "judge"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of("373")),
+                entry("role_category", "JUDICIAL"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "senior-tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
             )
         );
 
@@ -256,7 +352,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_national_business_centre_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -276,7 +372,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.prettyPrint();
@@ -307,7 +403,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("routine_work"))
             .body("work_type_resource.label", equalTo("Routine work"))
@@ -315,155 +411,32 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         assertPermissions(
             getTaskResource(result, "national-business-centre"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "role_category", "ADMINISTRATOR",
-                   "auto_assignable", false
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "ADMIN"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 1)
             )
         );
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", false,
-                   "manage", true,
-                   "execute", false,
-                   "cancel", true,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "auto_assignable", false
-            )
-        );
-
-        assertions.taskVariableWasUpdated(
-            taskVariables.getProcessInstanceId(),
-            "cftTaskState",
-            "unassigned"
-        );
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Test
-    public void should_return_a_201_when_initiating_a_case_manager_and_tribunal_caseworker_task_by_id() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            authenticationHeaders
-        );
-
-        //Note: this is the TaskResource.class
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("follow Up Overdue Reasons For Appeal"))
-            .body("task_type", equalTo("followUpOverdueReasonsForAppeal"))
-            .body("state", equalTo("UNASSIGNED"))
-            .body("task_system", equalTo("SELF"))
-            .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("follow Up Overdue Reasons For Appeal"))
-            .body("created", notNullValue())
-            .body("due_date_time", notNullValue())
-            .body("auto_assigned", equalTo(false))
-            .body("has_warnings", equalTo(false))
-            .body("case_id", equalTo(taskVariables.getCaseId()))
-            .body("case_type_id", equalTo("Asylum"))
-            .body("case_name", equalTo("Bob Smith"))
-            .body("case_category", equalTo("Protection"))
-            .body("jurisdiction", equalTo("IA"))
-            .body("region", equalTo("1"))
-            .body("location", equalTo("765324"))
-            .body("location_name", equalTo("Taylor House"))
-            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
-            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
-            .body(
-                "execution_type_code.description",
-                equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
-            )
-            .body("work_type_resource.id", equalTo("decision_making_work"))
-            .body("work_type_resource.label", equalTo("Decision-making work"))
-            .body("task_role_resources.size()", equalTo(4));
-
-        assertPermissions(
-            getTaskResource(result, "senior-tribunal-caseworker"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "role_category", "LEGAL_OPERATIONS",
-                   "auto_assignable", false
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "tribunal-caseworker"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "role_category", "LEGAL_OPERATIONS",
-                   "auto_assignable", false
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "task-supervisor"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", false,
-                   "manage", true,
-                   "execute", false,
-                   "cancel", true,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "auto_assignable", false
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "case-manager"),
-            Map.of("read", true,
-                   "refer", true,
-                   "own", true,
-                   "manage", false,
-                   "execute", false,
-                   "cancel", false,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "role_category", "LEGAL_OPERATIONS",
-                   "auto_assignable", true
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
             )
         );
 
@@ -480,7 +453,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_default_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -500,7 +473,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.prettyPrint();
@@ -531,7 +504,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "execution_type_code.description",
                 equalTo(
                     "The task requires a case management event to be executed by the user."
-                        + " (Typically this will be in CCD.)")
+                    + " (Typically this will be in CCD.)")
             )
             .body("execution_type_code.execution_name", equalTo("Case Management Task"))
             .body("task_role_resources.size()", equalTo(1));
@@ -539,14 +512,14 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
             Map.of("read", true,
-                   "refer", true,
-                   "own", false,
-                   "manage", true,
-                   "execute", false,
-                   "cancel", true,
-                   "task_id", taskId,
-                   "authorizations", List.of(),
-                   "auto_assignable", false
+                "refer", true,
+                "own", false,
+                "manage", true,
+                "execute", false,
+                "cancel", true,
+                "task_id", taskId,
+                "authorizations", List.of(),
+                "auto_assignable", false
             )
         );
 
@@ -563,7 +536,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_503_if_task_already_initiated() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
 
         ZonedDateTime createdDate = ZonedDateTime.now();
@@ -585,7 +558,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         resultFirstCall.then().assertThat()
@@ -596,7 +569,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         // If the first call succeeded the second call should throw a conflict
@@ -610,7 +583,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("status", equalTo(503))
             .body("detail", equalTo(
                 "Database Conflict Error: The action could not be completed because "
-                    + "there was a conflict in the database."));
+                + "there was a conflict in the database."));
 
         common.cleanUpTask(taskId);
     }
@@ -619,7 +592,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_400_if_no_due_date() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -636,7 +609,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -653,7 +626,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     @Test
     public void should_return_a_500_if_no_case_id() {
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         String taskId = UUID.randomUUID().toString();
 
@@ -675,7 +648,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -687,7 +660,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_500_if_case_id_is_invalid() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -706,7 +679,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -717,7 +690,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_500_if_task_id_does_not_exist() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        common.setupCFTOrganisationalRoleAssignment(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -736,7 +709,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             UUID.randomUUID().toString(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -746,7 +719,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }

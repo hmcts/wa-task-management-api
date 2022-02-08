@@ -37,16 +37,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_work_types")
 //Uncomment this and comment the @PacBroker line to test WorkTypeConsumerTest local consumer.
+//using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("pacts")
 @PactBroker(
-    scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}",
-    port = "${PACT_BROKER_PORT:9292}",
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
@@ -96,7 +95,7 @@ public class WorkTypeProviderTest {
         workTypes.add(new WorkType("hearing_work", "Hearing Work"));
 
         Map<String, String> attributes = Map.of(
-            WORK_TYPE.value(), "hearing_work"
+            WORK_TYPES.value(), "hearing_work"
         );
 
         List<RoleAssignment> roleAssignmentList = List.of(
