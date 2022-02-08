@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -42,12 +43,13 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
 
+@Slf4j
 @SuppressWarnings({
-        "PMD.DataflowAnomalyAnalysis",
-        "PMD.TooManyMethods",
-        "PMD.LawOfDemeter",
-        "PMD.ExcessiveImports",
-    })
+    "PMD.DataflowAnomalyAnalysis",
+    "PMD.TooManyMethods",
+    "PMD.LawOfDemeter",
+    "PMD.ExcessiveImports",
+})
 public final class TaskResourceSpecification {
 
 
@@ -61,14 +63,20 @@ public final class TaskResourceSpecification {
         List<PermissionTypes> permissionsRequired
     ) {
 
-        final Specification<TaskResource> constrainsSpec = buildApplicationConstraints(searchTaskRequest);
+        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
 
-        boolean andPermissions  = isAvailableTasksOnly(searchTaskRequest);
-        if (andPermissions) {
+        if (availableTasksOnly) {
             permissionsRequired.add(PermissionTypes.OWN);
         }
-        final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, andPermissions);
+
+        log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
+        log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
+
+        final Specification<TaskResource> constrainsSpec =
+            buildApplicationConstraints(searchTaskRequest, availableTasksOnly);
+
+        final Specification<TaskResource> roleAssignmentSpec =
+            buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, availableTasksOnly);
 
         return constrainsSpec.and(roleAssignmentSpec);
 
@@ -101,10 +109,11 @@ public final class TaskResourceSpecification {
             .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
     }
 
-    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest) {
+    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest,
+                                                                           boolean availableTasksOnly) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
-        final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
+
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
             cftTaskStates.add(CFTTaskState.ASSIGNED);
@@ -122,11 +131,19 @@ public final class TaskResourceSpecification {
 
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
             .and(searchByState(cftTaskStates)
-            .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
-            .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
-            .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
-            .and(searchByWorkType(workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
-            .and(searchByRoleCategory(roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())))))));
+                .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
+                    .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
+                        .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
+                            .and(searchByWorkType(
+                                workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
+                                .and(searchByRoleCategory(
+                                    roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())
+                                )
+                            )
+                        )
+                    )
+                )
+            );
     }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
