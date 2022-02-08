@@ -37,13 +37,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.launchdarkly.shaded.com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
@@ -89,7 +89,6 @@ public class CftQueryServiceITTest {
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
 
-        System.out.println(scenario.scenarioName);
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, scenario.roleAssignments);
         permissionsRequired.add(PermissionTypes.READ);
@@ -127,7 +126,6 @@ public class CftQueryServiceITTest {
     })
     void shouldReturnEmptyTasksWithInvalidExUiSearchQuery(TaskQueryScenario scenario) {
 
-        System.out.println(scenario.scenarioName);
         //given
         mapRoleAssignments(Classification.PUBLIC);
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, scenario.roleAssignments);
@@ -256,7 +254,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_invalid_jurisdiction")
@@ -266,7 +264,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_invalid_location")
@@ -276,7 +274,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_invalid_caseId")
@@ -286,7 +284,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
             .scenarioName("basic_grant_type_with_invalid_user")
@@ -296,7 +294,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         return Stream.of(
             withAuthorizations,
@@ -391,7 +389,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_invalid_jurisdiction")
@@ -401,7 +399,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_invalid_location")
@@ -411,7 +409,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_invalid_caseId")
@@ -421,7 +419,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
             .scenarioName("specific_grant_type_with_invalid_user")
@@ -431,7 +429,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         return Stream.of(
             withAuthorizations,
@@ -533,7 +531,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
             .scenarioName("standard_grant_type_with_invalid_jurisdiction")
@@ -543,7 +541,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
             .scenarioName("standard_grant_type_with_invalid_location")
@@ -553,7 +551,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
             .scenarioName("standard_grant_type_with_invalid_caseId")
@@ -563,7 +561,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
             .scenarioName("standard_grant_type_with_invalid_user")
@@ -573,7 +571,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         return Stream.of(
             withAuthorizations,
@@ -660,7 +658,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
 
         final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
@@ -671,7 +669,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
 
         final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
@@ -682,7 +680,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
             .scenarioName("challenged_grant_type_with_invalid_user")
@@ -692,7 +690,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         return Stream.of(
             invalidJurisdiction,
@@ -804,7 +802,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         return Stream.of(
             invalidAuthorization
@@ -971,7 +969,7 @@ public class CftQueryServiceITTest {
             .maxResults(10)
             .expectedAmounfOfTasksInResponse(0)
             .expectedTotalRecords(0)
-            .expectedTaskDetails(Collections.emptyList()).build();
+            .build();
 
         return Stream.of(
             invalidCaseId
@@ -1217,8 +1215,8 @@ public class CftQueryServiceITTest {
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignments)
             .expectedAmounfOfTasksInResponse(0)
-            .expectedTaskDetails(newArrayList()
-            ).build();
+            .expectedTaskDetails(emptyList())
+            .build();
 
         return Stream.of(
             inActive
@@ -1247,8 +1245,7 @@ public class CftQueryServiceITTest {
             .searchTaskRequest(searchTaskRequest)
             .roleAssignments(roleAssignments)
             .expectedAmounfOfTasksInResponse(8)
-            .expectedTaskDetails(newArrayList()
-            ).build();
+            .build();
 
         return Stream.of(
             invalidBeginAndEndTime
