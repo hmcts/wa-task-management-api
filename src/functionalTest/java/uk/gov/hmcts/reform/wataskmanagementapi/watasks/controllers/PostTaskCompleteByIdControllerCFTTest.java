@@ -344,7 +344,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         //S2S service name is wa_task_management_api
         TestAuthenticationCredentials otherUser =
             authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignmentForWA(otherUser.getHeaders());
 
         CompleteTaskRequest completeTaskRequest = new CompleteTaskRequest(new CompletionOptions(true));
         Response result = restApiActions.post(

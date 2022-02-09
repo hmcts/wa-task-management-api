@@ -428,7 +428,9 @@ public class Common {
             userInfo,
             "tribunal-caseworker",
             toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json"
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
         );
 
     }
