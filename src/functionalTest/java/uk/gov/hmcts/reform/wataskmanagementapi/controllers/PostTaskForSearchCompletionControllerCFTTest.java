@@ -108,6 +108,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(APPLICATION_JSON_VALUE)
+                .body("task_required_for_event", is(scenario.taskRequiredForEvent))
                 .body("tasks.size()", equalTo(1))
                 .body("tasks[0].permissions.values.size()",  equalTo(3))
                 .body("tasks[0].permissions.values", hasItems("Read","Refer","Own"))
@@ -578,7 +579,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("task_required_for_event", is(false));
+        ;
 
 
         common.cleanUpTask(taskId);
@@ -606,7 +609,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("tasks.size()", equalTo(0));
+            .body("tasks.size()", equalTo(0))
+            .body("task_required_for_event", is(false));
 
         common.cleanUpTask(taskId);
     }
@@ -690,19 +694,22 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "processApplication",
                 "decideAnApplication",
                 "applications",
-                "LEGAL_OPERATIONS"
+                "LEGAL_OPERATIONS",
+                false
             ),
             new CompletableTaskScenario(
                 "reviewAdditionalEvidence",
                 "markEvidenceAsReviewed",
                 "decision_making_work",
-                "LEGAL_OPERATIONS"
+                "LEGAL_OPERATIONS",
+                true
             ),
             new CompletableTaskScenario(
                 "reviewAdditionalHomeOfficeEvidence",
                 "markEvidenceAsReviewed",
                 "decision_making_work",
-                "LEGAL_OPERATIONS"
+                "LEGAL_OPERATIONS",
+                true
             )
         );
     }
@@ -714,6 +721,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         private String eventId;
         private String workTypeId;
         private String roleCategory;
+        private boolean taskRequiredForEvent;
     }
 }
 

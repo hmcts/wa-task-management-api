@@ -38,6 +38,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
@@ -292,23 +293,11 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_firstResult_pagination() {
-        //creating 1 task
-        String[] taskStates = {TaskState.ASSIGNED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
+    public void should_return_a_400_with_empty_search_results_with_negative_firstResult_pagination() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            caseworkerCredentials.getHeaders(),
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=2",
@@ -317,32 +306,23 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0))
-            .body("total_records", equalTo(0));
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("search_with_criteria.first_result"))
+            .body("violations[0].message", equalTo("first_result must not be less than zero"));
 
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_maxResults_pagination() {
-        //creating 1 task
-        String[] taskStates = {TaskState.UNASSIGNED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
-
+    public void should_return_a_400_with_empty_search_results_with_negative_maxResults_pagination() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            caseworkerCredentials.getHeaders(),
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=-1",
@@ -351,46 +331,16 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0))
-            .body("total_records", equalTo(0));
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("search_with_criteria.max_results"))
+            .body("violations[0].message", equalTo("max_results must not be less than one"));
 
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
-    }
-
-    @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_pagination() {
-        //creating 1 task
-        String[] taskStates = {TaskState.UNCONFIGURED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
-        ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            caseworkerCredentials.getHeaders(),
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=-1",
-            searchTaskRequest,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0))
-            .body("total_records", equalTo(0));
-
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -464,8 +414,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -499,8 +449,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -533,8 +483,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -569,8 +519,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -770,8 +720,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             );
 
             TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                    "IA",
-                                                                                                    "Asylum");
+                "IA",
+                "Asylum");
             tasksCreated.add(taskVariables);
         }
 
