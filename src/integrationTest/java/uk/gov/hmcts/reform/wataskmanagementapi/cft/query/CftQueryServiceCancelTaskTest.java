@@ -41,7 +41,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @Sql("/scripts/cancel_task_data.sql")
 public class CftQueryServiceCancelTaskTest {
 
-    private List<PermissionTypes> permissionsRequired = new ArrayList<>();
+    private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
     @MockBean
     private CamundaService camundaService;
@@ -54,10 +54,6 @@ public class CftQueryServiceCancelTaskTest {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
-    }
-
-    private static Stream<GrantType> getGrantTypes() {
-        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -96,7 +92,6 @@ public class CftQueryServiceCancelTaskTest {
         permissionsRequired.add(PermissionTypes.CANCEL);
 
 
-
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
@@ -117,7 +112,7 @@ public class CftQueryServiceCancelTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -146,7 +141,7 @@ public class CftQueryServiceCancelTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -154,7 +149,6 @@ public class CftQueryServiceCancelTaskTest {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.CANCEL);
-
 
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
@@ -175,7 +169,7 @@ public class CftQueryServiceCancelTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -183,7 +177,6 @@ public class CftQueryServiceCancelTaskTest {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.CANCEL);
-
 
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
@@ -204,7 +197,7 @@ public class CftQueryServiceCancelTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -230,7 +223,7 @@ public class CftQueryServiceCancelTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -257,7 +250,7 @@ public class CftQueryServiceCancelTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("PROBATE","SCSS"))
+            .authorisations(List.of("PROBATE", "SCSS"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -296,6 +289,10 @@ public class CftQueryServiceCancelTaskTest {
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
+    }
+
+    private static Stream<GrantType> getGrantTypes() {
+        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
 }
