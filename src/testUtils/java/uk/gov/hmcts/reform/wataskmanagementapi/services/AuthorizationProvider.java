@@ -106,6 +106,25 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
     }
 
+    public Headers getJudgeAuthorization(String emailPrefix) {
+        /*
+         * This user is used to create cases in ccd
+         */
+        return new Headers(
+            getJudgeAuthorizationOnly(emailPrefix),
+            getServiceAuthorizationHeader()
+        );
+    }
+
+    public Headers getAdminUserAuthorization(String emailPrefix) {
+        /*
+         * This user is used to create cases in ccd
+         */
+        return new Headers(
+            getAdminUserAuthorizationOnly(emailPrefix),
+            getServiceAuthorizationHeader()
+        );
+    }
 
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
@@ -122,6 +141,20 @@ public class AuthorizationProvider {
 
     public Header getAuthorizationOnly(TestAccount account) {
         return getAuthorization(account.getUsername(), account.getPassword());
+    }
+
+    public Header getJudgeAuthorizationOnly(String emailPrefix) {
+
+        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
+        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
+
+    }
+
+    public Header getAdminUserAuthorizationOnly(String emailPrefix) {
+
+        TestAccount lawfirm = getAdministativeCredentials(emailPrefix);
+        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
+
     }
 
     public UserInfo getUserInfo(String userToken) {
@@ -156,6 +189,10 @@ public class AuthorizationProvider {
 
     }
 
+    public String getUserId(Headers headers) {
+        return getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
+    }
+
     private Header getAuthorization(String username, String password) {
 
         MultiValueMap<String, String> body = createIdamRequest(username, password);
@@ -176,6 +213,22 @@ public class AuthorizationProvider {
     private TestAccount getIdamLawFirmCredentials(String emailPrefix) {
         List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
             new RoleCode("caseworker-ia-legalrep-solicitor"),
+            new RoleCode("payments")
+        );
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
+
+    private TestAccount getIdamJudgeCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
+            new RoleCode("caseworker-ia-judiciary"),
+            new RoleCode("payments")
+        );
+        return generateIdamTestAccount(emailPrefix, requiredRoles);
+    }
+
+    private TestAccount getAdministativeCredentials(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
+            new RoleCode("caseworker-ia-admofficer"),
             new RoleCode("payments")
         );
         return generateIdamTestAccount(emailPrefix, requiredRoles);

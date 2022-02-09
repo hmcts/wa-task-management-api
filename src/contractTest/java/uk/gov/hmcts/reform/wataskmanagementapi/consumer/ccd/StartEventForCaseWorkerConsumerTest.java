@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.json.JSONException;
@@ -50,8 +51,8 @@ public class StartEventForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "startEventForCaseWorker")
-    public void verifyStartEventForCaseworker() throws JSONException {
+    @PactTestFor(pactMethod = "startEventForCaseWorker", pactVersion = PactSpecVersion.V3)
+    public void verifyStartEventForCaseworker() {
 
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
             AUTH_TOKEN,

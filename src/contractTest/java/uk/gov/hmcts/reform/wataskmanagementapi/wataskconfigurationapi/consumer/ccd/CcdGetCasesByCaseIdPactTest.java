@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.consumer.
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,7 +53,6 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         ccdDataService = new CcdDataService(ccdDataServiceApi, authTokenGenerator, systemTokenGenerator);
     }
 
-
     @Pact(provider = "ccd_data_store_get_case_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeCcdGetCasesByCaseId(PactDslWithProvider builder) {
 
@@ -71,7 +71,7 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeCcdGetCasesByCaseId")
+    @PactTestFor(pactMethod = "executeCcdGetCasesByCaseId", pactVersion = PactSpecVersion.V3)
     public void verifyGetCaseById() {
 
         CaseDetails caseDetails = ccdDataService.getCaseData(TEST_CASE_ID);
@@ -100,6 +100,3 @@ public class CcdGetCasesByCaseIdPactTest extends SpringBootContractBaseTest {
         }
     }
 }
-
-
-
