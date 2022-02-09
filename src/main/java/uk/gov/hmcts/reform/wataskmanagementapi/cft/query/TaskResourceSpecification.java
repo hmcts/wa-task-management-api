@@ -116,7 +116,6 @@ public final class TaskResourceSpecification {
 
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
-            cftTaskStates.add(CFTTaskState.ASSIGNED);
             cftTaskStates.add(CFTTaskState.UNASSIGNED);
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);

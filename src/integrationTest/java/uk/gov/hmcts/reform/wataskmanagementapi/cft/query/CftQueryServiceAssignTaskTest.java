@@ -44,7 +44,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @Sql("/scripts/assign_task_data.sql")
 public class CftQueryServiceAssignTaskTest {
 
-    private List<PermissionTypes> permissionsRequired = new ArrayList<>();
+    private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
     @MockBean
     private CamundaService camundaService;
@@ -57,10 +57,6 @@ public class CftQueryServiceAssignTaskTest {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
-    }
-
-    private static Stream<GrantType> getGrantTypes() {
-        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -101,8 +97,8 @@ public class CftQueryServiceAssignTaskTest {
         assignerPermissionsRequired.add(PermissionTypes.MANAGE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-                                                                    assignerAccessControlResponse,
-                                                                    assignerPermissionsRequired);
+            assignerAccessControlResponse,
+            assignerPermissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
@@ -120,14 +116,14 @@ public class CftQueryServiceAssignTaskTest {
         assignerRoleAssignments.add(assignerRoleAssignment);
 
         AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
-                                                                                        assignerRoleAssignments);
+            assignerRoleAssignments);
         List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
         assigneePermissionsRequired.add(OWN);
         assigneePermissionsRequired.add(EXECUTE);
 
         final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
-                                                                            assigneeAccessControlResponse,
-                                                                            assigneePermissionsRequired);
+            assigneeAccessControlResponse,
+            assigneePermissionsRequired);
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
@@ -148,7 +144,7 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -169,21 +165,21 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
         assignerRoleAssignments.add(assignerRoleAssignment);
 
         AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
-                                                                                        assignerRoleAssignments);
+            assignerRoleAssignments);
         List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
         assigneePermissionsRequired.add(OWN);
         assigneePermissionsRequired.add(EXECUTE);
 
         final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
-                                                                            assigneeAccessControlResponse,
-                                                                            assigneePermissionsRequired);
+            assigneeAccessControlResponse,
+            assigneePermissionsRequired);
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
@@ -203,7 +199,7 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -230,7 +226,7 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -257,7 +253,7 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -283,7 +279,7 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -310,7 +306,7 @@ public class CftQueryServiceAssignTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("PROBATE","SCSS"))
+            .authorisations(List.of("PROBATE", "SCSS"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -347,6 +343,10 @@ public class CftQueryServiceAssignTaskTest {
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
+    }
+
+    private static Stream<GrantType> getGrantTypes() {
+        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
 }

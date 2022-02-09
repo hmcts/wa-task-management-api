@@ -52,7 +52,7 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
-    private AccessControlService  accessControlService;
+    private AccessControlService accessControlService;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
