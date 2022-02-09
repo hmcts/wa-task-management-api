@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.idam;
 import au.com.dius.pact.consumer.dsl.PactDslJsonBody;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import com.google.common.collect.ImmutableMap;
@@ -55,7 +56,7 @@ public class IdamConsumerTestForPostToken extends SpringBootContractBaseTest {
     }
 
     @Test
-    @PactTestFor(pactMethod = "generatePactFragmentToken")
+    @PactTestFor(pactMethod = "generatePactFragmentToken", pactVersion = PactSpecVersion.V3)
     public void verifyIdamUserDetailsRolesPactToken() {
 
         Map<String, String> tokenRequestMap = buildTokenRequestMap();

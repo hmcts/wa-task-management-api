@@ -54,19 +54,21 @@ public class CamundaObjectMapper {
         return Optional.of(value);
     }
 
+    private <T> Optional<T> map(CamundaVariable variable, TypeReference<T> typeReference) {
+        if (variable == null) {
+            return Optional.empty();
+        }
+        T value = defaultMapper.convertValue(variable.getValue(), typeReference);
+
+        return value == null ? Optional.empty() : Optional.of(value);
+    }
+
     private String jsonString(Object obj, ObjectMapper mapper) {
         try {
             return mapper.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> Optional<T> map(CamundaVariable variable, TypeReference<T> typeReference) {
-        T value = defaultMapper.convertValue(variable, typeReference);
-
-        return value == null ? Optional.empty() : Optional.of(value);
     }
 }
 

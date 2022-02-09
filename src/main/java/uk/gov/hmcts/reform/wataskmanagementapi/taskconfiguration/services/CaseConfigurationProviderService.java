@@ -120,7 +120,8 @@ public class CaseConfigurationProviderService {
         return configResponses;
     }
 
-    private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(ConfigurationDmnEvaluationResponse resp) {
+    private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
+        ConfigurationDmnEvaluationResponse resp) {
         String additionalPropKey = resp.getName().getValue().replace("additionalProperties_", "");
         return new ConfigurationDmnEvaluationResponse(CamundaValue.stringValue(additionalPropKey), resp.getValue());
     }

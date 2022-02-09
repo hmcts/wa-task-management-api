@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -61,6 +62,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
@@ -84,6 +86,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 @ExtendWith(MockitoExtension.class)
 class CFTTaskMapperTest {
 
+    public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2"
+    );
     private final String taskId = "SOME_TASK_ID";
 
     @Spy
@@ -153,6 +161,7 @@ class CFTTaskMapperTest {
         assertNull(taskResource.getRegionName());
         assertEquals("someStaffLocationId", taskResource.getLocation());
         assertEquals("someStaffLocationName", taskResource.getLocationName());
+        assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(
@@ -216,6 +225,7 @@ class CFTTaskMapperTest {
         assertEquals("someStaffLocationName", taskResource.getLocationName());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
+        assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertEquals(
             OffsetDateTime.parse(formattedCreatedDate, CAMUNDA_DATA_TIME_FORMATTER),
             taskResource.getCreated()
@@ -240,12 +250,14 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -285,10 +297,12 @@ class CFTTaskMapperTest {
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
         mappedValues.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
+        mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues));
+            new TaskConfigurationResults(mappedValues)
+        );
 
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
@@ -317,6 +331,7 @@ class CFTTaskMapperTest {
         assertEquals("someStaffLocationId", taskResource.getLocation());
         assertEquals("someStaffLocationName", taskResource.getLocationName());
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
+        assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(
@@ -344,7 +359,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues));
+            new TaskConfigurationResults(mappedValues)
+        );
 
 
         assertEquals("otherCaseId", taskResource.getCaseId());
@@ -404,7 +420,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses));
+            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses)
+        );
 
 
         assertEquals("SOME_TASK_ID", taskResource.getTaskId());
@@ -512,7 +529,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses));
+            new TaskConfigurationResults(mappedValues, emptyList(), permissionsDmnEvaluationResponses)
+        );
 
 
         assertTrue(taskResource.getAutoAssigned());
@@ -595,7 +613,7 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
+                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -617,9 +635,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                + "[PUBLIC, RESTRICTED, PRIVATE]")
+                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
+                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                    + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -639,7 +657,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues));
+            new TaskConfigurationResults(mappedValues)
+        );
 
         assertNotNull(taskResource.getWorkTypeResource());
         assertNull(taskResource.getWorkTypeResource().getId());
@@ -657,12 +676,14 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -684,12 +705,14 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -713,12 +736,14 @@ class CFTTaskMapperTest {
         taskResource.setWorkTypeResource(null);
 
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -751,12 +776,14 @@ class CFTTaskMapperTest {
         assertNotNull(taskResource.getCreated());
         assertNotNull(taskResource.getDueDateTime());
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
 
         assertDoesNotThrow(() -> cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion));
@@ -777,12 +804,14 @@ class CFTTaskMapperTest {
         //given
         taskResource.setDueDateTime(null);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         assertThatThrownBy(() -> cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion))
             .isInstanceOf(NullPointerException.class);
@@ -859,12 +888,14 @@ class CFTTaskMapperTest {
         );
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -914,12 +945,14 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Set<PermissionTypes> permissionsUnion = new HashSet<>(
-            asList(PermissionTypes.READ,
+            asList(
+                PermissionTypes.READ,
                 PermissionTypes.OWN,
                 PermissionTypes.MANAGE,
                 PermissionTypes.EXECUTE,
                 PermissionTypes.CANCEL,
-                PermissionTypes.REFER)
+                PermissionTypes.REFER
+            )
         );
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
 
@@ -965,7 +998,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(32);
+        assertThat(taskAttributes).size().isEqualTo(33);
     }
 
     @Test
@@ -1061,7 +1094,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             taskRoleResources,
             "caseCategory",
-            null);
+            EXPECTED_ADDITIONAL_PROPERTIES
+        );
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
 
@@ -1441,7 +1475,8 @@ class CFTTaskMapperTest {
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
-            new TaskConfigurationResults(mappedValues));
+            new TaskConfigurationResults(mappedValues)
+        );
 
 
         assertEquals("otherCaseId", taskResource.getCaseId());
@@ -1485,7 +1520,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             singleton(roleResource),
             "caseCategory",
-            null);
+            EXPECTED_ADDITIONAL_PROPERTIES
+        );
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {
@@ -1521,12 +1557,14 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
     private List<TaskAttribute> getDefaultAttributesWithoutDueDate() {
-        return asList(new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
+        return asList(
+            new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),
             new TaskAttribute(TaskAttributeDefinition.TASK_CASE_CATEGORY, "someCaseCategory"),
             new TaskAttribute(TaskAttributeDefinition.TASK_CASE_ID, "00000"),
@@ -1557,7 +1595,8 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
@@ -1594,7 +1633,8 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, "someWorkType"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
@@ -1630,13 +1670,14 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_ROLE_CATEGORY, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
     private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
         return asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),
@@ -1670,9 +1711,17 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null)
+            new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
 
+    }
 
+    private String writeValueAsString(Map<String, String> data) {
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }
