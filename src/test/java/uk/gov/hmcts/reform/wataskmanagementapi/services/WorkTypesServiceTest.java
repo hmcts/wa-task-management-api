@@ -103,9 +103,9 @@ class WorkTypesServiceTest {
         List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
-        when(cftWorkTypeDatabaseService.getWorkTypes(Set.of("upper_tribunal","hearing_work")))
+        when(cftWorkTypeDatabaseService.getWorkTypes(Set.of("upper_tribunal", "hearing_work")))
             .thenReturn(List.of(new WorkType("upper_tribunal", "Upper Tribunal"),
-                                new WorkType("hearing_work", "Hearing work")));
+                new WorkType("hearing_work", "Hearing work")));
 
         List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
 
@@ -114,6 +114,40 @@ class WorkTypesServiceTest {
         WorkType expectedWorkType2 = new WorkType("hearing_work", "Hearing work");
 
         List<WorkType> expectedResponse = asList(expectedWorkType1, expectedWorkType2);
+        assertNotNull(response);
+        assertEquals(expectedResponse, response);
+    }
+
+
+    @Test
+    void should_return_all_work_types_from_role_assignment_using_trim() {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        String workTypes = "hearing_work, decision_making_work, applications";
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), workTypes);
+
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+        when(cftWorkTypeDatabaseService.getWorkTypes(
+            Set.of("hearing_work", "decision_making_work", "applications")
+        )).thenReturn(List.of(
+                new WorkType("hearing_work", "Hearing work"),
+                new WorkType("decision_making_work", "Decision-making work"),
+                new WorkType("applications", "Applications")
+            )
+        );
+
+        List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
+
+        WorkType expectedWorkType1 = new WorkType("hearing_work", "Hearing work");
+        WorkType expectedWorkType2 = new WorkType("decision_making_work", "Decision-making work");
+        WorkType expectedWorkType3 = new WorkType("applications", "Applications");
+
+        List<WorkType> expectedResponse = asList(expectedWorkType1, expectedWorkType2, expectedWorkType3);
         assertNotNull(response);
         assertEquals(expectedResponse, response);
     }
