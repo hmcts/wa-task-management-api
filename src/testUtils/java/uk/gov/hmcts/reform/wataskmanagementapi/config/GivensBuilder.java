@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -131,7 +130,7 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
+            .pollInterval(1, SECONDS)
             .atMost(60, SECONDS)
             .until(
                 () -> {
@@ -162,7 +161,7 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
+            .pollInterval(1, SECONDS)
             .atMost(60, SECONDS)
             .until(
                 () -> {
@@ -284,6 +283,7 @@ public class GivensBuilder {
             //for testing-purposes
             .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("judge", "Read,Refer,Execute")
             .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("workingDaysAllowed", "2")

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.wa;
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.restassured.http.ContentType;
@@ -14,8 +15,6 @@ import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
 
-import java.io.IOException;
-
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @PactTestFor(providerName = "wa_task_management_api_cancel_task_by_id", port = "8991")
@@ -25,19 +24,6 @@ public class TaskManagerCancelTaskConsumerTest extends SpringBootContractBaseTes
     private static final String TASK_ID = "704c8b1c-e89b-436a-90f6-953b1dc40157";
     private static final String WA_URL = "/task";
     private static final String WA_CANCEL_TASK_BY_ID = WA_URL + "/" + TASK_ID + "/" + "cancel";
-
-    @Test
-    @PactTestFor(pactMethod = "executeCancelTaskById204")
-    void testCancelTaskByTaskId204Test(MockServer mockServer) throws IOException {
-        SerenityRest
-            .given()
-            .headers(getHttpHeaders())
-            .contentType(ContentType.JSON)
-            .body("")
-            .post(mockServer.getUrl() + WA_CANCEL_TASK_BY_ID)
-            .then()
-            .statusCode(204);
-    }
 
     @Pact(provider = "wa_task_management_api_cancel_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeCancelTaskById204(PactDslWithProvider builder) {
@@ -53,5 +39,20 @@ public class TaskManagerCancelTaskConsumerTest extends SpringBootContractBaseTes
             .willRespondWith()
             .status(HttpStatus.NO_CONTENT.value())
             .toPact();
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeCancelTaskById204", pactVersion = PactSpecVersion.V3)
+    void testCancelTaskByTaskId204Test(MockServer mockServer) {
+
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body("")
+            .post(mockServer.getUrl() + WA_CANCEL_TASK_BY_ID)
+            .then()
+            .statusCode(204);
+        
     }
 }
