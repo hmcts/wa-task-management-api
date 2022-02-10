@@ -107,15 +107,14 @@ public class CaseConfigurationProviderService {
             .map(this::removeAdditionalFromCamundaName)
             .collect(toMap(r -> r.getName().getValue(), r -> r.getValue().getValue()));
 
-        ConfigurationDmnEvaluationResponse additionalPropertiesDmn = new ConfigurationDmnEvaluationResponse(
-            CamundaValue.stringValue("additionalProperties"),
-            CamundaValue.stringValue(writeValueAsString(additionalProperties))
-        );
-
         List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
             .filter(r -> !r.getName().getValue().contains("additionalProperties_")).collect(Collectors.toList());
+
         if (!additionalProperties.isEmpty()) {
-            configResponses.add(additionalPropertiesDmn);
+            configResponses.add(new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("additionalProperties"),
+                CamundaValue.stringValue(writeValueAsString(additionalProperties))
+            ));
         }
         return configResponses;
     }

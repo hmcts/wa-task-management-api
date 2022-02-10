@@ -446,7 +446,7 @@ public class CFTTaskMapper {
             try {
                 return objectMapper.readValue((String) value, new TypeReference<>() {});
             } catch (JsonProcessingException e) {
-                throw new IllegalArgumentException();
+                return null;
             }
         }
         return null;

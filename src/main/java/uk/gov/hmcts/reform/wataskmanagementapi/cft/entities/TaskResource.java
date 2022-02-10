@@ -40,17 +40,18 @@ import javax.persistence.OneToMany;
             typeClass = PostgreSQLEnumType.class
         ),
         @TypeDef(
-            name = "jsonb",
+            name = TaskResource.JSONB,
             typeClass = JsonType.class
         )
     }
 )
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UnnecessaryFullyQualifiedName"})
 public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
     private static final String PGSQL_ENUM = "pgsql_enum";
+    public static final String JSONB = "jsonb";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -80,7 +81,7 @@ public class TaskResource implements Serializable {
     private String description;
 
     @Type(type = "jsonb")
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = JSONB)
     private List<NoteResource> notes;
 
     private Integer majorPriority;
@@ -127,7 +128,7 @@ public class TaskResource implements Serializable {
     private Set<TaskRoleResource> taskRoleResources;
 
     @Type(type = "jsonb")
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = JSONB)
     private Map<String, String> additionalProperties;
 
     protected TaskResource() {

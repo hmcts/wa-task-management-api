@@ -14,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.APPEAL_TYPE;
@@ -75,7 +76,7 @@ public class TaskMapper {
         String caseManagementCategory = getVariableValue(variables.get(CASE_MANAGEMENT_CATEGORY.value()), String.class);
         String workType = getVariableValue(variables.get(WORK_TYPE.value()), String.class);
         String description = getVariableValue(variables.get(DESCRIPTION.value()), String.class);
-        Map<String, String> additionalProperties
+        ConcurrentHashMap<String, String> additionalProperties
             = getTypedVariableValue(variables.get(ADDITIONAL_PROPERTIES.value()), new TypeReference<>() {});
         return new Task(
             id,
