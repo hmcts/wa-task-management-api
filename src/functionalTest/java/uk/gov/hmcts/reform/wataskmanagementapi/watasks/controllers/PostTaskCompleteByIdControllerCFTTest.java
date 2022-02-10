@@ -164,7 +164,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
@@ -192,7 +192,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
@@ -366,7 +366,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_complete_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
@@ -422,7 +422,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_completion_options_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
@@ -473,7 +473,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     @Test
     public void should_return_a_204_when_completing_a_task_with_restricted_role_assignment_assign_and_complete_true() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
@@ -650,9 +650,9 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "followUpOverdueReasonsForAppeal"),
-            new TaskAttribute(TASK_NAME, "follow Up Overdue Reasons For Appeal"),
-            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_TYPE, "processApplication"),
+            new TaskAttribute(TASK_NAME, "process application"),
+            new TaskAttribute(TASK_TITLE, "process task"),
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
