@@ -28,6 +28,9 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -118,6 +121,41 @@ class WorkTypesServiceTest {
         assertEquals(expectedResponse, response);
     }
 
+    @Test
+    void should_return_no_work_types_from_role_assignment_when_null_attributes() {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, null);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
+
+        assertNotNull(response);
+        assertEquals(emptyList(), response);
+
+        verify(cftWorkTypeDatabaseService, never()).getWorkTypes(any());
+    }
+
+    @Test
+    void should_return_no_work_types_from_role_assignment_when_no_attributes() {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
+
+        assertNotNull(response);
+        assertEquals(emptyList(), response);
+
+        verify(cftWorkTypeDatabaseService, never()).getWorkTypes(any());
+    }
 
     @Test
     void should_return_all_work_types_from_role_assignment_using_trim() {
