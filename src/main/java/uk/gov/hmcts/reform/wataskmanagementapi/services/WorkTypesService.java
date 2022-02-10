@@ -7,11 +7,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WorkType;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.WORK_TYPES;
 
@@ -58,9 +59,14 @@ public class WorkTypesService {
         Set<String> roleWorkTypes = new HashSet<>();
 
         for (RoleAssignment roleAssignment : accessControlResponse.getRoleAssignments()) {
-            String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
-            if (assignedWorkedList != null) {
-                roleWorkTypes.addAll(asList(assignedWorkedList.split(",")));
+            if (roleAssignment.getAttributes() != null) {
+                String assignedWorkedList = roleAssignment.getAttributes().get(WORK_TYPES.value());
+                if (assignedWorkedList != null) {
+                    Set<String> foundWorkTypes = Arrays.stream(assignedWorkedList.split(","))
+                        .map(String::trim)
+                        .collect(Collectors.toSet());
+                    roleWorkTypes.addAll(foundWorkTypes);
+                }
             }
         }
         return roleWorkTypes;
