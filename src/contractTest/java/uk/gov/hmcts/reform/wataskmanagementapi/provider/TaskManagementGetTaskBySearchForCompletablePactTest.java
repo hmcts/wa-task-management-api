@@ -38,6 +38,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -59,6 +60,15 @@ import static org.mockito.Mockito.when;
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -124,7 +134,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            null
+            ADDITIONAL_PROPERTIES
         );
         return singletonList(task);
     }
@@ -173,7 +183,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            null);
+            ADDITIONAL_PROPERTIES);
 
         return singletonList(taskWithWarnings);
     }

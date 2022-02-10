@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -40,6 +41,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     private String taskId;
     private TaskResource task;
@@ -215,6 +225,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory",
-            null);
+            ADDITIONAL_PROPERTIES
+            );
     }
 }

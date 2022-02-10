@@ -81,6 +81,15 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @ExtendWith(MockitoExtension.class)
 public class CftQueryServiceTest extends CamundaHelpers {
 
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
+
     @Mock
     private TaskResourceRepository taskResourceRepository;
     @Mock
@@ -139,7 +148,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory",
-            null);
+            ADDITIONAL_PROPERTIES);
     }
 
     private Task getTask() {
@@ -171,7 +180,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
             "Description",
-            null);
+            ADDITIONAL_PROPERTIES);
     }
 
     private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {

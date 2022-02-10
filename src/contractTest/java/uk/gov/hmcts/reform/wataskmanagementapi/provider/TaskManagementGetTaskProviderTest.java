@@ -34,6 +34,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -54,6 +55,15 @@ import static org.mockito.Mockito.when;
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskProviderTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     @Mock
     private AccessControlService accessControlService;
@@ -162,7 +172,7 @@ public class TaskManagementGetTaskProviderTest {
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            null);
+            ADDITIONAL_PROPERTIES);
     }
 
     private Task createTaskWithWarnings() {
@@ -209,7 +219,7 @@ public class TaskManagementGetTaskProviderTest {
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            null);
+            ADDITIONAL_PROPERTIES);
     }
 
 }

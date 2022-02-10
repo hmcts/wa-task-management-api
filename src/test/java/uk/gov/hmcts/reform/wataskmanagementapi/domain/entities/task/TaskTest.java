@@ -8,10 +8,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 import static java.util.Collections.singleton;
 
 class TaskTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     ZonedDateTime created = ZonedDateTime.now();
     ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
@@ -51,7 +61,7 @@ class TaskTest {
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            null
+            ADDITIONAL_PROPERTIES
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -122,7 +132,7 @@ class TaskTest {
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN))),
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            null
+            ADDITIONAL_PROPERTIES
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();
