@@ -666,6 +666,46 @@ public class Common {
         );
     }
 
+    public void setupRestrictedRoleAssignmentForWA(String caseId, Headers headers) {
+
+        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324"
+        );
+
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction WA
+        log.info("Creating Organizational Role");
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS"
+        );
+
+        //Creates a restricted role for a particular ccdId
+        log.info("Creating Restricted role-assignment");
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "tribunal-caseworker",
+            null,
+            "requests/roleAssignment/set-restricted-role-assignment-request.json",
+            "SPECIFIC",
+            "LEGAL_OPERATIONS"
+        );
+    }
+
     public void insertTaskInCftTaskDb(TestVariables testVariables, String taskType, Headers authenticationHeaders) {
         String warnings = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
                           + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";

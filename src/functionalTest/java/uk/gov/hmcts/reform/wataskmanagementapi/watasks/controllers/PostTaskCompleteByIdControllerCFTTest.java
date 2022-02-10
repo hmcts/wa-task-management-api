@@ -168,7 +168,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
@@ -476,7 +476,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
-        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), authenticationHeaders);
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
             authenticationHeaders
