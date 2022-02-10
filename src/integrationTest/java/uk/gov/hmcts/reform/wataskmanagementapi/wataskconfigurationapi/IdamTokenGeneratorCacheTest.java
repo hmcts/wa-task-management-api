@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.Token;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.IdamTokenGenerator;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam.entities.UserIdamTokenGeneratorInfo;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -33,12 +34,26 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("integration")
 public class IdamTokenGeneratorCacheTest {
 
+    @MockBean(name = "systemUserIdamInfo")
+    UserIdamTokenGeneratorInfo systemUserIdamInfo;
+
     @MockBean
     private IdamWebApi idamWebApi;
 
     @Autowired
     private IdamTokenGenerator systemUserIdamToken;
 
+    private MultiValueMap<String, String> buildRequestForUser(String user, String pass) {
+        MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
+        request.add("grant_type", "password");
+        request.add("redirect_uri", "http://localhost:3002/oauth2/callback");
+        request.add("client_id", "wa");
+        request.add("client_secret", "something");
+        request.add("username", user);
+        request.add("password", pass);
+        request.add("scope", "openid profile roles");
+        return request;
+    }
 
     @TestConfiguration
     public static class OverrideBean {
@@ -160,6 +175,19 @@ public class IdamTokenGeneratorCacheTest {
     @Nested
     @DisplayName("getUserBearerToken()")
     class GetUserBearerToken {
+        @BeforeEach
+        void setup() {
+
+            String username = UUID.randomUUID().toString();
+            String pass = UUID.randomUUID().toString();
+            when(systemUserIdamInfo.getUserName()).thenReturn(username);
+            when(systemUserIdamInfo.getUserPassword()).thenReturn(pass);
+            when(systemUserIdamInfo.getIdamClientId()).thenReturn("wa");
+            when(systemUserIdamInfo.getIdamClientSecret()).thenReturn("something");
+            when(systemUserIdamInfo.getIdamRedirectUrl()).thenReturn("http://localhost:3002/oauth2/callback");
+            when(systemUserIdamInfo.getIdamScope()).thenReturn("openid profile roles");
+
+        }
 
         @Test
         void given_repeated_calls_it_should_cache_bearer_tokens() {
@@ -242,17 +270,54 @@ public class IdamTokenGeneratorCacheTest {
             verify(idamWebApi, times(2)).token(request);
         }
 
-        private MultiValueMap<String, String> buildRequestForUser(String user, String pass) {
-            MultiValueMap<String, String> request = new LinkedMultiValueMap<>();
-            request.add("grant_type", "password");
-            request.add("redirect_uri", "http://localhost:3002/oauth2/callback");
-            request.add("client_id", "wa");
-            request.add("client_secret", "something");
-            request.add("username", user);
-            request.add("password", pass);
-            request.add("scope", "openid profile roles");
-            return request;
-        }
     }
 
+    @Nested
+    @DisplayName("generate()")
+    class Generate {
+        MultiValueMap<String, String> request;
+        String username;
+        String pass;
+
+        @BeforeEach
+        void setup() {
+            username = UUID.randomUUID().toString();
+            pass = UUID.randomUUID().toString();
+            when(systemUserIdamInfo.getUserName()).thenReturn(username);
+            when(systemUserIdamInfo.getUserPassword()).thenReturn(pass);
+            when(systemUserIdamInfo.getIdamClientId()).thenReturn("wa");
+            when(systemUserIdamInfo.getIdamClientSecret()).thenReturn("something");
+            when(systemUserIdamInfo.getIdamRedirectUrl()).thenReturn("http://localhost:3002/oauth2/callback");
+            when(systemUserIdamInfo.getIdamScope()).thenReturn("openid profile roles");
+            request = buildRequestForUser(username, pass);
+        }
+
+        @Test
+        void given_repeated_calls_it_should_cache_bearer_tokens() {
+
+            when(idamWebApi.token(request)).thenReturn(new Token("Bearer Token", "Scope"));
+
+            IntStream.range(0, 4).forEach(i -> systemUserIdamToken.generate());
+
+            verify(idamWebApi, times(1)).token(request);
+        }
+
+        @Test
+        void given_repeated_calls_when_first_call_fails_it_should_return_cached_bearer_token() {
+
+            when(idamWebApi.token(request))
+                .thenThrow(FeignException.FeignServerException.class)
+                .thenReturn(new Token("Bearer Token", "Scope"))
+                .thenReturn(new Token("Bearer Token", "Scope"));
+
+            try {
+                IntStream.range(0, 3).forEach(i -> systemUserIdamToken.generate());
+            } catch (Exception e) {
+                //Do nothing
+            }
+
+            verify(idamWebApi, times(1)).token(request);
+        }
+
+    }
 }
