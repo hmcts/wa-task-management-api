@@ -94,6 +94,7 @@ class TaskTest {
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.READ);
         Assertions.assertThat(task.getRoleCategory()).isEqualTo("LEGAL_OPERATIONS");
         Assertions.assertThat(task.getDescription()).isEqualTo("a description");
+        Assertions.assertThat(task.getAdditionalProperties()).isEqualTo(ADDITIONAL_PROPERTIES);
     }
 
 
