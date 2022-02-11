@@ -157,7 +157,11 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             "Asylum");
         final String taskId = taskVariables.getTaskId();
 
-        common.insertTaskInCftTaskDb(taskVariables, "reviewTheAppeal", caseworkerCredentials.getHeaders());
+
+        // The UnknownEvent event is used to test so that permissions table is matched only to
+        // "Read,Refer,Manage,Cancel" Rest of the events has either Own or Execute
+        insertTaskInCftTaskDb(taskVariables.getCaseId(), taskVariables.getCaseId(), "UnknownEvent");
+
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -214,8 +218,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .contentType(APPLICATION_JSON_VALUE)
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
-            .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("tasks[0].permissions.values.size()", equalTo(3))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"))
             .body("tasks[0].id", equalTo(taskId2));
 
         common.cleanUpTask(taskId1);
@@ -402,8 +406,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(true))
-            .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
+            .body("tasks[0].permissions.values.size()", equalTo(3))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"));
+
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "tasks[0].warning_list.values");
