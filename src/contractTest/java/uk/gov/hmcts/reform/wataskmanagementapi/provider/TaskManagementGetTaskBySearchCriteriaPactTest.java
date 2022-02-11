@@ -34,11 +34,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -49,11 +49,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_search")
 //Uncomment this and comment the @PactBroker line to test WorkTypeConsumerTest local consumer.
+//using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("pacts")
 @PactBroker(
-    scheme = "${PACT_BROKER_SCHEME:http}",
-    host = "${PACT_BROKER_URL:localhost}",
-    port = "${PACT_BROKER_PORT:9292}",
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
@@ -110,6 +109,17 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     public Task createTaskWithNoWarnings() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         return new Task(
             "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
             "Review the appeal",
@@ -132,25 +142,27 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "refusalOfHumanRights",
             "Bob Smith",
             false,
-            new WarningValues(emptyList()),
-            "Some Case Management Category",
+            new WarningValues(Collections.emptyList()),
+            "Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    ))),
+            permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description"
         );
     }
 
     public Task createTaskWithWarnings() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.MANAGE,
+                PermissionTypes.REFER
+            )
+        );
+
         final List<Warning> warnings = List.of(
             new Warning("Code1", "Text1")
         );
@@ -180,16 +192,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             new WarningValues(warnings),
             "Some Case Management Category",
             "hearing_work",
-            new TaskPermissions(
-                new HashSet<>(
-                    asList(
-                        PermissionTypes.READ,
-                        PermissionTypes.OWN,
-                        PermissionTypes.EXECUTE,
-                        PermissionTypes.CANCEL,
-                        PermissionTypes.MANAGE,
-                        PermissionTypes.REFER
-                    ))),
+            permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description"
         );

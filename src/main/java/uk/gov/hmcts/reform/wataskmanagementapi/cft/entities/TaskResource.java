@@ -156,11 +156,39 @@ public class TaskResource implements Serializable {
                         String taskName,
                         String taskType,
                         CFTTaskState state,
+                        String caseId,
+                        String assignee) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.caseId = caseId;
+        this.assignee = assignee;
+    }
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
                         OffsetDateTime dueDateTime) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
         this.state = state;
+        this.dueDateTime = dueDateTime;
+    }
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        OffsetDateTime created,
+                        OffsetDateTime dueDateTime) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.created = created;
         this.dueDateTime = dueDateTime;
     }
 

@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.hamcrest.Matchers;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
@@ -47,6 +48,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
@@ -70,11 +72,16 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         }
     };
 
-    private Headers headers;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        headers = authorizationHeadersProvider.getTribunalCaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+    }
+
+    @After
+    public void cleanUp() {
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -83,7 +90,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             new SearchTaskRequest(emptyList()),
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -99,7 +106,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -118,10 +125,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariablesForTask1 = common.setupTaskAndRetrieveIds();
         TestVariables taskVariablesForTask2 = common.setupTaskAndRetrieveIds();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariablesForTask1, "followUpOverdueReasonsForAppeal", headers);
-        common.insertTaskInCftTaskDb(taskVariablesForTask2, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariablesForTask1, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+        common.insertTaskInCftTaskDb(taskVariablesForTask2, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         // Given query
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
@@ -139,7 +146,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         // Then expect task2,tak1 order
@@ -164,7 +171,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         // When
-        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, headers);
+        result = restApiActions.post(ENDPOINT_BEING_TESTED, searchTaskRequest, caseworkerCredentials.getHeaders());
 
         // Then expect task2,task1 order
         actualCaseIdList = result.then().assertThat()
@@ -182,9 +189,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -193,7 +200,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -214,14 +221,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
 
         tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
+            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders()));
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -231,7 +238,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=2",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -244,114 +251,54 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_firstResult_pagination() {
-        //creating 1 task
-        String[] taskStates = {TaskState.ASSIGNED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
-
-        tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
+    public void should_return_a_400_with_empty_search_results_with_negative_firstResult_pagination() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=2",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0))
-            .body("total_records", equalTo(0));
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("search_with_criteria.first_result"))
+            .body("violations[0].message", equalTo("first_result must not be less than zero"));
 
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_maxResults_pagination() {
-        //creating 1 task
-        String[] taskStates = {TaskState.UNASSIGNED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
-
-        tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
-
+    public void should_return_a_400_with_empty_search_results_with_negative_maxResults_pagination() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
         ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=-1",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0))
-            .body("total_records", equalTo(0));
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("search_with_criteria.max_results"))
+            .body("violations[0].message", equalTo("max_results must not be less than one"));
 
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
-    }
-
-    @Test
-    public void should_return_a_200_with_empty_search_results_with_negative_pagination() {
-        //creating 1 task
-        String[] taskStates = {TaskState.UNCONFIGURED.value()};
-
-        List<TestVariables> tasksCreated = createMultipleTasks(taskStates);
-
-        tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
-        ));
-
-        common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
-            Map.of(
-                "primaryLocation", "765324",
-                "jurisdiction", "IA"
-            )
-        );
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED + "?first_result=-1&max_results=-1",
-            searchTaskRequest,
-            headers
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", equalTo(0))
-            .body("total_records", equalTo(0));
-
-        tasksCreated
-            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
     @Test
@@ -359,9 +306,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
@@ -370,7 +317,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -388,9 +335,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         final String taskId = taskVariables.getTaskId();
 
-        common.setupOrganisationalRoleAssignment(headers);
+        common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+
+        given.iClaimATaskWithIdAndAuthorization(
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("assigned"))
@@ -399,7 +351,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -420,8 +372,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -429,14 +381,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -457,8 +409,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -466,16 +418,16 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
-            ));
+        ));
 
-        common.setupOrganisationalRoleAssignmentWithOutEndDate(headers);
+        common.setupOrganisationalRoleAssignmentWithOutEndDate(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -497,23 +449,23 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         final String taskId = taskVariables.getTaskId();
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("17595"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -533,8 +485,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -542,14 +494,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -557,15 +509,15 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks[0].permissions.values", hasItems("Read","Refer","Own","Manage","Cancel"))
+            .body("tasks[0].permissions.values.size()", equalTo(5))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
     }
 
     /**
-     *  This scenario will test with default pagination i.e 50
-     *
+     * This scenario will test with default pagination i.e 50
      */
     @Test
     public void should_return_a_200_with_default_search_results_based_on_jurisdiction_location_and_state() {
@@ -576,8 +528,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                "IA",
-                                                                                                "Asylum");
+            "IA",
+            "Asylum");
         final String taskId = taskVariables.getTaskId();
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -586,14 +538,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("unassigned"))
         ));
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -620,7 +572,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -628,12 +580,12 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
+            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
 
@@ -665,7 +617,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         ));
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "17595",
                 "jurisdiction", "IA"
@@ -673,13 +625,13 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
+            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders()));
 
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -704,9 +656,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
 
-
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            headers,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "IA"
@@ -714,12 +665,12 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         tasksCreated.forEach(testVariable ->
-            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", headers));
+            common.insertTaskInCftTaskDb(testVariable, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders()));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         final List<String> expectedStates = List.of("unconfigured", "unassigned", "configured", "assigned", "completed",
@@ -763,9 +714,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -775,7 +726,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -787,7 +738,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response camundaTask = camundaApiActions.get(
             "/task/{task-id}/variables",
             taskId,
-            authorizationHeadersProvider.getServiceAuthorizationHeader()
+            authorizationProvider.getServiceAuthorizationHeader()
         );
 
         camundaTask.then().assertThat()
@@ -803,9 +754,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "decideOnTimeExtension", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "decideOnTimeExtension", caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -815,7 +766,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -823,7 +774,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .contentType(APPLICATION_JSON_VALUE)
             .body("tasks[0].id", equalTo(taskId))
             .body("tasks[0].task_state", equalTo("unassigned"))
-            .body("tasks[0].description",  equalTo(
+            .body("tasks[0].description", equalTo(
                 "[Change the direction due date](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/changeDirectionDueDate)"
             ));
 
@@ -835,9 +786,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueCaseBuilding", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueCaseBuilding", caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -847,7 +798,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -868,10 +819,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         // insert task in CftTaskDb
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         // verify cftTaskState exists in Camunda history table before termination
         cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
@@ -885,7 +836,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             TASK_ENDPOINT_BEING_TESTED,
             taskId,
             terminateTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
@@ -904,10 +855,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         // insert task in CftTaskDb
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", headers);
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
 
         // verify cftTaskState exists in Camunda history table before termination
         cftTaskStateVariableShouldExistInCamundaHistoryTable(taskId);
@@ -921,7 +872,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             TASK_ENDPOINT_BEING_TESTED,
             taskId,
             terminateTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
         response.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
@@ -938,9 +889,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
@@ -952,7 +903,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -974,16 +925,16 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         final String taskId1 = taskVariables1.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers, "task-supervisor");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
-        common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables1, taskType, caseworkerCredentials.getHeaders());
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        common.insertTaskInCftTaskDb(taskVariables2, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables2, taskType, caseworkerCredentials.getHeaders());
 
         //search by all work types
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
@@ -996,7 +947,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1020,9 +971,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType = "reviewTheAppeal";
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables1, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("aWorkType"))
@@ -1031,7 +982,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1046,9 +997,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         final String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
@@ -1059,7 +1010,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1077,21 +1028,21 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         final String taskId1 = taskVariables1.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers,"task-supervisor");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
-        common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables1, taskType, caseworkerCredentials.getHeaders());
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
         String taskId2 = taskVariables2.getTaskId();
 
-        common.insertTaskInCftTaskDb(taskVariables2, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables2, taskType, caseworkerCredentials.getHeaders());
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN,
-                TASK_TYPE_WORK_TYPE_MAP.values().stream().collect(Collectors.toList())),
+                new ArrayList<>(TASK_TYPE_WORK_TYPE_MAP.values())),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
@@ -1099,7 +1050,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1123,9 +1074,9 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
@@ -1137,7 +1088,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1158,21 +1109,19 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                singletonList("ADMINISTRATOR")),
-            new SearchParameterList(CASE_ID, SearchOperator.IN,
-                singletonList(taskVariables.getCaseId()))
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("ADMIN")),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList(taskVariables.getCaseId()))
         ));
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1181,7 +1130,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
             .body("tasks.id", hasItem(taskId))
-            .body("tasks.role_category", everyItem(is("ADMINISTRATOR")))
+            .body("tasks.role_category", everyItem(is("ADMIN")))
             .body("total_records", equalTo(1));
 
 
@@ -1194,13 +1143,16 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables = common.setupTaskAndRetrieveIds(taskType);
         String taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers);
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        common.insertTaskInCftTaskDb(taskVariables, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables, taskType, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                singletonList("JUDICIAL")),
+            new SearchParameterList(
+                ROLE_CATEGORY,
+                SearchOperator.IN,
+                singletonList("JUDICIAL")
+            ),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 singletonList(taskVariables.getCaseId()))
         ));
@@ -1208,7 +1160,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1230,21 +1182,20 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds(taskType);
         final String taskId1 = taskVariables1.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers,"task-supervisor");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
-        common.insertTaskInCftTaskDb(taskVariables1, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables1, taskType, caseworkerCredentials.getHeaders());
 
         //initiate second task
         taskType = "arrangeOfflinePayment";
         TestVariables taskVariables2 = common.setupTaskAndRetrieveIds(taskType);
 
         String taskId2 = taskVariables2.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables2, taskType, headers);
+        common.insertTaskInCftTaskDb(taskVariables2, taskType, caseworkerCredentials.getHeaders());
 
         //search by all work types and caseIds
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
-            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN,
-                List.of("LEGAL_OPERATIONS", "ADMINISTRATOR")),
+            new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, List.of("LEGAL_OPERATIONS", "ADMIN")),
             new SearchParameterList(CASE_ID, SearchOperator.IN,
                 asList(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
         ));
@@ -1252,7 +1203,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1261,7 +1212,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.jurisdiction", everyItem(is("IA")))
             .body("tasks.case_id", hasItems(taskVariables1.getCaseId(), taskVariables2.getCaseId()))
             .body("tasks.id", hasItems(taskId1, taskId2))
-            .body("tasks.role_category", hasItems("LEGAL_OPERATIONS", "ADMINISTRATOR"))
+            .body("tasks.role_category", hasItems("LEGAL_OPERATIONS", "ADMIN"))
             .body("total_records", equalTo(2));
 
         common.cleanUpTask(taskId1);
@@ -1274,21 +1225,21 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
         String caseId = given.iCreateACcdCase();
-        List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        List<CamundaTask> camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
 
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalWithMultipleRoles(headers);
+        common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
-            taskType1, headers);
+            taskType1, caseworkerCredentials.getHeaders());
 
         // insert taskId2
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId2, "processInstanceId1"),
-            taskType2, headers);
+            taskType2, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -1301,14 +1252,14 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", is(1)) //Default max results
             .body("tasks[0].id", equalTo(taskId2))
-            .body("tasks[0].task_state", is(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks[0].task_state", is("unassigned"))
             .body("tasks[0].permissions.values", hasItem("Own"))
             .body("total_records", is(1));
 
@@ -1320,23 +1271,32 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
 
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
         String taskType2 = "reviewAdditionalAppellantEvidence";
+        String taskType3 = "reviewTheAppeal";
 
         String caseId = given.iCreateACcdCase();
-        List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
-        String taskId1 = camundaTasks.get(0).getId();
+        List<CamundaTask> camundaTasks1 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        List<CamundaTask> camundaTasks2 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
+        List<CamundaTask> camundaTasks3 = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType3);
+        String taskId1 = camundaTasks1.get(0).getId();
+        String taskId2 = camundaTasks2.get(0).getId();
+        String taskId3 = camundaTasks3.get(0).getId();
 
-        camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
-        String taskId2 = camundaTasks.get(0).getId();
-
-        common.setupCFTOrganisationalWithMultipleRoles(headers);
+        common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
-            taskType1, headers);
+            taskType1, caseworkerCredentials.getHeaders());
 
         // insert taskId2
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId2, "processInstanceId1"),
-            taskType2, headers);
+            taskType2, caseworkerCredentials.getHeaders());
+
+        // insert taskId3
+        common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId3, "processInstanceId1"),
+            taskType3, caseworkerCredentials.getHeaders());
+
+        //Claim a task to set state to assigned
+        given.iClaimATaskWithIdAndAuthorization(taskId3, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -1349,18 +1309,18 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .body("tasks.size()", is(2)) //Default max results
+            .body("tasks.size()", is(2))
             .body("tasks.id", hasItems(taskId1, taskId2))
-            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("tasks.permissions.values", everyItem(hasItem("Own")))
             .body("total_records", is(2));
 
-        common.cleanUpTask(taskId1, taskId2);
+        common.cleanUpTask(taskId1, taskId2, taskId3);
     }
 
     @Test
@@ -1370,36 +1330,36 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
         String caseId = given.iCreateACcdCase();
-        List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        List<CamundaTask> camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
 
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalWithMultipleRoles(headers);
+        common.setupCFTOrganisationalWithMultipleRoles(caseworkerCredentials.getHeaders());
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
-            taskType1, headers);
+            taskType1, caseworkerCredentials.getHeaders());
 
         // insert taskId2
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId2, "processInstanceId1"),
-            taskType2, headers);
+            taskType2, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
 
         Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED  + "?first_result=0&max_results=10",
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("tasks.size()", lessThanOrEqualTo(10))
-            .body("tasks.task_state", everyItem(either(is("unassigned")).or(is("assigned"))))
+            .body("tasks.task_state", everyItem(is("unassigned")))
             .body("tasks.permissions.values", everyItem(hasItem("Own")))
             .body("total_records", greaterThan(1));
 
@@ -1413,21 +1373,21 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         String taskType2 = "reviewAdditionalAppellantEvidence";
 
         String caseId = given.iCreateACcdCase();
-        List<CamundaTask>  camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
+        List<CamundaTask> camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
         String taskId1 = camundaTasks.get(0).getId();
         camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType2);
 
         String taskId2 = camundaTasks.get(0).getId();
 
-        common.setupCFTOrganisationalRoleAssignment(headers,"task-supervisor");
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "task-supervisor");
 
         // insert taskId1
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId1, "processInstanceId1"),
-            taskType1, headers);
+            taskType1, caseworkerCredentials.getHeaders());
 
         // insert taskId2
         common.insertTaskInCftTaskDb(new TestVariables(caseId, taskId2, "processInstanceId1"),
-            taskType2, headers);
+            taskType2, caseworkerCredentials.getHeaders());
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")),
@@ -1440,7 +1400,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             searchTaskRequest,
-            headers
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -1459,8 +1419,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             );
 
             TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariablesOverride(variablesOverride,
-                                                                                                    "IA",
-                                                                                                    "Asylum");
+                "IA",
+                "Asylum");
             tasksCreated.add(taskVariables);
         }
 
@@ -1472,8 +1432,11 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             "variableName", CFT_TASK_STATE.value(),
             "taskIdIn", singleton(taskId)
         );
-        Response camundaHistoryResponse = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+        Response camundaHistoryResponse = camundaApiActions.post(
+            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
+            body,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
         camundaHistoryResponse.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("size()", is(1))
@@ -1485,8 +1448,11 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             "variableName", CFT_TASK_STATE.value(),
             "taskIdIn", singleton(taskId)
         );
-        Response camundaHistoryResponse = camundaApiActions.post(CAMUNDA_SEARCH_HISTORY_ENDPOINT, body,
-            authorizationHeadersProvider.getServiceAuthorizationHeadersOnly());
+        Response camundaHistoryResponse = camundaApiActions.post(
+            CAMUNDA_SEARCH_HISTORY_ENDPOINT,
+            body,
+            authorizationProvider.getServiceAuthorizationHeadersOnly()
+        );
         camundaHistoryResponse.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .body("size()", is(0));

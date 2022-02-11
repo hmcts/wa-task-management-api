@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -43,8 +43,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -194,6 +196,105 @@ class InitiateTaskTest extends CamundaHelpers {
         verify(camundaService).updateCftTaskState(
             taskId,
             TaskState.UNASSIGNED
+        );
+
+        verify(cftTaskDatabaseService).saveTask(taskResource);
+    }
+
+    @Test
+    void given_initiateTask_with_previous_valid_assignee_should_keep_assignee() {
+        ZonedDateTime dueDate = ZonedDateTime.now();
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        mockInitiateTaskDependencies();
+
+        TaskResource taskWithAssignee = new TaskResource(
+            taskId,
+            A_TASK_NAME,
+            A_TASK_TYPE,
+            UNCONFIGURED,
+            CASE_ID,
+            "someUserId"
+        );
+
+        when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
+        when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(true);
+
+        when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+
+        verify(taskAutoAssignmentService, never()).autoAssignCFTTask(any());
+        verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        verify(configureTaskService).configureCFTTask(
+            eq(taskResource),
+            ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
+                taskId,
+                A_TASK_TYPE,
+                CASE_ID,
+                A_TASK_NAME
+            )))
+        );
+
+        verify(camundaService).updateCftTaskState(
+            taskId,
+            TaskState.ASSIGNED
+        );
+
+        verify(cftTaskDatabaseService).saveTask(taskResource);
+    }
+
+    @Test
+    void given_initiateTask_with_previous_invalid_assignee_should_reassign() {
+        ZonedDateTime dueDate = ZonedDateTime.now();
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        initiateTaskRequest.getTaskAttributes().add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+        mockInitiateTaskDependencies();
+
+        TaskResource taskWithAssignee = new TaskResource(
+            taskId,
+            A_TASK_NAME,
+            A_TASK_TYPE,
+            UNCONFIGURED,
+            CASE_ID,
+            "someUserId"
+        );
+
+
+        TaskResource taskReassigned = new TaskResource(
+            taskId,
+            A_TASK_NAME,
+            A_TASK_TYPE,
+            ASSIGNED,
+            CASE_ID,
+            "anotherUserId"
+        );
+
+        when(configureTaskService.configureCFTTask(any(), any())).thenReturn(taskWithAssignee);
+        when(taskAutoAssignmentService.checkAssigneeIsStillValid(any(), eq("someUserId"))).thenReturn(false);
+
+        when(taskAutoAssignmentService.autoAssignCFTTask(any())).thenReturn(taskReassigned);
+
+        when(cftTaskMapper.readDate(any(), any(), any())).thenCallRealMethod();
+
+        TaskResource taskResource = taskManagementService.initiateTask(taskId, initiateTaskRequest);
+
+        verify(cftTaskMapper, atLeastOnce()).mapToTaskResource(taskId, initiateTaskRequest.getTaskAttributes());
+        verify(configureTaskService).configureCFTTask(
+            eq(taskResource),
+            ArgumentMatchers.argThat((taskToConfigure) -> taskToConfigure.equals(new TaskToConfigure(
+                taskId,
+                A_TASK_TYPE,
+                CASE_ID,
+                A_TASK_NAME
+            )))
+        );
+
+        verify(taskAutoAssignmentService).autoAssignCFTTask(taskResource);
+
+        verify(camundaService).updateCftTaskState(
+            taskId,
+            TaskState.ASSIGNED
         );
 
         verify(cftTaskDatabaseService).saveTask(taskResource);

@@ -28,6 +28,9 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,7 +82,7 @@ class WorkTypesServiceTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
@@ -98,14 +101,14 @@ class WorkTypesServiceTest {
 
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
-        when(cftWorkTypeDatabaseService.getWorkTypes(Set.of("upper_tribunal","hearing_work")))
+        when(cftWorkTypeDatabaseService.getWorkTypes(Set.of("upper_tribunal", "hearing_work")))
             .thenReturn(List.of(new WorkType("upper_tribunal", "Upper Tribunal"),
-                                new WorkType("hearing_work", "Hearing work")));
+                new WorkType("hearing_work", "Hearing work")));
 
         List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
 
@@ -114,6 +117,75 @@ class WorkTypesServiceTest {
         WorkType expectedWorkType2 = new WorkType("hearing_work", "Hearing work");
 
         List<WorkType> expectedResponse = asList(expectedWorkType1, expectedWorkType2);
+        assertNotNull(response);
+        assertEquals(expectedResponse, response);
+    }
+
+    @Test
+    void should_return_no_work_types_from_role_assignment_when_null_attributes() {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, null);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
+
+        assertNotNull(response);
+        assertEquals(emptyList(), response);
+
+        verify(cftWorkTypeDatabaseService, never()).getWorkTypes(any());
+    }
+
+    @Test
+    void should_return_no_work_types_from_role_assignment_when_no_attributes() {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        Map<String, String> roleAttributes = new HashMap<>();
+
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+
+        List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
+
+        assertNotNull(response);
+        assertEquals(emptyList(), response);
+
+        verify(cftWorkTypeDatabaseService, never()).getWorkTypes(any());
+    }
+
+    @Test
+    void should_return_all_work_types_from_role_assignment_using_trim() {
+
+        final List<String> roleNames = singletonList("tribunal-caseworker");
+
+        String workTypes = "hearing_work, decision_making_work, applications";
+        Map<String, String> roleAttributes = new HashMap<>();
+        roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), workTypes);
+
+        List<RoleAssignment> allTestRoles = createTestRoleAssignmentsWithRoleAttributes(roleNames, roleAttributes);
+
+        AccessControlResponse accessControlResponse = new AccessControlResponse(null, allTestRoles);
+        when(cftWorkTypeDatabaseService.getWorkTypes(
+            Set.of("hearing_work", "decision_making_work", "applications")
+        )).thenReturn(List.of(
+                new WorkType("hearing_work", "Hearing work"),
+                new WorkType("decision_making_work", "Decision-making work"),
+                new WorkType("applications", "Applications")
+            )
+        );
+
+        List<WorkType> response = workTypesService.getWorkTypes(accessControlResponse);
+
+        WorkType expectedWorkType1 = new WorkType("hearing_work", "Hearing work");
+        WorkType expectedWorkType2 = new WorkType("decision_making_work", "Decision-making work");
+        WorkType expectedWorkType3 = new WorkType("applications", "Applications");
+
+        List<WorkType> expectedResponse = asList(expectedWorkType1, expectedWorkType2, expectedWorkType3);
         assertNotNull(response);
         assertEquals(expectedResponse, response);
     }

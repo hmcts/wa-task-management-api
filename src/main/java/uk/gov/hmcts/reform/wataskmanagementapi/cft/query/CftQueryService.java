@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -38,7 +37,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 @Slf4j
 @Service
-@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName"})
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
@@ -48,7 +47,8 @@ public class CftQueryService {
     private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
 
-    public CftQueryService(CamundaService camundaService, CFTTaskMapper cftTaskMapper,
+    public CftQueryService(CamundaService camundaService,
+                           CFTTaskMapper cftTaskMapper,
                            TaskResourceRepository taskResourceRepository) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
@@ -65,12 +65,7 @@ public class CftQueryService {
         validateRequest(searchTaskRequest);
 
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
-        Pageable page;
-        try {
-            page = PageRequest.of(firstResult, maxResults, sort);
-        } catch (IllegalArgumentException exp) {
-            return new GetTasksResponse<>(emptyList(), 0);
-        }
+        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
 
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
             .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
@@ -79,8 +74,13 @@ public class CftQueryService {
 
         final List<TaskResource> taskResources = pages.toList();
 
-        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
-        ).collect(Collectors.toList());
+        final List<Task> tasks = taskResources.stream()
+            .map(taskResource ->
+                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    accessControlResponse.getRoleAssignments())
+            )
+            .collect(Collectors.toList());
 
         return new GetTasksResponse<>(tasks, pages.getTotalElements());
     }
@@ -113,14 +113,9 @@ public class CftQueryService {
 
         final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
 
-        if (taskResources.isEmpty()) {
-            return new GetTasksCompletableResponse<>(false, emptyList());
-        }
-
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
-        final List<Task> tasks = taskResources.stream().map(cftTaskMapper::mapToTask
-        ).collect(Collectors.toList());
+        final List<Task> tasks = getTasks(accessControlResponse, taskResources);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
@@ -140,6 +135,20 @@ public class CftQueryService {
 
         return taskResourceRepository.findOne(taskResourceSpecification);
 
+    }
+
+    private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
+        if (taskResources.isEmpty()) {
+            return emptyList();
+        }
+
+        return taskResources.stream()
+            .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                    taskResource,
+                    accessControlResponse.getRoleAssignments()
+                )
+            )
+            .collect(Collectors.toList());
     }
 
     private List<String> extractTaskTypes(List<Map<String, CamundaVariable>> evaluateDmnResult) {

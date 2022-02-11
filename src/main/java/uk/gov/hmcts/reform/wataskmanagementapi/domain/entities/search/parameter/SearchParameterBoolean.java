@@ -34,14 +34,14 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     )
     private final SearchOperator operator;
 
-    @ApiModelProperty(required = true, example = "true", allowEmptyValue = false)
+    @ApiModelProperty(required = true, example = "true")
     @NotNull(
         message = "Each search_parameter element must have 'key', 'value' and 'operator' fields present and populated."
     )
-    private final Boolean values;
+    private final boolean values;
 
     @JsonCreator
-    public SearchParameterBoolean(SearchParameterKey key, SearchOperator operator, Boolean values) {
+    public SearchParameterBoolean(SearchParameterKey key, SearchOperator operator, boolean values) {
         this.key = key;
         this.operator = operator;
         this.values = values;

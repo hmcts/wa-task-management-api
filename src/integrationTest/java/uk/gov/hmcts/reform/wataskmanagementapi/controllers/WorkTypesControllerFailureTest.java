@@ -52,7 +52,7 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
-    private AccessControlService  accessControlService;
+    private AccessControlService accessControlService;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
@@ -100,7 +100,7 @@ class WorkTypesControllerFailureTest extends SpringBootIntegrationBaseTest {
         // Role attribute is IA
         Map<String, String> roleAttributes = new HashMap<>();
         roleAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-        roleAttributes.put(RoleAttributeDefinition.WORK_TYPE.value(), "hearing_work,upper_tribunal");
+        roleAttributes.put(RoleAttributeDefinition.WORK_TYPES.value(), "hearing_work,upper_tribunal");
 
         List<RoleAssignment> allTestRoles = new ArrayList<>();
         roleNames.forEach(roleName -> asList(RoleType.ORGANISATION, RoleType.CASE)

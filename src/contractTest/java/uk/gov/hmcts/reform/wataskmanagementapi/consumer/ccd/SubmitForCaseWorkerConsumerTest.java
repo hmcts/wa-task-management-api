@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.ccd;
 
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import org.apache.http.HttpStatus;
@@ -56,8 +57,8 @@ public class SubmitForCaseWorkerConsumerTest extends CcdConsumerTestBase {
     }
 
     @Test
-    @PactTestFor(pactMethod = "submitCaseWorkerDetails")
-    public void submitForCaseWorker() throws Exception {
+    @PactTestFor(pactMethod = "submitCaseWorkerDetails", pactVersion = PactSpecVersion.V3)
+    public void submitForCaseWorker() {
 
         caseDataContent = createCaseDataContent(SUBMIT_APPEAL, caseDetailsMap);
         CaseDetails caseDetailsResponse = coreCaseDataApi.submitForCaseworker(
