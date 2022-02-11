@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
+import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
-import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
@@ -146,7 +146,7 @@ public class ConfigureTaskService {
         if (result.getProcessVariables() != null && configurationResults.getProcessVariables() != null) {
             configurationResults.getProcessVariables().putAll(result.getProcessVariables());
         }
-        
+
         if (result.getConfigurationDmnResponse() != null) {
             configurationResults.setConfigurationDmnResponse(result.getConfigurationDmnResponse());
         }
