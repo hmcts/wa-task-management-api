@@ -165,7 +165,10 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         common.setupOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
-            taskVariables.getCaseId(), "requestRespondentEvidence", "IA", "Asylum");
+            taskVariables.getCaseId(),
+            "requestRespondentEvidence",
+            "IA",
+            "Asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -716,15 +719,12 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             new TaskAttribute(TASK_AUTO_ASSIGNED, false)
         ));
 
-        Response result = restApiActions.post(
+        restApiActions.post(
             TASK_INITIATION_END_POINT,
             taskId,
             req,
             caseworkerCredentials.getHeaders()
         );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
     }
 
     private static Stream<CompletableTaskScenario> tasksToCompleteScenarios() {
