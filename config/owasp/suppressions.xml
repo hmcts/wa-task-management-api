@@ -30,8 +30,8 @@
   </suppress>
   <suppress until="2022-03-01">
     <notes><![CDATA[
-     Suppressing as our spring boot version needs to be updated
+     Suppressing as our spring security version needs to be updated
    ]]></notes>
-    <cve>CVE-2018-22112</cve>
+    <cve>CVE-2021-22112</cve>
   </suppress>
 </suppressions>
