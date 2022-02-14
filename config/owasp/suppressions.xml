@@ -16,10 +16,4 @@
     <cpe>cpe:/a:nim-lang:nim-lang</cpe>
     <cve>CVE-2020-23171</cve>
   </suppress>
-  <suppress until="2022-03-01">
-    <notes><![CDATA[
-     Suppressing as our spring boot version needs to be updated
-   ]]></notes>
-    <cve>CVE-2021-22060</cve>
-  </suppress>
 </suppressions>
