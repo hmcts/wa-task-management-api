@@ -82,15 +82,12 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_handle_feign_service_unavailable_exception() {
         Request request = Request.create(Request.HttpMethod.GET, "url",
-                                         new HashMap<>(), null, new RequestTemplate()
-        );
+            new HashMap<>(), null, new RequestTemplate());
 
         FeignException exception = new FeignException.ServiceUnavailable(
             "Service unavailable",
             request,
-            null,
-            null
-        );
+            null);
 
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleFeignServiceUnavailableException(exception);
