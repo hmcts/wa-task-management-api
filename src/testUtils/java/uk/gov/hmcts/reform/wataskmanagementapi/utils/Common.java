@@ -707,9 +707,16 @@ public class Common {
             req,
             authenticationHeaders
         );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+        /*
+        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
+        where another task has been created in the database with the same id
+         */
+        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
+            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
+            result.then().assertThat()
+                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .body("type", equalTo(errorType));
+        }
     }
 
     private String toJsonString(Map<String, String> attributes) {
