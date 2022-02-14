@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
@@ -43,10 +44,12 @@ import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -92,6 +95,8 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
     private UserInfo mockedUserInfo;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+    @MockBean
+    private CftQueryService cftQueryService;
 
     private ServiceMocks mockServices;
     private String taskId;
@@ -154,9 +159,12 @@ class PostTaskCompleteByIdControllerTest extends SpringBootIntegrationBaseTest {
 
             CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
             when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
+            TaskResource task = spy(TaskResource.class);
+            when(cftQueryService.getTask(anyString(),any(),any())).thenReturn(Optional.of(task));
+            when(task.getAssignee()).thenReturn("SomeId");
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
+                FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
                 IDAM_USER_ID,
                 IDAM_USER_EMAIL
             )).thenReturn(true);

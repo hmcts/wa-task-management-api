@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.idam;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
@@ -16,7 +15,6 @@ public class IdamTokenGenerator {
     private final UserIdamTokenGeneratorInfo systemUserIdamInfo;
     private final IdamWebApi idamWebApi;
 
-    @Autowired
     public IdamTokenGenerator(UserIdamTokenGeneratorInfo systemUserIdamInfo,
                               IdamWebApi idamWebApi) {
         this.systemUserIdamInfo = systemUserIdamInfo;

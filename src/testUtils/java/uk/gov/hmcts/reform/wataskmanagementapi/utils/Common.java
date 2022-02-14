@@ -57,9 +57,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Slf4j
 public class Common {
 
+    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
@@ -141,8 +141,8 @@ public class Common {
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "IA",
-                                                                                         "Asylum"
+            "IA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -163,8 +163,8 @@ public class Common {
     ) {
         final String caseId = UUID.randomUUID().toString();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "IA",
-                                                                                         "Asylum"
+            "IA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -458,7 +458,7 @@ public class Common {
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA",
-            "workTypes","hearing_work,upper_tribunal,routine_work"
+            "workTypes", "hearing_work,upper_tribunal,routine_work"
         );
 
         //Clean/Reset user
@@ -655,6 +655,36 @@ public class Common {
             new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_WARNINGS, warnings),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        restApiActions.post(
+            TASK_INITIATION_ENDPOINT_BEING_TESTED,
+            testVariables.getTaskId(),
+            req,
+            authenticationHeaders
+        );
+
+    }
+
+    public void insertTaskInCftTaskDbWithoutWarnings(TestVariables testVariables, String taskType,
+                                                     Headers authenticationHeaders) {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
             new TaskAttribute(TASK_AUTO_ASSIGNED, true),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)

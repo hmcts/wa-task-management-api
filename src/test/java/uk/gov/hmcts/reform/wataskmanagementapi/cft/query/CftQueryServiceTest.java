@@ -59,6 +59,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -445,7 +446,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void shouldHandleInvalidPagination() {
+        void should_raise_exception_when_invalid_offset() {
             SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
                 new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
                 new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
@@ -462,16 +463,44 @@ public class CftQueryServiceTest extends CamundaHelpers {
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
 
-            GetTasksResponse<Task> taskResourceList
-                = cftQueryService.searchForTasks(
-                -1, -1, searchTaskRequest, accessControlResponse, permissionsRequired
+            assertThatThrownBy(() -> cftQueryService.searchForTasks(
+                -1,
+                25,
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Offset index must not be less than zero");
+        }
+
+        @Test
+        void should_raise_exception_when_invalid_limit() {
+            SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+            ),
+                List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
+
+            AccessControlResponse accessControlResponse = new AccessControlResponse(
+                null,
+                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
             );
+            List<PermissionTypes> permissionsRequired = new ArrayList<>();
+            permissionsRequired.add(PermissionTypes.READ);
 
-            assertNotNull(taskResourceList);
-            assertTrue(taskResourceList.getTasks().isEmpty());
-
-            verify(taskResourceRepository, times(0))
-                .findAll(any(), any(Pageable.class));
+            assertThatThrownBy(() -> cftQueryService.searchForTasks(
+                0,
+                0,
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Limit must not be less than one");
         }
 
     }

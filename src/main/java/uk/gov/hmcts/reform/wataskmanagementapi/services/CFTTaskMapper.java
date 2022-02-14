@@ -196,6 +196,7 @@ public class CFTTaskMapper {
                 taskResource.getTaskRoleResources(),
                 roleAssignments
             );
+
         return mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
     }
 
@@ -225,7 +226,6 @@ public class CFTTaskMapper {
 
     public Set<PermissionTypes> extractUnionOfPermissionsForUser(Set<TaskRoleResource> taskRoleResources,
                                                                  List<RoleAssignment> roleAssignments) {
-
         List<String> userRoleNames = roleAssignments.stream()
             .map(RoleAssignment::getRoleName)
             .collect(Collectors.toList());

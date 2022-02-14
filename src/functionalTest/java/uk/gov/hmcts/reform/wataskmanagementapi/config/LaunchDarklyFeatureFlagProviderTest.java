@@ -10,7 +10,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.NON_EXISTENT_KEY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.PRIVILEGED_ACCESS_FEATURE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_CANCELLATION_COMPLETION_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.TEST_KEY;
 
@@ -39,16 +38,6 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     public void should_hit_launch_darkly_for_privileged_access_feature_and_return_either_true_or_false() {
         boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
             PRIVILEGED_ACCESS_FEATURE, SOME_USER_ID,  SOME_USER_EMAIL);
-        assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
-    }
-
-    @Test
-    public void should_return_either_true_or_false_for_release_2_cancellation_completion_feature() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
-            RELEASE_2_CANCELLATION_COMPLETION_FEATURE,
-            SOME_USER_ID,
-            SOME_USER_EMAIL
-        );
         assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
     }
 

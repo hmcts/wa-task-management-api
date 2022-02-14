@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
@@ -55,35 +54,29 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        boolean isFeatureEnabled = launchDarklyClient.getKey(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE.getKey(),
-            caseworkerCredentials.getHeaders().getValue(AUTHORIZATION));
+        String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        if (isFeatureEnabled) {
-            String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-            common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            nonExistentTaskId,
+            new AssignTaskRequest(assigneeId),
+            caseworkerCredentials.getHeaders()
+        );
 
-            Response result = restApiActions.post(
-                ENDPOINT_BEING_TESTED,
-                nonExistentTaskId,
-                new AssignTaskRequest(assigneeId),
-                caseworkerCredentials.getHeaders()
-            );
-
-            result.then().assertThat()
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .and()
-                .contentType(APPLICATION_JSON_VALUE)
-                .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                    .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-                .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
-                .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
-                .body("message", equalTo(String.format(
-                    LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
-                    nonExistentTaskId
-                )));
-        }
+        result.then().assertThat()
+            .statusCode(HttpStatus.NOT_FOUND.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+            .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
+            .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
+            .body("message", equalTo(String.format(
+                LOG_MSG_THERE_WAS_A_PROBLEM_FETCHING_THE_VARIABLES_FOR_TASK,
+                nonExistentTaskId
+            )));
     }
 
     @Test

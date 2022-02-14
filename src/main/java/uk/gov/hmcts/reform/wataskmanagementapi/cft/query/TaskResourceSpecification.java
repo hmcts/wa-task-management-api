@@ -63,10 +63,9 @@ public final class TaskResourceSpecification {
         List<PermissionTypes> permissionsRequired
     ) {
 
-        boolean andPermissions = isAvailableTasksOnly(searchTaskRequest);
         final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
 
-        if (andPermissions) {
+        if (availableTasksOnly) {
             permissionsRequired.add(PermissionTypes.OWN);
         }
 
@@ -76,8 +75,8 @@ public final class TaskResourceSpecification {
         final Specification<TaskResource> constrainsSpec =
             buildApplicationConstraints(searchTaskRequest, availableTasksOnly);
 
-        final Specification<TaskResource> roleAssignmentSpec = buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, andPermissions);
+        final Specification<TaskResource> roleAssignmentSpec =
+            buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, availableTasksOnly);
 
         return constrainsSpec.and(roleAssignmentSpec);
 
@@ -117,7 +116,6 @@ public final class TaskResourceSpecification {
 
         List<CFTTaskState> cftTaskStates = new ArrayList<>();
         if (availableTasksOnly) {
-            cftTaskStates.add(CFTTaskState.ASSIGNED);
             cftTaskStates.add(CFTTaskState.UNASSIGNED);
         } else {
             SearchParameterList stateParam = keyMap.get(STATE);

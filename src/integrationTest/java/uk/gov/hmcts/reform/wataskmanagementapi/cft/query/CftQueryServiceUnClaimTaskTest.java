@@ -41,7 +41,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @Sql("/scripts/unclaim_task_data.sql")
 public class CftQueryServiceUnClaimTaskTest {
 
-    private List<PermissionTypes> permissionsRequired = new ArrayList<>();
+    private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
     @MockBean
     private CamundaService camundaService;
@@ -54,10 +54,6 @@ public class CftQueryServiceUnClaimTaskTest {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
-    }
-
-    private static Stream<GrantType> getGrantTypes() {
-        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -115,7 +111,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -144,7 +140,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -171,7 +167,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -179,7 +175,6 @@ public class CftQueryServiceUnClaimTaskTest {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.MANAGE);
-
 
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
@@ -200,7 +195,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -226,7 +221,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("DIVORCE","373"))
+            .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -253,7 +248,7 @@ public class CftQueryServiceUnClaimTaskTest {
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
-            .authorisations(List.of("PROBATE","SCSS"))
+            .authorisations(List.of("PROBATE", "SCSS"))
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -292,6 +287,10 @@ public class CftQueryServiceUnClaimTaskTest {
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
+    }
+
+    private static Stream<GrantType> getGrantTypes() {
+        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
 }
