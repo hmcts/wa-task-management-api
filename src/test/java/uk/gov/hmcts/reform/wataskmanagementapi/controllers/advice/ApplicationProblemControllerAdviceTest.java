@@ -37,11 +37,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimExceptio
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 
-import javax.validation.ConstraintViolationException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
+import javax.validation.ConstraintViolationException;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
