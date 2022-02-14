@@ -37,11 +37,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimExceptio
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 
+import javax.validation.ConstraintViolationException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
-import javax.validation.ConstraintViolationException;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -82,12 +82,15 @@ class ApplicationProblemControllerAdviceTest {
     @Test
     void should_handle_feign_service_unavailable_exception() {
         Request request = Request.create(Request.HttpMethod.GET, "url",
-            new HashMap<>(), null, new RequestTemplate());
+                                         new HashMap<>(), null, new RequestTemplate()
+        );
 
         FeignException exception = new FeignException.ServiceUnavailable(
             "Service unavailable",
             request,
-            null);
+            null,
+            null
+        );
 
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice
             .handleFeignServiceUnavailableException(exception);
