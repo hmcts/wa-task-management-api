@@ -722,12 +722,11 @@ public class Common {
                                     String resourceFilename,
                                     String grantType,
                                     String roleCategory) {
-
-            roleAssignmentServiceApi.createRoleAssignment(
-                getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
-                bearerUserToken,
-                s2sToken
-            );
+        roleAssignmentServiceApi.createRoleAssignment(
+            getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
+            bearerUserToken,
+            s2sToken
+        );
     }
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
