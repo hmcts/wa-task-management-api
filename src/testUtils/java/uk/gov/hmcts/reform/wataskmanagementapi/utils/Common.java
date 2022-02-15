@@ -723,15 +723,11 @@ public class Common {
                                     String grantType,
                                     String roleCategory) {
 
-        try {
             roleAssignmentServiceApi.createRoleAssignment(
                 getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
                 bearerUserToken,
                 s2sToken
             );
-        } catch (FeignException ex) {
-            ex.printStackTrace();
-        }
     }
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
