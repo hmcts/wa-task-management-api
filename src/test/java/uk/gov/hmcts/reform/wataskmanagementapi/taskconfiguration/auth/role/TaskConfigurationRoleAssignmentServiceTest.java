@@ -116,7 +116,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
         assertThat(actualQueryRequest.getRoleType()).contains(RoleType.CASE);
         assertThat(actualQueryRequest.getRoleName()).contains("tribunal-caseworker");
         assertThat(actualQueryRequest.getValidAt()).isBefore(LocalDateTime.now());
-        assertThat(actualQueryRequest.getHasAttributes()).contains("caseId");
+        assertThat(actualQueryRequest.getHasAttributes()).isNull();
         assertThat(actualQueryRequest.getAttributes()).isNotNull();
         assertThat(actualQueryRequest.getAttributes().get("caseId")).contains(caseId);
     }
@@ -148,7 +148,7 @@ class TaskConfigurationRoleAssignmentServiceTest {
         classifications = Arrays.stream(classificationInput.split(" "))
             .map(Classification::valueOf)
             .collect(Collectors.toList());
-        
+
         SecurityClassification securityClassification = SecurityClassification.valueOf(securityClassificationInput);
         TaskResource taskResource = createTestTaskWithRoleResources(
             securityClassification,
