@@ -58,6 +58,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 public class Common {
 
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private final GivensBuilder given;
@@ -784,7 +785,10 @@ public class Common {
                            final String attributes,
                            final String grantType,
                            String roleCategory) {
+
         String assignmentRequestBody = null;
+        ZonedDateTime endDate = ZonedDateTime.now().plusHours(2);
+
         try {
             assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile(
                 "classpath:" + resourceFilename), "UTF-8"
@@ -794,6 +798,11 @@ public class Common {
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);
             assignmentRequestBody = assignmentRequestBody.replace("{GRANT_TYPE}", grantType);
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_CATEGORY}", roleCategory);
+            assignmentRequestBody = assignmentRequestBody.replace(
+                "{END_TIME_PLACEHOLDER}",
+                endDate.format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+            );
+
             if (attributes != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
             }
@@ -802,7 +811,6 @@ public class Common {
 
             }
 
-            return assignmentRequestBody;
         } catch (IOException e) {
             e.printStackTrace();
         }
