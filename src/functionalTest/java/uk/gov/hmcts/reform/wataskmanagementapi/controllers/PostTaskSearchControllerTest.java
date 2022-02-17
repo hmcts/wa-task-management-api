@@ -374,7 +374,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
     public void should_return_a_200_with_search_results_based_on_state_assigned() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupRestrictedRoleAssignment(taskId, caseworkerCredentials.getHeaders());
+        common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         initiateTask(taskVariables);
 
         Response claimResult = restApiActions.post(
