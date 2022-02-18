@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
@@ -58,6 +59,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 public class Common {
 
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
     private final GivensBuilder given;
@@ -660,12 +662,22 @@ public class Common {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        restApiActions.post(
+        Response result = restApiActions.post(
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             testVariables.getTaskId(),
             req,
             authenticationHeaders
         );
+        /*
+        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
+        where another task has been created in the database with the same id
+         */
+        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
+            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
+            result.then().assertThat()
+                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .body("type", equalTo(errorType));
+        }
 
     }
 
@@ -696,9 +708,16 @@ public class Common {
             req,
             authenticationHeaders
         );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+        /*
+        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
+        where another task has been created in the database with the same id
+         */
+        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
+            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
+            result.then().assertThat()
+                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .body("type", equalTo(errorType));
+        }
     }
 
     private String toJsonString(Map<String, String> attributes) {
@@ -722,16 +741,11 @@ public class Common {
                                     String resourceFilename,
                                     String grantType,
                                     String roleCategory) {
-
-        try {
-            roleAssignmentServiceApi.createRoleAssignment(
-                getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
-                bearerUserToken,
-                s2sToken
-            );
-        } catch (FeignException ex) {
-            ex.printStackTrace();
-        }
+        roleAssignmentServiceApi.createRoleAssignment(
+            getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
+            bearerUserToken,
+            s2sToken
+        );
     }
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
@@ -789,7 +803,10 @@ public class Common {
                            final String attributes,
                            final String grantType,
                            String roleCategory) {
+
         String assignmentRequestBody = null;
+        ZonedDateTime endDate = ZonedDateTime.now().plusHours(2);
+
         try {
             assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile(
                 "classpath:" + resourceFilename), "UTF-8"
@@ -799,6 +816,11 @@ public class Common {
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);
             assignmentRequestBody = assignmentRequestBody.replace("{GRANT_TYPE}", grantType);
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_CATEGORY}", roleCategory);
+            assignmentRequestBody = assignmentRequestBody.replace(
+                "{END_TIME_PLACEHOLDER}",
+                endDate.format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+            );
+
             if (attributes != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
             }
@@ -807,7 +829,6 @@ public class Common {
 
             }
 
-            return assignmentRequestBody;
         } catch (IOException e) {
             e.printStackTrace();
         }

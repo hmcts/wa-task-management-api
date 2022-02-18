@@ -117,7 +117,6 @@ public class TaskConfigurationRoleAssignmentService {
             .classification(securityClassifications)
             .grantType(singletonList(GrantType.SPECIFIC))
             .validAt(LocalDateTime.now())
-            .hasAttributes(singletonList("caseId"))
             .attributes(Map.of("caseId", List.of(caseId)))
             .build();
 
@@ -142,7 +141,6 @@ public class TaskConfigurationRoleAssignmentService {
             .roleType(singletonList(RoleType.CASE))
             .roleName(singletonList("tribunal-caseworker"))
             .validAt(LocalDateTime.now())
-            .hasAttributes(singletonList("caseId"))
             .attributes(Map.of("caseId", List.of(caseId)))
             .build();
 
