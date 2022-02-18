@@ -12,7 +12,8 @@
       "attributes": {
         "jurisdiction": "IA",
         "primaryLocation": "765324"
-      }
+      },
+      "endTime": "{END_TIME_PLACEHOLDER}"
     },
     {
       "actorId": "{ACTOR_ID_PLACEHOLDER}",
@@ -25,7 +26,8 @@
       "roleType": "CASE",
       "attributes": {
         "caseId": "{CASE_ID_PLACEHOLDER}"
-      }
+      },
+      "endTime": "{END_TIME_PLACEHOLDER}"
     }
   ],
   "roleRequest": {
