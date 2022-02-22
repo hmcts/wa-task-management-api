@@ -31,7 +31,7 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     public void should_hit_launch_darkly_with_non_existent_key_and_return_default_value_for_boolean() {
         boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(
             NON_EXISTENT_KEY, SOME_USER_ID,  SOME_USER_EMAIL);
-        assertThat(launchDarklyFeature, is(false));
+        assertThat(launchDarklyFeature, is(true));
     }
 
     @Test
