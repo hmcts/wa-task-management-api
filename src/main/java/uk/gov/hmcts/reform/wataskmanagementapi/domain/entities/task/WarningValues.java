@@ -4,8 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -17,8 +16,8 @@ import java.util.List;
 import static java.util.Objects.requireNonNull;
 
 @Slf4j
-@ApiModel(
-    value = "Warning",
+@Schema(
+    name = "Warning",
     description = "Warning object containing the list of warnings (warningCode,warningText)"
 )
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,8 +25,8 @@ import static java.util.Objects.requireNonNull;
 @ToString
 @NoArgsConstructor
 public class WarningValues {
-    @ApiModelProperty(required = true,
-        notes = "A list of warnings")
+    @Schema(required = true,
+        description = "A list of warnings")
     private List<Warning> values =  new ArrayList<>();
 
     public WarningValues(List<Warning> values) {
