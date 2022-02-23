@@ -248,6 +248,11 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
+                        )
                         .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
