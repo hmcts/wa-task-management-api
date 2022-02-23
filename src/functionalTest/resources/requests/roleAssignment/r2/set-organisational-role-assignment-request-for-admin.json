@@ -12,7 +12,8 @@
       "attributes": {
         "jurisdiction": "IA",
         "primaryLocation": "765324"
-      }
+      },
+      "endTime": "{END_TIME_PLACEHOLDER}"
     },
     {
       "actorId": "{ACTOR_ID_PLACEHOLDER}",
@@ -23,8 +24,8 @@
       "roleCategory": "{ROLE_CATEGORY}",
       "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "ORGANISATION",
-      "beginTime": "2020-01-01T00:00Z",
-      "endTime": "2030-01-01T00:00Z",
+      "beginTime": "2020-01-01T00:00:00Z",
+      "endTime": "{END_TIME_PLACEHOLDER}",
       "attributes": "{ATTRIBUTES_PLACEHOLDER}"
     }
   ],

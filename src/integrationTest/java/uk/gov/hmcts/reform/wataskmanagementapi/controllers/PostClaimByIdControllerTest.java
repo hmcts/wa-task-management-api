@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluat
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
@@ -50,6 +51,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
     private PermissionEvaluatorService permissionEvaluatorService;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private ServiceMocks mockServices;
     private String taskId;
@@ -72,6 +75,8 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
     void should_return_500_with_application_problem_response_when_task_update_call_fails() throws Exception {
 
         mockServices.mockServiceAPIs();
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(false);
 
         when(permissionEvaluatorService.hasAccess(any(), any(), any()))
             .thenReturn(true);

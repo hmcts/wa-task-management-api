@@ -39,8 +39,8 @@ class LaunchDarklyFeatureFlagProviderTest {
 
     @ParameterizedTest
     @CsvSource({
-        "false, true, true",
-        "false, false, false"
+        "true, true, true",
+        "true, false, false"
     })
     void getBooleanValue_return_expectedFlagValue(
         boolean defaultValue,
