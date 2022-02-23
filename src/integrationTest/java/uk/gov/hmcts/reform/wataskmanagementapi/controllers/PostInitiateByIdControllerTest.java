@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.clients.CcdDataServiceApi;
@@ -96,6 +97,8 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
     private CaseDetails caseDetails;
     private String taskId;
@@ -125,6 +128,7 @@ class PostInitiateByIdControllerTest extends SpringBootIntegrationBaseTest {
 
         when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
             .thenReturn(false);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(false);
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         ZonedDateTime dueDate = createdDate.plusDays(1);
