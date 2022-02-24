@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -640,6 +641,26 @@ class CFTTaskMapperTest {
                     + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
+    }
+
+    @Test
+    void should_throw_exception_when_additional_properties_is_not_valid() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(ADDITIONAL_PROPERTIES.value(), "invalid_prop");
+
+        assertThatThrownBy(() -> cftTaskMapper
+            .mapConfigurationAttributes(skeletonTask, new TaskConfigurationResults(mappedValues)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Additional Properties mapping issue.")
+            .hasCauseInstanceOf(JsonParseException.class);
     }
 
     @Test
