@@ -26,6 +26,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @Component
 public class CaseConfigurationProviderService {
 
+    public static final String ADDITIONAL_PROPERTIES_PREFIX = "additionalProperties_";
+    public static final String ADDITIONAL_PROPERTIES_KEY = "additionalProperties";
     private final CcdDataService ccdDataService;
     private final DmnEvaluationService dmnEvaluationService;
     private final ObjectMapper objectMapper;
@@ -103,16 +105,16 @@ public class CaseConfigurationProviderService {
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults) {
 
         Map<String, Object> additionalProperties = taskConfigurationDmnResults.stream()
-            .filter(r -> r.getName().getValue().contains("additionalProperties_"))
+            .filter(r -> r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX))
             .map(this::removeAdditionalFromCamundaName)
             .collect(toMap(r -> r.getName().getValue(), r -> r.getValue().getValue()));
 
         List<ConfigurationDmnEvaluationResponse> configResponses = taskConfigurationDmnResults.stream()
-            .filter(r -> !r.getName().getValue().contains("additionalProperties_")).collect(Collectors.toList());
+            .filter(r -> !r.getName().getValue().contains(ADDITIONAL_PROPERTIES_PREFIX)).collect(Collectors.toList());
 
         if (!additionalProperties.isEmpty()) {
             configResponses.add(new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("additionalProperties"),
+                CamundaValue.stringValue(ADDITIONAL_PROPERTIES_KEY),
                 CamundaValue.stringValue(writeValueAsString(additionalProperties))
             ));
         }
@@ -121,7 +123,7 @@ public class CaseConfigurationProviderService {
 
     private ConfigurationDmnEvaluationResponse removeAdditionalFromCamundaName(
         ConfigurationDmnEvaluationResponse resp) {
-        String additionalPropKey = resp.getName().getValue().replace("additionalProperties_", "");
+        String additionalPropKey = resp.getName().getValue().replace(ADDITIONAL_PROPERTIES_PREFIX, "");
         return new ConfigurationDmnEvaluationResponse(CamundaValue.stringValue(additionalPropKey), resp.getValue());
     }
 

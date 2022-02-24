@@ -432,7 +432,7 @@ public class CFTTaskMapper {
                     taskResource.setDescription((String) value);
                     break;
                 case ADDITIONAL_PROPERTIES:
-                    Map<String, String> additionalProperties = mapAdditionalProperties(value);
+                    Map<String, String> additionalProperties = extractAdditionalProperties(value);
                     taskResource.setAdditionalProperties(additionalProperties);
                     break;
                 default:
@@ -441,12 +441,12 @@ public class CFTTaskMapper {
         }
     }
 
-    private Map<String, String> mapAdditionalProperties(Object value) {
+    private Map<String, String> extractAdditionalProperties(Object value) {
         if (value != null) {
             try {
                 return objectMapper.readValue((String) value, new TypeReference<>() {});
             } catch (JsonProcessingException e) {
-                return null;
+                throw new IllegalArgumentException("Additional Properties mapping issue.", e);
             }
         }
         return null;
