@@ -25,7 +25,7 @@ public class LaunchDarklyFeatureFlagProvider {
         boolean result =  ldClient.boolVariation(
             featureFlag.getKey(),
             createLaunchDarklyUser(userId, email),
-            false);
+            true);
         log.info("Feature flag '{}' has evaluated to '{}'", featureFlag.getKey(), result);
         return result;
     }
