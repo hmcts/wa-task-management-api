@@ -664,6 +664,27 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_return_null_when_additional_properties_is_null() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(ADDITIONAL_PROPERTIES.value(), null);
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues)
+        );
+
+        assertNull(taskResource.getAdditionalProperties());
+    }
+
+    @Test
     void should_map_configuration_attributes_when_work_type_is_null() {
         TaskResource skeletonTask = new TaskResource(
             taskId,
