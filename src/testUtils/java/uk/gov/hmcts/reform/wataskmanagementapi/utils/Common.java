@@ -838,7 +838,7 @@ public class Common {
         );
     }
 
-    private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
+    public void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
 
