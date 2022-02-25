@@ -423,13 +423,13 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_200_with_task_auto_assigned_with_description_property() {
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("reviewTheAppeal");
-        String taskId = taskVariables.getTaskId();
+    public void should_return_a_200_with_task_description_property() {
+        TestVariables taskVariables1 = common.setupTaskAndRetrieveIds("reviewTheAppeal");
+        String taskId = taskVariables1.getTaskId();
 
-        common.setupRoleAssignmentForAutoAssign(caseworkerCredentials.getHeaders(), taskVariables.getCaseId());
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
 
-        initiateTaskWithWarnings(taskVariables, "reviewTheAppeal");
+        initiateTaskWithWarnings(taskVariables1, "reviewTheAppeal");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -443,7 +443,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.id", notNullValue())
             .body("task.name", notNullValue())
             .body("task.type", notNullValue())
-            .body("task.task_state", equalTo("assigned"))
+            .body("task.task_state", notNullValue())
             .body("task.task_system", notNullValue())
             .body("task.security_classification", notNullValue())
             .body("task.task_title", notNullValue())
@@ -459,7 +459,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_type_id", notNullValue())
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
-            .body("task.auto_assigned", equalTo(true))
+            .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
             .body("task.description", notNullValue());
 
