@@ -167,15 +167,18 @@ public class TaskSearchController extends BaseController {
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
+        log.info("RWA-1172 searchEventAndCase: {}", searchEventAndCase);
 
         AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        log.info("RWA-1172 accessControlResponse: {}", accessControlResponse);
 
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-
+        log.info("RWA-1172 isFeatureEnabled: {}", isFeatureEnabled);
+        
         GetTasksCompletableResponse<Task> response;
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);

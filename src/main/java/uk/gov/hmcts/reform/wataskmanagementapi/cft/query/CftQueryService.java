@@ -100,11 +100,16 @@ public class CftQueryService {
         //1. Evaluate Dmn
         final List<Map<String, CamundaVariable>> evaluateDmnResult = camundaService.evaluateTaskCompletionDmn(
             searchEventAndCase);
+        log.info("RWA-1172 evaluateDmnResult: {}", evaluateDmnResult);
 
         // Collect task types
         List<String> taskTypes = extractTaskTypes(evaluateDmnResult);
+        log.info("RWA-1172 evaluateDmnResult.size: {}", evaluateDmnResult.size());
+        log.info("RWA-1172 taskTypes.size: {}", taskTypes.size());
+        log.info("RWA-1172 taskTypes: {}", taskTypes);
 
         if (taskTypes.isEmpty()) {
+            log.info("RWA-1172 taskTypes is empty");
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -112,10 +117,13 @@ public class CftQueryService {
             .buildQueryForCompletable(searchEventAndCase, accessControlResponse, permissionsRequired, taskTypes);
 
         final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
+        log.info("RWA-1172 taskTypes after query: {}", taskTypes);
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
+        log.info("RWA-1172 taskRequiredForEvent: {}", taskRequiredForEvent);
 
         final List<Task> tasks = getTasks(accessControlResponse, taskResources);
+        log.info("RWA-1172 tasks: {}", tasks);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
