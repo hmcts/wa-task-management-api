@@ -74,10 +74,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void cleanUp() {
-        Headers headers = caseworkerCredentials.getHeaders();
-        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-        common.clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
-
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
