@@ -423,7 +423,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_return_a_200_with_task_description_property() {
+    public void should_return_a_200_with_task_auto_assigned_with_description_property() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("reviewTheAppeal");
         String taskId = taskVariables.getTaskId();
 
@@ -443,7 +443,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.id", notNullValue())
             .body("task.name", notNullValue())
             .body("task.type", notNullValue())
-            .body("task.task_state", notNullValue())
+            .body("task.task_state", equalTo("assigned"))
             .body("task.task_system", notNullValue())
             .body("task.security_classification", notNullValue())
             .body("task.task_title", notNullValue())
