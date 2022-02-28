@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
@@ -11,6 +12,8 @@ import java.util.Objects;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
+//todo remove
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
     "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})

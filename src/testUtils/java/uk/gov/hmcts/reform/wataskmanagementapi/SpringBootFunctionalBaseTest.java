@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.LaunchDarklyClient;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Assertions;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
@@ -74,8 +73,6 @@ public abstract class SpringBootFunctionalBaseTest {
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Autowired
     protected CFTTaskDatabaseService cftTaskDatabaseService;
-    @Autowired
-    protected LaunchDarklyClient launchDarklyClient;
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")

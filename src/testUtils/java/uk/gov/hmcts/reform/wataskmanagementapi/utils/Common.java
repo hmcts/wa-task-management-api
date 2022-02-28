@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.fail;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType.CASE;
@@ -57,9 +58,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 @Slf4j
 public class Common {
 
+    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_COMPLETE_TASK = "task/{task-id}/complete";
-    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     private final GivensBuilder given;
     private final RestApiActions restApiActions;
     private final RestApiActions camundaApiActions;
@@ -141,8 +143,8 @@ public class Common {
     public TestVariables setupTaskAndRetrieveIdsWithCustomVariable(CamundaVariableDefinition key, String value) {
         String caseId = given.iCreateACcdCase();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "IA",
-                                                                                         "Asylum"
+            "IA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -163,8 +165,8 @@ public class Common {
     ) {
         final String caseId = UUID.randomUUID().toString();
         Map<String, CamundaValue<?>> processVariables = given.createDefaultTaskVariables(caseId,
-                                                                                         "IA",
-                                                                                         "Asylum"
+            "IA",
+            "Asylum"
         );
         processVariables.put(key.value(), new CamundaValue<>(value, "String"));
 
@@ -488,7 +490,7 @@ public class Common {
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
             "jurisdiction", "IA",
-            "workTypes","hearing_work,upper_tribunal,routine_work"
+            "workTypes", "hearing_work,upper_tribunal,routine_work"
         );
 
         //Clean/Reset user
@@ -736,9 +738,56 @@ public class Common {
             req,
             authenticationHeaders
         );
+        /*
+        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
+        where another task has been created in the database with the same id
+         */
+        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
+            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
+            result.then().assertThat()
+                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .body("type", equalTo(errorType));
+        }
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
+    }
+
+    public void insertTaskInCftTaskDbWithoutWarnings(TestVariables testVariables, String taskType,
+                                                     Headers authenticationHeaders) {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, "aTaskName"),
+            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "A test task"),
+            new TaskAttribute(TASK_CASE_CATEGORY, "Protection"),
+            new TaskAttribute(TASK_ROLE_CATEGORY, "LEGAL_OPERATIONS"),
+            new TaskAttribute(TASK_HAS_WARNINGS, true),
+            new TaskAttribute(TASK_AUTO_ASSIGNED, true),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        Response result = restApiActions.post(
+            TASK_INITIATION_ENDPOINT_BEING_TESTED,
+            testVariables.getTaskId(),
+            req,
+            authenticationHeaders
+        );
+        /*
+        This workaround adjusts for a race condition which usually occurs between xx:00 and xx:15 every hour
+        where another task has been created in the database with the same id
+         */
+        if (result.getStatusCode() != HttpStatus.CREATED.value()) {
+            final String errorType = "https://github.com/hmcts/wa-task-management-api/problem/database-conflict";
+            result.then().assertThat()
+                .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .body("type", equalTo(errorType));
+        }
     }
 
     private String toJsonString(Map<String, String> attributes) {
@@ -762,16 +811,11 @@ public class Common {
                                     String resourceFilename,
                                     String grantType,
                                     String roleCategory) {
-
-        try {
-            roleAssignmentServiceApi.createRoleAssignment(
-                getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
-                bearerUserToken,
-                s2sToken
-            );
-        } catch (FeignException ex) {
-            ex.printStackTrace();
-        }
+        roleAssignmentServiceApi.createRoleAssignment(
+            getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
+            bearerUserToken,
+            s2sToken
+        );
     }
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
@@ -829,7 +873,10 @@ public class Common {
                            final String attributes,
                            final String grantType,
                            String roleCategory) {
+
         String assignmentRequestBody = null;
+        ZonedDateTime endDate = ZonedDateTime.now().plusHours(2);
+
         try {
             assignmentRequestBody = FileUtils.readFileToString(ResourceUtils.getFile(
                 "classpath:" + resourceFilename), "UTF-8"
@@ -839,6 +886,11 @@ public class Common {
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);
             assignmentRequestBody = assignmentRequestBody.replace("{GRANT_TYPE}", grantType);
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_CATEGORY}", roleCategory);
+            assignmentRequestBody = assignmentRequestBody.replace(
+                "{END_TIME_PLACEHOLDER}",
+                endDate.format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+            );
+
             if (attributes != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
             }
@@ -847,7 +899,6 @@ public class Common {
 
             }
 
-            return assignmentRequestBody;
         } catch (IOException e) {
             e.printStackTrace();
         }

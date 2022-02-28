@@ -108,7 +108,6 @@ public class RoleAssignmentQueryConsumerTest extends SpringBootContractBaseTest 
             .roleType(singletonList(RoleType.CASE))
             .roleName(singletonList("tribunal-caseworker"))
             .validAt(validAtDate)
-            .hasAttributes(singletonList("caseId"))
             .attributes(Map.of("caseId", List.of(caseId)))
             .build();
 

@@ -112,7 +112,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         mockServices.mockServiceAPIs();
 
         FeignException mockFeignException = mock(FeignException.class);
-
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any(), any())).thenReturn(false);
         when(mockFeignException.contentUTF8())
             .thenReturn(mockServices.createCamundaTestException(
                 "aCamundaErrorType", "There was a problem evaluating DMN"));

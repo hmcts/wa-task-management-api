@@ -16,4 +16,35 @@
     <cpe>cpe:/a:nim-lang:nim-lang</cpe>
     <cve>CVE-2020-23171</cve>
   </suppress>
+  <suppress until="2022-03-01">
+    <notes><![CDATA[
+     Suppressing as our spring boot version needs to be updated
+   ]]></notes>
+    <cve>CVE-2021-22060</cve>
+  </suppress>
+  <suppress until="2022-03-01">
+    <notes><![CDATA[
+     Suppressing as our spring boot version needs to be updated
+   ]]></notes>
+    <cve>CVE-2018-1258</cve>
+  </suppress>
+  <suppress until="2022-03-01">
+    <notes><![CDATA[
+     Suppressing as our spring security version needs to be updated
+   ]]></notes>
+    <cve>CVE-2021-22112</cve>
+  </suppress>
+  <suppress until="2022-03-01">
+    <notes><![CDATA[
+     Suppressing as our open feign version needs to be updated
+   ]]></notes>
+    <cve>CVE-2021-22044</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+   file name: spring-security-core-5.4.9.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
+    <vulnerabilityName>CWE-862: Missing Authorization</vulnerabilityName>
+  </suppress>
 </suppressions>
