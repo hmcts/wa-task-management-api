@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -36,19 +35,15 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
     @Before
     public void setUp() {
         authenticationHeaders = authorizationProvider.getJudgeAuthorization("wa-ft-test-r2-");
-
     }
 
     @Test
-    public void should_return_a_200_with_allocateHearingJudge_task_and_standard_grant_type() {
+    public void should_return_a_200_with_reviewHearingBundle_task_and_standard_grant_type() {
 
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds("allocateHearingJudge");
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds("reviewHearingBundle");
         String taskId = taskVariables.getTaskId();
-
-        initiateTaskForJudicial(taskVariables);
-
-        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders,
-                                                            GrantType.STANDARD.name(), taskVariables.getCaseId());
+        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders, taskVariables.getCaseId());
+        initiateTaskForJudicial(taskVariables, "reviewHearingBundle", "Review Hearing Bundle");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -62,7 +57,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.id", notNullValue())
             .body("task.name", notNullValue())
             .body("task.type", notNullValue())
-            .body("task.task_state", notNullValue())
+            .body("task.task_state", equalTo("assigned"))
             .body("task.task_system", notNullValue())
             .body("task.security_classification", notNullValue())
             .body("task.task_title", notNullValue())
@@ -77,17 +72,17 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.case_id", notNullValue())
             .body("task.case_category", equalTo("Protection"))
             .body("task.case_name", notNullValue())
-            .body("task.auto_assigned", notNullValue())
+            .body("task.auto_assigned", equalTo(true))
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Execute"))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
             .body("task.permissions.values", hasSize(3))
             .body("task.description", notNullValue())
-            .body("task.role_category", equalTo("ADMIN"));
+            .body("task.role_category", equalTo("JUDICIAL"));
 
         common.cleanUpTask(taskId);
     }
 
-    private void initiateTaskForJudicial(TestVariables taskVariables) {
+    private void initiateTaskForJudicial(TestVariables taskVariables, String taskType, String taskName) {
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -95,8 +90,8 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "allocateHearingJudge"),
-            new TaskAttribute(TASK_NAME, "Allocate hearing judge"),
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, taskName),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_TITLE, "A test task"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),

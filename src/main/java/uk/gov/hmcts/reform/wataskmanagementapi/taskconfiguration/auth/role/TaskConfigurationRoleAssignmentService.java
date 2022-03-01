@@ -59,7 +59,7 @@ public class TaskConfigurationRoleAssignmentService {
         RoleAssignmentResource roleAssignmentResponse = performSearch(buildQueryForAutoAssignment(taskResource));
         log.debug(
             "Roles successfully retrieved from RoleAssignment Service for taskId '{}' and caseId '{}'",
-            taskResource.getCaseId(),
+            taskResource.getTaskId(),
             taskResource.getCaseId()
         );
 

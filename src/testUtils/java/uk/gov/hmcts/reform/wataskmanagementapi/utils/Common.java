@@ -12,6 +12,8 @@ import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
@@ -312,7 +314,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 
@@ -342,21 +346,16 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
 
     }
 
     public void setupCFTOrganisationalRoleAssignment(Headers headers, String roleName) {
 
-        UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "jurisdiction", "IA"
-        );
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
@@ -369,10 +368,12 @@ public class Common {
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             roleName,
-            toJsonString(attributes),
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "IA")),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 
@@ -380,31 +381,65 @@ public class Common {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "jurisdiction", "IA"
-        );
+        //Clean/Reset user
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+
+        //Creates an organizational role for jurisdiction IA
+        log.info("Creating Organizational Role");
+
+        createCaseAllocator(userInfo, headers);
+        createSupervisor(userInfo, headers);
+        createStandardTribunalCaseworker(userInfo, headers);
+    }
+
+    public void setupRoleAssignmentForAutoAssign(Headers headers, String caseId) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
+
+        createCaseAllocator(userInfo, headers);
+        createStandardTribunalCaseworker(userInfo, headers);
+        log.info("Creating Case manager Organizational Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "case-manager",
+            toJsonString(Map.of("caseId", caseId, "caseType","Asylum", "jurisdiction", "IA", "substantive", "Y")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            CASE.name()
+        );
+    }
+
+    private void createStandardTribunalCaseworker(UserInfo userInfo, Headers headers) {
+        log.info("Creating Standard Tribunal caseworker organizational Role");
+
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "tribunal-caseworker",
-            toJsonString(attributes),
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "caseType", "Asylum",
+                "jurisdiction", "IA"
+            )),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
-
     }
 
     public void setupCFTOrganisationalRoleAssignmentForWA(Headers headers) {
@@ -463,7 +498,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
 
         postRoleAssignment(
@@ -475,7 +512,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
 
     }
@@ -507,7 +546,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 
@@ -537,72 +578,78 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request-without-end-date.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 
-    public void setupCFTJudicialOrganisationalRoleAssignment(Headers headers, String grantType, String caseId) {
+    public void setupCFTJudicialOrganisationalRoleAssignment(Headers headers, String caseId) {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "caseId", caseId,
-            "jurisdiction", "IA"
-        );
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
+        createCaseAllocator(userInfo, headers);
+
+        log.info("Creating judge");
         postRoleAssignment(
-            null,
+            caseId,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "judge",
-            toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request-for-judicial.json",
-            grantType,
-            "JUDICIAL"
+            toJsonString(Map.of("jurisdiction", "IA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            GrantType.STANDARD.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            ORGANISATION.name()
+        );
+
+        log.info("Creating hearing judge");
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "hearing-judge",
+            toJsonString(Map.of("caseId", caseId, "caseType","Asylum", "jurisdiction", "IA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            GrantType.SPECIFIC.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of("373")),
+            CASE.name()
         );
 
     }
 
-    public void setupCFTAdministrativeOrganisationalRoleAssignment(Headers headers, String grantType, String caseId) {
+    public void setupCFTAdministrativeOrganisationalRoleAssignment(Headers headers) {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324",
-            "caseId", caseId,
-            "jurisdiction", "IA"
-        );
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
+        createCaseAllocator(userInfo, headers);
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "hearing-centre-admin",
-            toJsonString(attributes),
-            "requests/roleAssignment/r2/set-organisational-role-assignment-request-for-admin.json",
-            grantType,
-            "ADMIN"
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "IA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            GrantType.STANDARD.name(),
+            RoleCategory.ADMIN.name(),
+            toJsonString(List.of()),
+            ORGANISATION.name()
         );
-
     }
 
     public void setupOrganisationalRoleAssignmentWithCustomAttributes(Headers headers, Map<String, String> attributes) {
@@ -623,7 +670,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 
@@ -641,30 +690,63 @@ public class Common {
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
+        createCaseAllocator(userInfo, headers);
+        createSupervisor(userInfo, headers);
+        createStandardTribunalCaseworker(userInfo, headers);
+        createSpecificTribunalCaseWorker(caseId, headers, userInfo);
+    }
+
+    private void createSpecificTribunalCaseWorker(String caseId, Headers headers, UserInfo userInfo) {
+        log.info("Creating specific tribunal caseworker organizational Role");
+
         postRoleAssignment(
             caseId,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "tribunal-caseworker",
-            toJsonString(attributes),
+            toJsonString(Map.of("caseId", caseId, "caseType", "Asylum", "jurisdiction", "IA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            toJsonString(List.of()),
+            CASE.name()
+        );
+    }
+
+    private void createSupervisor(UserInfo userInfo, Headers headers) {
+        log.info("Creating task supervisor organizational Role");
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "task-supervisor",
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "IA")),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
+    }
 
-        //Creates a restricted role for a particular ccdId
-        log.info("Creating Restricted role-assignment");
+    private void createCaseAllocator(UserInfo userInfo, Headers headers) {
+        log.info("Creating case allocator organizational Role");
+
         postRoleAssignment(
-            caseId,
+            null,
             headers.getValue(AUTHORIZATION),
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
-            "tribunal-caseworker",
-            null,
-            "requests/roleAssignment/set-restricted-role-assignment-request.json",
-            "SPECIFIC",
-            "LEGAL_OPERATIONS"
+            "case-allocator",
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "IA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 
@@ -802,6 +884,18 @@ public class Common {
         return json;
     }
 
+    private String toJsonString(List<String> attributes) {
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(attributes);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return json;
+    }
+
     private void postRoleAssignment(String caseId,
                                     String bearerUserToken,
                                     String s2sToken,
@@ -810,9 +904,15 @@ public class Common {
                                     String attributes,
                                     String resourceFilename,
                                     String grantType,
-                                    String roleCategory) {
+                                    String roleCategory,
+                                    String authorisations,
+                                    String roleType) {
+        String body = getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory,
+                              authorisations,
+                              roleType
+        );
         roleAssignmentServiceApi.createRoleAssignment(
-            getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory),
+            body,
             bearerUserToken,
             s2sToken
         );
@@ -872,7 +972,9 @@ public class Common {
                            final String resourceFilename,
                            final String attributes,
                            final String grantType,
-                           String roleCategory) {
+                           String roleCategory,
+                           String authorisations,
+                           String roleType) {
 
         String assignmentRequestBody = null;
         ZonedDateTime endDate = ZonedDateTime.now().plusHours(2);
@@ -886,6 +988,7 @@ public class Common {
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_NAME_PLACEHOLDER}", roleName);
             assignmentRequestBody = assignmentRequestBody.replace("{GRANT_TYPE}", grantType);
             assignmentRequestBody = assignmentRequestBody.replace("{ROLE_CATEGORY}", roleCategory);
+            assignmentRequestBody = assignmentRequestBody.replace("{ROLE_TYPE}", roleType);
             assignmentRequestBody = assignmentRequestBody.replace(
                 "{END_TIME_PLACEHOLDER}",
                 endDate.format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
@@ -894,6 +997,11 @@ public class Common {
             if (attributes != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("\"{ATTRIBUTES_PLACEHOLDER}\"", attributes);
             }
+
+            if (authorisations != null) {
+                assignmentRequestBody = assignmentRequestBody.replace("\"{AUTHORISATIONS}\"", authorisations);
+            }
+
             if (caseId != null) {
                 assignmentRequestBody = assignmentRequestBody.replace("{CASE_ID_PLACEHOLDER}", caseId);
 
