@@ -40,4 +40,27 @@
    ]]></notes>
     <cve>CVE-2021-22044</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+   file name: spring-security-core-5.4.9.jar
+   ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.security/spring\-security\-core@.*$</packageUrl>
+    <vulnerabilityName>CWE-862: Missing Authorization</vulnerabilityName>
+  </suppress>
+  <suppress>
+    <notes>Additional Log Injection in Spring Framework</notes>
+    <cve>CVE-2021-22060</cve>
+  </suppress>
+  <suppress>
+    <notes>Unauthorized Access with Spring Security Method Security</notes>
+    <cve>CVE-2018-1258</cve>
+  </suppress>
+  <suppress>
+    <notes>Changing SecurityContext More Than Once in Single Request Can Fail to Save</notes>
+    <cve>CVE-2021-22112</cve>
+  </suppress>
+  <suppress>
+    <notes>Spring Cloud OpenFeign Client Endpoint Exposure</notes>
+    <cve>CVE-2021-22044</cve>
+  </suppress>
 </suppressions>
