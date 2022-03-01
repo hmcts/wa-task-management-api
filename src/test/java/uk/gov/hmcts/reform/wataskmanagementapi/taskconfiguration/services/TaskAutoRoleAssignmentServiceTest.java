@@ -162,6 +162,38 @@ class TaskAutoRoleAssignmentServiceTest {
         assertEquals(CFTTaskState.UNASSIGNED, result.getState());
     }
 
+    @Test
+    void autoAssignCFTTask_should_update_when_role_assignment_with_no_name() {
+        TaskResource taskResource = createTaskResource();
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2,new String[]{}),
+            taskRoleResource("senior-tribunal-caseworker", false, 1,new String[]{})
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        RoleAssignment roleAssignmentResource = RoleAssignment.builder()
+            .id("someId")
+            .actorIdType(ActorIdType.IDAM)
+            .actorId("someUserId")
+            .roleCategory(RoleCategory.LEGAL_OPERATIONS)
+            .roleType(RoleType.ORGANISATION)
+            .classification(Classification.PUBLIC)
+            .build();
+
+        roleAssignments.add(roleAssignmentResource);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertNull(result.getAssignee());
+        assertEquals(CFTTaskState.UNASSIGNED, result.getState());
+    }
 
     @Test
     void autoAssignCFTTask_should_update_when_no_task_role_resource() {
@@ -224,7 +256,7 @@ class TaskAutoRoleAssignmentServiceTest {
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
         assertNotNull(autoAssignCFTTaskResponse.getAssignee());
         assertThat(autoAssignCFTTaskResponse.getAssignee())
-            .isEqualTo(roleAssignmentResource2.getActorId());
+            .isEqualTo(roleAssignmentResource1.getActorId());
 
 
         //set tribunal-caseworker high prioritised user
@@ -243,6 +275,97 @@ class TaskAutoRoleAssignmentServiceTest {
 
         assertThat(autoAssignCFTTaskResponse.getAssignee())
             .isEqualTo(roleAssignmentResource1.getActorId());
+
+        //set tribunal-caseworker high prioritised user
+        taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 3),
+            taskRoleResource("senior-tribunal-caseworker", true, 2)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource2.getActorId());
+
+    }
+
+    @Test
+    void auto_assign_should_return_task_assignee_when_auto_assignable_is_true_and_authorisation_is_null() {
+        TaskResource taskResource = createTaskResource();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "lowPrioritisedUser",
+            "tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+
+        roleAssignments.add(roleAssignmentResource1);
+
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "highPrioritisedUser",
+            "senior-tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 3,null),
+            taskRoleResource("senior-tribunal-caseworker", false, 2,new String[]{})
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource1.getActorId());
+    }
+
+    @Test
+    void auto_assign_should_return_task_assignee_when_auto_assignable_is_true_and_authorisation_is_empty() {
+        TaskResource taskResource = createTaskResource();
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource = createRoleAssignment(
+            "lowPrioritisedUser",
+            "tribunal-caseworker",
+            List.of("DIVORCE")
+        );
+        roleAssignments.add(roleAssignmentResource);
+
+        //Authorisations is empty
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 3,new String[]{}),
+            taskRoleResource("senior-tribunal-caseworker", false, 2,new String[]{})
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource.getActorId());
+
     }
 
     @Test
@@ -272,6 +395,26 @@ class TaskAutoRoleAssignmentServiceTest {
 
         assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
         assertNull(autoAssignCFTTaskResponse.getAssignee());
+
+
+
+        //Authorisations don't match
+        taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 3,new String[]{"Test"}),
+            taskRoleResource("senior-tribunal-caseworker", false, 2,new String[]{})
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        autoAssignCFTTaskResponse = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
+
+        assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertNull(autoAssignCFTTaskResponse.getAssignee());
+
+
     }
 
     @Test
@@ -367,8 +510,9 @@ class TaskAutoRoleAssignmentServiceTest {
 
         TaskResource result = taskAutoAssignmentService.autoAssignCFTTask(taskResource);
 
-        assertNull(result.getAssignee());
-        assertEquals(CFTTaskState.UNASSIGNED, result.getState());
+        assertThat(result.getAssignee())
+            .isEqualTo(roleAssignmentResource.getActorId());
+        assertEquals(CFTTaskState.ASSIGNED, result.getState());
     }
 
 
@@ -445,14 +589,6 @@ class TaskAutoRoleAssignmentServiceTest {
     }
 
 
-    @ParameterizedTest(name = ARGUMENTS_WITH_NAMES_PLACEHOLDER)
-    @MethodSource("checkAssigneeIsStillValidNegativeScenarioProvider")
-    void checkAssigneeIsStillValid_should_return_false(String testName, CheckAssigneeScenario scenario) {
-        when(roleAssignmentService.getRolesByUserId(scenario.userId)).thenReturn(scenario.roleAssignments);
-        TaskResource taskResource = createTestTaskWithRoleResources(singleton(scenario.taskRoleResource));
-        assertFalse(taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, scenario.userId));
-    }
-
     private TaskResource createTaskResource() {
         return new TaskResource(
             UUID.randomUUID().toString(),
@@ -489,6 +625,23 @@ class TaskAutoRoleAssignmentServiceTest {
         );
     }
 
+    private TaskRoleResource taskRoleResource(String name, boolean autoAssign,
+                                              int assignmentPriority,
+                                              String[] authorisations) {
+        return new TaskRoleResource(
+            name,
+            true,
+            true,
+            false,
+            true,
+            true,
+            true,
+            authorisations,
+            assignmentPriority,
+            autoAssign
+        );
+    }
+
     private RoleAssignment createRoleAssignment(String actorId, String roleName, List<String> authorisations) {
         return RoleAssignment.builder()
             .id(UUID.randomUUID().toString())
@@ -505,19 +658,27 @@ class TaskAutoRoleAssignmentServiceTest {
             .build();
     }
 
+    @ParameterizedTest(name = ARGUMENTS_WITH_NAMES_PLACEHOLDER)
+    @MethodSource("checkAssigneeIsStillValidNegativeScenarioProvider")
+    void checkAssigneeIsStillValid_should_return_false(String testName, CheckAssigneeScenario scenario) {
+        when(roleAssignmentService.getRolesByUserId(scenario.userId)).thenReturn(scenario.roleAssignments);
+        TaskResource taskResource = createTestTaskWithRoleResources(singleton(scenario.taskRoleResource));
+        assertFalse(taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, scenario.userId));
+    }
+
     private static Stream<Arguments> checkAssigneeIsStillValidNegativeScenarioProvider() {
 
-        TaskRoleResource emptyTaskRoleResourceAuthorization = getBaseTaskRoleResource();
+        TaskRoleResource emptyTaskRoleResourceAuthorization = getBaseTaskRoleResource(false);
         emptyTaskRoleResourceAuthorization.setAuthorizations(new String[]{});
 
-        CheckAssigneeScenario emptyTaskRoleResourceAuthorizationScenario = CheckAssigneeScenario.builder()
-            .roleAssignments(singletonList(getBaseRoleAssignment()))
-            .taskRoleResource(emptyTaskRoleResourceAuthorization)
-            .userId("someUserId")
-            .build();
 
-        TaskRoleResource nullTaskRoleResourceAuthorization = getBaseTaskRoleResource();
+
+        TaskRoleResource nullTaskRoleResourceAuthorization = getBaseTaskRoleResource(false);
         nullTaskRoleResourceAuthorization.setAuthorizations(null);
+
+        TaskRoleResource notAutoAssignableTaskRoleResourceAuthorization = getBaseTaskRoleResource(true);
+        notAutoAssignableTaskRoleResourceAuthorization.setAuthorizations(new String[]{"Test"});
+
 
         CheckAssigneeScenario nullTaskRoleResourceAuthorizationScenario = CheckAssigneeScenario.builder()
             .roleAssignments(singletonList(getBaseRoleAssignment()))
@@ -525,9 +686,21 @@ class TaskAutoRoleAssignmentServiceTest {
             .userId("someUserId")
             .build();
 
+        CheckAssigneeScenario notAutoAssignableTaskRoleResourceScenario = CheckAssigneeScenario.builder()
+            .roleAssignments(singletonList(getBaseRoleAssignment()))
+            .taskRoleResource(notAutoAssignableTaskRoleResourceAuthorization)
+            .userId("someUserId")
+            .build();
+
+        CheckAssigneeScenario emptyTaskRoleResourceAuthorizationScenario = CheckAssigneeScenario.builder()
+            .roleAssignments(singletonList(getBaseRoleAssignment()))
+            .taskRoleResource(emptyTaskRoleResourceAuthorization)
+            .userId("someUserId")
+            .build();
+
         CheckAssigneeScenario noRoleAssignmentScenario = CheckAssigneeScenario.builder()
             .roleAssignments(emptyList())
-            .taskRoleResource(getBaseTaskRoleResource())
+            .taskRoleResource(getBaseTaskRoleResource(false))
             .userId("someUserId")
             .build();
 
@@ -536,15 +709,50 @@ class TaskAutoRoleAssignmentServiceTest {
 
         CheckAssigneeScenario noRoleAssignmentAuthorizationsScenario = CheckAssigneeScenario.builder()
             .roleAssignments(singletonList(roleAssignmentNoAuthorizations))
-            .taskRoleResource(getBaseTaskRoleResource())
+            .taskRoleResource(getBaseTaskRoleResource(false))
             .userId("someUserId")
             .build();
 
         return Stream.of(
             Arguments.of("Empty Task Role Resource Authorizations", emptyTaskRoleResourceAuthorizationScenario),
+            Arguments.of("Not Auto Assignable Task Role Resource", notAutoAssignableTaskRoleResourceScenario),
             Arguments.of("Null Task Role Resource Authorizations", nullTaskRoleResourceAuthorizationScenario),
             Arguments.of("No Role Assignment", noRoleAssignmentScenario),
             Arguments.of("No Role Assignment Authorizations", noRoleAssignmentAuthorizationsScenario)
+        );
+    }
+
+    @ParameterizedTest(name = ARGUMENTS_WITH_NAMES_PLACEHOLDER)
+    @MethodSource("checkAssigneeIsStillValidPositiveScenarioProvider")
+    void checkAssigneeIsStillValid_should_return_true(String testName, CheckAssigneeScenario scenario) {
+        when(roleAssignmentService.getRolesByUserId(scenario.userId)).thenReturn(scenario.roleAssignments);
+        TaskResource taskResource = createTestTaskWithRoleResources(singleton(scenario.taskRoleResource));
+        assertTrue(taskAutoAssignmentService.checkAssigneeIsStillValid(taskResource, scenario.userId));
+    }
+
+    private static Stream<Arguments> checkAssigneeIsStillValidPositiveScenarioProvider() {
+
+        TaskRoleResource emptyTaskRoleResourceAuthorization = getBaseTaskRoleResource(true);
+        emptyTaskRoleResourceAuthorization.setAuthorizations(new String[]{});
+
+        CheckAssigneeScenario emptyTaskRoleResourceAuthorizationScenario = CheckAssigneeScenario.builder()
+            .roleAssignments(singletonList(getBaseRoleAssignment()))
+            .taskRoleResource(emptyTaskRoleResourceAuthorization)
+            .userId("someUserId")
+            .build();
+
+        TaskRoleResource nullTaskRoleResourceAuthorization = getBaseTaskRoleResource(true);
+        nullTaskRoleResourceAuthorization.setAuthorizations(null);
+
+        CheckAssigneeScenario nullTaskRoleResourceAuthorizationScenario = CheckAssigneeScenario.builder()
+            .roleAssignments(singletonList(getBaseRoleAssignment()))
+            .taskRoleResource(nullTaskRoleResourceAuthorization)
+            .userId("someUserId")
+            .build();
+
+        return Stream.of(
+            Arguments.of("Empty Task Role Resource Authorizations", emptyTaskRoleResourceAuthorizationScenario),
+            Arguments.of("Null Task Role Resource Authorizations", nullTaskRoleResourceAuthorizationScenario)
         );
     }
 
@@ -561,7 +769,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .build();
     }
 
-    private static TaskRoleResource getBaseTaskRoleResource() {
+    private static TaskRoleResource getBaseTaskRoleResource(boolean autoAssignable) {
         return new TaskRoleResource(
             "tribunal-caseworker",
             true,
@@ -572,9 +780,11 @@ class TaskAutoRoleAssignmentServiceTest {
             true,
             new String[]{"IA"},
             0,
-            true
+            autoAssignable
         );
     }
+
+
 
     @Builder
     private static class CheckAssigneeScenario {

@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -47,8 +46,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
 
         initiateTaskForAdmin(taskVariables);
 
-        common.setupCFTAdministrativeOrganisationalRoleAssignment(authenticationHeaders,
-                                                            GrantType.STANDARD.name(), taskVariables.getCaseId());
+        common.setupCFTAdministrativeOrganisationalRoleAssignment(authenticationHeaders);
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
