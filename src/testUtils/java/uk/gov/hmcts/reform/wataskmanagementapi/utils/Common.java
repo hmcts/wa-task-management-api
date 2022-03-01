@@ -467,7 +467,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
 
     }
@@ -772,7 +774,9 @@ public class Common {
             toJsonString(attributes),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
 
         //Creates a restricted role for a particular ccdId
@@ -786,7 +790,9 @@ public class Common {
             null,
             "requests/roleAssignment/set-restricted-role-assignment-request.json",
             "SPECIFIC",
-            "LEGAL_OPERATIONS"
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
     }
 

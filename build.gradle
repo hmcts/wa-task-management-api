@@ -260,6 +260,11 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
+    dependencySet( group: 'io.netty', name: 'netty-all', version: '4.1.71.Final'){
+      entry ''
+      entry ''
+      entry ''
+    }
   }
 }
 
