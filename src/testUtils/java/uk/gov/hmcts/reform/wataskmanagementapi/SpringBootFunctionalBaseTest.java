@@ -53,7 +53,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected GivensBuilder given;
     protected Assertions assertions;
-    protected Common common;
+    protected static Common common;
     protected RestApiActions restApiActions;
     protected RestApiActions camundaApiActions;
     protected RestApiActions launchDarklyActions;
