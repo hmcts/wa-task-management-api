@@ -135,8 +135,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
@@ -289,8 +287,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
@@ -602,8 +598,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_permission_region_did_not_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
