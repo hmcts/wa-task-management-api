@@ -449,8 +449,8 @@ public class Common {
         Map<String, String> attributes = Map.of(
             "primaryLocation", "765324",
             "region", "1",
-            //This value must match the camunda task location variable for the permission check to pass
-            "baseLocation", "765324"
+            "caseType", "Asylum",
+            "jurisdiction", "IA"
         );
 
         //Clean/Reset user
@@ -458,6 +458,20 @@ public class Common {
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "case-allocator",
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "WA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
+        );
+
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),
