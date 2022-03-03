@@ -328,8 +328,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .content("{")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
-            .andExpect(
-                ResultMatcher.matchAll(
+            .andExpectAll(
                     status().isBadRequest(),
                     content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
                     jsonPath("$.type")
@@ -338,7 +337,8 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     jsonPath("$.status").value(400),
                     jsonPath("$.detail")
                         .value("Unexpected end-of-input: expected close marker for Object "
-                               + "(start marker at [Source: (PushbackInputStream); line: 1, column: 1])")));
+                               + "(start marker at [Source: (org.springframework."
+                                   + "util.StreamUtils$NonClosingInputStream); line: 1, column: 1])"));
     }
 
     @Test

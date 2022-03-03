@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
@@ -9,8 +9,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.Initiat
 
 import java.util.List;
 
-@ApiModel(
-    value = "InitiateTaskRequest",
+@Schema(
+    name = "InitiateTaskRequest",
     description = "Allows specifying certain operations to initiate a task"
 )
 @EqualsAndHashCode
