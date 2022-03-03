@@ -33,6 +33,7 @@ import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -309,4 +310,43 @@ class TaskSearchControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertTrue(response.getBody().isTaskRequiredForEvent());
     }
+
+    @Test
+    void should_return_200_with_empty_list_for_searchWithCriteria_when_access_control_response_empty() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.empty());
+
+        ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
+            IDAM_AUTH_TOKEN, 0, 1,
+            new SearchTaskRequest(
+                singletonList(new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA")))
+            )
+        );
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(0, response.getBody().getTotalRecords());
+    }
+
+    @Test
+    void should_return_200_with_empty_list_for_completable_when_access_control_response_empty() {
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.empty());
+
+        SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
+            "caseId", "eventId", "caseJurisdiction", "caseType");
+
+        ResponseEntity<GetTasksCompletableResponse<Task>> response =
+            taskSearchController.searchWithCriteriaForAutomaticCompletion(IDAM_AUTH_TOKEN, searchEventAndCase);
+
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertFalse(response.getBody().isTaskRequiredForEvent());
+        assertEquals(0, response.getBody().getTasks().size());
+    }
+
+
 }

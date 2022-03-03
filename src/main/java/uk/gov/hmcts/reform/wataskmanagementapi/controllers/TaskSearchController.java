@@ -163,7 +163,7 @@ public class TaskSearchController extends BaseController {
 
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search"
-                  + " criteria that are eligible for automatic completion")
+                             + " criteria that are eligible for automatic completion")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
             schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
@@ -176,7 +176,6 @@ public class TaskSearchController extends BaseController {
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
-        log.info("RWA-1172 searchEventAndCase: {}", searchEventAndCase);
 
         GetTasksCompletableResponse<Task> response;
         Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService
@@ -192,14 +191,12 @@ public class TaskSearchController extends BaseController {
         }
 
         AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
-        log.info("RWA-1172 accessControlResponse: {}", accessControlResponse);
 
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-        log.info("RWA-1172 isFeatureEnabled: {}", isFeatureEnabled);
 
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);

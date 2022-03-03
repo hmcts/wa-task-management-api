@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
@@ -11,7 +10,6 @@ import java.util.Objects;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
     "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
@@ -50,7 +48,7 @@ public class Task {
     @Schema(
         required = true,
         description = "The security classification of the main business entity this task relates to."
-                + " Can be PUBLIC, PRIVATE, RESTRICTED"
+                      + " Can be PUBLIC, PRIVATE, RESTRICTED"
     )
     private final String securityClassification;
     @Schema(
@@ -82,7 +80,7 @@ public class Task {
     private final String location;
     @Schema(required = true,
         description = "Indicator to the user interface of how this task is to be executed. "
-                + "For MVP, this will always be \"Case Management Task\""
+                      + "For MVP, this will always be \"Case Management Task\""
     )
     private final String executionType;
     @Schema(required = true,
@@ -123,7 +121,7 @@ public class Task {
     private final WarningValues warningList;
 
     @Schema(description = "A value describing the category of the case, for IA, "
-        + "it has the same value as the AppealType field")
+                          + "it has the same value as the AppealType field")
     private final String caseManagementCategory;
 
     @Schema(required = true,
