@@ -3,7 +3,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath("net.serenity-bdd:serenity-gradle-plugin:2.4.34")
+    classpath("net.serenity-bdd:serenity-gradle-plugin:3.2.0")
   }
 }
 
@@ -13,12 +13,12 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-  id 'org.springframework.boot' version '2.4.12'
+  id 'org.springframework.boot' version '2.6.4'
   id 'org.owasp.dependencycheck' version '6.5.3'
   id 'com.github.ben-manes.versions' version '0.38.0'
   id 'org.sonarqube' version '3.2.0'
   id 'info.solidsoft.pitest' version '1.5.2'
-  id 'io.freefair.lombok' version '5.3.0'
+  id 'io.freefair.lombok' version '5.3.3.3'
   // If Pact version is changed, make sure serenity report works.
   id 'au.com.dius.pact' version '4.1.8'
   id 'org.flywaydb.flyway' version '6.5.7'
@@ -260,6 +260,17 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
+    dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.5.5'
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.2'){
+      entry 'selenium-java'
+      entry 'selenium-remote-driver'
+      entry 'selenium-firefox-driver'
+      entry 'selenium-chrome-driver'
+      entry 'selenium-safari-driver'
+      entry 'selenium-edge-driver'
+      entry 'selenium-api'
+      entry 'selenium-support'
+    }
   }
 }
 
@@ -273,8 +284,8 @@ def versions = [
   junit           : '5.7.2',
   junitPlatform   : '1.7.2',
   reformLogging   : '5.1.9',
-  springfoxSwagger: '3.0.0',
-  serenity        : '2.2.12',
+  springDoc       : '1.6.6',
+  serenity        : '3.1.20',
   gradlePitest    : '1.5.1',
   pitest          : '1.5.2',
   sonarPitest     : '0.5',
@@ -303,10 +314,9 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-client'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-oauth2-resource-server'
 
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.0.3'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
 
-  implementation group: 'io.springfox', name: 'springfox-boot-starter', version: versions.springfoxSwagger
-  implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
   implementation 'org.zalando:problem-spring-web-starter:0.26.2'
@@ -314,11 +324,12 @@ dependencies {
   implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
 
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
+  implementation 'org.apache.commons:commons-lang3:3.12.0'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
-  implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.4.27.Final'
+  implementation group: 'org.hibernate', name: 'hibernate-core', version: '5.6.5.Final'
   implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.2.0.Final'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
@@ -334,10 +345,10 @@ dependencies {
 
   implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.12.0'
 
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '6.5.7'
-  implementation group: 'org.postgresql', name: 'postgresql', version: '42.2.22'
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.0'
+  implementation group: 'org.postgresql', name: 'postgresql', version: '42.3.1'
   // required to convert postgres to hibernate types
-  implementation group: 'com.vladmihalcea', name: 'hibernate-types-55', version: '2.12.0'
+  implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.14.0'
 
   //cache
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.0.4'
@@ -352,14 +363,14 @@ dependencies {
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
 
-  testImplementation(group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.27.2') {
+  testImplementation(group: 'com.github.tomakehurst', name: 'wiremock-jre8', version: '2.32.0') {
     exclude group: 'com.github.jknack.handlebars.java'
   }
 
   testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.0'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
-  testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.5.2'
+  testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.6.0'
   testImplementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
 
   testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
@@ -370,7 +381,7 @@ dependencies {
 
   testImplementation group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testImplementation 'com.github.hmcts:fortify-client:1.2.1:all'
-  testImplementation 'com.google.guava:guava-testlib:31.0-jre'
+  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '30.1-jre'
   //Pact contract testing
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: versions.pactVersion
   contractTestImplementation group: 'au.com.dius.pact.consumer', name: 'junit', version: versions.pactVersion

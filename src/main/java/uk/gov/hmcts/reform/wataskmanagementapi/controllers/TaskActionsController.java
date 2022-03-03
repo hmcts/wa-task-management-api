@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -49,7 +51,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 
 @RequestMapping(path = "/task", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
 @RestController
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity"})
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.CyclomaticComplexity", "PMD.AvoidDuplicateLiterals"})
 public class TaskActionsController extends BaseController {
     private static final Logger LOG = getLogger(TaskActionsController.class);
 
@@ -70,14 +72,15 @@ public class TaskActionsController extends BaseController {
         this.clientAccessControlService = clientAccessControlService;
     }
 
-    @ApiOperation("Retrieve a Task Resource identified by its unique id.")
+    @Operation(description = "Retrieve a Task Resource identified by its unique id.")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTaskResponse.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "200", description = OK, content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = GetTaskResponse.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @GetMapping(path = "/{task-id}")
     public ResponseEntity<GetTaskResponse<Task>> getTask(@RequestHeader(AUTHORIZATION) String authToken,
@@ -96,14 +99,15 @@ public class TaskActionsController extends BaseController {
             .body(new GetTaskResponse<>(task));
     }
 
-    @ApiOperation("Claim the identified Task for the currently logged in user.")
+    @Operation(description = "Claim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(code = 204, message = NO_CONTENT, response = Object.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "204", description = NO_CONTENT,  content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/claim")
@@ -119,14 +123,15 @@ public class TaskActionsController extends BaseController {
 
     }
 
-    @ApiOperation("Unclaim the identified Task for the currently logged in user.")
+    @Operation(description = "Unclaim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "Task unclaimed", response = Object.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "204", description = "Task unclaimed",  content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/unclaim")
@@ -141,14 +146,15 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @ApiOperation("Assign the identified Task to a specified user.")
+    @Operation(description = "Assign the identified Task to a specified user.")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "Task assigned", response = Object.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "204", description = "Task assigned", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/assign")
@@ -170,14 +176,15 @@ public class TaskActionsController extends BaseController {
         return ResponseEntity.noContent().cacheControl(CacheControl.noCache()).build();
     }
 
-    @ApiOperation("Completes a Task identified by an id.")
+    @Operation(description = "Completes a Task identified by an id.")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "Task has been completed", response = Object.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/complete")
@@ -211,14 +218,15 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @ApiOperation("Cancel a Task identified by an id.")
+    @Operation(description = "Cancel a Task identified by an id.")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "Task has been cancelled", response = Object.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "204", description = "Task has been cancelled", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/cancel")
@@ -234,14 +242,15 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @ApiOperation("Update Task with notes")
+    @Operation(description = "Update Task with notes")
     @ApiResponses({
-        @ApiResponse(code = 204, message = "Updated Task with notes", response = Object.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 404, message = NOT_FOUND),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "204", description = "Updated Task with notes",content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "404", description = NOT_FOUND),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PostMapping(path = "/{task-id}/notes")
@@ -270,14 +279,15 @@ public class TaskActionsController extends BaseController {
             .build();
     }
 
-    @ApiOperation("Retrieve the role permissions information for the task identified by the given task-id.")
+    @Operation(description = "Retrieve the role permissions information for the task identified by the given task-id.")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTaskRolePermissionsResponse.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
+            schema = @Schema(implementation = GetTaskRolePermissionsResponse.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @GetMapping(path = "/{task-id}/roles")
     public ResponseEntity<GetTaskRolePermissionsResponse> getTaskRolePermissions(

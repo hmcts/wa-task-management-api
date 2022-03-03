@@ -87,6 +87,7 @@ class ApplicationProblemControllerAdviceTest {
         FeignException exception = new FeignException.ServiceUnavailable(
             "Service unavailable",
             request,
+            null,
             null);
 
         ResponseEntity<ThrowableProblem> response = applicationProblemControllerAdvice

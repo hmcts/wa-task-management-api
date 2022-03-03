@@ -1,25 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @EqualsAndHashCode
 @ToString
 @SuppressWarnings({"PMD.LawOfDemeter"})
-@ApiModel("WorkType")
+@Schema(allowableValues = "WorkType")
 public class WorkType {
 
-    @ApiModelProperty(
+    @Schema(
         required = true,
-        notes = "Identifier for the work type"
+        description = "Identifier for the work type"
     )
     private final String id;
 
-    @ApiModelProperty(
+    @Schema(
         required = true,
-        notes = "Name of the work type"
+        description = "Name of the work type"
     )
     private final String label;
 

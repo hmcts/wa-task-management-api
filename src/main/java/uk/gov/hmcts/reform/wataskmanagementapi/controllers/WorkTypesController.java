@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,16 +37,19 @@ public class WorkTypesController extends BaseController {
         this.workTypesService = workTypesService;
     }
 
-    @ApiOperation("Retrieve a list of work types with or without filter by user")
+    @Operation(description = "Retrieve a list of work types with or without filter by user")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetWorkTypesResponse.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR),
-        @ApiResponse(code = 502, message = "Downstream Dependency Error", response = String.class),
-        @ApiResponse(code = 503, message = "Service Unavailable", response = String.class)
+        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
+            schema = @Schema(implementation = GetWorkTypesResponse.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR),
+        @ApiResponse(responseCode = "502", description = "Downstream Dependency Error", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))}),
+        @ApiResponse(responseCode = "503", description = "Service Unavailable", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))})
     })
     @GetMapping
     public ResponseEntity<GetWorkTypesResponse> getWorkTypes(
