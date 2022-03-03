@@ -1,0 +1,1 @@
+create index idx_fk_task_id on task_roles (task_id);
