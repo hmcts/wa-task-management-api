@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,14 +75,15 @@ public class TaskSearchController extends BaseController {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
     }
 
-    @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
-    @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTasksResponse.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+    @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = OK, content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = GetTasksResponse.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
@@ -159,14 +162,15 @@ public class TaskSearchController extends BaseController {
     }
 
 
-    @ApiOperation("Retrieve a list of Task resources identified by set of search"
+    @Operation(description = "Retrieve a list of Task resources identified by set of search"
                   + " criteria that are eligible for automatic completion")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTasksCompletableResponse.class),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
+            schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(

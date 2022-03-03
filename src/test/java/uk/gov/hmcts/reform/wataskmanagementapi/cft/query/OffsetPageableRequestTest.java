@@ -149,4 +149,14 @@ public class OffsetPageableRequestTest {
         assertTrue(request.hasPrevious());
         assertEquals(OffsetPageableRequest.of(25, 25), request.previousOrFirst());
     }
+
+    @Test
+    public void should_cover_override_methods_with_Page() {
+        OffsetPageableRequest request = OffsetPageableRequest.of(
+            50,
+            25
+        );
+        assertNotNull(request);
+        assertEquals(OffsetPageableRequest.of(2, 25), request.withPage(2));
+    }
 }

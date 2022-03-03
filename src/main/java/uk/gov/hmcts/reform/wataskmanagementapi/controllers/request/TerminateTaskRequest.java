@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 
-@ApiModel(
-    value = "TerminateTaskRequest",
+@Schema(
+    name = "TerminateTaskRequest",
     description = "Allows specifying certain termination options"
 )
 @EqualsAndHashCode

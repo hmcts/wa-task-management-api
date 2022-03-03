@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
@@ -42,14 +44,14 @@ public class TaskConfigurationController {
         this.configureTaskService = configureTaskService;
     }
 
-    @ApiOperation("Given an existent task id configures a task over rest")
+    @Operation(description = "Given an existent task id configures a task over rest")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "200", description = OK),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @PostMapping(path = "/{task-id}")
     public ResponseEntity<String> configureTask(
@@ -64,14 +66,15 @@ public class TaskConfigurationController {
         }
     }
 
-    @ApiOperation("Retrieves a list of configuration variables to be added to a task")
+    @Operation(description = "Retrieves a list of configuration variables to be added to a task")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = ConfigureTaskResponse.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "200", description = OK,  content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = ConfigureTaskResponse.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @PostMapping(path = "/{task-id}/configuration")
     public ResponseEntity<ConfigureTaskResponse> getConfigurationForTask(

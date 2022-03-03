@@ -12,12 +12,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-class SwaggerPublisherTest extends SpringBootIntegrationBaseTest {
+class OpenAPIPublisherTest extends SpringBootIntegrationBaseTest {
+
+    private static final String SWAGGER_DOCS_VERSION = "/v3/api-docs";
 
     @DisplayName("Generate swagger documentation")
     @Test
     void generateDocs() throws Exception {
-        byte[] specs = mockMvc.perform(get("/v2/api-docs"))
+        byte[] specs = mockMvc.perform(get(SWAGGER_DOCS_VERSION))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

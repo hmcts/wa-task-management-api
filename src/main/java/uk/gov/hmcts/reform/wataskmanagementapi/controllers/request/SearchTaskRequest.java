@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
@@ -11,8 +10,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-@ApiModel(
-    value = "SearchTaskRequest",
+@Schema(
+    name = "SearchTaskRequest",
     description = "Search task request containing a list of parameters"
 )
 @EqualsAndHashCode
@@ -20,9 +19,9 @@ import javax.validation.constraints.NotEmpty;
 @SuppressWarnings("java:S1452")
 public class SearchTaskRequest {
 
-    @ApiModelProperty(
+    @Schema(
         required = true,
-        notes = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
+        description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one search_parameter element is required.")
     private List<@Valid SearchParameter<?>> searchParameters;
     private List<SortingParameter> sortingParameters;

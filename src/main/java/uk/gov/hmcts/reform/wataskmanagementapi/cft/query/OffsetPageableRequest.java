@@ -7,7 +7,6 @@ import org.springframework.data.domain.Sort;
 
 import java.io.Serializable;
 
-
 @EqualsAndHashCode
 @ToString
 @SuppressWarnings({"PMD.ShortMethodName", "PMD.AvoidLiteralsInIfCondition"})
@@ -107,5 +106,10 @@ public class OffsetPageableRequest implements Pageable, Serializable {
     @Override
     public boolean hasPrevious() {
         return offset > limit;
+    }
+
+    @Override
+    public Pageable withPage(int pageNumber) {
+        return new OffsetPageableRequest(pageNumber, getPageSize(), getSort());
     }
 }
