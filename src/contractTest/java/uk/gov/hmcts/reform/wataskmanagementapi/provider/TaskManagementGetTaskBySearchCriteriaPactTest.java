@@ -213,8 +213,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider,
-            systemDateProvider
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {

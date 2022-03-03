@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -27,13 +26,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -50,7 +46,6 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag.RELEASE_2_TASK_QUERY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ExtendWith(MockitoExtension.class)
 class TaskSearchControllerTest {
@@ -68,8 +63,6 @@ class TaskSearchControllerTest {
     private CftQueryService cftQueryService;
     @Mock
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @Mock
-    private SystemDateProvider systemDateProvider;
 
     private TaskSearchController taskSearchController;
 
@@ -80,15 +73,14 @@ class TaskSearchControllerTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider,
-            systemDateProvider
+            launchDarklyFeatureFlagProvider
         );
     }
 
     @Test
     void should_succeed_when_performing_search_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
@@ -108,8 +100,8 @@ class TaskSearchControllerTest {
 
     @Test
     void should_succeed_when_performing_search_for_returning_available_tasks_only_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
@@ -129,8 +121,8 @@ class TaskSearchControllerTest {
 
     @Test
     void should_fail_when_performing_search_for_returning_available_tasks_only_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
@@ -150,8 +142,9 @@ class TaskSearchControllerTest {
 
     @Test
     void should_succeed_when_performing_search_with_no_pagination_firstResult_and_default_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
@@ -180,8 +173,8 @@ class TaskSearchControllerTest {
 
     @Test
     void should_succeed_when_performing_search_with_no_pagination_max_results_and_default_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         List<Task> taskList = Lists.newArrayList(mock(Task.class));
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any())).thenReturn(taskList);
@@ -210,8 +203,8 @@ class TaskSearchControllerTest {
 
     @Test
     void should_succeed_when_performing_search_with_sorting_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         ResponseEntity<GetTasksResponse<Task>> response = taskSearchController.searchWithCriteria(
             IDAM_AUTH_TOKEN, 0, 0,
@@ -250,8 +243,9 @@ class TaskSearchControllerTest {
 
     @Test
     void should_auto_complete_a_task() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
+
         SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
             "caseId", "eventId", "caseJurisdiction", "caseType");
         ResponseEntity<GetTasksCompletableResponse<Task>> response =
@@ -261,29 +255,9 @@ class TaskSearchControllerTest {
     }
 
     @Test
-    void should_return_403_when_no_role_assignments_are_found() {
-
-        final String exceptionMessage = "Some exception message";
-        final NoRoleAssignmentsFoundException exception =
-            new NoRoleAssignmentsFoundException(exceptionMessage);
-
-        String mockedTimestamp = ZonedDateTime.now().format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT));
-        when(systemDateProvider.nowWithTime()).thenReturn(mockedTimestamp);
-        ResponseEntity<ErrorMessage> response = taskSearchController.handleNoRoleAssignmentsException(exception);
-
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        assertEquals(mockedTimestamp, response.getBody().getTimestamp());
-        assertEquals(HttpStatus.UNAUTHORIZED.getReasonPhrase(), response.getBody().getError());
-        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getBody().getStatus());
-        assertEquals(exceptionMessage, response.getBody().getMessage());
-
-    }
-
-    @Test
     void should_succeed_when_performing_search_with_feature_flag_on_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_TASK_QUERY,
@@ -310,8 +284,9 @@ class TaskSearchControllerTest {
 
     @Test
     void should_succeed_when_performing_search_for_completable_with_feature_flag_on_and_return_a_200_ok() {
-        when(accessControlService.getRoles(IDAM_AUTH_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
+        when(accessControlService.getAccessControlResponse(IDAM_AUTH_TOKEN))
+            .thenReturn(Optional.of(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment))));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
                 RELEASE_2_TASK_QUERY,

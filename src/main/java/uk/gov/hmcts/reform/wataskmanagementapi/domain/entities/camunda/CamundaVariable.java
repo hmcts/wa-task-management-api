@@ -4,7 +4,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.ToString;
 
-//todo: remove
 @ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CamundaVariable {

@@ -32,7 +32,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
@@ -68,8 +67,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     private TaskManagementService taskManagementService;
     @Mock
     private CftQueryService cftQueryService;
-    @Mock
-    private SystemDateProvider systemDateProvider;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -192,8 +189,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider,
-            systemDateProvider
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {
