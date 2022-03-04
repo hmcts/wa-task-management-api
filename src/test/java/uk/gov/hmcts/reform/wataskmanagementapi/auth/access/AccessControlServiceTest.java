@@ -158,12 +158,34 @@ class AccessControlServiceTest {
         Optional<AccessControlResponse> result = accessControlService.getAccessControlResponse(idamToken);
 
         assertTrue(result.isEmpty());
-
+        assertEquals(Optional.empty(), result);
         verify(idamService, times(1)).getUserInfo(idamToken);
         verifyNoMoreInteractions(idamService);
 
         verify(roleAssignmentService, times(1)).getRolesForUser(mockedUserInfo.getUid(), idamToken);
         verifyNoMoreInteractions(roleAssignmentService);
+    }
+
+    @Test
+    void should_return_optional_empty_when_thrown_NoRoleAssignmentsFoundException() {
+
+        final UserInfo mockedUserInfo = mock(UserInfo.class);
+        final String idamToken = "someToken";
+
+        when(idamService.getUserInfo(idamToken))
+            .thenReturn(mockedUserInfo);
+
+        when(roleAssignmentService.getRolesForUser(mockedUserInfo.getUid(), idamToken))
+            .thenReturn(Collections.emptyList());
+        
+        Optional<AccessControlResponse> result = accessControlService.getAccessControlResponse(idamToken);
+
+        assertEquals(Optional.empty(), result);
+
+        assertThrows(
+            NoRoleAssignmentsFoundException.class,
+            () -> accessControlService.getRoles(idamToken)
+        );
     }
 
 }
