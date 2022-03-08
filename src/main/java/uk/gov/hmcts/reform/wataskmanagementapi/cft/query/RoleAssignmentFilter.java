@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -97,6 +98,18 @@ public final class RoleAssignmentFilter {
                 permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
             }
 
+            /*
+            Avoid the hibernate n+1 issue by retrieving what we need in one query.
+            When we retrieve Tasks we will also need the TaskRoles so get them in one go.
+
+            The main search query uses findAll with pagination and so we need to exclude the join for the
+            count queries.
+            TODO May be a better way to do this, see docs.
+            */
+            if (query.getResultType() != Long.class) {
+                root.fetch(TASK_ROLE_RESOURCES, JoinType.LEFT);
+            }
+
             query.distinct(true);
 
             return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
@@ -125,33 +138,33 @@ public final class RoleAssignmentFilter {
     }
 
     private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
-                                                          final Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                          CriteriaBuilder builder,
-                                                          List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                           final Join<TaskResource, TaskRoleResource> taskRoleResources,
+                                                           CriteriaBuilder builder,
+                                                           List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+            roleAssignmentList, grantTypes);
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
-                                                               final Join<TaskResource,
-                                                               TaskRoleResource> taskRoleResources,
-                                                               CriteriaBuilder builder,
-                                                               List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                                final Join<TaskResource,
+                                                                    TaskRoleResource> taskRoleResources,
+                                                                CriteriaBuilder builder,
+                                                                List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(STANDARD, CHALLENGED);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+            roleAssignmentList, grantTypes);
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     private static Predicate buildQueryForExcluded(Root<TaskResource> root,
-                                                  CriteriaBuilder builder,
-                                                  List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                   CriteriaBuilder builder,
+                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(EXCLUDED);
 
@@ -175,9 +188,9 @@ public final class RoleAssignmentFilter {
         List<Predicate> rolePredicates = new ArrayList<>();
         for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
             Predicate roleName = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                                               roleAssignment.getRoleName());
+                roleAssignment.getRoleName());
             final Predicate mandatoryPredicates = buildMandatoryPredicates(root, taskRoleResources,
-                                                                           builder, roleAssignment);
+                builder, roleAssignment);
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 
@@ -186,8 +199,8 @@ public final class RoleAssignmentFilter {
 
 
     private static Predicate searchByExcludedGrantType(Root<TaskResource> root,
-                                                      CriteriaBuilder builder,
-                                                      RoleAssignment roleAssignment) {
+                                                       CriteriaBuilder builder,
+                                                       RoleAssignment roleAssignment) {
         Predicate securityClassification = mapSecurityClassification(
             root, builder, roleAssignment
         );
