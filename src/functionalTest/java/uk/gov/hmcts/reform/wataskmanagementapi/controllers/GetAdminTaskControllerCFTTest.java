@@ -33,6 +33,7 @@ public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest 
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
+
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getAdminUserAuthorization("wa-ft-test-r2-");
