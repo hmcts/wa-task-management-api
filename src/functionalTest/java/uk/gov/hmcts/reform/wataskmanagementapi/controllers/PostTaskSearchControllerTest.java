@@ -65,6 +65,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
