@@ -106,24 +106,47 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
     }
 
-    public Headers getJudgeAuthorization(String emailPrefix) {
+    public TestAuthenticationCredentials getJudgeAuthorization(String emailPrefix) {
         /*
          * This user is used to create cases in ccd
          */
-        return new Headers(
+        TestAccount lawfirm = getIdamJudgeCredentials(emailPrefix);
+
+        Headers headers = new Headers(
             getJudgeAuthorizationOnly(emailPrefix),
             getServiceAuthorizationHeader()
         );
+
+        return new TestAuthenticationCredentials(lawfirm, headers);
     }
 
-    public Headers getAdminUserAuthorization(String emailPrefix) {
+    public TestAuthenticationCredentials getAdminCaseworker(String emailPrefix) {
+        /*
+         * This user is used to assign role assignments to on a per test basis.
+         * A clean up before assigning new role assignments is needed.
+         */
+        TestAccount caseworker = getIdamLawFirmCredentials(emailPrefix);
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(caseworker),
+            getServiceAuthorizationHeader()
+        );
+
+        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
+    }
+
+    public TestAuthenticationCredentials getAdminUserAuthorization(String emailPrefix) {
         /*
          * This user is used to create cases in ccd
          */
-        return new Headers(
+        TestAccount caseworker = getAdministativeCredentials(emailPrefix);
+
+        Headers authenticationHeaders = new Headers(
             getAdminUserAuthorizationOnly(emailPrefix),
             getServiceAuthorizationHeader()
         );
+        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
+
     }
 
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {

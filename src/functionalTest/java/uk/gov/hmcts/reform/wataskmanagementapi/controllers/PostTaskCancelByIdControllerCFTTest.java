@@ -46,6 +46,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
