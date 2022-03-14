@@ -32,12 +32,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissi
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -68,8 +68,6 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     private TaskManagementService taskManagementService;
     @Mock
     private CftQueryService cftQueryService;
-    @Mock
-    private SystemDateProvider systemDateProvider;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -192,8 +190,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider,
-            systemDateProvider
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {
@@ -208,16 +205,17 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     private void setInitMockForSearchByCompletableTask() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
         when(userInfo.getEmail()).thenReturn("test@test.com");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+            accessControlResponse.get().getUserInfo().getEmail())
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
@@ -225,17 +223,18 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     }
 
     private void setInitMockForSearchByCompletableTaskWithWarnings() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
         when(userInfo.getEmail()).thenReturn("test@test.com");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
 
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+            accessControlResponse.get().getUserInfo().getEmail())
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
