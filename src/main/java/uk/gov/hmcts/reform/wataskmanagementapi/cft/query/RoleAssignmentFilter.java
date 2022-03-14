@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -95,6 +96,18 @@ public final class RoleAssignmentFilter {
                 permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
             } else {
                 permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
+            }
+
+            /*
+            Avoid the hibernate n+1 issue by retrieving what we need in one query.
+            When we retrieve Tasks we will also need the TaskRoles so get them in one go.
+
+            The main search query uses findAll with pagination and so we need to exclude the join for the
+            count queries.
+            TODO May be a better way to do this, see docs.
+            */
+            if (query.getResultType() != Long.class) {
+                root.fetch(TASK_ROLE_RESOURCES, JoinType.LEFT);
             }
 
             query.distinct(true);
