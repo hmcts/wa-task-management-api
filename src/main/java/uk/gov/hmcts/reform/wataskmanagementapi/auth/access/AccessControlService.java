@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -50,4 +51,15 @@ public class AccessControlService {
             roleAssignments
         );
     }
+
+    public Optional<AccessControlResponse> getAccessControlResponse(String authToken) {
+
+        try {
+            return Optional.of(getRoles(authToken));
+        } catch (NoRoleAssignmentsFoundException e) {
+            return Optional.empty();
+        }
+
+    }
+
 }

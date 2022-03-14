@@ -22,8 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +55,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.WORK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @SuppressWarnings("checkstyle:LineLength")
 public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -99,7 +96,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     }
 
     @Test
-    public void should_return_a_401_when_the_user_did_not_have_any_roles() {
+    public void should_return_a_200_with_empty_list_when_the_user_did_not_have_any_roles() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
             new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("IA"))
@@ -111,13 +108,10 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.UNAUTHORIZED.value())
+            .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
-            .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
-            .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
-            .body("message", equalTo("User did not have sufficient permissions to perform this action"));
+            .body("total_records", equalTo(0))
+            .body("tasks.size()", equalTo(0));
     }
 
     @Test
