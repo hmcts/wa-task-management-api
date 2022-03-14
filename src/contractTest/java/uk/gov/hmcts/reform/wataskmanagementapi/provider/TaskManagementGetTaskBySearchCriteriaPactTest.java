@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Arrays.asList;
@@ -213,8 +214,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             taskManagementService,
             accessControlService,
             cftQueryService,
-            launchDarklyFeatureFlagProvider,
-            systemDateProvider
+            launchDarklyFeatureFlagProvider
         ));
 
         if (context != null) {
@@ -226,16 +226,17 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     private void setInitMockForSearchTask() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
         when(userInfo.getEmail()).thenReturn("test@test.com");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+            accessControlResponse.get().getUserInfo().getEmail())
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
@@ -243,15 +244,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+            accessControlResponse.get().getUserInfo().getEmail())
         ).thenReturn(false);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithWarnings()));
@@ -259,15 +261,16 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
 
     private void setInitMockForSearchTaskWithNoWarnings() {
-        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
         UserInfo userInfo = mock(UserInfo.class);
         when(userInfo.getUid()).thenReturn("dummyUserId");
-        when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.getUserInfo().getUid(),
-            accessControlResponse.getUserInfo().getEmail())
+            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+            accessControlResponse.get().getUserInfo().getEmail())
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
