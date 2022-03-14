@@ -45,6 +45,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -317,12 +318,12 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             .thenReturn(List.of(createTaskResource()));
 
         mockMvc.perform(
-            post("/task/search-for-completable")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .content(asJsonString(searchEventAndCase))
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andExpect(status().isOk())
             .andExpect(jsonPath("tasks[0].permissions.values").isEmpty())
             .andExpect(jsonPath("tasks.size()").value(1));
@@ -331,6 +332,30 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             .evaluateDMN(any(), any(), any());
         verify(taskResourceRepository, times(1))
             .findAll(any());
+    }
+
+    @Test
+    void should_return_a_200_with_empty_list_when_the_user_did_not_have_any_roles() throws Exception {
+
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(emptyList()));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(idamWebApi.userInfo(any())).thenReturn(userInfo);
+        
+        mockMvc.perform(
+                post("/task/search-for-completable")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchEventAndCase))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(0));
+
     }
 
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
