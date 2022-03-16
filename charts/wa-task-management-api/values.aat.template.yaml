@@ -4,5 +4,5 @@ java:
   ingressHost: ${SERVICE_FQDN}
   memoryRequests: "512Mi"
   cpuRequests: "2500m"
-  memoryLimits: "2Gi"
+  memoryLimits: "3Gi"
   cpuLimits: "2500m"
