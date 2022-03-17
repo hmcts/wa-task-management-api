@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -97,7 +96,7 @@ public final class RoleAssignmentFilter {
             } else {
                 permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
             }
-            
+
             query.distinct(true);
 
             return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
