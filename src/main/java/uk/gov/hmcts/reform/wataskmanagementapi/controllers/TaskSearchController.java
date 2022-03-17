@@ -1,17 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -25,13 +25,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.ArrayList;
@@ -41,9 +38,9 @@ import javax.validation.Valid;
 import javax.validation.constraints.Min;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.READ;
@@ -60,7 +57,6 @@ public class TaskSearchController extends BaseController {
     private final AccessControlService accessControlService;
     private final CftQueryService cftQueryService;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    private final SystemDateProvider systemDateProvider;
 
     @Value("${config.search.defaultMaxResults}")
     private int defaultMaxResults;
@@ -70,25 +66,24 @@ public class TaskSearchController extends BaseController {
     public TaskSearchController(TaskManagementService taskManagementService,
                                 AccessControlService accessControlService,
                                 CftQueryService cftQueryService,
-                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
-                                SystemDateProvider systemDateProvider
+                                LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider
     ) {
         super();
         this.taskManagementService = taskManagementService;
         this.accessControlService = accessControlService;
         this.cftQueryService = cftQueryService;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
-        this.systemDateProvider = systemDateProvider;
     }
 
-    @ApiOperation("Retrieve a list of Task resources identified by set of search criteria.")
-    @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTasksResponse.class),
-        @ApiResponse(code = 400, message = BAD_REQUEST),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+    @Operation(description = "Retrieve a list of Task resources identified by set of search criteria.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = OK, content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = GetTasksResponse.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @PostMapping
     public ResponseEntity<GetTasksResponse<Task>> searchWithCriteria(
@@ -105,7 +100,20 @@ public class TaskSearchController extends BaseController {
             return ResponseEntity.badRequest().build();
         }
 
-        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
+        GetTasksResponse<Task> response;
+
+        Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService
+            .getAccessControlResponse(authToken);
+        if (optionalAccessControlResponse.isEmpty()) {
+            LOG.warn("No role assignments found");
+            response = new GetTasksResponse<>(emptyList(), 0);
+            return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.noCache())
+                .body(response);
+        }
+        AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
+
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
@@ -117,7 +125,7 @@ public class TaskSearchController extends BaseController {
             //Release 2
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(READ);
-            GetTasksResponse<Task> tasksResponse = cftQueryService.searchForTasks(
+            response = cftQueryService.searchForTasks(
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchTaskRequest,
@@ -128,7 +136,7 @@ public class TaskSearchController extends BaseController {
             return ResponseEntity
                 .ok()
                 .cacheControl(CacheControl.noCache())
-                .body(tasksResponse);
+                .body(response);
         } else {
             //Release 1
             List<Task> tasks = taskManagementService.searchWithCriteria(
@@ -154,32 +162,42 @@ public class TaskSearchController extends BaseController {
     }
 
 
-    @ApiOperation("Retrieve a list of Task resources identified by set of search"
-                  + " criteria that are eligible for automatic completion")
+    @Operation(description = "Retrieve a list of Task resources identified by set of search"
+                             + " criteria that are eligible for automatic completion")
     @ApiResponses({
-        @ApiResponse(code = 200, message = OK, response = GetTasksCompletableResponse.class),
-        @ApiResponse(code = 401, message = UNAUTHORIZED),
-        @ApiResponse(code = 403, message = FORBIDDEN),
-        @ApiResponse(code = 415, message = UNSUPPORTED_MEDIA_TYPE),
-        @ApiResponse(code = 500, message = INTERNAL_SERVER_ERROR)
+        @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
+            schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
+        @ApiResponse(responseCode = "401", description = UNAUTHORIZED),
+        @ApiResponse(responseCode = "403", description = FORBIDDEN),
+        @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
+        @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })
     @PostMapping(path = "/search-for-completable")
     public ResponseEntity<GetTasksCompletableResponse<Task>> searchWithCriteriaForAutomaticCompletion(
         @RequestHeader("Authorization") String authToken,
         @RequestBody SearchEventAndCase searchEventAndCase) {
-        log.info("RWA-1172 searchEventAndCase: {}", searchEventAndCase);
 
-        AccessControlResponse accessControlResponse = accessControlService.getRoles(authToken);
-        log.info("RWA-1172 accessControlResponse: {}", accessControlResponse);
+        GetTasksCompletableResponse<Task> response;
+        Optional<AccessControlResponse> optionalAccessControlResponse = accessControlService
+            .getAccessControlResponse(authToken);
+
+        if (optionalAccessControlResponse.isEmpty()) {
+            LOG.warn("No role assignments found");
+            response = new GetTasksCompletableResponse<>(false, emptyList());
+            return ResponseEntity
+                .ok()
+                .cacheControl(CacheControl.noCache())
+                .body(response);
+        }
+
+        AccessControlResponse accessControlResponse = optionalAccessControlResponse.get();
 
         boolean isFeatureEnabled = launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_TASK_QUERY,
             accessControlResponse.getUserInfo().getUid(),
             accessControlResponse.getUserInfo().getEmail()
         );
-        log.info("RWA-1172 isFeatureEnabled: {}", isFeatureEnabled);
-        
-        GetTasksCompletableResponse<Task> response;
+
         if (isFeatureEnabled) {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
             response = cftQueryService.searchForCompletableTasks(
@@ -199,15 +217,4 @@ public class TaskSearchController extends BaseController {
             .body(response);
     }
 
-    @ExceptionHandler(NoRoleAssignmentsFoundException.class)
-    public ResponseEntity<ErrorMessage> handleNoRoleAssignmentsException(Exception ex) {
-        LOG.warn("No role assignments found");
-        return status(HttpStatus.UNAUTHORIZED)
-            .cacheControl(CacheControl.noCache())
-            .body(new ErrorMessage(
-                ex,
-                HttpStatus.UNAUTHORIZED,
-                systemDateProvider.nowWithTime()
-            ));
-    }
 }

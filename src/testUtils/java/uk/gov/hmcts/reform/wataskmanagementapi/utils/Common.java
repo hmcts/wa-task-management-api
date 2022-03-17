@@ -446,12 +446,6 @@ public class Common {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324",
-            "region", "1",
-            "caseType", "Asylum",
-            "jurisdiction", "IA"
-        );
 
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
@@ -472,6 +466,12 @@ public class Common {
             "ORGANISATION"
         );
 
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "region", "1",
+            "caseType", "WaCaseType",
+            "jurisdiction", "WA"
+        );
         postRoleAssignment(
             null,
             headers.getValue(AUTHORIZATION),

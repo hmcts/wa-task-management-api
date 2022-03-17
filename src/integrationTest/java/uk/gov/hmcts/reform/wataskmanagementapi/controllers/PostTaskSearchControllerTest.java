@@ -328,17 +328,17 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
                     .content("{")
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
             )
-            .andExpect(
-                ResultMatcher.matchAll(
-                    status().isBadRequest(),
-                    content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                    jsonPath("$.type")
-                        .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
-                    jsonPath("$.title").value("Bad Request"),
-                    jsonPath("$.status").value(400),
-                    jsonPath("$.detail")
-                        .value("Unexpected end-of-input: expected close marker for Object "
-                               + "(start marker at [Source: (PushbackInputStream); line: 1, column: 1])")));
+            .andExpectAll(
+                status().isBadRequest(),
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                jsonPath("$.title").value("Bad Request"),
+                jsonPath("$.status").value(400),
+                jsonPath("$.detail")
+                    .value("Unexpected end-of-input: expected close marker for Object "
+                           + "(start marker at [Source: (org.springframework."
+                           + "util.StreamUtils$NonClosingInputStream); line: 1, column: 1])"));
     }
 
     @Test
@@ -1073,7 +1073,35 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    @Test
+    void should_return_a_200_with_empty_list_when_the_user_did_not_have_any_roles() throws Exception {
 
+        UserInfo userInfo = mockServices.mockUserInfo();
+
+        when(roleAssignmentServiceApi.getRolesForUser(
+            any(), any(), any()
+        )).thenReturn(new RoleAssignmentResource(emptyList()));
+
+        when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
+        when(idamWebApi.userInfo(any())).thenReturn(userInfo);
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, IN, singletonList("IA")),
+            new SearchParameterList(WORK_TYPE, IN, singletonList("access_requests"))
+        ));
+        mockMvc.perform(
+                post("/task")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .content(asJsonString(searchTaskRequest))
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("tasks.size()").value(0))
+            .andExpect(jsonPath("total_records").value(0));
+
+    }
+    
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                              String jurisdiction,
                                                              String taskId) {

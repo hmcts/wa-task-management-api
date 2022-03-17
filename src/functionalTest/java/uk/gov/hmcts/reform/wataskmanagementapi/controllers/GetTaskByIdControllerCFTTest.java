@@ -71,6 +71,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
@@ -150,7 +151,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", is(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("decision_making_work"))
-            .body("task.permissions.values.size()",  equalTo(3))
+            .body("task.permissions.values.size()", equalTo(3))
             .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
@@ -228,7 +229,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
+        initiateTaskWithWarnings(taskVariables, "reviewTheAppeal");
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -249,8 +250,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.warnings", is(true))
-            .body("task.permissions.values.size()",  equalTo(3))
-            .body("task.permissions.values", hasItems("Read","Refer","Own"));
+            .body("task.permissions.values.size()", equalTo(3))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -270,7 +271,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
+        initiateTaskWithWarnings(taskVariables, "reviewTheAppeal");
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
@@ -311,7 +312,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values.size()",  equalTo(3))
+            .body("task.permissions.values.size()", equalTo(3))
             .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
@@ -396,7 +397,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables = common.setupTaskWithWarningsAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
 
-        initiateTaskWithWarnings(taskVariables,"reviewTheAppeal");
+        initiateTaskWithWarnings(taskVariables, "reviewTheAppeal");
 
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             caseworkerCredentials.getHeaders(),
