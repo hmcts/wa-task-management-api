@@ -54,12 +54,7 @@ public class AuthorizationProvider {
     }
 
     public Header getServiceAuthorizationHeader() {
-        String serviceToken = tokens.computeIfAbsent(
-            SERVICE_AUTHORIZATION,
-            user -> serviceAuthTokenGenerator.generate()
-        );
-
-        return new Header(SERVICE_AUTHORIZATION, serviceToken);
+        return new Header(SERVICE_AUTHORIZATION, serviceAuthTokenGenerator.generate());
     }
 
     public TestAuthenticationCredentials getNewTribunalCaseworker(String emailPrefix) {
