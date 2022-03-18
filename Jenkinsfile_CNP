@@ -60,6 +60,9 @@ withPipeline(type, product, component) {
     env.PACT_BROKER_SCHEME = "https"
     env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
 
+    after('checkout') {
+      sh 'date'
+    }
     after('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
@@ -94,6 +97,7 @@ withPipeline(type, product, component) {
     }
 
     onPR() {
+        enableCleanupOfHelmReleaseOnSuccess()
         enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
 

@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
@@ -11,8 +11,8 @@ import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
-@ApiModel(
-    value = "NotesRequest",
+@Schema(
+    name = "NotesRequest",
     description = "Request containing a list of notes "
 )
 @EqualsAndHashCode

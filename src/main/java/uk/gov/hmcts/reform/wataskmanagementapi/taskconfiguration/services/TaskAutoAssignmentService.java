@@ -118,19 +118,47 @@ public class TaskAutoAssignmentService {
 
         List<RoleAssignment> orderedRoleAssignments = orderRoleAssignments(rolesList, roleAssignments);
         return orderedRoleAssignments.stream()
-            .filter(roleAssignment -> {
-                TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
-                if (taskRoleResource == null
-                    || taskRoleResource.getAuthorizations() == null
-                    || taskRoleResource.getAuthorizations().length == 0) {
-                    return false;
-                } else if (roleAssignment.getAuthorisations() == null
-                           || roleAssignment.getAuthorisations().isEmpty()) {
-                    return false;
-                } else {
-                    return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
-                }
-            }).findFirst();
+            .filter(roleAssignment -> isRoleAssignmentValid(taskResource, roleResourceMap, roleAssignment)).findFirst();
+    }
+
+    private boolean isRoleAssignmentValid(TaskResource taskResource, Map<String,
+                                            TaskRoleResource> roleResourceMap, RoleAssignment roleAssignment) {
+        final TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
+
+        if (hasTaskBeenAssigned(taskResource, taskRoleResource)) {
+            return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
+        } else if (isTaskRoleAutoAssignableWithNullOrEmptyAuthorisations(taskRoleResource)) {
+            return true;
+        } else if (isTaskRoleNotAutoAssignableOrAuthorisationsNotMatching(roleAssignment, taskRoleResource)) {
+            return false;
+        } else {
+            return findMatchingRoleAssignment(taskRoleResource, roleAssignment);
+        }
+    }
+
+    private boolean isTaskRoleNotAutoAssignableOrAuthorisationsNotMatching(RoleAssignment roleAssignment,
+                                                                           TaskRoleResource taskRoleResource) {
+        return !taskRoleResource.getAutoAssignable()
+               || taskRoleResource.getAutoAssignable()
+                  && isAuthorisationsValid(taskRoleResource)
+                  && !findMatchingRoleAssignment(taskRoleResource, roleAssignment);
+    }
+
+    private boolean isTaskRoleAutoAssignableWithNullOrEmptyAuthorisations(TaskRoleResource taskRoleResource) {
+        return taskRoleResource.getAutoAssignable()
+               && (!isAuthorisationsValid(taskRoleResource)
+                   || taskRoleResource.getAuthorizations() == null);
+    }
+
+    private boolean hasTaskBeenAssigned(TaskResource taskResource, TaskRoleResource taskRoleResource) {
+        return !taskRoleResource.getAutoAssignable()
+            && taskResource.getAssignee() != null
+            && isAuthorisationsValid(taskRoleResource);
+    }
+
+    private boolean isAuthorisationsValid(TaskRoleResource taskRoleResource) {
+        return  taskRoleResource.getAuthorizations() != null
+                && taskRoleResource.getAuthorizations().length > 0;
     }
 
     private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {
@@ -138,7 +166,9 @@ public class TaskAutoAssignmentService {
         Stream.of(taskRoleResource.getAuthorizations())
             .forEach(auth -> {
                 //Safe-guard
-                if (!hasMatch.get() && roleAssignment.getAuthorisations().contains(auth)) {
+                if (!hasMatch.get()
+                    && roleAssignment.getAuthorisations() != null
+                    && roleAssignment.getAuthorisations().contains(auth)) {
                     hasMatch.set(true);
                 }
             });

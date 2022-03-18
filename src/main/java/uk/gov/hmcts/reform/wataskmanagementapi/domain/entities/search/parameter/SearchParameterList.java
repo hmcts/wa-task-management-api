@@ -1,8 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
@@ -11,8 +10,8 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-@ApiModel(
-    value = "SearchParameter",
+@Schema(
+    name = "SearchParameter",
     description = "Search parameter containing the key, operator and a list of values"
 )
 @EqualsAndHashCode
@@ -20,7 +19,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class SearchParameterList implements SearchParameter<List<String>> {
 
-    @ApiModelProperty(
+    @Schema(
         required = true,
         allowableValues = "location, user, jurisdiction, state, taskId, taskType, caseId, work_type, role_category",
         example = "user")
@@ -29,10 +28,10 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     )
     private final SearchParameterKey key;
 
-    @ApiModelProperty(allowableValues = "IN", example = "IN")
+    @Schema(allowableValues = "IN", example = "IN")
     private final SearchOperator operator;
 
-    @ApiModelProperty(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", allowEmptyValue = false)
+    @Schema(required = true, example = "[\"998db99b-08aa-43d4-bc6b-0aabbb0e3c6f\"]", nullable = true)
     @NotNull(
         message = "Each search_parameter element must have 'key', 'values' and 'operator' fields present and populated."
     )

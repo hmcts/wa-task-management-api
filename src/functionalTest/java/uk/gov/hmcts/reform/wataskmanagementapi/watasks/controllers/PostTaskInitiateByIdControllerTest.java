@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     @Before
     public void setUp() {
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2");
+    }
+
+    @After
+    public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test

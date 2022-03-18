@@ -739,6 +739,11 @@ public class TaskManagementService {
                 //Keep old assignee from skeleton task and change state
                 taskResource.setState(CFTTaskState.ASSIGNED);
             } else {
+                log.info("Task '{}' has an invalid assignee, unassign it before auto-assigning.", taskId);
+                if (taskResource.getAssignee() != null) {
+                    taskResource.setAssignee(null);
+                    taskResource.setState(CFTTaskState.UNASSIGNED);
+                }
                 log.info("Task '{}' did not have previous assignee or was invalid, attempting to auto-assign.", taskId);
                 //Otherwise attempt auto-assignment
                 taskResource = taskAutoAssignmentService.autoAssignCFTTask(taskResource);

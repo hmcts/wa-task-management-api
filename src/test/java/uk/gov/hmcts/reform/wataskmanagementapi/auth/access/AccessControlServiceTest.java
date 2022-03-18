@@ -13,11 +13,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 
 import java.util.Collections;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -114,4 +116,76 @@ class AccessControlServiceTest {
             .isEqualTo(expectedAccessResponse);
 
     }
+
+    @Test
+    void should_succeed_and_return_access_control_response() {
+
+        final RoleAssignment mockedRoleAssignments = mock(RoleAssignment.class);
+        final UserInfo mockedUserInfo = mock(UserInfo.class);
+        final String idamToken = "someToken";
+
+        when(idamService.getUserInfo(idamToken))
+            .thenReturn(mockedUserInfo);
+
+        when(roleAssignmentService.getRolesForUser(mockedUserInfo.getUid(), idamToken))
+            .thenReturn(Collections.singletonList(mockedRoleAssignments));
+
+        Optional<AccessControlResponse> result = accessControlService.getAccessControlResponse(idamToken);
+
+        assertTrue(result.isPresent());
+        assertEquals(mockedUserInfo, result.get().getUserInfo());
+        assertEquals(mockedRoleAssignments, result.get().getRoleAssignments().get(0));
+
+        verify(idamService, times(1)).getUserInfo(idamToken);
+        verifyNoMoreInteractions(idamService);
+
+        verify(roleAssignmentService, times(1)).getRolesForUser(mockedUserInfo.getUid(), idamToken);
+        verifyNoMoreInteractions(roleAssignmentService);
+    }
+
+    @Test
+    void should_return_optional_empty_when_no_role_assignment_found() {
+
+        final UserInfo mockedUserInfo = mock(UserInfo.class);
+        final String idamToken = "someToken";
+
+        when(idamService.getUserInfo(idamToken))
+            .thenReturn(mockedUserInfo);
+
+        when(roleAssignmentService.getRolesForUser(mockedUserInfo.getUid(), idamToken))
+            .thenReturn(Collections.emptyList());
+
+        Optional<AccessControlResponse> result = accessControlService.getAccessControlResponse(idamToken);
+
+        assertTrue(result.isEmpty());
+        assertEquals(Optional.empty(), result);
+        verify(idamService, times(1)).getUserInfo(idamToken);
+        verifyNoMoreInteractions(idamService);
+
+        verify(roleAssignmentService, times(1)).getRolesForUser(mockedUserInfo.getUid(), idamToken);
+        verifyNoMoreInteractions(roleAssignmentService);
+    }
+
+    @Test
+    void should_return_optional_empty_when_thrown_NoRoleAssignmentsFoundException() {
+
+        final UserInfo mockedUserInfo = mock(UserInfo.class);
+        final String idamToken = "someToken";
+
+        when(idamService.getUserInfo(idamToken))
+            .thenReturn(mockedUserInfo);
+
+        when(roleAssignmentService.getRolesForUser(mockedUserInfo.getUid(), idamToken))
+            .thenReturn(Collections.emptyList());
+        
+        Optional<AccessControlResponse> result = accessControlService.getAccessControlResponse(idamToken);
+
+        assertEquals(Optional.empty(), result);
+
+        assertThrows(
+            NoRoleAssignmentsFoundException.class,
+            () -> accessControlService.getRoles(idamToken)
+        );
+    }
+
 }
