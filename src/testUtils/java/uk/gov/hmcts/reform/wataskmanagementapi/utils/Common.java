@@ -695,12 +695,6 @@ public class Common {
     public void setupRestrictedRoleAssignment(String caseId, Headers headers) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-
-        Map<String, String> attributes = Map.of(
-            "jurisdiction", "IA",
-            "primaryLocation", "765324"
-        );
-
         //Clean/Reset user
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
@@ -769,13 +763,45 @@ public class Common {
     public void setupRestrictedRoleAssignmentForWA(String caseId, Headers headers) {
 
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
 
-        Map<String, String> attributes = Map.of(
-            "primaryLocation", "765324"
+        log.info("Creating case allocator organizational Role");
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "case-allocator",
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "WA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
+        );
+        log.info("Creating task supervisor organizational Role");
+
+        postRoleAssignment(
+            null,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo,
+            "task-supervisor",
+            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", "WA")),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS",
+            toJsonString(List.of()),
+            "ORGANISATION"
         );
 
-        //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        Map<String, String> attributes = Map.of(
+            "primaryLocation", "765324",
+            "jurisdiction", "WA",
+            "caseId", caseId,
+            "caseType", "WaCaseType"
+        );
 
         //Creates an organizational role for jurisdiction WA
         log.info("Creating Organizational Role");
@@ -801,12 +827,12 @@ public class Common {
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "tribunal-caseworker",
-            null,
-            "requests/roleAssignment/set-restricted-role-assignment-request.json",
-            "SPECIFIC",
-            "LEGAL_OPERATIONS",
+            toJsonString(attributes),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            GrantType.SPECIFIC.name(),
+            RoleCategory.LEGAL_OPERATIONS.name(),
             toJsonString(List.of()),
-            "ORGANISATION"
+            CASE.name()
         );
     }
 

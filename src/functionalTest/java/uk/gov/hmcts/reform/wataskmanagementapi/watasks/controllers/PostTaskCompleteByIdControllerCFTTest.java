@@ -261,7 +261,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             authenticationHeaders,
             Map.of(
-                "primaryLocation", "765324"
+                "primaryLocation", "765324",
+                "jurisdiction", "WA"
             )
         );
 
@@ -571,7 +572,8 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
             authenticationHeaders,
             Map.of(
-                "primaryLocation", "765324"
+                "primaryLocation", "765324",
+                "jurisdiction", "WA"
             )
         );
 
