@@ -18,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -68,8 +67,9 @@ public final class RoleAssignmentFilter {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
             // filter roles which are active.
-            final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
-                .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+            final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+                .stream().filter(r -> hasBeginTimePermission(r) && hasEndTimePermission(r))
+                .collect(Collectors.toList());
 
             // builds query for grant type BASIC, SPECIFIC
             final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
@@ -108,58 +108,61 @@ public final class RoleAssignmentFilter {
 
         return (root, query, builder) -> {
             // filter roles which are active.
-            final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
-                .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+            final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+                .stream()
+                .filter(r -> hasBeginTimePermission(r) && hasEndTimePermission(r))
+                .collect(Collectors.toList());
 
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
             List<Predicate> rolePredicates = new ArrayList<>();
-            for (Optional<RoleAssignment> roleAssignment : activeRoleAssignments) {
+            for (RoleAssignment roleAssignment : activeRoleAssignments) {
+                Predicate rolePredicate = builder.equal(
+                    taskRoleResources.get(ROLE_NAME_COLUMN),
+                    roleAssignment.getRoleName()
+                );
 
-                if (roleAssignment.isPresent()) {
-                    Predicate rolePredicate = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                                                            roleAssignment.get().getRoleName());
-
-                    rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
-                }
+                rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
             }
             return builder.or(rolePredicates.toArray(new Predicate[0]));
         };
     }
 
     private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
-                                                          final Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                          CriteriaBuilder builder,
-                                                          List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                           final Join<TaskResource, TaskRoleResource> taskRoleResources,
+                                                           CriteriaBuilder builder,
+                                                           List<RoleAssignment> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+                                                         roleAssignmentList, grantTypes
+        );
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
-                                                               final Join<TaskResource,
-                                                               TaskRoleResource> taskRoleResources,
-                                                               CriteriaBuilder builder,
-                                                               List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                                final Join<TaskResource,
+                                                                    TaskRoleResource> taskRoleResources,
+                                                                CriteriaBuilder builder,
+                                                                List<RoleAssignment> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(STANDARD, CHALLENGED);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+                                                         roleAssignmentList, grantTypes
+        );
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     private static Predicate buildQueryForExcluded(Root<TaskResource> root,
-                                                  CriteriaBuilder builder,
-                                                  List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                   CriteriaBuilder builder,
+                                                   List<RoleAssignment> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(EXCLUDED);
 
         final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
-            .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
+            .filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
         List<Predicate> rolePredicates = new ArrayList<>();
         for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
             rolePredicates.add(searchByExcludedGrantType(root, builder, roleAssignment));
@@ -169,18 +172,21 @@ public final class RoleAssignmentFilter {
     }
 
     private static List<Predicate> buildPredicates(Root<TaskResource> root, Join<TaskResource,
-        TaskRoleResource> taskRoleResources, CriteriaBuilder builder, List<Optional<RoleAssignment>> roleAssignmentList,
+        TaskRoleResource> taskRoleResources, CriteriaBuilder builder, List<RoleAssignment> roleAssignmentList,
                                                    Set<GrantType> grantTypes) {
 
         final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
-            .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
+            .filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
 
         List<Predicate> rolePredicates = new ArrayList<>();
         for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
-            Predicate roleName = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                                               roleAssignment.getRoleName());
+            Predicate roleName = builder.equal(
+                taskRoleResources.get(ROLE_NAME_COLUMN),
+                roleAssignment.getRoleName()
+            );
             final Predicate mandatoryPredicates = buildMandatoryPredicates(root, taskRoleResources,
-                                                                           builder, roleAssignment);
+                                                                           builder, roleAssignment
+            );
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 
@@ -189,8 +195,8 @@ public final class RoleAssignmentFilter {
 
 
     private static Predicate searchByExcludedGrantType(Root<TaskResource> root,
-                                                      CriteriaBuilder builder,
-                                                      RoleAssignment roleAssignment) {
+                                                       CriteriaBuilder builder,
+                                                       RoleAssignment roleAssignment) {
         Predicate securityClassification = mapSecurityClassification(
             root, builder, roleAssignment
         );
@@ -216,7 +222,8 @@ public final class RoleAssignmentFilter {
             Predicate caseId = searchByIncludingCaseId(root, builder, roleAssignment);
 
             return builder.and(securityClassification, authorizations, jurisdiction,
-                location, region, caseTypeId, caseId);
+                               location, region, caseTypeId, caseId
+            );
         }
         return builder.and(securityClassification, authorizations);
     }
@@ -332,13 +339,6 @@ public final class RoleAssignmentFilter {
             return builder.equal(root.get(LOCATION_COLUMN), locationVal);
         }
         return builder.conjunction();
-    }
-
-    private static Optional<RoleAssignment> filterByActiveRole(RoleAssignment roleAssignment) {
-        if (hasBeginTimePermission(roleAssignment) && hasEndTimePermission(roleAssignment)) {
-            return Optional.of(roleAssignment);
-        }
-        return Optional.empty();
     }
 
     private static boolean hasEndTimePermission(RoleAssignment roleAssignment) {
