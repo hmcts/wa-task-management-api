@@ -39,7 +39,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 
 @Slf4j
-public class PostUpdateTaskWithNotesControllerTest extends SpringBootFunctionalBaseTest {
+public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/notes";
