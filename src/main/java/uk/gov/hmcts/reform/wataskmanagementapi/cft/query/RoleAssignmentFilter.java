@@ -115,10 +115,13 @@ public final class RoleAssignmentFilter {
 
             List<Predicate> rolePredicates = new ArrayList<>();
             for (Optional<RoleAssignment> roleAssignment : activeRoleAssignments) {
-                Predicate rolePredicate = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                    roleAssignment.get().getRoleName());
 
-                rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
+                if (roleAssignment.isPresent()) {
+                    Predicate rolePredicate = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
+                                                            roleAssignment.get().getRoleName());
+
+                    rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
+                }
             }
             return builder.or(rolePredicates.toArray(new Predicate[0]));
         };
