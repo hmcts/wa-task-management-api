@@ -22,7 +22,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-public class GetTaskByIdRolePermissionsTest extends SpringBootFunctionalBaseTest {
+public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/roles";
     private TestAuthenticationCredentials caseworkerCredentials;

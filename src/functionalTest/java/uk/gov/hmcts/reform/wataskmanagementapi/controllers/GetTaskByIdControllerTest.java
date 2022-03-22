@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -70,6 +72,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             )));
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -122,6 +125,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
@@ -269,6 +273,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
