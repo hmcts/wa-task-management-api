@@ -170,9 +170,6 @@ public class GivensBuilder {
                         authorizationProvider.getServiceAuthorizationHeader()
                     );
 
-                    log.info("response status {}", result.statusCode());
-                    log.info("response body {}", result.body());
-                    
                     result.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
                         .contentType(APPLICATION_JSON_VALUE)
