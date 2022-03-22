@@ -35,8 +35,8 @@ module "wa_task_management_api_database" {
   postgresql_user    = "${var.postgresql_user}"
   postgresql_version = "11"
   common_tags        = "${merge(var.common_tags, map("lastUpdated", "${timestamp()}"))}"
-  subscription       = "${var.subscription}",
-  sku_capacity       = "${var.database_sku_capacity}",
+  subscription       = "${var.subscription}"
+  sku_capacity       = "${var.database_sku_capacity}"
   sku_name           = "${var.database_sku_name}"
 }
 
