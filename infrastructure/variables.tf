@@ -31,3 +31,10 @@ variable "postgresql_user" {
   default = "wa_wa"
 }
 
+variable "database_sku_name" {
+  default = "GP_Gen5_4"
+}
+
+variable "database_sku_capacity" {
+  default = "4"
+}
