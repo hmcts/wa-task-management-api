@@ -16,7 +16,7 @@ data "azurerm_key_vault" "s2s_key_vault" {
 
 data "azurerm_key_vault_secret" "s2s_secret" {
   key_vault_id = data.azurerm_key_vault.s2s_key_vault.id
-  name        = "microservicekey-wa-task-management-api"
+  name         = "microservicekey-wa-task-management-api"
 }
 
 resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
@@ -36,6 +36,8 @@ module "wa_task_management_api_database" {
   postgresql_version = "11"
   common_tags        = "${merge(var.common_tags, map("lastUpdated", "${timestamp()}"))}"
   subscription       = "${var.subscription}"
+  sku_capacity       = "${var.database_sku_capacity}"
+  sku_name           = "${var.database_sku_name}"
 }
 
 
