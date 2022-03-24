@@ -1,4 +1,6 @@
-variable "product" {}
+variable "product" {
+  default = "wa"
+}
 
 variable "component" {}
 
