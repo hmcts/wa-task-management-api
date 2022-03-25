@@ -730,6 +730,93 @@ class CFTTaskMapperTest {
     }
 
     @Test
+    void should_map_task_resource_to_task_when_security_classification_not_exists() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes =
+            getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        taskResource.setSecurityClassification(null);
+
+        Set<PermissionTypes> permissionsUnion = new HashSet<>(
+            asList(PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.REFER)
+        );
+        Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
+
+
+        assertNull(task.getSecurityClassification());
+
+        AssertionsForClassTypes.assertThatThrownBy(() -> taskResource.getSecurityClassification()
+                .getSecurityClassification())
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void should_map_task_resource_to_task_when_task_system_not_exists() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes =
+            getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        taskResource.setTaskSystem(null);
+
+        Set<PermissionTypes> permissionsUnion = new HashSet<>(
+            asList(PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.REFER)
+        );
+        Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
+        assertNull(task.getTaskSystem());
+
+        AssertionsForClassTypes.assertThatThrownBy(() -> taskResource.getTaskSystem().getValue())
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void should_map_task_resource_to_task_when_execution_type_code_not_exists() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> attributes =
+            getDefaultAttributesWithoutWithWorkType(formattedCreatedDate, formattedDueDate);
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
+        taskResource.setExecutionTypeCode(null);
+
+        Set<PermissionTypes> permissionsUnion = new HashSet<>(
+            asList(PermissionTypes.READ,
+                PermissionTypes.OWN,
+                PermissionTypes.MANAGE,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.CANCEL,
+                PermissionTypes.REFER)
+        );
+        Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnion);
+        assertNull(task.getExecutionType());
+
+        AssertionsForClassTypes.assertThatThrownBy(() -> taskResource.getExecutionTypeCode().getExecutionCode())
+            .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
     void should_throw_exception_when_map_task_resource_to_task_and_due_date_is_null() {
         List<TaskAttribute> attributes = getDefaultAttributesWithoutDueDate();
 
