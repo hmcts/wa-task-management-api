@@ -101,7 +101,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(APPLICATION_JSON_VALUE)
-                .body("task_required_for_event", is(not(scenario.taskRequiredForEvent)))
+                .body("task_required_for_event", is(false))
                 .body("tasks.size()", equalTo(1))
                 .body("tasks[0].permissions.values.size()", equalTo(5))
                 .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
