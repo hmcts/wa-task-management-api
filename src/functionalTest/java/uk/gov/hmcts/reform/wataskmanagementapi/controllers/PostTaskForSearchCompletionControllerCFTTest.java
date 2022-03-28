@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -100,10 +101,10 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             result.then().assertThat()
                 .statusCode(HttpStatus.OK.value())
                 .contentType(APPLICATION_JSON_VALUE)
-                .body("task_required_for_event", is(scenario.taskRequiredForEvent))
+                .body("task_required_for_event", is(not(scenario.taskRequiredForEvent)))
                 .body("tasks.size()", equalTo(1))
-                .body("tasks[0].permissions.values.size()", equalTo(3))
-                .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"))
+                .body("tasks[0].permissions.values.size()", equalTo(5))
+                .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
                 .body("tasks[0].work_type_id", equalTo(scenario.workTypeId))
                 .body("tasks[0].role_category", equalTo(scenario.roleCategory));
@@ -216,8 +217,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .contentType(APPLICATION_JSON_VALUE)
             .body("task_required_for_event ", is(false))
             .body("tasks.size()", equalTo(1))
-            .body("tasks[0].permissions.values.size()", equalTo(3))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("tasks[0].permissions.values.size()", equalTo(5))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("tasks[0].id", equalTo(taskId2));
 
         common.cleanUpTask(taskId1);
@@ -264,8 +265,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].type", equalTo("reviewTheAppeal"))
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
-            .body("tasks[0].permissions.values.size()", equalTo(3))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("tasks[0].permissions.values.size()", equalTo(5))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("tasks[0].description", equalTo(
                 "[Request respondent evidence](/case/IA/Asylum/${[CASE_REFERENCE]}/trigger/requestRespondentEvidence)"
             ))
@@ -333,8 +334,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].role_category", equalTo("LEGAL_OPERATIONS"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(false))
-            .body("tasks[0].permissions.values.size()", equalTo(3))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"));
+            .body("tasks[0].permissions.values.size()", equalTo(5))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "tasks[0].warning_list.values");
@@ -404,8 +405,8 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
             .body("tasks[0].jurisdiction", equalTo("IA"))
             .body("tasks[0].case_type_id", equalTo("Asylum"))
             .body("tasks[0].warnings", is(true))
-            .body("tasks[0].permissions.values.size()", equalTo(3))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"));
+            .body("tasks[0].permissions.values.size()", equalTo(5))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
 
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
