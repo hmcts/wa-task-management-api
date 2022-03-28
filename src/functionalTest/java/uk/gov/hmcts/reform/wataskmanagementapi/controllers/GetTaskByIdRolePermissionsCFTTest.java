@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -110,32 +111,26 @@ public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseT
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
-            .body("roles.size()", equalTo(5))
+            .body("roles.size()", equalTo(4))
             .body("roles[0].role_category", is("LEGAL_OPERATIONS"))
             .body("roles[0].role_name", is("case-manager"))
-            .body("roles[0].permissions.size()",  equalTo(3))
+            .body("roles[0].permissions.size()",  equalTo(4))
             .body("roles[0].permissions", hasItems("Read", "Own", "Refer"))
             .body("roles[0].authorisations", empty())
-            .body("roles[1].role_category", is("JUDICIAL"))
-            .body("roles[1].role_name", is("judge"))
-            .body("roles[1].permissions.size()",  equalTo(3))
-            .body("roles[1].permissions", hasItems("Read", "Refer", "Execute"))
-            .body("roles[1].authorisations", hasItems("373"))
-            .body("roles[2].role_category", equalTo("LEGAL_OPERATIONS"))
-            .body("roles[2].role_name", is("senior-tribunal-caseworker"))
-            .body("roles[2].permissions.size()",  equalTo(3))
-            .body("roles[2].permissions", hasItems("Read", "Own", "Refer"))
+            .body("roles[1].role_category", is("LEGAL_OPERATIONS"))
+            .body("roles[1].role_name", is("senior-tribunal-caseworker"))
+            .body("roles[1].permissions.size()",  equalTo(5))
+            .body("roles[1].permissions", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("roles[1].authorisations", empty())
+            .body("roles[2].role_name", is("task-supervisor"))
+            .body("roles[2].permissions.size()",  equalTo(5))
+            .body("roles[2].permissions", hasItems("Read", "Refer", "Manage", "Execute", "Cancel"))
             .body("roles[2].authorisations", empty())
-            .body("roles[3].role_category", nullValue())
-            .body("roles[3].role_name", is("task-supervisor"))
-            .body("roles[3].permissions.size()",  equalTo(4))
-            .body("roles[3].permissions", hasItems("Read", "Cancel", "Manage", "Refer"))
-            .body("roles[3].authorisations", empty())
-            .body("roles[4].role_category", is("LEGAL_OPERATIONS"))
-            .body("roles[4].role_name", is("tribunal-caseworker"))
-            .body("roles[4].permissions.size()",  equalTo(3))
-            .body("roles[4].permissions", hasItems("Read", "Own", "Refer"))
-            .body("roles[4].authorisations", empty());
+            .body("roles[3].role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("roles[3].role_name", is("tribunal-caseworker"))
+            .body("roles[3].permissions.size()",  equalTo(5))
+            .body("roles[3].permissions", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("roles[3].authorisations", empty());
 
         common.cleanUpTask(taskId);
     }
