@@ -343,7 +343,7 @@ dependencies {
 
   implementation group: 'com.auth0', name: 'java-jwt', version: '3.11.0'
 
-  implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.12.0'
+  implementation group: 'com.fasterxml.jackson.module', name: 'jackson-module-paranamer', version: '2.13.2'
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.0'
   implementation group: 'org.postgresql', name: 'postgresql', version: '42.3.1'
