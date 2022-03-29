@@ -298,6 +298,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Test
     public void should_return_a_forbidden_when_unclaiming_a_task_by_id_with_different_tcw_credentials() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(ASSIGNEE, "random_uid");
