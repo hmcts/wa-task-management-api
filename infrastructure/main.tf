@@ -28,7 +28,8 @@ resource "azurerm_key_vault_secret" "s2s_secret_task_management_api" {
 //Create Database
 module "wa_task_management_api_database" {
   source             = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product            = "${var.postgres_db_component_name}-postgres-db"
+  product            = "${var.product}"
+  name               = "${var.postgres_db_component_name}-postgres-db"
   location           = "${var.location}"
   env                = "${var.env}"
   database_name      = "${var.postgresql_database_name}"
