@@ -75,12 +75,17 @@ spring:
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
   jpa:
+
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       naming:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
+        query:
+          plan_cache_max_size: 256
+          plan_cache_max_soft_references: 256
+          in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
