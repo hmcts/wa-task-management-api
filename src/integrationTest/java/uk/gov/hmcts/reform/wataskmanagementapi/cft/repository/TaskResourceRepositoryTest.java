@@ -17,12 +17,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -30,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -45,6 +45,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     private TaskResource task;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+
+    @Autowired
+    private TaskRoleResourceRepository taskRoleResourceRepository;
 
     @AfterEach
     void tearDown() {
@@ -112,18 +115,21 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_saved_when_findById_then_task_has_expected_fields() {
-        TaskResource str = createTask(taskId);
+    void given_task_is_created_when_findById_then_task_roles_and_worktypes_have_expected_values() {
 
-        final Optional<TaskResource> taskResourceOptional = taskResourceRepository.findById(str.getTaskId());
-        assertTrue(taskResourceOptional.isPresent());
+        TaskResource createdTask = createTask(taskId);
+        assertThat(createdTask.getTaskId()).isEqualTo(taskId);
 
-        TaskResource taskResource = taskResourceOptional.get();
+        final TaskResource taskResource =
+            taskResourceRepository.findById(taskId)
+                .orElseThrow(
+                    () -> new ResourceNotFoundException("Couldn't find the Task created using the id: " + taskId)
+                );
+
         WorkTypeResource workTypeResource = taskResource.getWorkTypeResource();
 
         assertEquals("routine_work", workTypeResource.getId());
         assertEquals("Routine work", workTypeResource.getLabel());
-
 
         final List<NoteResource> notes = taskResource.getNotes();
 
@@ -142,18 +148,22 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
 
-        final Set<TaskRoleResource> taskRoles = taskResource.getTaskRoleResources();
-        assertEquals(1, taskRoles.size());
+        final List<TaskRoleResource> taskRoleResources =
+            taskRoleResourceRepository.findByTaskId(createdTask.getTaskId());
 
-        final TaskRoleResource taskRole = taskRoles.iterator().next();
+        assertThat(taskRoleResources).isNotEmpty();
+        assertThat(taskRoleResources).hasSize(1);
+
+        final TaskRoleResource taskRoleResource = taskRoleResources.get(0);
+
         String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
 
         assertAll(
-            () -> assertNotNull(taskRole.getTaskRoleId()),
-            () -> assertEquals(taskId, taskRole.getTaskId()),
-            () -> assertTrue(taskRole.getRead()),
-            () -> assertEquals("tribunal-caseofficer", taskRole.getRoleName()),
-            () -> assertArrayEquals(expectedAuthorizations, taskRole.getAuthorizations())
+            () -> assertNotNull(taskRoleResource.getTaskRoleId()),
+            () -> assertEquals(taskId, taskRoleResource.getTaskId()),
+            () -> assertTrue(taskRoleResource.getRead()),
+            () -> assertEquals("tribunal-caseofficer", taskRoleResource.getRoleName()),
+            () -> assertArrayEquals(expectedAuthorizations, taskRoleResource.getAuthorizations())
         );
     }
 
