@@ -84,6 +84,7 @@ spring:
       hibernate:
         query:
           plan_cache_max_size: 256
+          plan_parameter_metadata_max_size: 64
           plan_cache_max_soft_references: 256
           in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
