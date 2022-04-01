@@ -33,12 +33,18 @@ class WorkTypeResourceSpecificationTest {
 
     private static final String COLUMN_WORK_TYPE_ID = "id";
 
-    @Mock(extraInterfaces = Serializable.class) Root<WorkTypeResource> root;
-    @Mock(extraInterfaces = Serializable.class) CriteriaBuilderImpl criteriaBuilder;
-    @Mock CriteriaBuilder.In<Object> inObject;
-    @Mock CriteriaBuilder.In<Object> values;
-    @Mock Path<Object> path;
-    @Mock CriteriaQuery<?> query;
+    @Mock(extraInterfaces = Serializable.class)
+    Root<WorkTypeResource> root;
+    @Mock(extraInterfaces = Serializable.class)
+    CriteriaBuilderImpl criteriaBuilder;
+    @Mock
+    CriteriaBuilder.In<Object> inObject;
+    @Mock
+    CriteriaBuilder.In<Object> values;
+    @Mock
+    Path<Object> path;
+    @Mock
+    CriteriaQuery<?> query;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -50,7 +56,8 @@ class WorkTypeResourceSpecificationTest {
         BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
-            Boolean.TRUE);
+            Boolean.TRUE
+        );
         lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(booleanAssertionPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
@@ -79,7 +86,7 @@ class WorkTypeResourceSpecificationTest {
 
         verify(criteriaBuilder, never()).conjunction();
         verify(root, times(1)).get(COLUMN_WORK_TYPE_ID);
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(null, "hearing_work");
     }
 
     @Test
@@ -95,7 +102,7 @@ class WorkTypeResourceSpecificationTest {
 
         verify(criteriaBuilder, never()).conjunction();
         verify(root, times(1)).get(COLUMN_WORK_TYPE_ID);
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(path, "hearing_work");
     }
 
     @Test

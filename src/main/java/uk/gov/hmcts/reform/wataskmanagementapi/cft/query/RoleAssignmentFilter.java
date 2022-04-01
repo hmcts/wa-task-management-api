@@ -239,11 +239,7 @@ public final class RoleAssignmentFilter {
         if (classification != null) {
             switch (classification) {
                 case PUBLIC:
-                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                        of(
-                            SecurityClassification.PUBLIC
-                        )
-                    );
+                    return builder.equal(root.get(SECURITY_CLASSIFICATION_COLUMN), SecurityClassification.PUBLIC);
                 case PRIVATE:
                     return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
                         of(
