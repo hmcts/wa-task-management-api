@@ -41,8 +41,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -60,6 +62,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -82,6 +85,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.zalando.problem.Status.BAD_REQUEST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
@@ -906,14 +910,14 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
 
-            when(cftQueryService.getTask(taskId,accessControlResponse,singletonList(CANCEL)))
+            when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(CANCEL)))
                 .thenReturn(Optional.of(taskResource));
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1004,9 +1008,9 @@ class TaskManagementServiceTest extends
             TaskResource taskResource = spy(TaskResource.class);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                RELEASE_2_ENDPOINTS_FEATURE,
-                IDAM_USER_ID,
-                IDAM_USER_EMAIL
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
 
@@ -1165,7 +1169,7 @@ class TaskManagementServiceTest extends
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
-            when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN, EXECUTE)))
+            when(cftQueryService.getTask(taskId, accessControlResponse, asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
 
             when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
@@ -1478,7 +1482,7 @@ class TaskManagementServiceTest extends
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
-                when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN, EXECUTE)))
+                when(cftQueryService.getTask(taskId, accessControlResponse, asList(OWN, EXECUTE)))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getState())
                     .thenReturn(CFTTaskState.COMPLETED);
@@ -1573,9 +1577,9 @@ class TaskManagementServiceTest extends
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
 
@@ -1608,15 +1612,15 @@ class TaskManagementServiceTest extends
 
                 when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                     .thenReturn(Optional.of(taskResource));
-                when(cftQueryService.getTask(taskId,accessControlResponse,asList(OWN, EXECUTE)))
+                when(cftQueryService.getTask(taskId, accessControlResponse, asList(OWN, EXECUTE)))
                     .thenReturn(Optional.of(taskResource));
                 when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
+                        RELEASE_2_ENDPOINTS_FEATURE,
+                        IDAM_USER_ID,
+                        IDAM_USER_EMAIL
                     )
                 ).thenReturn(true);
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
@@ -2793,7 +2797,15 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock("taskId"))
                 .thenReturn(Optional.empty());
 
-            final NotesRequest notesRequest = new NotesRequest(List.of());
+            final NoteResource newNoteResource = new NoteResource(
+                "Warning Code",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
 
             assertThatThrownBy(() -> taskManagementService.updateNotes("taskId", notesRequest))
                 .isInstanceOf(ResourceNotFoundException.class)
@@ -2804,6 +2816,123 @@ class TaskManagementServiceTest extends
                 .findByIdAndObtainPessimisticWriteLock("taskId");
             verify(cftTaskDatabaseService, times(0))
                 .saveTask(any());
+        }
+
+        @Test
+        void should_throw_InvalidRequestException_when_NotesRequest_is_null() {
+            NotesRequest notesRequest = null;
+
+            InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
+                taskManagementService.updateNotes("taskId", notesRequest));
+
+            assertThat(exception).isInstanceOf(InvalidRequestException.class);
+            assertNotNull(exception.getStatus());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getTitle()).isEqualTo("Bad Request");
+            assertThat(exception.getType().toString())
+                .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/bad-request");
+
+            verifyNoInteractions(cftTaskDatabaseService);
+        }
+
+        @Test
+        void should_throw_CustomConstraintViolationException_when_NoteResource_is_null() {
+            final NoteResource newNoteResource = null;
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
+
+
+            CustomConstraintViolationException exception = assertThrows(CustomConstraintViolationException.class, () ->
+                taskManagementService.updateNotes("taskId", notesRequest));
+
+            assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
+            assertNotNull(exception.getStatus());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
+            assertNotNull(exception.getViolations());
+            assertThat(exception.getViolations().size()).isEqualTo(1);
+            assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_resource");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+            assertThat(exception.getType().toString())
+                .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
+
+            verifyNoInteractions(cftTaskDatabaseService);
+        }
+
+        @Test
+        void should_throw_CustomConstraintViolationException_when_NoteResource_code_is_null_or_empty() {
+            final NoteResource newNoteResource = new NoteResource(
+                "",
+                "Warning",
+                "userId",
+                "Warning Description"
+            );
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
+
+            CustomConstraintViolationException exception = assertThrows(CustomConstraintViolationException.class, () ->
+                taskManagementService.updateNotes("taskId", notesRequest));
+
+            assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
+            assertNotNull(exception.getStatus());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
+            assertNotNull(exception.getViolations());
+            assertThat(exception.getViolations().size()).isEqualTo(1);
+            assertThat(exception.getViolations().get(0).getField()).isEqualTo("code");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+
+            verifyNoInteractions(cftTaskDatabaseService);
+        }
+
+        @Test
+        void should_throw_CustomConstraintViolationException_when_NoteResource_note_type_is_null_or_empty() {
+            final NoteResource newNoteResource = new NoteResource(
+                "code",
+                "",
+                "userId",
+                "Warning Description"
+            );
+            List<NoteResource> newNotes = new ArrayList<>();
+            newNotes.add(newNoteResource);
+            NotesRequest notesRequest = new NotesRequest(newNotes);
+
+            CustomConstraintViolationException exception = assertThrows(CustomConstraintViolationException.class, () ->
+                taskManagementService.updateNotes("taskId", notesRequest));
+
+            assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
+            assertNotNull(exception.getStatus());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
+            assertNotNull(exception.getViolations());
+            assertThat(exception.getViolations().size()).isEqualTo(1);
+            assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_type");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+
+            verifyNoInteractions(cftTaskDatabaseService);
+        }
+
+        @Test
+        void should_throw_CustomConstraintViolationException_when_NoteResource_empty() {
+            NotesRequest notesRequest = new NotesRequest(emptyList());
+
+            CustomConstraintViolationException exception = assertThrows(CustomConstraintViolationException.class, () ->
+                taskManagementService.updateNotes("taskId", notesRequest));
+
+            assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
+            assertNotNull(exception.getStatus());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
+            assertNotNull(exception.getViolations());
+            assertThat(exception.getViolations().size()).isEqualTo(1);
+            assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_resource");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+            assertThat(exception.getType().toString())
+                .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
+
+            verifyNoInteractions(cftTaskDatabaseService);
         }
 
     }

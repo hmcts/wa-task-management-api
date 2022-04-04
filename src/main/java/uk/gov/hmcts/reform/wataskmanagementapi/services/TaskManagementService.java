@@ -37,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
@@ -641,6 +642,8 @@ public class TaskManagementService {
 
     @Transactional
     public TaskResource updateNotes(String taskId, NotesRequest notesRequest) {
+        validateNoteRequest(notesRequest);
+
         final TaskResource taskResource = findByIdAndObtainLock(taskId);
 
         final List<NoteResource> noteResources = notesRequest.getNoteResource();
@@ -920,4 +923,49 @@ public class TaskManagementService {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
     }
+
+    private void validateNoteRequest(NotesRequest notesRequest) {
+
+        if (notesRequest == null || notesRequest.getNoteResource() == null) {
+            throw new InvalidRequestException("Invalid request message");
+        }
+
+        if (notesRequest.getNoteResource().isEmpty()) {
+            Violation violation = new Violation(
+                "note_resource",
+                "must not be empty"
+            );
+            throw new CustomConstraintViolationException(singletonList(violation));
+        }
+
+        notesRequest.getNoteResource().forEach(nt -> {
+            if (nt == null) {
+                Violation violation = new Violation(
+                    "note_resource",
+                    "must not be empty"
+                );
+                throw new CustomConstraintViolationException(singletonList(violation));
+            }
+
+            if (nt.getCode() == null || nt.getCode().isEmpty()) {
+                Violation violation = new Violation(
+                    "code",
+                    "must not be empty"
+                );
+                throw new CustomConstraintViolationException(singletonList(violation));
+            }
+
+            if (nt.getNoteType() == null || nt.getNoteType().isEmpty()) {
+                Violation violation = new Violation(
+                    "note_type",
+                    "must not be empty"
+                );
+                throw new CustomConstraintViolationException(singletonList(violation));
+            }
+        });
+
+
+    }
+
+
 }
