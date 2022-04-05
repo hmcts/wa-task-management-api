@@ -82,11 +82,6 @@ spring:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
-        query:
-          plan_cache_max_size: 1024
-          plan_parameter_metadata_max_size: 128
-          plan_cache_max_soft_references: 1024
-          in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:
