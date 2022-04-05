@@ -924,8 +924,9 @@ public class TaskManagementService {
         }
     }
 
+    @SuppressWarnings({"PMD.PrematureDeclaration"})
     private void validateNoteRequest(NotesRequest notesRequest) {
-
+        String errorMessage = "must not be empty";
         if (notesRequest == null || notesRequest.getNoteResource() == null) {
             throw new InvalidRequestException("Invalid request message");
         }
@@ -933,7 +934,7 @@ public class TaskManagementService {
         if (notesRequest.getNoteResource().isEmpty()) {
             Violation violation = new Violation(
                 "note_resource",
-                "must not be empty"
+                errorMessage
             );
             throw new CustomConstraintViolationException(singletonList(violation));
         }
@@ -942,7 +943,7 @@ public class TaskManagementService {
             if (nt == null) {
                 Violation violation = new Violation(
                     "note_resource",
-                    "must not be empty"
+                    errorMessage
                 );
                 throw new CustomConstraintViolationException(singletonList(violation));
             }
@@ -950,7 +951,7 @@ public class TaskManagementService {
             if (nt.getCode() == null || nt.getCode().isEmpty()) {
                 Violation violation = new Violation(
                     "code",
-                    "must not be empty"
+                    errorMessage
                 );
                 throw new CustomConstraintViolationException(singletonList(violation));
             }
@@ -958,7 +959,7 @@ public class TaskManagementService {
             if (nt.getNoteType() == null || nt.getNoteType().isEmpty()) {
                 Violation violation = new Violation(
                     "note_type",
-                    "must not be empty"
+                    errorMessage
                 );
                 throw new CustomConstraintViolationException(singletonList(violation));
             }

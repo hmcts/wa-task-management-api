@@ -95,7 +95,8 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -122,7 +123,8 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -149,7 +151,8 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
         String notesRequest = objectMapper.writeValueAsString(new NotesRequest(emptyList()));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -177,7 +180,8 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -205,7 +209,8 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal", caseworkerCredentials.getHeaders());
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

@@ -2689,6 +2689,7 @@ class TaskManagementServiceTest extends
     @Nested
     @DisplayName("updateNotes()")
     class UpdateNotes {
+        private static final String MUST_NOT_BE_EMPTY = "must not be empty";
 
         @Test
         void should_succeed() {
@@ -2853,7 +2854,7 @@ class TaskManagementServiceTest extends
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
             assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_resource");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
             assertThat(exception.getType().toString())
                 .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
 
@@ -2882,7 +2883,7 @@ class TaskManagementServiceTest extends
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
             assertThat(exception.getViolations().get(0).getField()).isEqualTo("code");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
 
             verifyNoInteractions(cftTaskDatabaseService);
         }
@@ -2909,7 +2910,7 @@ class TaskManagementServiceTest extends
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
             assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_type");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
 
             verifyNoInteractions(cftTaskDatabaseService);
         }
@@ -2928,7 +2929,7 @@ class TaskManagementServiceTest extends
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
             assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_resource");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo("must not be empty");
+            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
             assertThat(exception.getType().toString())
                 .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
 
