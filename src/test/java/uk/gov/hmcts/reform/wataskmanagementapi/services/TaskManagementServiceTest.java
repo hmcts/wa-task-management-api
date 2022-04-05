@@ -2820,15 +2820,13 @@ class TaskManagementServiceTest extends
         }
 
         @Test
-        void should_throw_InvalidRequestException_when_NotesRequest_is_null() {
+        void should_throw_invalid_request_exception_when_notes_request_is_null() {
             NotesRequest notesRequest = null;
 
             InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
                 taskManagementService.updateNotes("taskId", notesRequest));
 
             assertThat(exception).isInstanceOf(InvalidRequestException.class);
-            assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Bad Request");
             assertThat(exception.getType().toString())
                 .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/bad-request");
@@ -2837,32 +2835,23 @@ class TaskManagementServiceTest extends
         }
 
         @Test
-        void should_throw_CustomConstraintViolationException_when_NoteResource_is_null() {
+        void should_throw_custom_constraint_violation_exception_when_note_resource_is_null() {
             final NoteResource newNoteResource = null;
             List<NoteResource> newNotes = new ArrayList<>();
             newNotes.add(newNoteResource);
             NotesRequest notesRequest = new NotesRequest(newNotes);
 
-
             CustomConstraintViolationException exception = assertThrows(CustomConstraintViolationException.class, () ->
                 taskManagementService.updateNotes("taskId", notesRequest));
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
-            assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
-            assertNotNull(exception.getViolations());
-            assertThat(exception.getViolations().size()).isEqualTo(1);
-            assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_resource");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
-            assertThat(exception.getType().toString())
-                .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
+            assertions(exception, "note_resource");
 
             verifyNoInteractions(cftTaskDatabaseService);
         }
 
         @Test
-        void should_throw_CustomConstraintViolationException_when_NoteResource_code_is_null_or_empty() {
+        void should_throw_custom_constraint_violation_exception_when_note_resource_code_is_null_or_empty() {
             final NoteResource newNoteResource = new NoteResource(
                 "",
                 "Warning",
@@ -2877,19 +2866,13 @@ class TaskManagementServiceTest extends
                 taskManagementService.updateNotes("taskId", notesRequest));
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
-            assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
-            assertNotNull(exception.getViolations());
-            assertThat(exception.getViolations().size()).isEqualTo(1);
-            assertThat(exception.getViolations().get(0).getField()).isEqualTo("code");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
+            assertions(exception, "code");
 
             verifyNoInteractions(cftTaskDatabaseService);
         }
 
         @Test
-        void should_throw_CustomConstraintViolationException_when_NoteResource_note_type_is_null_or_empty() {
+        void should_throw_custom_constraint_violation_exception_when_note_resource_note_type_is_null_or_empty() {
             final NoteResource newNoteResource = new NoteResource(
                 "code",
                 "",
@@ -2904,38 +2887,36 @@ class TaskManagementServiceTest extends
                 taskManagementService.updateNotes("taskId", notesRequest));
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
-            assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
-            assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
-            assertNotNull(exception.getViolations());
-            assertThat(exception.getViolations().size()).isEqualTo(1);
-            assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_type");
-            assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
+            assertions(exception, "note_type");
 
             verifyNoInteractions(cftTaskDatabaseService);
         }
 
         @Test
-        void should_throw_CustomConstraintViolationException_when_NoteResource_empty() {
+        void should_throw_custom_constraint_violation_exception_when_note_resource_empty() {
             NotesRequest notesRequest = new NotesRequest(emptyList());
 
             CustomConstraintViolationException exception = assertThrows(CustomConstraintViolationException.class, () ->
                 taskManagementService.updateNotes("taskId", notesRequest));
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
+            assertions(exception, "note_resource");
+
+            verifyNoInteractions(cftTaskDatabaseService);
+        }
+
+        private void assertions(CustomConstraintViolationException exception, String field) {
             assertNotNull(exception.getStatus());
             assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
-            assertThat(exception.getViolations().get(0).getField()).isEqualTo("note_resource");
             assertThat(exception.getViolations().get(0).getMessage()).isEqualTo(MUST_NOT_BE_EMPTY);
+            assertThat(exception.getViolations().get(0).getField()).isEqualTo(field);
             assertThat(exception.getType().toString())
                 .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/constraint-validation");
 
-            verifyNoInteractions(cftTaskDatabaseService);
         }
-
     }
 
     @Nested
