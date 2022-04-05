@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -85,7 +86,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.zalando.problem.Status.BAD_REQUEST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.CANCEL;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
@@ -2828,7 +2828,7 @@ class TaskManagementServiceTest extends
 
             assertThat(exception).isInstanceOf(InvalidRequestException.class);
             assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Bad Request");
             assertThat(exception.getType().toString())
                 .isEqualTo("https://github.com/hmcts/wa-task-management-api/problem/bad-request");
@@ -2849,7 +2849,7 @@ class TaskManagementServiceTest extends
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
             assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
@@ -2878,7 +2878,7 @@ class TaskManagementServiceTest extends
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
             assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
@@ -2905,7 +2905,7 @@ class TaskManagementServiceTest extends
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
             assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
@@ -2924,7 +2924,7 @@ class TaskManagementServiceTest extends
 
             assertThat(exception).isInstanceOf(CustomConstraintViolationException.class);
             assertNotNull(exception.getStatus());
-            assertThat(exception.getStatus().getStatusCode()).isEqualTo(BAD_REQUEST.getStatusCode());
+            assertThat(exception.getStatus().getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST.value());
             assertThat(exception.getTitle()).isEqualTo("Constraint Violation");
             assertNotNull(exception.getViolations());
             assertThat(exception.getViolations().size()).isEqualTo(1);
