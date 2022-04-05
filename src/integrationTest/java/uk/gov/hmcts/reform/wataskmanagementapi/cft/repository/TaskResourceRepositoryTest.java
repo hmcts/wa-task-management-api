@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,9 +46,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     private TaskResource task;
     @Autowired
     private TaskResourceRepository taskResourceRepository;
-
-    @Autowired
-    private TaskRoleResourceRepository taskRoleResourceRepository;
 
     @AfterEach
     void tearDown() {
@@ -148,13 +146,12 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals("noteTypeVal", notes.get(0).getNoteType())
         );
 
-        final List<TaskRoleResource> taskRoleResources =
-            taskRoleResourceRepository.findByTaskId(createdTask.getTaskId());
+        Set<TaskRoleResource> taskRoleResources = taskResource.getTaskRoleResources();
 
         assertThat(taskRoleResources).isNotEmpty();
         assertThat(taskRoleResources).hasSize(1);
 
-        final TaskRoleResource taskRoleResource = taskRoleResources.get(0);
+        final TaskRoleResource taskRoleResource = taskRoleResources.iterator().next();
 
         String[] expectedAuthorizations = new String[]{"SPECIFIC", "BASIC"};
 
@@ -173,7 +170,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
-            new NoteResource("someCode",
+            new NoteResource(
+                "someCode",
                 "noteTypeVal",
                 "userVal",
                 "someContent"
