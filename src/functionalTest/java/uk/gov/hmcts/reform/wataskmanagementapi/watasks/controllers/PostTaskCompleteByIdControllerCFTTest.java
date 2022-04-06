@@ -151,7 +151,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.FORBIDDEN.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.FORBIDDEN.value()))
             .body("message", equalTo(String.format(
@@ -206,7 +206,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
@@ -515,7 +515,7 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
