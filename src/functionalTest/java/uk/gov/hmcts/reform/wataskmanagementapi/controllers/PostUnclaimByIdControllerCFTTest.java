@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
@@ -35,7 +34,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-@Ignore
 public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";

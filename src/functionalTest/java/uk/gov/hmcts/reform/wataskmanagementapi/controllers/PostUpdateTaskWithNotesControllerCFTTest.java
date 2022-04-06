@@ -8,7 +8,6 @@ import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -115,35 +114,6 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
             .body("title", equalTo("Bad Request"))
             .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
             .body("detail", equalTo("Bad Request: Invalid request message"));
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Ignore
-    @Test
-    public void should_return_a_400_when_the_note_request_is_null() {
-
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
-            caseworkerCredentials.getHeaders());
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            null,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.BAD_REQUEST.value())
-            .and()
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/bad-request"))
-            .body("title", equalTo("Bad Request"))
-            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-            .body("detail", equalTo("Invalid request message"));
 
         common.cleanUpTask(taskId);
     }

@@ -23,7 +23,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createBasicMessageForTask;
 
-@Ignore
 @Slf4j
 public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
 
@@ -123,7 +122,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             .body("configuration_variables.autoAssigned", equalTo(false))
             .body("configuration_variables.tribunal-caseworker", equalTo("Read,Refer,Own,Manage,Cancel"))
             .body("configuration_variables.senior-tribunal-caseworker",
-                  equalTo("Read,Refer,Own,Manage,Cancel"))
+                equalTo("Read,Refer,Own,Manage,Cancel"))
             .body("configuration_variables.taskSystem", equalTo("SELF"));
     }
 

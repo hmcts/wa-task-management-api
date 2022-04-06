@@ -18,7 +18,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.utils.CreateTaskMessageBuilder.createBasicMessageForTask;
 
-@Ignore
 @Slf4j
 public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
 
