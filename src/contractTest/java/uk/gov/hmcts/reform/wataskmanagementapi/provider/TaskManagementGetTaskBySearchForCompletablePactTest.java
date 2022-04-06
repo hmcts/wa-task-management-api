@@ -37,8 +37,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
@@ -181,7 +181,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            ADDITIONAL_PROPERTIES);
+            ADDITIONAL_PROPERTIES
+        );
 
         return singletonList(taskWithWarnings);
     }
@@ -209,9 +210,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         }
 
         testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+                                            new MappingJackson2HttpMessageConverter(
+                                                objectMapper
+                                            )));
 
     }
 
@@ -225,8 +226,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
@@ -244,8 +246,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))

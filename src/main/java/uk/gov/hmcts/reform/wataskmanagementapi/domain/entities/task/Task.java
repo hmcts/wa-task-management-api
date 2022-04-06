@@ -142,7 +142,7 @@ public class Task {
 
     @Schema(required = true,
         description = "A value describing the additional properties")
-    private Map<String, String> additionalProperties;
+    private final Map<String, String> additionalProperties;
 
 
     public Task(String id,

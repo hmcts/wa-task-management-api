@@ -23,8 +23,6 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -186,7 +184,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
-            new NoteResource("someCode",
+            new NoteResource(
+                "someCode",
                 "noteTypeVal",
                 "userVal",
                 "someContent"
@@ -239,6 +238,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             )),
             "caseCategory",
             ADDITIONAL_PROPERTIES
-            );
+        );
     }
 }
