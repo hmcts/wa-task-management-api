@@ -44,6 +44,7 @@ import javax.validation.Valid;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.http.ResponseEntity.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -245,10 +246,12 @@ public class TaskActionsController extends BaseController {
     @Operation(description = "Update Task with notes")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Updated Task with notes",content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST),
+            @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST,content = {
+            @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "404", description = NOT_FOUND),
+        @ApiResponse(responseCode = "404", description = NOT_FOUND,content = {
+            @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
     })

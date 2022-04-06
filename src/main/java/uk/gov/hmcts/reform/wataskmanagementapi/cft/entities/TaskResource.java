@@ -124,7 +124,7 @@ public class TaskResource implements Serializable {
     private ExecutionTypeResource executionTypeCode;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "taskResource", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
 
     @Type(type = "jsonb")

@@ -506,4 +506,20 @@ public class RoleAssignmentFilterTest {
         verify(builder, never()).and(any(), any());
     }
 
+    @Test
+    void should_build_query_to_retrieve_role_information_when_role_assignment_are_inactive() {
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            inActiveRoles()
+        );
+        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse);
+
+        spec.toPredicate(root, query, builder);
+
+        verify(root, times(1)).join("taskRoleResources");
+        verify(builder, times(1)).or(any());
+        verify(builder, never()).equal(any(), any());
+        verify(builder, never()).and(any(), any());
+    }
 }
