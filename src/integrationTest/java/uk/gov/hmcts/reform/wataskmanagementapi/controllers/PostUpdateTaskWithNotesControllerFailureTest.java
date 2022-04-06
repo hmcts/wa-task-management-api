@@ -177,7 +177,7 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
                 )
             )
         );
-        
+
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
@@ -232,6 +232,32 @@ class PostUpdateTaskWithNotesControllerFailureTest extends SpringBootIntegration
                 jsonPath("$.violations.[0].field").value("note_resource"),
                 jsonPath("$.violations.[0].message")
                     .value("must not be empty")));
+    }
+
+    @Test
+    void should_return_400_when_note_request_is_null() throws Exception {
+        mockServices.mockServiceAPIs();
+
+        NotesRequest notesRequest = null;
+
+        given(taskManagementService.updateNotes(any(), any())).willThrow(
+            new InvalidRequestException("Invalid request message")
+        );
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(notesRequest))
+        ).andExpect(
+            ResultMatcher.matchAll(
+                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
+                jsonPath("$.type")
+                    .value("https://github.com/hmcts/wa-task-management-api/problem/bad-request"),
+                jsonPath("$.title").value("Bad Request"),
+                jsonPath("$.status").value(400)));
+
     }
 
     @Test
