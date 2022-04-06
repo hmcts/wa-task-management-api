@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
+
 @Ignore
 public class GetTaskByIdRolePermissionsCFTTest extends SpringBootFunctionalBaseTest {
 

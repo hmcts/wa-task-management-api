@@ -29,6 +29,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+
 @Ignore
 public class GetAdminTaskControllerCFTTest extends SpringBootFunctionalBaseTest {
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
