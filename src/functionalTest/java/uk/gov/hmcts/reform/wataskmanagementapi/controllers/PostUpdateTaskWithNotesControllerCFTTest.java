@@ -8,6 +8,7 @@ import org.assertj.core.util.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,6 +119,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Test
     public void should_return_a_400_when_the_note_request_is_null() {
 
