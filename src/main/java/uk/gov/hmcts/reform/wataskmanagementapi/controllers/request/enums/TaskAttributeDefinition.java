@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 
+import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings("java:S3740")
@@ -41,7 +42,8 @@ public enum TaskAttributeDefinition {
     TASK_TERMINATION_REASON("task_termination_reason", new TypeReference<String>() {}),
     TASK_TITLE("task_title", new TypeReference<String>() {}),
     TASK_TYPE("task_type", new TypeReference<String>() {}),
-    TASK_WORK_TYPE("task_work_type", new TypeReference<String>() {});
+    TASK_WORK_TYPE("task_work_type", new TypeReference<String>() {}),
+    TASK_ADDITIONAL_PROPERTIES("task_additional_properties", new TypeReference<Map<String, String>>() {});
 
     private final String value;
     private final TypeReference typeReference;
