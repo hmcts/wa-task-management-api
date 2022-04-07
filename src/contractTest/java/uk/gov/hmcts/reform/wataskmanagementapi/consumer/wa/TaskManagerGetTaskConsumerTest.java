@@ -158,6 +158,11 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
+                        )
                 )).build();
     }
 

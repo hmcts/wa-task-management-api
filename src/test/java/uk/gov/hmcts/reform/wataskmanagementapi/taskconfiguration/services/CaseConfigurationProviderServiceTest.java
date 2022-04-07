@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.google.common.collect.ImmutableMap;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -387,5 +389,93 @@ class CaseConfigurationProviderServiceTest {
             .getCaseRelatedConfiguration(someCaseId, Map.of());
 
         Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+    }
+
+    @Test
+    void should_include_additional_properties_when_task_configuration_dmn_returns_individual_additional_properties() {
+        String someCaseId = "someCaseId";
+        String taskAttributesString = "{\"taskType\":\"taskType\"}";
+        Map<String, Object> taskAttributes = Map.of("taskType", "taskType");
+
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        when(caseDetails.getData()).thenReturn(Map.of("caseAccessCategory", ""));
+
+        List<PermissionsDmnEvaluationResponse> permissions = asList(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("tribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryB")
+            ),
+            new PermissionsDmnEvaluationResponse(
+                stringValue("seniorTribunalCaseworker"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("LEGAL_OPERATIONS"),
+                stringValue("categoryC")
+            )
+        );
+
+        String caseData = "{\"caseAccessCategory\":\"\"}";
+
+        when(dmnEvaluationService.evaluateTaskPermissionsDmn("IA", "Asylum", caseData, taskAttributesString))
+            .thenReturn(permissions);
+
+        when(dmnEvaluationService.evaluateTaskConfigurationDmn("IA", "Asylum", caseData, taskAttributesString))
+            .thenReturn(asList(
+                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_name3"),
+                    stringValue("value3")
+                ),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_name4"),
+                    stringValue("value4")
+                ),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_name5"),
+                    stringValue("value5")
+                ),
+                new ConfigurationDmnEvaluationResponse(stringValue("additionalProperties_name6"), stringValue("value6"))
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+        Map<String, String> additionalProperties = ImmutableMap.of(
+            "name6",
+            "value6",
+            "name5",
+            "value5",
+            "name4",
+            "value4",
+            "name3",
+            "value3"
+        );
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse()).isNotEmpty()
+            .hasSize(3)
+            .contains(
+                new ConfigurationDmnEvaluationResponse(stringValue("name1"), stringValue("value1")),
+                new ConfigurationDmnEvaluationResponse(stringValue("name2"), stringValue("value2")),
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties"),
+                    stringValue(writeValueAsString(additionalProperties))
+                ));
+    }
+
+    private String writeValueAsString(Map<String, String> data) {
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            //do nothing
+        }
+        return null;
     }
 }

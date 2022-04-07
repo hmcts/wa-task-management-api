@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundExcept
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,6 +41,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     private String taskId;
     private TaskResource task;
@@ -140,6 +150,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             () -> assertEquals(CFTTaskState.COMPLETED, taskResource.getState()),
             () -> assertEquals(TaskSystem.SELF, taskResource.getTaskSystem()),
             () -> assertEquals(BusinessContext.CFT_TASK, taskResource.getBusinessContext()),
+            () -> assertEquals(ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties()),
             () -> assertEquals(
                 LocalDate.of(2022, 5, 9),
                 taskResource.getAssignmentExpiry().toLocalDate()
@@ -173,7 +184,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     private TaskResource createTask(String taskId) {
         List<NoteResource> notes = singletonList(
-            new NoteResource("someCode",
+            new NoteResource(
+                "someCode",
                 "noteTypeVal",
                 "userVal",
                 "someContent"
@@ -224,7 +236,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 taskId,
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
-            "caseCategory"
+            "caseCategory",
+            ADDITIONAL_PROPERTIES
         );
     }
 }

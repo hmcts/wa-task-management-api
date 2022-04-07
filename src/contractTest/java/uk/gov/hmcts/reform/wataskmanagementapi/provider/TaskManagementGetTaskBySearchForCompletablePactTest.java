@@ -37,6 +37,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -59,6 +60,15 @@ import static org.mockito.Mockito.when;
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     @Mock
     LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -121,7 +131,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "hearing_work",
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            ADDITIONAL_PROPERTIES
         );
         return singletonList(task);
     }
@@ -169,7 +180,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "hearing_work",
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            ADDITIONAL_PROPERTIES
         );
 
         return singletonList(taskWithWarnings);
@@ -198,9 +210,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         }
 
         testTarget.setMessageConverters((
-            new MappingJackson2HttpMessageConverter(
-                objectMapper
-            )));
+                                            new MappingJackson2HttpMessageConverter(
+                                                objectMapper
+                                            )));
 
     }
 
@@ -214,8 +226,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
@@ -233,8 +246,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))

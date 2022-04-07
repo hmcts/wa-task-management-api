@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -45,6 +46,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNEE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ASSIGNMENT_EXPIRY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
@@ -139,7 +141,8 @@ public class CFTTaskMapper {
             read(attributes, TASK_TERMINATION_REASON, null),
             createdDate,
             read(attributes, TASK_ROLES, null),
-            read(attributes, TASK_CASE_CATEGORY, null)
+            read(attributes, TASK_CASE_CATEGORY, null),
+            read(attributes, TASK_ADDITIONAL_PROPERTIES, null)
         );
     }
 
@@ -184,7 +187,8 @@ public class CFTTaskMapper {
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
-            taskResource.getDescription()
+            taskResource.getDescription(),
+            taskResource.getAdditionalProperties()
         );
     }
 
@@ -430,10 +434,25 @@ public class CFTTaskMapper {
                 case DESCRIPTION:
                     taskResource.setDescription((String) value);
                     break;
+                case ADDITIONAL_PROPERTIES:
+                    Map<String, String> additionalProperties = extractAdditionalProperties(value);
+                    taskResource.setAdditionalProperties(additionalProperties);
+                    break;
                 default:
                     break;
             }
         }
+    }
+
+    private Map<String, String> extractAdditionalProperties(Object value) {
+        if (value != null) {
+            try {
+                return objectMapper.readValue((String) value, new TypeReference<>() {});
+            } catch (JsonProcessingException e) {
+                throw new IllegalArgumentException("Additional Properties mapping issue.", e);
+            }
+        }
+        return null;
     }
 
     private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {

@@ -30,7 +30,8 @@ public enum CamundaVariableDefinition {
     WORK_TYPE("workType"),
     CASE_MANAGEMENT_CATEGORY("caseManagementCategory"),
     ROLE_CATEGORY("roleCategory"),
-    DESCRIPTION("description");
+    DESCRIPTION("description"),
+    ADDITIONAL_PROPERTIES("additionalProperties");
 
     private final String value;
 
