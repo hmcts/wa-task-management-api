@@ -152,6 +152,8 @@ class SpecificCaseRoleAssignmentTest {
         assertThat(representatives).hasSize(2);
         assertThat(accumulativeList).hasSize(4);
 
+        //Check the 
+
     }
 
     public RoleAssignment updateGroupRepresentative(RoleAssignment groupRepresentative, List<RoleAssignment> group) {
