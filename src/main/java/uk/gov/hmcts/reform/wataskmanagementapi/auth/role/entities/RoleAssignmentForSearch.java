@@ -3,9 +3,13 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 import lombok.EqualsAndHashCode;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
 @EqualsAndHashCode
-public class CaseRoleAssignmentForSearch {
+public class RoleAssignmentForSearch {
 
     //From CCD
     //private String roleName;
@@ -35,7 +39,7 @@ public class CaseRoleAssignmentForSearch {
     //Attributes
     private String jurisdiction;
     @EqualsAndHashCode.Exclude
-    private List<String> caseIds;
+    private Set<String> caseIds;
     private String caseType;
     private String region;
     private String location;
@@ -46,7 +50,25 @@ public class CaseRoleAssignmentForSearch {
     //@EqualsAndHashCode.Exclude
     //boolean isRepresentative = false;
 
-    public CaseRoleAssignmentForSearch(RoleAssignment roleAssignment) {
+    public RoleAssignmentForSearch(RoleAssignment roleAssignment) {
+        this.id = roleAssignment.getId();
+        this.roleName = roleAssignment.getRoleName();
+
+        this.classification = roleAssignment.getClassification().name();
+        this.grantType = roleAssignment.getGrantType().name();
+        this.authorisations = roleAssignment.getAuthorisations();
+
+        Map<String, String> attributes = roleAssignment.getAttributes();
+
+        //TODO make safer in case id is not present
+        //Attributes
+        this.jurisdiction = attributes.get(RoleAttributeDefinition.JURISDICTION);
+        this.caseIds.add(attributes.get(RoleAttributeDefinition.CASE_ID));
+        this.caseType = attributes.get(RoleAttributeDefinition.CASE_TYPE);
+        this.region = attributes.get(RoleAttributeDefinition.REGION);
+        this.location = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION);
 
     }
+
+
 }

@@ -32,7 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentMother;
+import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
@@ -631,7 +631,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "Asylum"
             );
             when(accessControlResponse.getRoleAssignments())
-                .thenReturn(singletonList(RoleAssignmentMother.complete().build()));
+                .thenReturn(singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
                 .thenReturn(mockTaskCompletionDMNResponse());
             when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
@@ -657,7 +657,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         @Test
         void should_succeed_and_return_search_results_with_task_required_as_false() {
             AccessControlResponse accessControlResponse =
-                new AccessControlResponse(null, singletonList(RoleAssignmentMother.complete().build()));
+                new AccessControlResponse(null, singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
