@@ -21,6 +21,7 @@ import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToObject;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
@@ -49,7 +50,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_201_when_initiating_a_process_application_task_by_id() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
@@ -100,14 +101,20 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                        + "(Typically this will be in CCD.)")
+                            + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                         + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(3));
+                                             + "trigger/decideAnApplication)"))
+            .body("task_role_resources.size()", equalTo(3))
+            .body("additional_properties", equalToObject(Map.of(
+                      "key1", "value1",
+                      "key2", "value2",
+                      "key3", "value3",
+                      "key4", "value4"
+                  )));
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
@@ -170,7 +177,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }

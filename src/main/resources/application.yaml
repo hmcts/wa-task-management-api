@@ -37,7 +37,7 @@ security:
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
-    - "/v3/api-docs"
+    - "/v3/**"
     - "/favicon.ico"
 
 auth:
