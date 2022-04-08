@@ -1,13 +1,15 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import com.launchdarkly.shaded.com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+@Getter
 @EqualsAndHashCode
 public class RoleAssignmentForSearch {
 
@@ -35,6 +37,7 @@ public class RoleAssignmentForSearch {
     private String roleName;
     private String classification;
     private String grantType;
+    private String roleType;
 
     //Attributes
     private String jurisdiction;
@@ -57,18 +60,22 @@ public class RoleAssignmentForSearch {
         this.classification = roleAssignment.getClassification().name();
         this.grantType = roleAssignment.getGrantType().name();
         this.authorisations = roleAssignment.getAuthorisations();
+        this.roleType = roleAssignment.getRoleType().name();
 
         Map<String, String> attributes = roleAssignment.getAttributes();
 
-        //TODO make safer in case id is not present
         //Attributes
-        this.jurisdiction = attributes.get(RoleAttributeDefinition.JURISDICTION);
-        this.caseIds.add(attributes.get(RoleAttributeDefinition.CASE_ID));
-        this.caseType = attributes.get(RoleAttributeDefinition.CASE_TYPE);
-        this.region = attributes.get(RoleAttributeDefinition.REGION);
-        this.location = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION);
+        this.jurisdiction = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
+        this.caseType = attributes.get(RoleAttributeDefinition.CASE_TYPE.value());
+        this.region = attributes.get(RoleAttributeDefinition.REGION.value());
+        this.location = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
+
+        this.caseIds = Sets.newHashSet();
+        Optional.ofNullable(
+                attributes.get(RoleAttributeDefinition.CASE_ID.value()))
+            .ifPresent(s -> caseIds.add(s));
+
 
     }
-
 
 }
