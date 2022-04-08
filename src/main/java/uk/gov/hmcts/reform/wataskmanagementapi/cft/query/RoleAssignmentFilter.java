@@ -5,6 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.CaseRoleAssignmentForSearch;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -42,6 +43,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.G
 
 @Slf4j
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports"})
+//TODO Rename this class to something like TaskSearchQueryBuilder
+// Should also have an interface such as QueryBuilder with a method like buildQuery(QueryData)
 public final class RoleAssignmentFilter {
 
     public static final String CASE_ID_COLUMN = "caseId";
@@ -67,13 +70,20 @@ public final class RoleAssignmentFilter {
         return (root, query, builder) -> {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
+            //TODO filters and manipulation of Role Assignments should be moved to a different class e.g. RoleAssignmentReceiver
+            // this should only be about building the query
             // filter roles which are active.
             final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
                 .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
+            RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(activeRoleAssignments, groupingStrategy);
+            RoleAssignmentsForSearch roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
+
             // builds query for grant type BASIC, SPECIFIC
+            final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
             final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
                 root, taskRoleResources, builder, activeRoleAssignments);
+                //root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
 
             // builds query for grant type STANDARD, CHALLENGED
             final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
@@ -118,7 +128,7 @@ public final class RoleAssignmentFilter {
 
                 if (roleAssignment.isPresent()) {
                     Predicate rolePredicate = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                                                            roleAssignment.get().getRoleName());
+                        roleAssignment.get().getRoleName());
 
                     rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
                 }
@@ -127,34 +137,36 @@ public final class RoleAssignmentFilter {
         };
     }
 
+    //TODO seems like a pointless method
     private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
-                                                          final Join<TaskResource, TaskRoleResource> taskRoleResources,
-                                                          CriteriaBuilder builder,
-                                                          List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                           final Join<TaskResource, TaskRoleResource> taskRoleResources,
+                                                           CriteriaBuilder builder,
+                                                           List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+            roleAssignmentList, grantTypes);
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
+    //TODO seems like a pointless method
     private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
-                                                               final Join<TaskResource,
-                                                               TaskRoleResource> taskRoleResources,
-                                                               CriteriaBuilder builder,
-                                                               List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                                final Join<TaskResource,
+                                                                    TaskRoleResource> taskRoleResources,
+                                                                CriteriaBuilder builder,
+                                                                List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(STANDARD, CHALLENGED);
         List<Predicate> rolePredicates = buildPredicates(root, taskRoleResources, builder,
-                                                         roleAssignmentList, grantTypes);
+            roleAssignmentList, grantTypes);
 
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     private static Predicate buildQueryForExcluded(Root<TaskResource> root,
-                                                  CriteriaBuilder builder,
-                                                  List<Optional<RoleAssignment>> roleAssignmentList) {
+                                                   CriteriaBuilder builder,
+                                                   List<Optional<RoleAssignment>> roleAssignmentList) {
 
         final Set<GrantType> grantTypes = Set.of(EXCLUDED);
 
@@ -168,19 +180,26 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    private static List<Predicate> buildPredicates(Root<TaskResource> root, Join<TaskResource,
-        TaskRoleResource> taskRoleResources, CriteriaBuilder builder, List<Optional<RoleAssignment>> roleAssignmentList,
+    private static List<Predicate> buildPredicates(Root<TaskResource> root,
+                                                   Join<TaskResource, TaskRoleResource> taskRoleResources,
+                                                   CriteriaBuilder builder,
+                                                   //SearchData //ORG roles, Representative Case Roles, Any other Case Roles
+                                                   List<Optional<CaseRoleAssignmentForSearch>> roleAssignmentList, //grouped Role Assignment Map for the required Grant Types e.g. Specific, Basic
                                                    Set<GrantType> grantTypes) {
 
-        final Set<RoleAssignment> roleAssignmentsForGrantTypes = roleAssignmentList.stream()
-            .flatMap(Optional::stream).filter(ra -> grantTypes.contains(ra.getGrantType())).collect(Collectors.toSet());
+        final Set<RoleAssignment> roleAssignmentsForGrantTypes =
+            roleAssignmentList.stream()
+                .flatMap(Optional::stream)
+                .filter(ra -> grantTypes.contains(ra.getGrantType()))
+                .collect(Collectors.toSet());
 
         List<Predicate> rolePredicates = new ArrayList<>();
+
         for (RoleAssignment roleAssignment : roleAssignmentsForGrantTypes) {
             Predicate roleName = builder.equal(taskRoleResources.get(ROLE_NAME_COLUMN),
-                                               roleAssignment.getRoleName());
+                roleAssignment.getRoleName());
             final Predicate mandatoryPredicates = buildMandatoryPredicates(root, taskRoleResources,
-                                                                           builder, roleAssignment);
+                builder, roleAssignment);
             rolePredicates.add(builder.and(roleName, mandatoryPredicates));
         }
 
@@ -189,8 +208,8 @@ public final class RoleAssignmentFilter {
 
 
     private static Predicate searchByExcludedGrantType(Root<TaskResource> root,
-                                                      CriteriaBuilder builder,
-                                                      RoleAssignment roleAssignment) {
+                                                       CriteriaBuilder builder,
+                                                       RoleAssignment roleAssignment) {
         Predicate securityClassification = mapSecurityClassification(
             root, builder, roleAssignment
         );
@@ -274,6 +293,9 @@ public final class RoleAssignmentFilter {
                                                CriteriaBuilder builder,
                                                RoleAssignment roleAssignment) {
         Predicate nullAuthorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
+        //TODO check this is correct.
+        // Should be checking that any of the authorisations in the DB are present in the users authorisations
+        // If the users authorisations are null/empty then the DB must be null/empty
         if (roleAssignment.getAuthorisations() != null) {
             Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
                 (Object) roleAssignment.getAuthorisations().toArray()
