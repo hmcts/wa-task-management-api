@@ -184,6 +184,11 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                                     .stringValue(PermissionTypes.MANAGE.value())
                                     .stringValue(PermissionTypes.REFER.value()));
                         })
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
+                        )
                         .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
                         .stringType("description", "a description")
 

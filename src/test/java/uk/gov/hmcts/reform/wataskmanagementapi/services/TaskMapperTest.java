@@ -18,6 +18,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 class TaskMapperTest {
+    public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2"
+    );
 
     CamundaObjectMapper camundaObjectMapper;
 
@@ -114,8 +120,10 @@ class TaskMapperTest {
             "someProcessInstanceId"
         );
         WarningValues warningValues = new WarningValues(
-            Arrays.asList(new Warning("123", "some warning"),
-                new Warning("456", "some more warning")));
+            Arrays.asList(
+                new Warning("123", "some warning"),
+                new Warning("456", "some more warning")
+            ));
         Map<String, CamundaVariable> variables = new HashMap<>();
         variables.put("caseId", new CamundaVariable("00000", "String"));
         variables.put("caseName", new CamundaVariable("someCaseName", "String"));
@@ -140,8 +148,6 @@ class TaskMapperTest {
         assertEquals(false, result.getWarnings());
         assertNotNull(result.getWarningList());
         assertEquals("someCaseManagementCategory", result.getCaseManagementCategory());
-
-
     }
 
     @Test
@@ -170,7 +176,6 @@ class TaskMapperTest {
         variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
         variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
 
-
         Task result = taskMapper.mapToTaskObject(variables, camundaTask);
 
         assertEquals("configured", result.getTaskState());
@@ -186,4 +191,49 @@ class TaskMapperTest {
         assertNotNull(result.getAssignee());
     }
 
+    @Test
+    void should_map_additional_properties() {
+
+        ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
+
+        CamundaTask camundaTask = new CamundaTask(
+            "someId",
+            "someTaskName",
+            "someAssignee",
+            ZonedDateTime.now(),
+            dueDate,
+            null,
+            null,
+            "some-key",
+            "someProcessInstanceId"
+        );
+
+        Map<String, CamundaVariable> variables = new HashMap<>();
+        variables.put("caseId", new CamundaVariable("00000", "String"));
+        variables.put("caseName", new CamundaVariable("someCaseName", "String"));
+        variables.put("caseTypeId", new CamundaVariable("someCaseType", "String"));
+        variables.put("taskState", new CamundaVariable("configured", "String"));
+        variables.put("location", new CamundaVariable("someStaffLocationId", "String"));
+        variables.put("locationName", new CamundaVariable("someStaffLocationName", "String"));
+        variables.put("securityClassification", new CamundaVariable("someClassification", "String"));
+        variables.put(
+            "additionalProperties",
+            new CamundaVariable(EXPECTED_ADDITIONAL_PROPERTIES, "String")
+        );
+
+        Task result = taskMapper.mapToTaskObject(variables, camundaTask);
+
+        assertEquals("configured", result.getTaskState());
+        assertEquals(dueDate, result.getDueDate());
+        assertEquals("someTaskName", result.getName());
+        assertEquals("someCaseType", result.getCaseTypeId());
+        assertEquals("someCaseName", result.getCaseName());
+        assertNotNull(result.getLocation());
+        assertEquals("someStaffLocationId", result.getLocation());
+        assertEquals("someStaffLocationName", result.getLocationName());
+        assertEquals("someClassification", result.getSecurityClassification());
+        assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, result.getAdditionalProperties());
+
+        assertNotNull(result.getAssignee());
+    }
 }

@@ -24,6 +24,7 @@ import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.DatabaseConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericForbiddenException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.GenericServerErrorException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignAndCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskAssignException;
@@ -189,7 +190,8 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         TaskCancelException.class,
         DatabaseConflictException.class,
         GenericServerErrorException.class,
-        TaskNotFoundException.class
+        TaskNotFoundException.class,
+        InvalidRequestException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex

@@ -36,6 +36,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,6 +61,15 @@ import static org.mockito.Mockito.when;
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     @Mock
     private AccessControlService accessControlService;
@@ -148,7 +158,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "hearing_work",
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            ADDITIONAL_PROPERTIES
         );
     }
 
@@ -195,7 +206,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             "hearing_work",
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            ADDITIONAL_PROPERTIES
         );
     }
 
@@ -235,8 +247,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
@@ -252,8 +265,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithWarnings()));
@@ -269,8 +283,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-            accessControlResponse.get().getUserInfo().getEmail())
+                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                 accessControlResponse.get().getUserInfo().getEmail()
+             )
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
