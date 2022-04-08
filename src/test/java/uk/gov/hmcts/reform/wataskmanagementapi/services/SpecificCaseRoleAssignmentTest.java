@@ -71,27 +71,6 @@ class SpecificCaseRoleAssignmentTest {
 
         }
 
-
-        //List<String> groupCaseIds = new ArrayList<>();
-        //Map<String, List<String>> groupIdWithListOfCases = groupedCaseRoles
-        //    .values()
-        //    .stream()
-        //    //.map(roleAssignments ->
-        //    //    roleAssignments.stream()
-        //    .reduce(groupCaseIds, (currentCaseList, element) -> currentCaseList, (strings, strings2) -> strings.addAll(strings2)
-        //    );
-
-
-        //Map<Integer, List<RoleAssignmentForSearch>> groups =
-        //    allRoleAssignments.stream()
-        //        //.filter(roleAssignment -> roleAssignment.getGrantType().equals(GrantType.SPECIFIC) &&
-        //        //                          roleAssignment.getRoleType().equals(RoleType.CASE) &&
-        //        //                          roleAssignment.getClassification().equals(Classification.PUBLIC)
-        //        //)
-        //        .collect(Collectors.groupingBy(roleAssignment -> roleAssignment.hashCode()));
-        //.reduce(new ArrayList<RoleAssignment>(),
-        //    (partialRoleAssignmentList, nextRoleAssignment) -> partialRoleAssignmentList.getRoleName().equals(nextRoleAssignment.getRoleName()));
-
         accumulativeList.addAll(represenatives);
         assertThat(accumulativeList).hasSize(3);
 
@@ -152,7 +131,9 @@ class SpecificCaseRoleAssignmentTest {
         assertThat(representatives).hasSize(2);
         assertThat(accumulativeList).hasSize(4);
 
-        //Check the 
+        //Check the caseIds are what we expect
+        assertThat(representatives.get(0).getCaseIds()).hasSize(2);
+        assertThat(representatives.get(1).getCaseIds()).hasSize(2);
 
     }
 
@@ -211,5 +192,5 @@ class SpecificCaseRoleAssignmentTest {
         return allRoleAssignments;
 
     }
-
+    
 }
