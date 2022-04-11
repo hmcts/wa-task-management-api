@@ -111,8 +111,6 @@ class SpecificCaseRoleAssignmentTest {
         // Pick the first and collect the caseIds for a group
         List<RoleAssignmentForSearch> representatives = Lists.newArrayList();
 
-        //Map<String, RoleAssignment> representatives = Maps.newHashMap();
-
         for (Map.Entry<Integer, List<RoleAssignmentForSearch>> groupEntry : groupedCaseRoles.entrySet()) {
             Optional<RoleAssignmentForSearch> maybeRepresentative =
                 groupEntry.getValue()
