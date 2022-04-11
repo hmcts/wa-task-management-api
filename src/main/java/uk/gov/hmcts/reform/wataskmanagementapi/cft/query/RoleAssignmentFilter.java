@@ -5,7 +5,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.CaseRoleAssignmentForSearch;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
@@ -76,13 +75,15 @@ public final class RoleAssignmentFilter {
             final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
                 .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
-            RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(activeRoleAssignments, groupingStrategy);
-            RoleAssignmentsForSearch roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
+            //TODO Manipulate RoleAssignment data
+            // RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(activeRoleAssignments, groupingStrategy);
+            // RoleAssignmentsForSearch roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
 
             // builds query for grant type BASIC, SPECIFIC
             final Set<GrantType> grantTypes = Set.of(BASIC, SPECIFIC);
             final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
                 root, taskRoleResources, builder, activeRoleAssignments);
+                //TODO change so you pass the manipulated data
                 //root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
 
             // builds query for grant type STANDARD, CHALLENGED
@@ -183,8 +184,9 @@ public final class RoleAssignmentFilter {
     private static List<Predicate> buildPredicates(Root<TaskResource> root,
                                                    Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                    CriteriaBuilder builder,
-                                                   //SearchData //ORG roles, Representative Case Roles, Any other Case Roles
-                                                   List<Optional<CaseRoleAssignmentForSearch>> roleAssignmentList, //grouped Role Assignment Map for the required Grant Types e.g. Specific, Basic
+                                                   //TODO - Generic RoleAssignmentsForSearch or similar here
+                                                   // SearchData //ORG roles, Representative Case Roles, Any other Case Roles
+                                                   List<Optional<RoleAssignment>> roleAssignmentList, //grouped Role Assignment Map for the required Grant Types e.g. Specific, Basic
                                                    Set<GrantType> grantTypes) {
 
         final Set<RoleAssignment> roleAssignmentsForGrantTypes =

@@ -1,11 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
+import com.launchdarkly.shaded.com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
+@Getter
 @EqualsAndHashCode
-public class CaseRoleAssignmentForSearch {
+public class RoleAssignmentForSearch {
 
     //From CCD
     //private String roleName;
@@ -31,11 +37,12 @@ public class CaseRoleAssignmentForSearch {
     private String roleName;
     private String classification;
     private String grantType;
+    private String roleType;
 
     //Attributes
     private String jurisdiction;
     @EqualsAndHashCode.Exclude
-    private List<String> caseIds;
+    private Set<String> caseIds;
     private String caseType;
     private String region;
     private String location;
@@ -46,7 +53,29 @@ public class CaseRoleAssignmentForSearch {
     //@EqualsAndHashCode.Exclude
     //boolean isRepresentative = false;
 
-    public CaseRoleAssignmentForSearch(RoleAssignment roleAssignment) {
+    public RoleAssignmentForSearch(RoleAssignment roleAssignment) {
+        this.id = roleAssignment.getId();
+        this.roleName = roleAssignment.getRoleName();
+
+        this.classification = roleAssignment.getClassification().name();
+        this.grantType = roleAssignment.getGrantType().name();
+        this.authorisations = roleAssignment.getAuthorisations();
+        this.roleType = roleAssignment.getRoleType().name();
+
+        Map<String, String> attributes = roleAssignment.getAttributes();
+
+        //Attributes
+        this.jurisdiction = attributes.get(RoleAttributeDefinition.JURISDICTION.value());
+        this.caseType = attributes.get(RoleAttributeDefinition.CASE_TYPE.value());
+        this.region = attributes.get(RoleAttributeDefinition.REGION.value());
+        this.location = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
+
+        this.caseIds = Sets.newHashSet();
+        Optional.ofNullable(
+                attributes.get(RoleAttributeDefinition.CASE_ID.value()))
+            .ifPresent(s -> caseIds.add(s));
+
 
     }
+
 }

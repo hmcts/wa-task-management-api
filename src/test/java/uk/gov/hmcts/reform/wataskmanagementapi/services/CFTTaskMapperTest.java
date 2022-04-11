@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentMother;
+import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -1146,7 +1146,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1226,7 +1226,7 @@ class CFTTaskMapperTest {
             EXPECTED_ADDITIONAL_PROPERTIES
         );
 
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments);
 
@@ -1260,7 +1260,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1290,7 +1290,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1320,7 +1320,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1350,7 +1350,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1380,7 +1380,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1410,7 +1410,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1454,7 +1454,7 @@ class CFTTaskMapperTest {
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = singletonList(
-            RoleAssignmentMother.complete().roleName("tribunal-caseworker").build()
+            RoleAssignmentCreator.aRoleAssignment().roleName("tribunal-caseworker").build()
         );
 
         Set<PermissionTypes> permissionsUnion =
@@ -1500,8 +1500,8 @@ class CFTTaskMapperTest {
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = asList(
-            RoleAssignmentMother.complete().roleName("tribunal-caseworker").build(),
-            RoleAssignmentMother.complete().roleName("senior-tribunal-caseworker").build()
+            RoleAssignmentCreator.aRoleAssignment().roleName("tribunal-caseworker").build(),
+            RoleAssignmentCreator.aRoleAssignment().roleName("senior-tribunal-caseworker").build()
         );
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
