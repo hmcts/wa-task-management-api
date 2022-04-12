@@ -3,9 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
@@ -32,7 +30,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
@@ -136,8 +133,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
@@ -221,44 +216,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-
-        TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
-            JURISDICTION, "IA"
-        );
-
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-
-        given.iClaimATaskWithIdAndAuthorization(
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
-        common.cleanUpTask(taskId);
-    }
-
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -290,8 +247,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
@@ -530,46 +485,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    @Test
-    public void should_return_a_403_when_user_jurisdiction_did_not_match_and_assign_and_complete_tru() {
-
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-
-        String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-        initiateTask(taskVariables);
-
-        restApiActions.post(
-            CLAIM_ENDPOINT,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            new CompleteTaskRequest(new CompletionOptions(true)),
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
-        common.cleanUpTask(taskId);
-
-    }
-
     @Test
     public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -603,8 +518,6 @@ public class PostTaskCompleteByIdControllerCFTTest extends SpringBootFunctionalB
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
     @Test
     public void should_return_a_403_when_permission_region_did_not_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");

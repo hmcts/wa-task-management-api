@@ -3,7 +3,8 @@ spring:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     hikari:
-      minimum-idle: 5
+      minimum-idle: 1
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
