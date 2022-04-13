@@ -128,6 +128,7 @@ public interface CamundaServiceApi {
                                                    @PathVariable("jurisdiction") String jurisdiction,
                                                    @RequestBody Map<String, Map<String, CamundaVariable>> body);
 
+    
     @GetMapping(
         value = "/task/{task-id}/variables",
         produces = APPLICATION_JSON_VALUE
