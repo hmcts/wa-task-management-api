@@ -42,6 +42,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTask
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -290,6 +291,7 @@ public class CamundaService {
             return camundaServiceApi.evaluateDMN(
                 authTokenGenerator.generate(),
                 taskCompletionDecisionTableKey,
+                searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT),
                 createEventIdDmnRequest(searchEventAndCase.getEventId())
             );
         } catch (FeignException ex) {
