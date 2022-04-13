@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceSpecification;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -682,7 +682,7 @@ public class TaskManagementService {
             return emptyList();
         }
 
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+        final Specification<TaskResource> taskResourceSpecification = TaskSearchQueryBuilder
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
 
         final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(

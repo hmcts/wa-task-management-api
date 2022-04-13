@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
@@ -50,11 +51,18 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
     "PMD.LawOfDemeter",
     "PMD.ExcessiveImports",
 })
-public final class TaskResourceSpecification {
+public final class TaskSearchQueryBuilder {
 
 
-    private TaskResourceSpecification() {
+    private TaskSearchQueryBuilder() {
         // avoid creating object
+    }
+
+    public static Specification<TaskResource> build(final SearchData searchData) {
+
+        //TODO placeholder for new build Task Query logic
+        throw new UnsupportedOperationException();
+
     }
 
     public static Specification<TaskResource> buildTaskQuery(
