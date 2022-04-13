@@ -71,7 +71,6 @@ public final class RoleAssignmentFilter {
 
             //TODO filters and manipulation of Role Assignments should be moved to a different class e.g. RoleAssignmentReceiver
             // this should only be about building the query
-            // filter roles which are active.
             final List<Optional<RoleAssignment>> activeRoleAssignments = accessControlResponse.getRoleAssignments()
                 .stream().map(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
@@ -84,7 +83,7 @@ public final class RoleAssignmentFilter {
             final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
                 root, taskRoleResources, builder, activeRoleAssignments);
                 //TODO change so you pass the manipulated data
-                //root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
+                // root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
 
             // builds query for grant type STANDARD, CHALLENGED
             final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
@@ -138,7 +137,7 @@ public final class RoleAssignmentFilter {
         };
     }
 
-    //TODO seems like a pointless method
+    // TODO seems like a pointless method
     private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
                                                            final Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                            CriteriaBuilder builder,
@@ -151,7 +150,7 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    //TODO seems like a pointless method
+    // TODO seems like a pointless method
     private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
                                                                 final Join<TaskResource,
                                                                     TaskRoleResource> taskRoleResources,

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import com.launchdarkly.shaded.com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,10 +11,6 @@ import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -35,11 +30,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 
 @Slf4j
@@ -74,8 +67,22 @@ public class CftQueryService {
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
 
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
+        //TODO this should pass only prepared data.
+        // Role Assignments that are filtered and grouped already.
+        // Should also be in one object called SearchData
+        //SearchData searchData = new TaskSearchData(
+        //    new AndPermissionsRequired(permissionsRequired),
+        //    Lists.newArrayList(),//TODO put RoleAssignmentForSearch list in there
+        //    searchTaskRequest);
+        //
+        //final Specification<TaskResource> taskQuerySpecification = TaskSearchQueryBuilder.build(searchData);
+
+        final Specification<TaskResource> taskResourceSpecification =
+            TaskSearchQueryBuilder.buildTaskQuery(
+                searchTaskRequest,
+                accessControlResponse,
+                permissionsRequired);
+
 
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
@@ -115,7 +122,7 @@ public class CftQueryService {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+        final Specification<TaskResource> taskResourceSpecification = TaskSearchQueryBuilder
             .buildQueryForCompletable(searchEventAndCase, accessControlResponse, permissionsRequired, taskTypes);
 
         final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
@@ -137,7 +144,7 @@ public class CftQueryService {
             || taskId.isBlank()) {
             return Optional.empty();
         }
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
+        final Specification<TaskResource> taskResourceSpecification = TaskSearchQueryBuilder
             .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
 
         return taskResourceRepository.findOne(taskResourceSpecification);

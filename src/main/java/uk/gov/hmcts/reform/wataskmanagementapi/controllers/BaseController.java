@@ -1,7 +1,10 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class BaseController {
+public abstract class BaseController {
+
+    protected BaseController() {
+        //Only really want it called from a subclass
+    }
 
     protected static final String OK = "OK";
     protected static final String NO_CONTENT = "No content";
