@@ -684,7 +684,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "WA, WaCaseType"
             }
         )
-        void should_succeed_and_return_search_results_with_task_required_as_false(String jurisdiction, String caseType) {
+        void should_succeed_and_return_search_results_with_task_required_as_false(String jurisdiction,
+                                                                                  String caseType) {
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(null, singletonList(RoleAssignmentMother.complete().build()));
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -760,7 +761,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "WA, WaCaseType"
             }
         )
-        void should_succeed_and_returns_empty_results_when_dmn_returns_empty_variables(String jurisdiction, String caseType) {
+        void should_succeed_and_returns_empty_results_when_dmn_returns_empty_variables(String jurisdiction,
+                                                                                       String caseType) {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
