@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -236,6 +237,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
             .classification(Classification.RESTRICTED)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.ORGANISATION)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -372,6 +374,7 @@ public class CftQueryServiceITTest {
             .beginTime(LocalDateTime.now().minusYears(1))
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .endTime(LocalDateTime.now().plusYears(1))
+            .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
             .attributes(tcAttributes)
             .build();
@@ -517,6 +520,7 @@ public class CftQueryServiceITTest {
             .classification(Classification.RESTRICTED)
             .attributes(tcAttributes)
             .grantType(GrantType.STANDARD)
+            .roleType(RoleType.ORGANISATION)
             .authorisations(List.of("unknownValue"))
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -776,6 +780,7 @@ public class CftQueryServiceITTest {
             .classification(Classification.RESTRICTED)
             .attributes(tcAttributes)
             .grantType(GrantType.STANDARD)
+            .roleType(RoleType.ORGANISATION)
             .authorisations(List.of("unknownValue"))
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -789,6 +794,7 @@ public class CftQueryServiceITTest {
             .classification(Classification.RESTRICTED)
             .attributes(stcAttributes)
             .grantType(GrantType.EXCLUDED)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -944,6 +950,7 @@ public class CftQueryServiceITTest {
             .attributes(tcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -956,6 +963,7 @@ public class CftQueryServiceITTest {
             .classification(Classification.PUBLIC)
             .attributes(stcAttributes)
             .grantType(GrantType.EXCLUDED)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1203,6 +1211,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("inActiveRole")
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().plusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1233,6 +1242,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.RESTRICTED)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(null)
             .endTime(null)
             .build();
@@ -1271,6 +1281,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
             .classification(classification)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1279,6 +1290,7 @@ public class CftQueryServiceITTest {
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1298,6 +1310,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
+            .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
             .attributes(tcAttributes)
             .build();
@@ -1312,6 +1325,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
+            .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
             .attributes(stcAttributes)
             .build();
@@ -1330,6 +1344,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .attributes(tcAttributes)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1344,6 +1359,7 @@ public class CftQueryServiceITTest {
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .attributes(stcAttributes)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1363,6 +1379,7 @@ public class CftQueryServiceITTest {
             .attributes(tcAttributes)
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1376,6 +1393,7 @@ public class CftQueryServiceITTest {
             .attributes(stcAttributes)
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1397,6 +1415,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(tcAttributes)
             .grantType(GrantType.STANDARD)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1409,6 +1428,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(stcAttributes)
             .grantType(GrantType.EXCLUDED)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1429,6 +1449,7 @@ public class CftQueryServiceITTest {
             .attributes(tcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1441,6 +1462,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(stcAttributes)
             .grantType(GrantType.EXCLUDED)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1454,6 +1476,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1467,6 +1490,7 @@ public class CftQueryServiceITTest {
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .attributes(specificAttributes)
+            .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1482,6 +1506,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(stdAttributes)
             .grantType(GrantType.STANDARD)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1494,6 +1519,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1507,6 +1533,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(excludeddAttributes)
             .grantType(GrantType.EXCLUDED)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1525,6 +1552,7 @@ public class CftQueryServiceITTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .attributes(tcAttributes)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1538,6 +1566,7 @@ public class CftQueryServiceITTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1546,6 +1575,7 @@ public class CftQueryServiceITTest {
 
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1554,6 +1584,7 @@ public class CftQueryServiceITTest {
 
         roleAssignment = RoleAssignment.builder().roleName("pagination-role")
             .classification(classification)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1568,6 +1599,7 @@ public class CftQueryServiceITTest {
         final Map<String, String> attributes = Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum");
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1576,6 +1608,7 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

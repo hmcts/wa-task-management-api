@@ -1,194 +1,333 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
-import org.apache.commons.compress.utils.Lists;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import lombok.Builder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentForSearch;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentSearchData;
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class SpecificCaseRoleAssignmentTest {
-
-    /*
-    Select all role assignments that are specific, case and public
-    Select all the role assignments that have the same rolename, jurisdiction, caseType
-    Collect all the case_ids for the above matches
-     */
-    @Test
-    void prepareRoleAssignments() {
-        List<RoleAssignment> allRoleAssignments = createRoleAssignmentData();
-
-        //Split Case and Org roles
-        Map<Boolean, List<RoleAssignment>> splitRoleAssignments = allRoleAssignments.stream()
-            .collect(Collectors.partitioningBy(roleAssignment -> roleAssignment.getRoleType().equals(RoleType.CASE)));
-
-        assertThat(splitRoleAssignments).hasSize(2);
-        assertThat(splitRoleAssignments.get(Boolean.TRUE)).hasSize(4);
-        assertThat(splitRoleAssignments.get(Boolean.TRUE))
-            .map(RoleAssignment::getRoleType).contains(RoleType.CASE);
-        assertThat(splitRoleAssignments.get(Boolean.FALSE))
-            .map(RoleAssignment::getRoleType).contains(RoleType.ORGANISATION);
-
-        //Add Org Roles as they are
-        List<RoleAssignment> accumulativeList = new ArrayList<>(splitRoleAssignments.get(Boolean.FALSE));
-
-
-        //Group the Case roles
-        Map<String, List<RoleAssignment>> groupedCaseRoles = //TODO use RoleAssignmentForSearch instead
-            splitRoleAssignments.get(Boolean.TRUE)
-                .stream()
-                .collect(Collectors.groupingBy(RoleAssignment::getRoleName));//TODO Use hashcode instead
-
-        // Pick the first and collect the caseIds for a group
-        List<RoleAssignment> represenatives = Lists.newArrayList();
-
-        //Map<String, RoleAssignment> representatives = Maps.newHashMap();
-
-        for (Map.Entry<String, List<RoleAssignment>> groupEntry : groupedCaseRoles.entrySet()) {
-            Optional<RoleAssignment> maybeRepresentative =
-                groupEntry.getValue()
-                    .stream().findFirst();
-            if (maybeRepresentative.isPresent()) {
-                RoleAssignment representative = maybeRepresentative.get();
-
-                updateGroupRepresentative(representative, groupEntry.getValue());
-
-            }
-
-        }
-
-        accumulativeList.addAll(represenatives);
-        assertThat(accumulativeList).hasSize(3);
-
-    }
-
-    @Test
-    void prepare_RoleAssignmentsForSearch() {
-
-        //Create some data and check
-        List<RoleAssignment> allRoleAssignments = createRoleAssignmentData();
-        List<RoleAssignmentForSearch> allRoleAssignmentsForSearch = Lists.newArrayList();
-        allRoleAssignments.forEach(roleAssignment -> allRoleAssignmentsForSearch.add(new RoleAssignmentForSearch(roleAssignment)));
-
-        assertThat(allRoleAssignments.size()).isEqualTo(allRoleAssignmentsForSearch.size());
-
-        //Split Case and Org roles
-        Map<Boolean, List<RoleAssignmentForSearch>> splitRoleAssignments =
-            allRoleAssignmentsForSearch
-                .stream()
-                .collect(Collectors.partitioningBy(roleAssignment -> roleAssignment.getRoleType().equals(RoleType.CASE.name())));
-
-        assertThat(splitRoleAssignments).hasSize(2);
-        assertThat(splitRoleAssignments.get(Boolean.TRUE)).hasSize(4);
-        assertThat(splitRoleAssignments.get(Boolean.TRUE))
-            .map(RoleAssignmentForSearch::getRoleType).contains(RoleType.CASE.name());
-        assertThat(splitRoleAssignments.get(Boolean.FALSE))
-            .map(RoleAssignmentForSearch::getRoleType).contains(RoleType.ORGANISATION.name());
-
-        //Add Org Roles as they are
-        List<RoleAssignmentForSearch> accumulativeList = new ArrayList<>(splitRoleAssignments.get(Boolean.FALSE));
-
-        //Group the Case roles
-        Map<Integer, List<RoleAssignmentForSearch>> groupedCaseRoles =
-            splitRoleAssignments.get(Boolean.TRUE)
-                .stream()
-                .collect(Collectors.groupingBy(RoleAssignmentForSearch::hashCode));
-
-        // Pick the first and collect the caseIds for a group
-        List<RoleAssignmentForSearch> representatives = Lists.newArrayList();
-
-        for (Map.Entry<Integer, List<RoleAssignmentForSearch>> groupEntry : groupedCaseRoles.entrySet()) {
-            Optional<RoleAssignmentForSearch> maybeRepresentative =
-                groupEntry.getValue()
-                    .stream().findFirst();
-            if (maybeRepresentative.isPresent()) {
-                RoleAssignmentForSearch representative = maybeRepresentative.get();
-
-                updateGroupRepresentative(representative, groupEntry.getValue());
-                representatives.add(representative);
-
-            }
-
-        }
-        accumulativeList.addAll(representatives);
-
-        assertThat(representatives).hasSize(2);
-        assertThat(accumulativeList).hasSize(4);
-
-        //Check the caseIds are what we expect
-        assertThat(representatives.get(0).getCaseIds()).hasSize(2);
-        assertThat(representatives.get(1).getCaseIds()).hasSize(2);
-
-    }
-
-    public RoleAssignment updateGroupRepresentative(RoleAssignment groupRepresentative, List<RoleAssignment> group) {
-
-        //TODO add all CaseIds you find from the group to the Set in RoleAssignmentsForSearch
-        return groupRepresentative;
-
-    }
-
-    public RoleAssignmentForSearch updateGroupRepresentative(RoleAssignmentForSearch groupRepresentative,
-                                                             List<RoleAssignmentForSearch> group) {
-
-        for (RoleAssignmentForSearch groupMember : group) {
-            groupRepresentative.getCaseIds().addAll(groupMember.getCaseIds());
-        }
-
-        return groupRepresentative;
-
-    }
-
-
-    public List<RoleAssignment> createRoleAssignmentData() {
-
-
-        List<RoleAssignment> caseManagerSpecificCaseRoles =
-            RoleAssignmentCreator.aRoleAssignmentList(2,
-                RoleType.CASE,
-                GrantType.SPECIFIC,
-                "case-manager",
-                Classification.PUBLIC);
-        assertThat(caseManagerSpecificCaseRoles.size()).isEqualTo(2);
-
-        List<RoleAssignment> caseWorkerSpecificCaseRoles =
-            RoleAssignmentCreator.aRoleAssignmentList(2,
-                RoleType.CASE,
-                GrantType.SPECIFIC,
-                "caseworker",
-                Classification.PUBLIC);
-        assertThat(caseManagerSpecificCaseRoles.size()).isEqualTo(2);
-        List<RoleAssignment> caseWorkerStandardOrgRoles =
-            RoleAssignmentCreator.aRoleAssignmentList(2,
-                RoleType.ORGANISATION,
-                GrantType.STANDARD,
-                "caseworker",
-                Classification.PUBLIC);
-        assertThat(caseManagerSpecificCaseRoles.size()).isEqualTo(2);
-
-        List<RoleAssignment> allRoleAssignments = new ArrayList<>();
-        allRoleAssignments.addAll(caseManagerSpecificCaseRoles);
-        allRoleAssignments.addAll(caseWorkerSpecificCaseRoles);
-        allRoleAssignments.addAll(caseWorkerStandardOrgRoles);
-
-        assertThat(allRoleAssignments).hasSize(6);
-
-        return allRoleAssignments;
-
-    }
     
+    @ParameterizedTest
+    @MethodSource({
+        "performanceTestBasedScenarios",
+        "mixedRoleTypeBasedScenarios",
+        "organisationalRoleTypeBasedScenarios",
+        "caseRoleTypeBasedScenarios"
+    })
+    void should_group_case_roles_assignments_for_search(RoleAssignmentForSearchScenario scenarios) {
+        //Create some data and check
+        List<RoleAssignment> allRoleAssignments = createRoleAssignmentData(scenarios.roleAssignmentExpectations);
+        assertThat(allRoleAssignments).hasSize(scenarios.totalRoleAssignmentsForScenarios);
+
+        //Split Case and Org roles
+
+        RoleAssignmentSearchData roleAssignmentSearchData = new RoleAssignmentSearchData(
+            allRoleAssignments,
+            RoleAssignmentForSearch::getRoleType
+        );
+
+        List<RoleAssignmentForSearch> roleAssignmentsForSearch = roleAssignmentSearchData.getRoleAssignmentsForSearch();
+        assertThat(roleAssignmentsForSearch).hasSize(scenarios.expectedResponses);
+
+        Map<String, List<RoleAssignmentForSearch>> roleAssignmentsByRoleTypes
+            = roleAssignmentsForSearch.stream()
+            .collect(Collectors.groupingBy(RoleAssignmentForSearch::getRoleType));
+
+        if (scenarios.expectedOrganisationRoles != 0) {
+            assertThat(roleAssignmentsByRoleTypes.get(RoleType.ORGANISATION.name()))
+                .hasSize(scenarios.expectedOrganisationRoles);
+        }
+        if (scenarios.expectedCaseRoles != 0) {
+            assertThat(roleAssignmentsByRoleTypes.get(RoleType.CASE.name())).hasSize(scenarios.expectedCaseRoles);
+        }
+    }
+
+    private static Stream<RoleAssignmentForSearchScenario> performanceTestBasedScenarios() {
+        return Stream.of(
+            RoleAssignmentForSearchScenario.builder()
+                .roleAssignmentExpectations(List.of(
+                    RoleAssignmentExpectations.builder()
+                        .roleName("case-manager")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(172)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("case-allocator")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("hmcts-legal-operations")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("task-supervisor")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("tribunal-caseworker")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build()
+                ))
+                .totalRoleAssignmentsForScenarios(176)
+                .expectedResponses(5)
+                .expectedCaseRoles(1)
+                .expectedOrganisationRoles(4)
+                .build()
+        );
+    }
+
+    private static Stream<RoleAssignmentForSearchScenario> mixedRoleTypeBasedScenarios() {
+        return Stream.of(
+            RoleAssignmentForSearchScenario.builder()
+                .roleAssignmentExpectations(List.of(
+                    RoleAssignmentExpectations.builder()
+                        .roleName("case-manager")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("case-allocator")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("tribunal-caseworker")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("hearing-judge")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("task-supervisor")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("tribunal-caseworker")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of())
+                        .build()
+                ))
+                .totalRoleAssignmentsForScenarios(12)
+                .expectedResponses(8)
+                .expectedCaseRoles(4)
+                .expectedOrganisationRoles(4)
+                .build()
+        );
+    }
+
+    private static Stream<RoleAssignmentForSearchScenario> caseRoleTypeBasedScenarios() {
+        return Stream.of(
+            RoleAssignmentForSearchScenario.builder()
+                .roleAssignmentExpectations(List.of(
+                    RoleAssignmentExpectations.builder()
+                        .roleName("case-manager")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("case-allocator")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("tribunal-caseworker")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("hearing-judge")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("additional-attributes-requested")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("specific-access-requested")
+                        .roleType(RoleType.CASE)
+                        .grantType(GrantType.SPECIFIC)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(2)
+                        .authorisations(List.of("371"))
+                        .build()
+                ))
+                .totalRoleAssignmentsForScenarios(12)
+                .expectedResponses(6)
+                .expectedCaseRoles(6)
+                .expectedOrganisationRoles(0)
+                .build()
+        );
+    }
+
+    private static Stream<RoleAssignmentForSearchScenario> organisationalRoleTypeBasedScenarios() {
+        return Stream.of(
+            RoleAssignmentForSearchScenario.builder()
+                .roleAssignmentExpectations(List.of(
+                    RoleAssignmentExpectations.builder()
+                        .roleName("task-supervisor")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("hearing-centre-admin")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("senior-tribunal-caseworker")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("hmcts-admin")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("hmcts-legal-operations")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build(),
+                    RoleAssignmentExpectations.builder()
+                        .roleName("tribunal-caseworker")
+                        .roleType(RoleType.ORGANISATION)
+                        .grantType(GrantType.STANDARD)
+                        .classification(Classification.PUBLIC)
+                        .numberOfRoles(1)
+                        .authorisations(List.of())
+                        .build()
+                ))
+                .totalRoleAssignmentsForScenarios(6)
+                .expectedResponses(6)
+                .expectedCaseRoles(0)
+                .expectedOrganisationRoles(6)
+                .build()
+        );
+    }
+
+    public List<RoleAssignment> createRoleAssignmentData(List<RoleAssignmentExpectations> scenarios) {
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        for (RoleAssignmentExpectations scenario : scenarios) {
+            roleAssignments.addAll(
+                RoleAssignmentCreator.aRoleAssignmentList(
+                    scenario.numberOfRoles,
+                    scenario.roleType,
+                    scenario.grantType,
+                    scenario.roleName,
+                    scenario.classification,
+                    scenario.authorisations
+                ));
+        }
+        return roleAssignments;
+    }
+
+    @Builder
+    private static class RoleAssignmentForSearchScenario {
+        List<RoleAssignmentExpectations> roleAssignmentExpectations;
+        int totalRoleAssignmentsForScenarios;
+        int expectedResponses;
+        int expectedOrganisationRoles;
+        int expectedCaseRoles;
+    }
+
+    @Builder
+    private static class RoleAssignmentExpectations {
+        String roleName;
+        RoleType roleType;
+        GrantType grantType;
+        Classification classification;
+        int numberOfRoles;
+        List<String> authorisations;
+    }
 }

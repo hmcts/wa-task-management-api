@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.data;
 
-import org.apache.groovy.util.Maps;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
@@ -46,7 +45,8 @@ public class RoleAssignmentCreator {
     public static RoleAssignment.RoleAssignmentBuilder aRoleAssignment(RoleType roleType,
                                                                        GrantType grantType,
                                                                        String roleName,
-                                                                       Classification classification) {
+                                                                       Classification classification,
+                                                                       List<String> authorisations) {
 
         return RoleAssignment.builder()
             .id(UUID.randomUUID().toString())
@@ -61,28 +61,69 @@ public class RoleAssignmentCreator {
             .beginTime(null)
             .endTime(null)
             .created(null)
-            .authorisations(singletonList("731"))
-            .attributes(Map.of(
-                RoleAttributeDefinition.JURISDICTION.value(), "IA",
-                RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-                RoleAttributeDefinition.CASE_ID.value(), "caseId:" + UUID.randomUUID().toString()
-            ));
+            .authorisations(authorisations)
+            .attributes(getAttributes(roleName, roleType.name()));
+    }
 
+    private static Map<String, String> getAttributes(String roleName, String roleType) {
+        Map<String, String> specificAttributes = Map.of(
+            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.CASE_ID.value(), "caseId:" + UUID.randomUUID()
+        );
+        Map<String, String> caseworkerAttributes = Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                                                          RoleAttributeDefinition.PRIMARY_LOCATION.value(), "123456"
+        );
+
+        switch (roleName) {
+            case "hearing-judge":
+            case "case-manager":
+                return specificAttributes;
+            case "task-supervisor":
+                return Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA");
+
+            case "case-allocator":
+            case "tribunal-caseworker":
+                return roleType.equals("CASE")
+                    ? specificAttributes
+                    : caseworkerAttributes;
+            case "hearing-centre-admin":
+            case "senior-tribunal-caseworker":
+                return caseworkerAttributes;
+            case "hmcts-admin":
+            case "hmcts-legal-operations":
+                return Map.of(RoleAttributeDefinition.PRIMARY_LOCATION.value(), "123456");
+            case "specific-access-requested":
+                return Map.of(
+                    RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                    RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+                    RoleAttributeDefinition.CASE_ID.value(), "caseId:" + UUID.randomUUID(),
+                    RoleAttributeDefinition.REQUESTED_ROLE.value(), "requested-role"
+                );
+
+            case "additional-attributes-requested":
+                return Map.of(
+                    RoleAttributeDefinition.JURISDICTION.value(), "IA",
+                    RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+                    RoleAttributeDefinition.CASE_ID.value(), "caseId:" + UUID.randomUUID(),
+                    RoleAttributeDefinition.REQUESTED_ROLE.value(), "requested-role",
+                    "ADDITIONAL_ATTRIBUTE", "additional-attribute"
+                );
+            default:
+                throw new IllegalArgumentException("unknown role type");
+        }
     }
 
     public static List<RoleAssignment> aRoleAssignmentList(int requiredSize,
-                                                                       RoleType roleType,
-                                                                       GrantType grantType,
-                                                                       String roleName,
-                                                                       Classification classification) {
+                                                           RoleType roleType,
+                                                           GrantType grantType,
+                                                           String roleName,
+                                                           Classification classification,
+                                                           List<String> authorisations) {
 
         List<RoleAssignment> roles = new ArrayList<>(requiredSize);
         for (int i = 0; i < requiredSize; i++) {
-
-            roles.add(
-                aRoleAssignment(roleType, grantType, roleName, classification)
-                    .build());
-
+            roles.add(aRoleAssignment(roleType, grantType, roleName, classification, authorisations).build());
         }
 
         return roles;
