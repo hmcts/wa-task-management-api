@@ -54,15 +54,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @ExtendWith(MockitoExtension.class)
 public class TaskResourceSpecificationTest {
 
-    @Mock(extraInterfaces = Serializable.class) Root<TaskResource> root;
-    @Mock(extraInterfaces = Serializable.class) CriteriaQuery<?> query;
-    @Mock(extraInterfaces = Serializable.class) CriteriaBuilderImpl criteriaBuilder;
-    @Mock Join<Object, Object> taskRoleResources;
-    @Mock CriteriaBuilder.In<Object> inObject;
-    @Mock CriteriaBuilder.In<Object> values;
-    @Mock Path<Object> authorizations;
-    @Mock Path<Object> path;
-    @Mock Predicate mockPredicate;
+    @Mock(extraInterfaces = Serializable.class)
+    Root<TaskResource> root;
+    @Mock(extraInterfaces = Serializable.class)
+    CriteriaQuery<?> query;
+    @Mock(extraInterfaces = Serializable.class)
+    CriteriaBuilderImpl criteriaBuilder;
+    @Mock
+    Join<Object, Object> taskRoleResources;
+    @Mock
+    CriteriaBuilder.In<Object> inObject;
+    @Mock
+    CriteriaBuilder.In<Object> values;
+    @Mock
+    Path<Object> authorizations;
+    @Mock
+    Path<Object> path;
+    @Mock
+    Predicate mockPredicate;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -77,7 +86,8 @@ public class TaskResourceSpecificationTest {
         BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
-            Boolean.TRUE);
+            Boolean.TRUE
+        );
         lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
@@ -110,7 +120,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(scenario.expectedInPredicate)).in(any());
+        verify(criteriaBuilder, times(scenario.expectedInPredicate)).equal(any(), anyString());
         verify(criteriaBuilder, times(scenario.expectedConjunctions)).conjunction();
     }
 
@@ -134,7 +144,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(7)).conjunction();
     }
 
@@ -158,7 +168,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(7)).conjunction();
     }
 
@@ -185,7 +195,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(7)).conjunction();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
@@ -229,7 +239,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(7)).conjunction();
     }
 
@@ -258,7 +268,7 @@ public class TaskResourceSpecificationTest {
         );
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(8)).in(any());
+        verify(criteriaBuilder, times(7)).equal(any(), anyString());
     }
 
     @Test
@@ -286,7 +296,8 @@ public class TaskResourceSpecificationTest {
         );
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(8)).in(any());
+        verify(criteriaBuilder, times(7)).equal(any(), anyString());
+
     }
 
     @Test
@@ -340,7 +351,9 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(3)).in(any());
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(3)).equal(any(), anyString());
+
     }
 
     @Test
@@ -362,7 +375,8 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(2)).in(any());
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(2)).equal(any(), anyString());
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
@@ -378,14 +392,14 @@ public class TaskResourceSpecificationTest {
         ));
         final SearchTaskRequestScenario state =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(1).expectedConjunctions(6).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
         final SearchTaskRequestScenario availableTaskOnly =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(1).expectedConjunctions(6).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
@@ -430,7 +444,8 @@ public class TaskResourceSpecificationTest {
                 .expectedInPredicate(2).expectedConjunctions(6).build();
 
         return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg,
-            availableTaskOnly, availableTaskOnlyAsFalse);
+                         availableTaskOnly, availableTaskOnlyAsFalse
+        );
 
     }
 

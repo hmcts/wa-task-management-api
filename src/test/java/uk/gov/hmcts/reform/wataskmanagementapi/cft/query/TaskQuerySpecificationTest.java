@@ -18,7 +18,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -73,7 +72,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<CFTTaskState> stateList = List.of(CFTTaskState.ASSIGNED);
+            List<CFTTaskState> stateList = List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED);
             lenient().when(root.get(COLUMN_STATE)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(stateList)).thenReturn(inObject);
@@ -89,7 +88,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<CFTTaskState> stateList = List.of(CFTTaskState.ASSIGNED);
+            List<CFTTaskState> stateList = List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED);
             lenient().when(root.get(COLUMN_STATE)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByState(stateList);
@@ -104,7 +103,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_states_returned_from_builder_are_null() {
-            List<CFTTaskState> stateList = List.of(CFTTaskState.ASSIGNED);
+            List<CFTTaskState> stateList = List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED);
             lenient().when(root.get(COLUMN_STATE)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(stateList)).thenReturn(null);
@@ -149,7 +148,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> jurisdictions = List.of("IA");
+            List<String> jurisdictions = List.of("IA", "WA");
             lenient().when(root.get(COLUMN_JURISDICTION)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(jurisdictions)).thenReturn(inObject);
@@ -165,7 +164,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> jurisdictions = List.of("IA");
+            List<String> jurisdictions = List.of("IA", "WA");
             lenient().when(root.get(COLUMN_JURISDICTION)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByJurisdiction(jurisdictions);
@@ -180,7 +179,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_jurisdictions_returned_from_builder_are_null() {
-            List<String> jurisdictions = List.of("IA");
+            List<String> jurisdictions = List.of("IA", "WA");
             lenient().when(root.get(COLUMN_JURISDICTION)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(jurisdictions)).thenReturn(null);
@@ -225,7 +224,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> locations = List.of("765324");
+            List<String> locations = List.of("765324", "765326");
             lenient().when(root.get(COLUMN_LOCATION)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(locations)).thenReturn(inObject);
@@ -241,7 +240,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> locations = List.of("765324");
+            List<String> locations = List.of("765324", "765326");
             lenient().when(root.get(COLUMN_LOCATION)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByLocation(locations);
@@ -256,7 +255,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_locations_returned_from_builder_are_null() {
-            List<String> locations = List.of("765324");
+            List<String> locations = List.of("765324", "765326");
             lenient().when(root.get(COLUMN_LOCATION)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(locations)).thenReturn(null);
@@ -302,7 +301,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> caseIds = List.of("623453245345");
+            List<String> caseIds = List.of("623453245345", "623453245346");
             lenient().when(root.get(COLUMN_CASE_ID)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(caseIds)).thenReturn(inObject);
@@ -318,7 +317,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> caseIds = List.of("623453245345");
+            List<String> caseIds = List.of("623453245345", "623453245346");
             lenient().when(root.get(COLUMN_CASE_ID)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByCaseIds(caseIds);
@@ -333,7 +332,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_case_ids_returned_from_builder_are_null() {
-            List<String> caseIds = List.of("623453245345");
+            List<String> caseIds = List.of("623453245345", "623453245346");
             lenient().when(root.get(COLUMN_CASE_ID)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(caseIds)).thenReturn(null);
@@ -410,7 +409,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> userIds = List.of("userId");
+            List<String> userIds = List.of("userId", "userId1");
             lenient().when(root.get(COLUMN_ASSIGNEE)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(userIds)).thenReturn(inObject);
@@ -426,7 +425,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> userIds = List.of("userId");
+            List<String> userIds = List.of("userId", "userId1");
             lenient().when(root.get(COLUMN_ASSIGNEE)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByUser(userIds);
@@ -441,7 +440,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_users_returned_from_builder_are_null() {
-            List<String> userIds = List.of("userId");
+            List<String> userIds = List.of("userId", "userId1");
             lenient().when(root.get(COLUMN_ASSIGNEE)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(userIds)).thenReturn(null);
@@ -486,7 +485,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> taskIds = List.of("taskId");
+            List<String> taskIds = List.of("taskId", "taskId1");
             lenient().when(root.get(COLUMN_TASK_ID)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(taskIds)).thenReturn(inObject);
@@ -504,7 +503,7 @@ public class TaskQuerySpecificationTest {
         void should_build_specification_when_column_is_null() {
             lenient().when(root.get(COLUMN_TASK_ID)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
-            Specification<TaskResource> spec = searchByTaskIds(singletonList("taskId"));
+            Specification<TaskResource> spec = searchByTaskIds(List.of("taskId", "taskId1"));
             Predicate predicate = spec.toPredicate(root, query, builder);
 
             assertNull(predicate);
@@ -512,6 +511,20 @@ public class TaskQuerySpecificationTest {
             verify(builder, never()).conjunction();
             verify(root, times(1)).get(COLUMN_TASK_ID);
             verify(builder, times(1)).in(any());
+        }
+
+        @Test
+        void should_build_specification_when_column_is_null_with_single_spec() {
+            lenient().when(root.get(COLUMN_TASK_ID)).thenReturn(null);
+            lenient().when(builder.in(null)).thenReturn(inObject);
+            Specification<TaskResource> spec = searchByTaskIds(List.of("taskId"));
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNull(predicate);
+
+            verify(builder, never()).conjunction();
+            verify(root, times(1)).get(COLUMN_TASK_ID);
+            verify(builder, times(1)).equal(null, "taskId");
         }
 
         @Test
@@ -545,7 +558,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> taskTypes = List.of("taskType");
+            List<String> taskTypes = List.of("taskType", "taskType1");
             lenient().when(root.get(COLUMN_TASK_TYPE)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(taskTypes)).thenReturn(inObject);
@@ -561,7 +574,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> taskTypes = List.of("taskType");
+            List<String> taskTypes = List.of("taskType", "taskType1");
             lenient().when(root.get(COLUMN_TASK_TYPE)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByTaskTypes(taskTypes);
@@ -576,7 +589,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_task_types_returned_from_builder_are_null() {
-            List<String> taskTypes = List.of("taskType");
+            List<String> taskTypes = List.of("taskType", "taskType1");
             lenient().when(root.get(COLUMN_TASK_TYPE)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(taskTypes)).thenReturn(null);
@@ -621,7 +634,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> workTypes = List.of("routine_work");
+            List<String> workTypes = List.of("routine_work", "decision_making_work");
             lenient().when(root.get(COLUMN_WORK_TYPE)).thenReturn(path);
             lenient().when(path.get(COLUMN_WORK_TYPE_ID)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
@@ -638,7 +651,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_work_types_returned_from_builder_are_null() {
-            List<String> workTypes = List.of("routine_work");
+            List<String> workTypes = List.of("routine_work", "decision_making_work");
             lenient().when(root.get(COLUMN_WORK_TYPE)).thenReturn(path);
             lenient().when(root.get(COLUMN_WORK_TYPE).get(COLUMN_WORK_TYPE_ID)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
@@ -684,7 +697,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_given() {
-            List<String> locations = List.of("765324");
+            List<String> locations = List.of("765324", "765123");
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(locations)).thenReturn(inObject);
@@ -700,7 +713,7 @@ public class TaskQuerySpecificationTest {
 
         @Test
         void should_build_specification_when_column_is_null() {
-            List<String> roleCategories = List.of("LEGAL_OPERATIONS");
+            List<String> roleCategories = List.of("LEGAL_OPERATIONS", "JUDICIAL");
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(null);
             lenient().when(builder.in(null)).thenReturn(inObject);
             Specification<TaskResource> spec = searchByRoleCategory(roleCategories);
@@ -714,8 +727,23 @@ public class TaskQuerySpecificationTest {
         }
 
         @Test
-        void should_build_specification_when_role_categories_returned_from_builder_are_null() {
+        void should_build_specification_when_column_is_null_with_single_spec() {
             List<String> roleCategories = List.of("LEGAL_OPERATIONS");
+            lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(null);
+            lenient().when(builder.in(null)).thenReturn(inObject);
+            Specification<TaskResource> spec = searchByRoleCategory(roleCategories);
+            Predicate predicate = spec.toPredicate(root, query, builder);
+
+            assertNull(predicate);
+
+            verify(builder, never()).conjunction();
+            verify(root, times(1)).get(COLUMN_ROLE_CATEGORY);
+            verify(builder, times(1)).equal(null, "LEGAL_OPERATIONS");
+        }
+
+        @Test
+        void should_build_specification_when_role_categories_returned_from_builder_are_null() {
+            List<String> roleCategories = List.of("LEGAL_OPERATIONS", "JUDICIAL");
             lenient().when(root.get(COLUMN_ROLE_CATEGORY)).thenReturn(path);
             lenient().when(builder.in(path)).thenReturn(inObject);
             lenient().when(inObject.value(roleCategories)).thenReturn(null);
