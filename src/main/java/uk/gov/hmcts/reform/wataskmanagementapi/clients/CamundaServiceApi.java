@@ -120,13 +120,13 @@ public interface CamundaServiceApi {
                     @RequestBody Map<String, String> body);
 
     @PostMapping(
-        value = "/decision-definition/key/{key}/tenant-id/ia/evaluate",
+        value = "/decision-definition/key/{key}/tenant-id/{jurisdiction}/evaluate",
         consumes = APPLICATION_JSON_VALUE
     )
     List<Map<String, CamundaVariable>> evaluateDMN(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                                    @PathVariable("key") String key,
+                                                   @PathVariable("jurisdiction") String jurisdiction,
                                                    @RequestBody Map<String, Map<String, CamundaVariable>> body);
-
 
     @GetMapping(
         value = "/task/{task-id}/variables",
