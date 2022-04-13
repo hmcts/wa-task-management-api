@@ -103,8 +103,9 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .body("tasks.case_management_category", everyItem(equalTo("Protection")))
                 .body("tasks.work_type_id", everyItem(equalTo("hearing_work")))
                 .body("tasks.permissions.values", everyItem(equalToObject(List.of("Read", "Refer", "Execute"))))
-                .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                                             + "trigger/decideAnApplication)")))
+                .body("tasks.description",
+                    everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                      + "trigger/decideAnApplication)")))
                 .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
                 .body("tasks.additional_properties", everyItem(equalToObject(Map.of(
                     "key1", "value1",
