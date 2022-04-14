@@ -174,6 +174,103 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_return_a_201_when_initiating_a_specific_access_task_by_id() {
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "reviewSpecificAccessRequestJudiciary"),
+            new TaskAttribute(TASK_NAME, "additionalProperties_roleAssignmentId"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "Specific Access Task"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            caseworkerCredentials.getHeaders()
+        );
+
+        //Note: this is the TaskResource.class
+        result.prettyPrint();
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .body("task_id", equalTo(taskId))
+            .body("task_name", equalTo("additionalProperties_roleAssignmentId"))
+            .body("task_type", equalTo("reviewSpecificAccessRequestJudiciary"))
+            .body("state", equalTo("UNASSIGNED"))
+            .body("task_system", equalTo("SELF"))
+            .body("security_classification", equalTo("PUBLIC"))
+            .body("title", equalTo("additionalProperties_roleAssignmentId"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
+            .body("auto_assigned", equalTo(false))
+            .body("has_warnings", equalTo(false))
+            .body("case_id", equalTo(taskVariables.getCaseId()))
+            .body("case_type_id", equalTo("WaCaseType"))
+            .body("jurisdiction", equalTo("WA"))
+            .body("region", equalTo("1"))
+            .body("location", equalTo("765324"))
+            .body("location_name", equalTo("Taylor House"))
+            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body(
+                "execution_type_code.description",
+                equalTo("The task requires a case management event to be executed by the user. "
+                            + "(Typically this will be in CCD.)")
+            )
+            .body("task_role_resources.size()", equalTo(2));
+
+        assertPermissions(
+            getTaskResource(result, "judge"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", true)
+            )
+        );
+
+        assertPermissions(
+            getTaskResource(result, "task-supervisor"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
+            )
+        );
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
