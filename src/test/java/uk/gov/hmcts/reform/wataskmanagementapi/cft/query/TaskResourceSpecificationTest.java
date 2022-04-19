@@ -54,15 +54,24 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @ExtendWith(MockitoExtension.class)
 public class TaskResourceSpecificationTest {
 
-    @Mock(extraInterfaces = Serializable.class) Root<TaskResource> root;
-    @Mock(extraInterfaces = Serializable.class) CriteriaQuery<?> query;
-    @Mock(extraInterfaces = Serializable.class) CriteriaBuilderImpl criteriaBuilder;
-    @Mock Join<Object, Object> taskRoleResources;
-    @Mock CriteriaBuilder.In<Object> inObject;
-    @Mock CriteriaBuilder.In<Object> values;
-    @Mock Path<Object> authorizations;
-    @Mock Path<Object> path;
-    @Mock Predicate mockPredicate;
+    @Mock(extraInterfaces = Serializable.class)
+    Root<TaskResource> root;
+    @Mock(extraInterfaces = Serializable.class)
+    CriteriaQuery<?> query;
+    @Mock(extraInterfaces = Serializable.class)
+    CriteriaBuilderImpl criteriaBuilder;
+    @Mock
+    Join<Object, Object> taskRoleResources;
+    @Mock
+    CriteriaBuilder.In<Object> inObject;
+    @Mock
+    CriteriaBuilder.In<Object> values;
+    @Mock
+    Path<Object> authorizations;
+    @Mock
+    Path<Object> path;
+    @Mock
+    Predicate mockPredicate;
 
     @BeforeEach
     @SuppressWarnings("unchecked")
@@ -77,7 +86,8 @@ public class TaskResourceSpecificationTest {
         BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
             criteriaBuilder,
             null,
-            Boolean.TRUE);
+            Boolean.TRUE
+        );
         lenient().when(criteriaBuilder.conjunction()).thenReturn(booleanAssertionPredicate);
         lenient().when(criteriaBuilder.equal(any(), any())).thenReturn(mockPredicate);
         lenient().when(inObject.value(any())).thenReturn(values);
@@ -110,7 +120,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(scenario.expectedInPredicate)).in(any());
+        verify(criteriaBuilder, times(scenario.expectedEqualPredicate)).equal(any(), anyString());
         verify(criteriaBuilder, times(scenario.expectedConjunctions)).conjunction();
     }
 
@@ -134,7 +144,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(12)).conjunction();
     }
 
@@ -158,7 +168,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(12)).conjunction();
     }
 
@@ -185,7 +195,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(12)).conjunction();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
@@ -229,7 +239,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(1)).equal(any(), anyString());
         verify(criteriaBuilder, times(12)).conjunction();
     }
 
@@ -258,7 +268,7 @@ public class TaskResourceSpecificationTest {
         );
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(8)).in(any());
+        verify(criteriaBuilder, times(7)).equal(any(), anyString());
     }
 
     @Test
@@ -286,7 +296,8 @@ public class TaskResourceSpecificationTest {
         );
         spec.toPredicate(root, query, criteriaBuilder);
 
-        verify(criteriaBuilder, times(8)).in(any());
+        verify(criteriaBuilder, times(7)).equal(any(), anyString());
+
     }
 
     @Test
@@ -340,7 +351,9 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(3)).in(any());
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(3)).equal(any(), anyString());
+
     }
 
     @Test
@@ -362,7 +375,8 @@ public class TaskResourceSpecificationTest {
         assertNotNull(spec);
         assertNotNull(predicate);
 
-        verify(criteriaBuilder, times(2)).in(any());
+        verify(criteriaBuilder, times(1)).in(any());
+        verify(criteriaBuilder, times(2)).equal(any(), anyString());
     }
 
     private static Stream<SearchTaskRequestScenario> searchParameterForTaskQuery() {
@@ -371,63 +385,63 @@ public class TaskResourceSpecificationTest {
         ));
         final SearchTaskRequestScenario jurisdiction =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED"))
         ));
         final SearchTaskRequestScenario state =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(1).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
         final SearchTaskRequestScenario availableTaskOnly =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(1).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
         final SearchTaskRequestScenario availableTaskOnlyAsFalse =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(1).expectedConjunctions(12).build();
+                .expectedEqualPredicate(1).expectedConjunctions(12).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location"))
         ));
         final SearchTaskRequestScenario location =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("caseId"))
         ));
         final SearchTaskRequestScenario caseId =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser"))
         ));
         final SearchTaskRequestScenario user =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
         ));
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS"))
         ));
         final SearchTaskRequestScenario roleCtg =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(11).build();
+                .expectedEqualPredicate(2).expectedConjunctions(11).build();
 
         return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg,
             availableTaskOnly, availableTaskOnlyAsFalse);
@@ -449,6 +463,7 @@ public class TaskResourceSpecificationTest {
         SearchEventAndCase searchEventAndCase;
         List<String> taskTypes;
         int expectedInPredicate;
+        int expectedEqualPredicate;
         int expectedConjunctions;
     }
 }

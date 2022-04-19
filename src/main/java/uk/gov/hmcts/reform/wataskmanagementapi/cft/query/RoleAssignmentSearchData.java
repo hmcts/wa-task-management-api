@@ -67,14 +67,10 @@ public class RoleAssignmentSearchData {
             .collect(Collectors.toList());
     }
 
-    private RoleAssignmentForSearch updateGroupRepresentative(RoleAssignmentForSearch groupRepresentative,
-                                                              List<RoleAssignmentForSearch> group) {
-
+    private void updateGroupRepresentative(RoleAssignmentForSearch groupRepresentative,
+                                           List<RoleAssignmentForSearch> group) {
         for (RoleAssignmentForSearch groupMember : group) {
             groupRepresentative.getCaseIds().addAll(groupMember.getCaseIds());
         }
-
-        return groupRepresentative;
-
     }
 }

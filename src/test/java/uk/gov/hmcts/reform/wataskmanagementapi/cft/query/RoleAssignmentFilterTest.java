@@ -132,7 +132,7 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(5)).get(anyString());
         verify(pathObject, times(2)).isNull();
-        verify(builder, times(2)).in(any());
+        verify(builder, times(5)).equal(any(), anyString());
         verify(builder, times(4)).or(any());
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
@@ -169,7 +169,7 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(root.get("securityClassification")).thenReturn(classificationPath);
 
-        when(builder.in(classificationPath).value(List.of(SecurityClassification.PUBLIC)))
+        when(builder.equal(classificationPath, SecurityClassification.PUBLIC))
             .thenReturn(inObject);
 
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
@@ -189,7 +189,7 @@ public class RoleAssignmentFilterTest {
 
         lenient().when(root.get("securityClassification")).thenReturn(classificationPath);
 
-        when(builder.in(classificationPath).value(List.of(SecurityClassification.PUBLIC)))
+        when(builder.equal(classificationPath, SecurityClassification.PUBLIC))
             .thenReturn(null);
 
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
@@ -282,7 +282,6 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(7)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(2)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
@@ -398,7 +397,6 @@ public class RoleAssignmentFilterTest {
         verify(root, times(1)).join(anyString());
         verify(root, times(1)).get(anyString());
         verify(pathObject, times(1)).isNull();
-        verify(builder, times(1)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(2)).or(any(), any());
         verify(builder, times(3)).and(any(), any());

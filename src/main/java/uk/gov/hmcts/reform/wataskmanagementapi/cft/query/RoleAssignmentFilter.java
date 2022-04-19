@@ -243,7 +243,6 @@ public final class RoleAssignmentFilter {
             root, builder, roleAssignment
         );
         Predicate authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
-
         Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
         Predicate region = searchByRegion(root, builder, roleAssignment);
         Predicate jurisdiction = searchByRoleJurisdiction(root, builder, roleAssignment);
@@ -273,11 +272,7 @@ public final class RoleAssignmentFilter {
             final Classification classification = Classification.valueOf(roleAssignment.getClassification());
             switch (classification) {
                 case PUBLIC:
-                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                        of(
-                            SecurityClassification.PUBLIC
-                        )
-                    );
+                    return builder.equal(root.get(SECURITY_CLASSIFICATION_COLUMN), SecurityClassification.PUBLIC);
                 case PRIVATE:
                     return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
                         of(
