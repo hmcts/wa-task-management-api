@@ -4,6 +4,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class RoleAssignmentTestUtils {
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -35,6 +37,7 @@ public class RoleAssignmentTestUtils {
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
+            .roleType(RoleType.CASE)
             .attributes(specificAttributes)
             .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -52,9 +55,11 @@ public class RoleAssignmentTestUtils {
             RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
             RoleAttributeDefinition.JURISDICTION.value(), "IA",
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
+            RoleAttributeDefinition.BASE_LOCATION.value(), "765324",
+            RoleAttributeDefinition.PRIMARY_LOCATION.value(), "765324"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.STANDARD)
@@ -68,6 +73,7 @@ public class RoleAssignmentTestUtils {
         );
 
         roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
@@ -89,6 +95,7 @@ public class RoleAssignmentTestUtils {
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.CASE)
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
@@ -103,6 +110,7 @@ public class RoleAssignmentTestUtils {
         );
 
         roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
@@ -119,6 +127,7 @@ public class RoleAssignmentTestUtils {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary1")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().plusYears(1))
@@ -127,6 +136,7 @@ public class RoleAssignmentTestUtils {
         roleAssignments.add(roleAssignment);
 
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary2")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .endTime(LocalDateTime.now().minusYears(1))
@@ -134,6 +144,7 @@ public class RoleAssignmentTestUtils {
         roleAssignments.add(roleAssignment);
 
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary3")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().plusYears(1))
@@ -141,6 +152,7 @@ public class RoleAssignmentTestUtils {
         roleAssignments.add(roleAssignment);
 
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary4")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -149,6 +161,7 @@ public class RoleAssignmentTestUtils {
         roleAssignments.add(roleAssignment);
 
         roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary5")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().plusYears(1))
@@ -168,6 +181,7 @@ public class RoleAssignmentTestUtils {
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .grantType(GrantType.CHALLENGED)
@@ -181,6 +195,7 @@ public class RoleAssignmentTestUtils {
         );
 
         roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
@@ -197,6 +212,7 @@ public class RoleAssignmentTestUtils {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -212,6 +228,7 @@ public class RoleAssignmentTestUtils {
             .classification(Classification.PRIVATE)
             .attributes(specificAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
+            .roleType(RoleType.CASE)
             .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -226,6 +243,7 @@ public class RoleAssignmentTestUtils {
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(Classification.RESTRICTED)
             .attributes(stdAttributes)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -237,6 +255,7 @@ public class RoleAssignmentTestUtils {
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
@@ -252,6 +271,7 @@ public class RoleAssignmentTestUtils {
             .classification(Classification.PUBLIC)
             .attributes(excludeddAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
+            .roleType(RoleType.CASE)
             .grantType(GrantType.EXCLUDED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -265,6 +285,7 @@ public class RoleAssignmentTestUtils {
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -278,6 +299,7 @@ public class RoleAssignmentTestUtils {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
             .grantType(GrantType.BASIC)
+            .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();

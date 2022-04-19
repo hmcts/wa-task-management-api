@@ -1,15 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import com.launchdarkly.shaded.com.google.common.collect.Lists;
 import org.springframework.util.CollectionUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentForSearch;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,27 +29,6 @@ public class RoleAssignmentSearchData {
             .collect(Collectors.toList()).stream()
             .collect(Collectors.groupingBy(groupingStrategy));
 
-        List<RoleAssignmentForSearch> caseRoleAssignments = roleAssignmentsByRoleType.get(RoleType.CASE.name());
-        List<RoleAssignmentForSearch> representatives = Lists.newArrayList();
-
-        if (!CollectionUtils.isEmpty(caseRoleAssignments)) {
-
-            //Group the Case roles
-            Map<Integer, List<RoleAssignmentForSearch>> groupedCaseRoles = caseRoleAssignments
-                .stream()
-                .collect(Collectors.groupingBy(RoleAssignmentForSearch::hashCode));
-
-            // Pick the first and collect the caseIds for a group
-
-            for (Map.Entry<Integer, List<RoleAssignmentForSearch>> groupEntry : groupedCaseRoles.entrySet()) {
-                Optional<RoleAssignmentForSearch> maybeRepresentative = groupEntry.getValue().stream().findFirst();
-                if (maybeRepresentative.isPresent()) {
-                    RoleAssignmentForSearch representative = maybeRepresentative.get();
-                    updateGroupRepresentative(representative, groupEntry.getValue());
-                    representatives.add(representative);
-                }
-            }
-        }
         //Add Org Roles as they are
         List<RoleAssignmentForSearch> roleAssignmentForOrganisation
             = roleAssignmentsByRoleType.get(RoleType.ORGANISATION.name());
@@ -59,11 +37,34 @@ public class RoleAssignmentSearchData {
         if (!CollectionUtils.isEmpty(roleAssignmentForOrganisation)) {
             finalRoleAssignments.addAll(roleAssignmentForOrganisation);
         }
-        if (!CollectionUtils.isEmpty(representatives)) {
-            finalRoleAssignments.addAll(representatives);
+
+        List<RoleAssignmentForSearch> caseRoleAssignments = roleAssignmentsByRoleType.get(RoleType.CASE.name());
+        List<RoleAssignmentForSearch> caseRepresentatives = getCaseRepresentatives(caseRoleAssignments);
+        if (!CollectionUtils.isEmpty(caseRepresentatives)) {
+            finalRoleAssignments.addAll(caseRepresentatives);
         }
 
         return finalRoleAssignments;
+    }
+
+    private List<RoleAssignmentForSearch> getCaseRepresentatives(List<RoleAssignmentForSearch> caseRoleAssignments) {
+        if (CollectionUtils.isEmpty(caseRoleAssignments)) {
+            return Collections.emptyList();
+        }
+
+        //Group the Case roles
+        Map<Integer, List<RoleAssignmentForSearch>> groupedCaseRoles = caseRoleAssignments
+            .stream()
+            .collect(Collectors.groupingBy(RoleAssignmentForSearch::hashCode));
+
+        return groupedCaseRoles.values().stream()
+            .filter(caseRoles -> !CollectionUtils.isEmpty(caseRoles))
+            .map(roleAssignmentForSearches -> {
+                RoleAssignmentForSearch representative = roleAssignmentForSearches.get(0);
+                updateGroupRepresentative(representative, roleAssignmentForSearches);
+                return representative;
+            })
+            .collect(Collectors.toList());
     }
 
     private RoleAssignmentForSearch updateGroupRepresentative(RoleAssignmentForSearch groupRepresentative,

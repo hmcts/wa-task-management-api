@@ -5,6 +5,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 
 public class RoleAssignmentForSearchDataCreator {
 
+    private RoleAssignmentForSearchDataCreator() {
+    }
+
     public static RoleAssignmentForSearch fromRoleAssignment(RoleAssignment roleAssignment) {
 
         return new RoleAssignmentForSearch(roleAssignment);

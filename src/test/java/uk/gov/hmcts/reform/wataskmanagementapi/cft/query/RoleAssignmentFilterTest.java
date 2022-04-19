@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 
@@ -134,10 +135,10 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(2)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(3)).or(any(), any());
-        verify(builder, times(5)).and(any(), any());
-        verify(builder, times(1)).and(
+        verify(builder, times(4)).and(any(), any());
+        verify(builder, times(2)).and(
             any(), any(), any(), any(), any(), any(), any());
-        verify(builder, times(2)).conjunction();
+        verify(builder, times(7)).conjunction();
     }
 
     @ParameterizedTest
@@ -149,6 +150,7 @@ public class RoleAssignmentFilterTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
             .classification(classification)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -209,6 +211,7 @@ public class RoleAssignmentFilterTest {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -366,7 +369,9 @@ public class RoleAssignmentFilterTest {
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(null)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
+            .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -396,10 +401,10 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(1)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(2)).or(any(), any());
-        verify(builder, times(4)).and(any(), any());
-        verify(builder, times(0)).and(
+        verify(builder, times(3)).and(any(), any());
+        verify(builder, times(1)).and(
             any(), any(), any(), any(), any(), any(), any());
-        verify(builder, times(0)).conjunction();
+        verify(builder, times(5)).conjunction();
     }
 
     @Test
@@ -411,6 +416,7 @@ public class RoleAssignmentFilterTest {
 
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.UNKNOWN)
+            .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.BASIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -441,10 +447,10 @@ public class RoleAssignmentFilterTest {
         verify(builder, times(1)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(2)).or(any(), any());
-        verify(builder, times(4)).and(any(), any());
-        verify(builder, times(0)).and(
+        verify(builder, times(3)).and(any(), any());
+        verify(builder, times(1)).and(
             any(), any(), any(), any(), any(), any(), any());
-        verify(builder, times(0)).conjunction();
+        verify(builder, times(5)).conjunction();
     }
 
     @Test

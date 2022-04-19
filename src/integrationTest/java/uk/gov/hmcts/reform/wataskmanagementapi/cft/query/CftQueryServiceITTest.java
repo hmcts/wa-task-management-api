@@ -794,7 +794,7 @@ public class CftQueryServiceITTest {
             .classification(Classification.RESTRICTED)
             .attributes(stcAttributes)
             .grantType(GrantType.EXCLUDED)
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -950,7 +950,7 @@ public class CftQueryServiceITTest {
             .attributes(tcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -963,7 +963,7 @@ public class CftQueryServiceITTest {
             .classification(Classification.PUBLIC)
             .attributes(stcAttributes)
             .grantType(GrantType.EXCLUDED)
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1379,7 +1379,7 @@ public class CftQueryServiceITTest {
             .attributes(tcAttributes)
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1393,7 +1393,7 @@ public class CftQueryServiceITTest {
             .attributes(stcAttributes)
             .authorisations(Arrays.asList("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1449,7 +1449,7 @@ public class CftQueryServiceITTest {
             .attributes(tcAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1519,7 +1519,7 @@ public class CftQueryServiceITTest {
             .classification(classification)
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
-            .roleType(RoleType.ORGANISATION)
+            .roleType(RoleType.CASE)
             .grantType(GrantType.CHALLENGED)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

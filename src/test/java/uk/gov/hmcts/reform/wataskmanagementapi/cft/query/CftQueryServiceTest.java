@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeD
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -226,6 +227,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             RoleAttributeDefinition.JURISDICTION.value(), "IA"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(classification)
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))

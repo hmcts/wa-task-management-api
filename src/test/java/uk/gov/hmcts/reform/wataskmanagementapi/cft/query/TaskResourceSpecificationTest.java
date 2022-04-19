@@ -135,7 +135,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(7)).conjunction();
+        verify(criteriaBuilder, times(12)).conjunction();
     }
 
     @Test
@@ -159,7 +159,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(7)).conjunction();
+        verify(criteriaBuilder, times(12)).conjunction();
     }
 
     @Test
@@ -186,7 +186,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(7)).conjunction();
+        verify(criteriaBuilder, times(12)).conjunction();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(STATE, SearchOperator.IN, emptyList())
@@ -230,7 +230,7 @@ public class TaskResourceSpecificationTest {
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(1)).in(any());
-        verify(criteriaBuilder, times(7)).conjunction();
+        verify(criteriaBuilder, times(12)).conjunction();
     }
 
     @Test
@@ -371,63 +371,63 @@ public class TaskResourceSpecificationTest {
         ));
         final SearchTaskRequestScenario jurisdiction =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(STATE, SearchOperator.IN, singletonList("ASSIGNED"))
         ));
         final SearchTaskRequestScenario state =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
         final SearchTaskRequestScenario availableTaskOnly =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
         final SearchTaskRequestScenario availableTaskOnlyAsFalse =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(1).expectedConjunctions(7).build();
+                .expectedInPredicate(1).expectedConjunctions(12).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("location"))
         ));
         final SearchTaskRequestScenario location =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(CASE_ID, SearchOperator.IN, singletonList("caseId"))
         ));
         final SearchTaskRequestScenario caseId =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(USER, SearchOperator.IN, singletonList("testUser"))
         ));
         final SearchTaskRequestScenario user =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(WORK_TYPE, SearchOperator.IN, singletonList("routine_work"))
         ));
         final SearchTaskRequestScenario workType =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
             new SearchParameterList(ROLE_CATEGORY, SearchOperator.IN, singletonList("LEGAL_OPERATIONS"))
         ));
         final SearchTaskRequestScenario roleCtg =
             SearchTaskRequestScenario.builder().searchTaskRequest(searchTaskRequest)
-                .expectedInPredicate(2).expectedConjunctions(6).build();
+                .expectedInPredicate(2).expectedConjunctions(11).build();
 
         return Stream.of(jurisdiction, state, location, caseId, user, workType, roleCtg,
             availableTaskOnly, availableTaskOnlyAsFalse);

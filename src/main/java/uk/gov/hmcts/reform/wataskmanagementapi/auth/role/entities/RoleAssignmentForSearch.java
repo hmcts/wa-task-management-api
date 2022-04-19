@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities;
 
-import com.launchdarkly.shaded.com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,9 +40,10 @@ public class RoleAssignmentForSearch {
     private String location;
     private String requestedRole;
 
-    private List<String> additionalAttributes;
+    private Map<String, String> additionalAttributes;
 
-    private List<String> authorisations; //if there's an authorisations list then we don't want them to be grouped together.  Keep them as they are.
+    private List<String> authorisations; //if there's an authorisations list then we don't want them
+    // to be grouped together.  Keep them as they are.
 
     public RoleAssignmentForSearch(RoleAssignment roleAssignment) {
         this.id = roleAssignment.getId();
@@ -69,17 +68,17 @@ public class RoleAssignmentForSearch {
                 .ifPresent(s -> this.caseIds.add(s));
 
             //If there are other attributes then we want to collect these and add to additionalAttributes
-            List<String> moreAttributes = attributes.keySet().stream()
-                .filter(key -> Objects.nonNull(attributes.get(JURISDICTION.value())) ||
-                    Objects.nonNull(attributes.get(CASE_TYPE.value())) ||
-                    Objects.nonNull(attributes.get(REGION.value())) ||
-                    Objects.nonNull(attributes.get(PRIMARY_LOCATION.value())) ||
-                    Objects.nonNull(attributes.get(REQUESTED_ROLE.value())) ||
-                    Objects.nonNull(attributes.get(CASE_ID.value())))
-                .collect(Collectors.toList());
+
+            List<String> knownAttributeKeys = List.of(JURISDICTION.value(), CASE_TYPE.value(), REGION.value(),
+                                                      PRIMARY_LOCATION.value(), REQUESTED_ROLE.value(), CASE_ID.value()
+            );
+            //If there are other attributes then we want to collect these and add to additionalAttributes
+            Map<String, String> moreAttributes = attributes.keySet().stream()
+                .filter(key -> !knownAttributeKeys.contains(key))
+                .collect(Collectors.toMap(key -> key, attributes::get));
 
             // leave null if there are no additional ones so it does not affect the equals/hashcode algorithm
-            if (!moreAttributes.isEmpty()) {
+            if (!isEmpty(moreAttributes)) {
                 additionalAttributes = moreAttributes;
             }
         }

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -52,6 +53,7 @@ public final class RoleAssignmentFilter {
     public static final String TASK_ROLE_RESOURCES = "taskRoleResources";
     public static final ZoneId ZONE_ID = ZoneId.of("Europe/London");
     public static final String READ_COLUMN = "read";
+    public static final int ONE = 1;
 
     private RoleAssignmentFilter() {
         // avoid creating object
@@ -64,7 +66,8 @@ public final class RoleAssignmentFilter {
         return (root, query, builder) -> {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
-            //TODO filters and manipulation of Role Assignments should be moved to a different class e.g. RoleAssignmentReceiver
+            //TODO filters and manipulation of Role Assignments should be moved to a different class e.g.
+            // RoleAssignmentReceiver
             // this should only be about building the query
             // filter roles which are active.
             final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
@@ -192,8 +195,11 @@ public final class RoleAssignmentFilter {
                                                    Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                    CriteriaBuilder builder,
                                                    //TODO - Generic RoleAssignmentsForSearch or similar here
-                                                   // SearchData //ORG roles, Representative Case Roles, Any other Case Roles
-                                                   List<RoleAssignmentForSearch> roleAssignmentList, //grouped Role Assignment Map for the required Grant Types e.g. Specific, Basic
+                                                   // SearchData //ORG roles, Representative Case Roles,
+                                                   // Any other Case Roles
+                                                   List<RoleAssignmentForSearch> roleAssignmentList,
+                                                   //grouped Role Assignment Map for the required Grant Types e.g.
+                                                   // Specific, Basic
                                                    Set<GrantType> grantTypes) {
 
         final Set<RoleAssignmentForSearch> roleAssignmentsForGrantTypes =
@@ -339,7 +345,10 @@ public final class RoleAssignmentFilter {
                                                      CriteriaBuilder builder,
                                                      RoleAssignmentForSearch roleAssignment) {
         Set<String> caseIds = roleAssignment.getCaseIds();
-        if (!caseIds.isEmpty()) {
+        if (!CollectionUtils.isEmpty(caseIds)) {
+            if (caseIds.size() == ONE) {
+                return builder.equal(root.get(CASE_ID_COLUMN), caseIds.iterator().next());
+            }
             return builder.in(root.get(CASE_ID_COLUMN)).value(caseIds);
         }
         return builder.conjunction();

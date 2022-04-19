@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -83,6 +84,7 @@ public class CftQueryServiceGetTaskTest {
         RoleAssignment roleAssignment = RoleAssignment
             .builder()
             .roleName("tribunal-caseworker")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -112,6 +114,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -148,6 +151,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -177,6 +181,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -204,6 +209,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -230,6 +236,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -258,6 +265,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -286,6 +294,7 @@ public class CftQueryServiceGetTaskTest {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

@@ -73,7 +73,8 @@ public class TaskRoleResource implements Serializable {
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private OffsetDateTime created;
 
-    @JoinColumn(name = "task_id", insertable = false, updatable = false) //TODO Do we need this?  We never need to join this do we?
+    @JoinColumn(name = "task_id", insertable = false, updatable = false)
+    //TODO Do we need this?  We never need to join this do we?
     @ManyToOne(targetEntity = TaskResource.class, fetch = FetchType.LAZY)
     @ToString.Exclude
     private TaskResource taskResource;
