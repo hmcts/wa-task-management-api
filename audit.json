@@ -119,5 +119,6 @@
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
-  "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore"
+  "90033_Loosely Scoped Cookie_http://wa-task-management-api-aat.service.core-compute-aat.internal/v3/api-docs_GET": "ignore",
+  "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/work-types?filter-by-user=false_GET": "ignore"
 }
