@@ -5,6 +5,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskReq
 
 import java.util.List;
 
+@SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
 public class TaskSearchData implements SearchData {
 
     private final SearchPermissionsRequired searchPermissionsRequired;

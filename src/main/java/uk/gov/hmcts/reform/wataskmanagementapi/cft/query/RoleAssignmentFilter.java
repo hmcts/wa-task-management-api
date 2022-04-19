@@ -243,6 +243,7 @@ public final class RoleAssignmentFilter {
             root, builder, roleAssignment
         );
         Predicate authorizations = mapAuthorizations(taskRoleResources, builder, roleAssignment);
+
         Predicate caseTypeId = searchByCaseTypeId(root, builder, roleAssignment);
         Predicate region = searchByRegion(root, builder, roleAssignment);
         Predicate jurisdiction = searchByRoleJurisdiction(root, builder, roleAssignment);

@@ -17,6 +17,7 @@ public class OrPermissionsRequired implements SearchPermissionsRequired {
         this.permissions = permissions;
     }
 
+    @Override
     public List<PermissionTypes> getPermissions() {
         return permissions;
     }

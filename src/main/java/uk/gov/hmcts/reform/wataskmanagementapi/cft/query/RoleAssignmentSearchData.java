@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"PMD.LawOfDemeter", "PMD.DataflowAnomalyAnalysis"})
 public class RoleAssignmentSearchData {
 
     private final List<RoleAssignment> roleAssignments;
