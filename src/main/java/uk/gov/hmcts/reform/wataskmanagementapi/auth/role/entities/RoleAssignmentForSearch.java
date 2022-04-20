@@ -12,12 +12,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.BASE_LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.CASE_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.PRIMARY_LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition.REQUESTED_ROLE;
 
 @Getter
 @EqualsAndHashCode
@@ -38,6 +38,7 @@ public class RoleAssignmentForSearch {
     private String caseType;
     private String region;
     private String location;
+    private String primaryLocation;
     private String requestedRole;
 
     private Map<String, String> additionalAttributes;
@@ -60,8 +61,8 @@ public class RoleAssignmentForSearch {
             this.jurisdiction = attributes.get(JURISDICTION.value());
             this.caseType = attributes.get(RoleAttributeDefinition.CASE_TYPE.value());
             this.region = attributes.get(RoleAttributeDefinition.REGION.value());
-            this.location = attributes.get(RoleAttributeDefinition.PRIMARY_LOCATION.value());
-            this.requestedRole = attributes.get(REQUESTED_ROLE.value());
+            this.location = attributes.get(BASE_LOCATION.value());
+            this.primaryLocation = attributes.get(PRIMARY_LOCATION.value());
 
             Optional.ofNullable(
                     attributes.get(RoleAttributeDefinition.CASE_ID.value()))
@@ -70,7 +71,7 @@ public class RoleAssignmentForSearch {
             //If there are other attributes then we want to collect these and add to additionalAttributes
 
             List<String> knownAttributeKeys = List.of(JURISDICTION.value(), CASE_TYPE.value(), REGION.value(),
-                                                      PRIMARY_LOCATION.value(), REQUESTED_ROLE.value(), CASE_ID.value()
+                                                      BASE_LOCATION.value(), PRIMARY_LOCATION.value(), CASE_ID.value()
             );
             //If there are other attributes then we want to collect these and add to additionalAttributes
             Map<String, String> moreAttributes = attributes.keySet().stream()
@@ -79,7 +80,7 @@ public class RoleAssignmentForSearch {
 
             // leave null if there are no additional ones so it does not affect the equals/hashcode algorithm
             if (!isEmpty(moreAttributes)) {
-                additionalAttributes = moreAttributes;
+                this.additionalAttributes = moreAttributes;
             }
         }
 
