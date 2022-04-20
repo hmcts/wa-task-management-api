@@ -72,7 +72,8 @@ public class RoleAssignmentCreator {
             RoleAttributeDefinition.CASE_ID.value(), "caseId:" + UUID.randomUUID()
         );
         Map<String, String> caseworkerAttributes = Map.of(RoleAttributeDefinition.JURISDICTION.value(), "IA",
-                                                          RoleAttributeDefinition.PRIMARY_LOCATION.value(), "123456"
+                                                          RoleAttributeDefinition.PRIMARY_LOCATION.value(), "123456",
+                                                          RoleAttributeDefinition.BASE_LOCATION.value(), "123456"
         );
 
         switch (roleName) {
@@ -127,6 +128,5 @@ public class RoleAssignmentCreator {
         }
 
         return roles;
-
     }
 }
