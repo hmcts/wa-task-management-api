@@ -402,6 +402,7 @@ public class Common {
             "tribunal-caseworker",
             toJsonString(Map.of(
                 "primaryLocation", "765324",
+                "baseLocation", "698118",
                 "caseType", caseType,
                 "jurisdiction", jurisidction
             )),
@@ -657,7 +658,7 @@ public class Common {
         );
     }
 
-    private void createSupervisor(UserInfo userInfo, Headers headers, String jurisidiction) {
+    private void createSupervisor(UserInfo userInfo, Headers headers, String jurisdiction) {
         log.info("Creating task supervisor organizational Role");
 
         postRoleAssignment(
@@ -666,7 +667,11 @@ public class Common {
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "task-supervisor",
-            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", jurisidiction)),
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "baseLocation", "698118",
+                "jurisdiction", jurisdiction
+            )),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
             "LEGAL_OPERATIONS",
@@ -684,7 +689,11 @@ public class Common {
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "case-allocator",
-            toJsonString(Map.of("primaryLocation", "765324", "jurisdiction", jurisdiction)),
+            toJsonString(Map.of(
+                "primaryLocation", "765324",
+                "baseLocation", "698118",
+                "jurisdiction", jurisdiction
+            )),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             "STANDARD",
             "LEGAL_OPERATIONS",
