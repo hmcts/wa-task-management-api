@@ -4,9 +4,7 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
@@ -22,7 +20,6 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
@@ -155,71 +152,6 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         common.cleanUpTask(taskId);
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    @Test
-    public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
-
-        String noManagePermission = "Read,Refer,Own,Cancel";
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        common.overrideTaskPermissions(taskId, noManagePermission);
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-        initiateTask(taskVariables);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            new AssignTaskRequest(assigneeId),
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: "
-                + "The user assigning the Task has failed the Role Assignment checks performed."));
-
-        common.cleanUpTask(taskId);
-    }
-
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    @Test
-    public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
-
-        String noOwnPermission = "Read,Refer,Manage,Cancel";
-        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        common.overrideTaskPermissions(taskId, noOwnPermission);
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-        initiateTask(taskVariables);
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            new AssignTaskRequest(assigneeId),
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: "
-                + "The user being assigned the Task has failed the Role Assignment checks performed."));
-
-        common.cleanUpTask(taskId);
-    }
 
     private String getAssigneeId(Headers headers) {
         return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();

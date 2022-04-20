@@ -29,6 +29,14 @@ public class CamundaHelpers {
     public static final String IDAM_USER_ID = "IDAM_USER_ID";
     public static final String IDAM_USER_EMAIL = "test@test.com";
     public static final String SECONDARY_IDAM_USER_ID = "SECONDARY_IDAM_USER_ID";
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     protected Task createMockedMappedTask() {
         return new Task(
@@ -58,8 +66,8 @@ public class CamundaHelpers {
             "hearing_work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             null,
-            "a description"
-        );
+            "a description",
+            ADDITIONAL_PROPERTIES);
     }
 
     protected CamundaTask createMockedUnmappedTask() {

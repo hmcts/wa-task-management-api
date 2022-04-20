@@ -8,8 +8,6 @@ import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 
 import java.util.List;
-import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
 
 @Schema(
     name = "NotesRequest",
@@ -19,8 +17,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 public class NotesRequest {
 
-    @NotEmpty
-    private final List<@Valid NoteResource> noteResource;
+    private final List<NoteResource> noteResource;
 
     @JsonCreator
     public NotesRequest(@JsonProperty("notes") List<NoteResource> noteResource) {
