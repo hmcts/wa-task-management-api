@@ -402,7 +402,6 @@ public class Common {
             "tribunal-caseworker",
             toJsonString(Map.of(
                 "primaryLocation", "765324",
-                "baseLocation", "698118",
                 "caseType", caseType,
                 "jurisdiction", jurisidction
             )),
@@ -669,7 +668,6 @@ public class Common {
             "task-supervisor",
             toJsonString(Map.of(
                 "primaryLocation", "765324",
-                "baseLocation", "698118",
                 "jurisdiction", jurisdiction
             )),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
@@ -691,7 +689,6 @@ public class Common {
             "case-allocator",
             toJsonString(Map.of(
                 "primaryLocation", "765324",
-                "baseLocation", "698118",
                 "jurisdiction", jurisdiction
             )),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
