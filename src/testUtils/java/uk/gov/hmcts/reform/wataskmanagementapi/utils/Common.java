@@ -927,4 +927,35 @@ public class Common {
         return assignmentRequestBody;
     }
 
+    public void setupCFTOrganisationalRoleAssignmentPerfTest(Headers headers) {
+
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        createCaseManager(userInfo, headers, "IA");
+        createSupervisor(userInfo, headers, "IA");
+        createStandardTribunalCaseworker(userInfo, headers, "IA", "Asylum");
+    }
+
+    private void createCaseManager(UserInfo userInfo, Headers headers, String jurisdiction) {
+        log.info("Creating case manager organizational Role");
+        String caseId;
+        for (int i = 0; i < 500; i++) {
+            caseId = UUID.randomUUID().toString();
+
+            postRoleAssignment(
+                caseId,
+                headers.getValue(AUTHORIZATION),
+                headers.getValue(SERVICE_AUTHORIZATION),
+                userInfo,
+                "judge",
+                toJsonString(Map.of("jurisdiction", "IA")),
+                "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+                GrantType.STANDARD.name(),
+                RoleCategory.JUDICIAL.name(),
+                toJsonString(List.of()),
+                ORGANISATION.name()
+            );
+
+        }
+    }
 }

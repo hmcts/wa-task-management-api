@@ -200,6 +200,156 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
     }
 
     @Test
+    public void should_return_a_201_when_initiating_a_judge_task_by_id_perf_test() {
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentPerfTest(caseworkerCredentials.getHeaders());
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "reviewHearingBundle"),
+            new TaskAttribute(TASK_NAME, "review Hearing Bundle"),
+            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
+            new TaskAttribute(TASK_TITLE, "review Hearing Bundle"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            req,
+            caseworkerCredentials.getHeaders()
+        );
+
+        //Note: this is the TaskResource.class
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .body("task_id", equalTo(taskId))
+            .body("task_name", equalTo("review Hearing Bundle"))
+            .body("task_type", equalTo("reviewHearingBundle"))
+            .body("state", equalTo("UNASSIGNED"))
+            .body("task_system", equalTo("SELF"))
+            .body("security_classification", equalTo("PUBLIC"))
+            .body("title", equalTo("review Hearing Bundle"))
+            .body("created", notNullValue())
+            .body("due_date_time", notNullValue())
+            .body("auto_assigned", equalTo(false))
+            .body("has_warnings", equalTo(false))
+            .body("case_id", equalTo(taskVariables.getCaseId()))
+            .body("case_type_id", equalTo("Asylum"))
+            .body("case_name", equalTo("Bob Smith"))
+            .body("case_category", equalTo("Protection"))
+            .body("jurisdiction", equalTo("IA"))
+            .body("region", equalTo("1"))
+            .body("location", equalTo("765324"))
+            .body("location_name", equalTo("Taylor House"))
+            .body("execution_type_code.execution_code", equalTo("CASE_EVENT"))
+            .body("execution_type_code.execution_name", equalTo("Case Management Task"))
+            .body(
+                "execution_type_code.description",
+                equalTo("The task requires a case management event to be executed by the user. "
+                            + "(Typically this will be in CCD.)")
+            )
+            .body("work_type_resource.id", equalTo("hearing_work"))
+            .body("work_type_resource.label", equalTo("Hearing work"))
+            .body("task_role_resources.size()", equalTo(5));
+
+        assertPermissions(
+            getTaskResource(result, "task-supervisor"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("auto_assignable", false)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "hearing-judge"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of("373")),
+                entry("role_category", "JUDICIAL"),
+                entry("auto_assignable", true),
+                entry("assignment_priority", 1)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "judge"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", true),
+                entry("manage", false),
+                entry("execute", false),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of("373")),
+                entry("role_category", "JUDICIAL"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 1)
+            )
+        );
+
+        assertPermissions(
+            getTaskResource(result, "senior-tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
+            )
+        );
+        assertPermissions(
+            getTaskResource(result, "tribunal-caseworker"),
+            Map.ofEntries(
+                entry("read", true),
+                entry("refer", true),
+                entry("own", false),
+                entry("manage", false),
+                entry("execute", true),
+                entry("cancel", false),
+                entry("task_id", taskId),
+                entry("authorizations", List.of()),
+                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("auto_assignable", false),
+                entry("assignment_priority", 2)
+            )
+        );
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
     public void should_return_a_201_when_initiating_a_hearing_centre_admin_task_by_id() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
