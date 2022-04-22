@@ -231,7 +231,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 equalTo("The task requires a case management event to be executed by the user. "
                             + "(Typically this will be in CCD.)")
             )
-            .body("task_role_resources.size()", equalTo(2));
+            .body("task_role_resources.size()", equalTo(2))
+            .body("additional_properties", equalToObject(Map.of(
+                "roleAssignmentId", "assignmentId")));
 
         assertPermissions(
             getTaskResource(result, "judge"),
