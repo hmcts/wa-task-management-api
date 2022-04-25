@@ -57,9 +57,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
+            new TaskAttribute(TASK_NAME, "Process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "process Application"),
+            new TaskAttribute(TASK_TITLE, "Process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -81,12 +81,12 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .and()
             .body("task.id", equalTo(taskId))
-            .body("task.name", equalTo("process Application"))
+            .body("task.name", equalTo("Process Application"))
             .body("task.type", equalTo("processApplication"))
             .body("task.task_state", equalTo("unassigned"))
             .body("task.task_system", equalTo("SELF"))
             .body("task.security_classification", equalTo("PUBLIC"))
-            .body("task.task_title", equalTo("process Application"))
+            .body("task.task_title", equalTo("Process Application"))
             .body("task.created_date", notNullValue())
             .body("task.due_date", notNullValue())
             .body("task.location_name", equalTo("Taylor House"))

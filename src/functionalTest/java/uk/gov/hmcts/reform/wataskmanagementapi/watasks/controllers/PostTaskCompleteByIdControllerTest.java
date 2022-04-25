@@ -88,10 +88,10 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
+            new TaskAttribute(TASK_NAME, "Process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
             new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_TITLE, "process Application"),
+            new TaskAttribute(TASK_TITLE, "Process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -653,7 +653,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process application"),
+            new TaskAttribute(TASK_NAME, "Process Application"),
             new TaskAttribute(TASK_TITLE, "process task"),
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),

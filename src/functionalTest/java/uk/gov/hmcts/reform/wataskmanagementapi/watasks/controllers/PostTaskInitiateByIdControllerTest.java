@@ -59,9 +59,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
+            new TaskAttribute(TASK_NAME, "Process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "process Application"),
+            new TaskAttribute(TASK_TITLE, "Process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -80,12 +80,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("process Application"))
+            .body("task_name", equalTo("Process Application"))
             .body("task_type", equalTo("processApplication"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("process Application"))
+            .body("title", equalTo("Process Application"))
             .body("created", notNullValue())
             .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
@@ -101,20 +101,20 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                             + "trigger/decideAnApplication)"))
+                                         + "trigger/decideAnApplication)"))
             .body("task_role_resources.size()", equalTo(3))
             .body("additional_properties", equalToObject(Map.of(
-                      "key1", "value1",
-                      "key2", "value2",
-                      "key3", "value3",
-                      "key4", "value4"
-                  )));
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3",
+                "key4", "value4"
+            )));
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
@@ -177,7 +177,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }
