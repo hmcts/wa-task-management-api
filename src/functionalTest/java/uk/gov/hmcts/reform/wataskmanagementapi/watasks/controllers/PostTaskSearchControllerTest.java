@@ -44,7 +44,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 
 @SuppressWarnings("checkstyle:LineLength")
-public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";
