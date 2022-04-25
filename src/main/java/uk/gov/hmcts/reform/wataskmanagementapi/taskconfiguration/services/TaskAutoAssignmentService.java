@@ -76,9 +76,9 @@ public class TaskAutoAssignmentService {
             taskResource.setState(CFTTaskState.UNASSIGNED);
         } else {
 
-            if (taskResource.getAssignee() != null ) {
+            if (taskResource.getAssignee() != null) {
                 boolean isOwnOrExecute = taskResource.getTaskRoleResources().stream().map(TaskRoleResource::getRoleName)
-                    .anyMatch(name -> name.equals("OWN") || name.equals("EXECUTE"));
+                    .anyMatch(name -> "OWN".equals(name) || "EXECUTE".equals(name));
                 if (!isOwnOrExecute) {
                     taskResource.setAssignee(null);
                     taskResource.setState(CFTTaskState.UNASSIGNED);
