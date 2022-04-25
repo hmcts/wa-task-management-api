@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
 @Provider("wa_task_management_api_search")
 //Uncomment this and comment the @PactBroker line to test WorkTypeConsumerTest local consumer.
 //using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("pacts")
+//@PactFolder("target/pacts")
 @PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
@@ -92,6 +92,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
     @State({"appropriate tasks are returned by criteria"})
     public void getTasksBySearchCriteria() {
         setInitMockForSearchTask();
+    }
+
+    @State({"appropriate tasks are returned by criteria for jurisdiction type wa"})
+    public void getWaTasksBySearchCriteria() {
+        setInitMockForSearchWaTask();
     }
 
     @State({"appropriate tasks are returned by criteria with available tasks only"})
@@ -211,6 +216,47 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         );
     }
 
+    public Task createWaTask() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.REFER
+            )
+        );
+
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Process Application",
+            "processApplication",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "Process Application",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            null,
+            false,
+            "Case Management Task",
+            "WA",
+            "1",
+            "765324",
+            "Taylor House",
+            "WaCaseType",
+            "1617708245335311",
+            "Protection",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Protection",
+            "hearing_work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "aDescription",
+            ADDITIONAL_PROPERTIES
+        );
+    }
+
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
     void pactVerificationTestTemplate(PactVerificationContext context) {
@@ -247,13 +293,32 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(asList(createTaskWithNoWarnings(), createTaskWithNoWarnings()));
+    }
+
+    private void setInitMockForSearchWaTask() {
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(userInfo.getEmail()).thenReturn("test@test.com");
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
+        ).thenReturn(false);
+
+        when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
+            .thenReturn(asList(createWaTask(), createWaTask()));
     }
 
     private void setInitMockForSearchTaskWithWarningsOnly() {
@@ -265,9 +330,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithWarnings()));
@@ -283,9 +348,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
 
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
