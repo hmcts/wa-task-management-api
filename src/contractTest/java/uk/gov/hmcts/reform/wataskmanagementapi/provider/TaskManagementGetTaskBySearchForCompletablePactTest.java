@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 @Provider("wa_task_management_api_search_completable")
 //Uncomment this and comment the @PactBroker line to test TaskManagementGetTaskBySearchForCompletablePactTest
 // local consumer using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("pacts")
+//@PactFolder("target/pacts")
 @PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
@@ -210,9 +210,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         }
 
         testTarget.setMessageConverters((
-                                            new MappingJackson2HttpMessageConverter(
-                                                objectMapper
-                                            )));
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
     }
 
@@ -226,9 +226,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
@@ -246,9 +246,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
