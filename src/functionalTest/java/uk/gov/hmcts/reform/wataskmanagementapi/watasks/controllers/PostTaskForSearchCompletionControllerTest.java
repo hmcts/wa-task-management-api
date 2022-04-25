@@ -36,7 +36,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 @Slf4j
-public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
     private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";

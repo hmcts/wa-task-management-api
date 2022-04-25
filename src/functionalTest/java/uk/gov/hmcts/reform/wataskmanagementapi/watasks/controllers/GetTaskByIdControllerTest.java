@@ -27,7 +27,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
-public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
+public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
     private TestAuthenticationCredentials caseworkerCredentials;
@@ -64,15 +64,12 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
-        Response initiationResponse = restApiActions.post(
+        restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             req,
             caseworkerCredentials.getHeaders()
         );
-
-        //Note: this is the TaskResource.class
-        initiationResponse.prettyPrint();
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
