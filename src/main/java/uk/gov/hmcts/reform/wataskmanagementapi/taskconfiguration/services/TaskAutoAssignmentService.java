@@ -76,6 +76,14 @@ public class TaskAutoAssignmentService {
             taskResource.setState(CFTTaskState.UNASSIGNED);
         } else {
 
+            if (taskResource.getAssignee() != null ) {
+                boolean isOwnOrExecute = taskResource.getTaskRoleResources().stream().map(TaskRoleResource::getRoleName)
+                    .anyMatch(name -> name.equals("OWN") || name.equals("EXECUTE"));
+                if (!isOwnOrExecute) {
+                    taskResource.setAssignee(null);
+                    taskResource.setState(CFTTaskState.UNASSIGNED);
+                }
+            }
             Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
 
             if (match.isPresent()) {
@@ -101,6 +109,7 @@ public class TaskAutoAssignmentService {
 
         Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
         return match.isPresent();
+
     }
 
     private Optional<RoleAssignment> runRoleAssignmentAutoAssignVerification(TaskResource taskResource,
