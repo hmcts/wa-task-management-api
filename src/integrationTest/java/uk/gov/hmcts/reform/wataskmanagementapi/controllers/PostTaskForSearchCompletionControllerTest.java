@@ -117,7 +117,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
         when(mockFeignException.contentUTF8())
             .thenReturn(mockServices.createCamundaTestException(
                 "aCamundaErrorType", "There was a problem evaluating DMN"));
-        doThrow(mockFeignException).when(camundaServiceApi).evaluateDMN(any(), any(), any());
+        doThrow(mockFeignException).when(camundaServiceApi).evaluateDMN(any(), any(), any(), any());
 
         mockMvc.perform(
                 post("/task/search-for-completable")
@@ -132,7 +132,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             ));
 
         verify(camundaServiceApi, times(1))
-            .evaluateDMN(any(), any(), any());
+            .evaluateDMN(any(), any(), any(), any());
     }
 
     @Test
@@ -155,7 +155,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             "completionMode", new CamundaVariable("Auto", "String"),
             "workType", new CamundaVariable("decision_making_work", "String")
         ));
-        when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
             .thenReturn(mockedResponse);
 
         when(camundaServiceApi.getAllVariables(any(), any()))
@@ -172,7 +172,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             .andExpect(jsonPath("tasks.size()").value(1));
 
         verify(camundaServiceApi, times(1))
-            .evaluateDMN(any(), any(), any());
+            .evaluateDMN(any(), any(), any(), any());
     }
 
     @Test
@@ -260,7 +260,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             "workType", new CamundaVariable("decision_making_work", "String"),
             "description", new CamundaVariable("aDescription", "String")
         ));
-        when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
             .thenReturn(mockedResponse);
 
         when(camundaServiceApi.getAllVariables(any(), any()))
@@ -311,7 +311,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             "completionMode", new CamundaVariable("Auto", "String"),
             "workType", new CamundaVariable("decision_making_work", "String")
         ));
-        when(camundaServiceApi.evaluateDMN(any(), any(), anyMap()))
+        when(camundaServiceApi.evaluateDMN(any(), any(), any(), anyMap()))
             .thenReturn(mockedResponse);
 
         when(taskResourceRepository.findAll(any()))
@@ -329,7 +329,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
             .andExpect(jsonPath("tasks.size()").value(1));
 
         verify(camundaServiceApi, times(1))
-            .evaluateDMN(any(), any(), any());
+            .evaluateDMN(any(), any(), any(), any());
         verify(taskResourceRepository, times(1))
             .findAll(any());
     }
@@ -345,7 +345,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
 
         when(idamWebApi.token(any())).thenReturn(new Token(IDAM_AUTHORIZATION_TOKEN, "scope"));
         when(idamWebApi.userInfo(any())).thenReturn(userInfo);
-        
+
         mockMvc.perform(
                 post("/task/search-for-completable")
                     .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
