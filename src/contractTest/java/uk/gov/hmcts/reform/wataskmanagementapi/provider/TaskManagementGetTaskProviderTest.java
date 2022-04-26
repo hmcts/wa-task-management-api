@@ -57,12 +57,9 @@ import static org.mockito.Mockito.when;
 public class TaskManagementGetTaskProviderTest {
 
     public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
-        "name1",
-        "value1",
-        "name2",
-        "value2",
-        "name3",
-        "value3"
+        "name1", "value1",
+        "name2", "value2",
+        "name3", "value3"
     );
 
     @Mock
@@ -83,6 +80,11 @@ public class TaskManagementGetTaskProviderTest {
     @State({"get a task using taskId"})
     public void getTaskById() {
         setInitMockTask();
+    }
+
+    @State({"get a wa task using taskId"})
+    public void getWaTaskById() {
+        setInitMockWaTask();
     }
 
     @State({"get a task using taskId with warnings"})
@@ -123,6 +125,12 @@ public class TaskManagementGetTaskProviderTest {
     private void setInitMockTask() {
         AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
         when(taskManagementService.getTask(any(), any())).thenReturn(createTask());
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+    }
+
+    private void setInitMockWaTask() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(taskManagementService.getTask(any(), any())).thenReturn(createWaTask());
         when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
     }
 
@@ -220,6 +228,47 @@ public class TaskManagementGetTaskProviderTest {
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
             ADDITIONAL_PROPERTIES);
+    }
+
+    public Task createWaTask() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.REFER
+            )
+        );
+
+        return new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Process Application",
+            "processApplication",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "Process Application",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            null,
+            false,
+            "Case Management Task",
+            "WA",
+            "1",
+            "765324",
+            "Taylor House",
+            "WaCaseType",
+            "1617708245335311",
+            "Protection",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Protection",
+            "hearing_work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "aDescription",
+            ADDITIONAL_PROPERTIES
+        );
     }
 
 }
