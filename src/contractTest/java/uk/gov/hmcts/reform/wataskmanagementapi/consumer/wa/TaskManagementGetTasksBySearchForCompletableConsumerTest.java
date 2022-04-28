@@ -207,14 +207,13 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                             .stringType("name3", "value3")
                         )
                         .object("permissions", (value) -> {
-                            value
-                                .unorderedArray("values", (p) -> p
-                                    .stringValue(PermissionTypes.READ.value())
-                                    .stringValue(PermissionTypes.EXECUTE.value())
-                                    .stringValue(PermissionTypes.REFER.value())
-                                );
+                            value.unorderedArray("values", (p) -> p
+                                .stringValue(PermissionTypes.READ.value())
+                                .stringValue(PermissionTypes.EXECUTE.value())
+                                .stringValue(PermissionTypes.REFER.value()));
                         })
-                )).build();
+                )
+        ).build();
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {
