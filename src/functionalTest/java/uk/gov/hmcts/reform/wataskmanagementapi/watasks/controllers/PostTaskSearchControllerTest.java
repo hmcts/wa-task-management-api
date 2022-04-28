@@ -98,12 +98,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.id", hasItem(is(in(taskIds))))
-            .body("tasks.name", everyItem(equalTo("process Application")))
+            .body("tasks.name", everyItem(equalTo("Process Application")))
             .body("tasks.type", everyItem(equalTo("processApplication")))
             .body("tasks.task_state", everyItem(equalTo("unassigned")))
             .body("tasks.task_system", everyItem(equalTo("SELF")))
             .body("tasks.security_classification", everyItem(equalTo("PUBLIC")))
-            .body("tasks.task_title", everyItem(equalTo("process Application")))
+            .body("tasks.task_title", everyItem(equalTo("Process Application")))
             .body("tasks.created_date", everyItem(notNullValue()))
             .body("tasks.due_date", everyItem(notNullValue()))
             .body("tasks.location_name", everyItem(equalTo("Taylor House")))
@@ -147,9 +147,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
+            new TaskAttribute(TASK_NAME, "Process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "process Application"),
+            new TaskAttribute(TASK_TITLE, "Process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));

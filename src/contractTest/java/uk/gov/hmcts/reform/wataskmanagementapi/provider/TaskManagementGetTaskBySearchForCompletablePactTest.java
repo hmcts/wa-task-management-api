@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 @Provider("wa_task_management_api_search_completable")
 //Uncomment this and comment the @PactBroker line to test TaskManagementGetTaskBySearchForCompletablePactTest
 // local consumer using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("pacts")
+//@PactFolder("target/pacts")
 @PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
@@ -62,12 +62,9 @@ import static org.mockito.Mockito.when;
 public class TaskManagementGetTaskBySearchForCompletablePactTest {
 
     public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
-        "name1",
-        "value1",
-        "name2",
-        "value2",
-        "name3",
-        "value3"
+        "name1", "value1",
+        "name2", "value2",
+        "name3", "value3"
     );
 
     @Mock
@@ -85,6 +82,11 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
     @State({"appropriate tasks are returned by search for completable"})
     public void getTasksBySearchForCompletableCriteria() {
         setInitMockForSearchByCompletableTask();
+    }
+
+    @State({"appropriate wa tasks are returned by search for completable"})
+    public void getWaTasksBySearchForCompletableCriteria() {
+        setInitMockForSearchByCompletableWaTask();
     }
 
     @State({"appropriate tasks are returned by search for completable with warnings"})
@@ -134,6 +136,49 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             "a description",
             ADDITIONAL_PROPERTIES
         );
+        return singletonList(task);
+    }
+
+    public List<Task> createWaTasks() {
+        final TaskPermissions permissions = new TaskPermissions(
+            Set.of(
+                PermissionTypes.READ,
+                PermissionTypes.EXECUTE,
+                PermissionTypes.REFER
+            )
+        );
+
+        Task task = new Task(
+            "4d4b6fgh-c91f-433f-92ac-e456ae34f72a",
+            "Process Application",
+            "processApplication",
+            "unassigned",
+            "SELF",
+            "PUBLIC",
+            "Process Application",
+            ZonedDateTime.now(),
+            ZonedDateTime.now(),
+            null,
+            false,
+            "Case Management Task",
+            "WA",
+            "1",
+            "765324",
+            "Taylor House",
+            "WaCaseType",
+            "1617708245335311",
+            "Protection",
+            "Bob Smith",
+            false,
+            new WarningValues(Collections.emptyList()),
+            "Protection",
+            "hearing_work",
+            permissions,
+            RoleCategory.LEGAL_OPERATIONS.name(),
+            "aDescription",
+            ADDITIONAL_PROPERTIES
+        );
+
         return singletonList(task);
     }
 
@@ -210,9 +255,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
         }
 
         testTarget.setMessageConverters((
-                                            new MappingJackson2HttpMessageConverter(
-                                                objectMapper
-                                            )));
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
 
     }
 
@@ -226,13 +271,32 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))
             .thenReturn(new GetTasksCompletableResponse<>(false, createTasks()));
+    }
+
+    private void setInitMockForSearchByCompletableWaTask() {
+        Optional<AccessControlResponse> accessControlResponse = Optional.of(mock((AccessControlResponse.class)));
+        UserInfo userInfo = mock(UserInfo.class);
+        when(userInfo.getUid()).thenReturn("dummyUserId");
+        when(userInfo.getEmail()).thenReturn("test@test.com");
+        when(accessControlResponse.get().getUserInfo()).thenReturn(userInfo);
+        when(accessControlService.getAccessControlResponse(anyString()))
+            .thenReturn(accessControlResponse);
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
+        ).thenReturn(false);
+
+        when(taskManagementService.searchForCompletableTasks(any(), any()))
+            .thenReturn(new GetTasksCompletableResponse<>(false, createWaTasks()));
     }
 
     private void setInitMockForSearchByCompletableTaskWithWarnings() {
@@ -246,9 +310,9 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest {
             .thenReturn(accessControlResponse);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
-                 accessControlResponse.get().getUserInfo().getEmail()
-             )
+                FeatureFlag.RELEASE_2_TASK_QUERY, accessControlResponse.get().getUserInfo().getUid(),
+                accessControlResponse.get().getUserInfo().getEmail()
+            )
         ).thenReturn(false);
 
         when(taskManagementService.searchForCompletableTasks(any(), any()))

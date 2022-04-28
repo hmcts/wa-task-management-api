@@ -43,7 +43,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAtt
 @Provider("wa_task_management_api_get_work_types")
 //Uncomment this and comment the @PacBroker line to test WorkTypeConsumerTest local consumer.
 //using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("pacts")
+//@PactFolder("target/pacts")
 @PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
