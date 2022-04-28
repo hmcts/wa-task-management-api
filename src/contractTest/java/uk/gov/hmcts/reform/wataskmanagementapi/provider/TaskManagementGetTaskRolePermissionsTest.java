@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 @Provider("wa_task_management_api_task_role_permissions_by_task_id")
 //Uncomment this and comment the @PactBroker line to test TaskManagementGetTaskProviderTest local consumer.
 //using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("pacts")
+//@PactFolder("target/pacts")
 @PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
