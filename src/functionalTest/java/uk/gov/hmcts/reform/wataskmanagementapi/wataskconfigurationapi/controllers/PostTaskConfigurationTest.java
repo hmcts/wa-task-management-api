@@ -36,8 +36,6 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    //@Disabled("AM role-assignment enabled v1.1 of their validation which breaks this flow needs to be reviewed")
-    //@Ignore
     public void given_task_is_configured_then_expect_task_is_auto_assigned() throws Exception {
         caseId = given.iCreateACcdCase();
 
