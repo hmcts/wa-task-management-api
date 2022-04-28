@@ -277,13 +277,10 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
-                        .object("additional_properties", values -> values
-                            .minArrayLike("values", 4, value -> value
-                                .stringType("name1", "value1")
-                                .stringType("name2", "value2")
-                                .stringType("name3", "value3")
-                                .stringType("name4", "value4")
-                            )
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
                         )
                 )).build();
 

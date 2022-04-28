@@ -63,12 +63,9 @@ import static org.mockito.Mockito.when;
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
 
     public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
-        "name1",
-        "value1",
-        "name2",
-        "value2",
-        "name3",
-        "value3"
+        "name1", "value1",
+        "name2", "value2",
+        "name3", "value3"
     );
 
     @Mock
