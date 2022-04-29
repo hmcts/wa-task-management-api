@@ -2,10 +2,15 @@ package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -22,8 +27,11 @@ import java.util.stream.Stream;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.nullsLast;
 import static java.util.stream.Collectors.toMap;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 
 @Slf4j
 @Component
@@ -32,11 +40,14 @@ public class TaskAutoAssignmentService {
 
     private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
     private final TaskConfigurationCamundaService taskConfigurationCamundaService;
+    private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
     public TaskAutoAssignmentService(TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService,
-                                     TaskConfigurationCamundaService taskConfigurationCamundaService) {
+                                     TaskConfigurationCamundaService taskConfigurationCamundaService,
+                                     RoleAssignmentVerificationService roleAssignmentVerificationService) {
         this.taskConfigurationRoleAssignmentService = taskConfigurationRoleAssignmentService;
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
+        this.roleAssignmentVerificationService = roleAssignmentVerificationService;
     }
 
     public void autoAssignTask(TaskToConfigure taskToConfigure, String currentTaskState) {
@@ -57,6 +68,28 @@ public class TaskAutoAssignmentService {
         }
     }
 
+    public TaskResource reAutoAssignCFTTask(String taskId,
+                                            AccessControlResponse accessControlResponse) {
+        List<PermissionTypes> permissionsRequired = List.of(OWN, EXECUTE);
+
+        Optional<TaskResource> optionalTaskResource = roleAssignmentVerificationService
+            .getTaskForRolesAndPermissionTypes(taskId, accessControlResponse, permissionsRequired);
+
+        if (optionalTaskResource.isEmpty()) {
+            Optional<TaskResource> readOnlyTaskResource = roleAssignmentVerificationService
+                .getTaskForRolesAndPermissionTypes(taskId, accessControlResponse, List.of(PermissionTypes.READ));
+            if (readOnlyTaskResource.isPresent()) {
+                TaskResource taskResource = readOnlyTaskResource.get();
+                taskResource.setAssignee(null);
+                taskResource.setState(CFTTaskState.UNASSIGNED);
+                return autoAssignCFTTask(taskResource);
+            }
+        } else {
+            throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
+        }
+    }
+
+
     public TaskResource autoAssignCFTTask(TaskResource taskResource) {
         List<RoleAssignment> roleAssignments =
             taskConfigurationRoleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource);
@@ -76,14 +109,6 @@ public class TaskAutoAssignmentService {
             taskResource.setState(CFTTaskState.UNASSIGNED);
         } else {
 
-            if (taskResource.getAssignee() != null) {
-                boolean isOwnOrExecute = taskResource.getTaskRoleResources().stream().map(TaskRoleResource::getRoleName)
-                    .anyMatch(name -> "OWN".equals(name) || "EXECUTE".equals(name));
-                if (!isOwnOrExecute) {
-                    taskResource.setAssignee(null);
-                    taskResource.setState(CFTTaskState.UNASSIGNED);
-                }
-            }
             Optional<RoleAssignment> match = runRoleAssignmentAutoAssignVerification(taskResource, roleAssignments);
 
             if (match.isPresent()) {
@@ -131,7 +156,7 @@ public class TaskAutoAssignmentService {
     }
 
     private boolean isRoleAssignmentValid(TaskResource taskResource, Map<String,
-                                            TaskRoleResource> roleResourceMap, RoleAssignment roleAssignment) {
+        TaskRoleResource> roleResourceMap, RoleAssignment roleAssignment) {
         final TaskRoleResource taskRoleResource = roleResourceMap.get(roleAssignment.getRoleName());
 
         if (hasTaskBeenAssigned(taskResource, taskRoleResource)) {
@@ -161,13 +186,13 @@ public class TaskAutoAssignmentService {
 
     private boolean hasTaskBeenAssigned(TaskResource taskResource, TaskRoleResource taskRoleResource) {
         return !taskRoleResource.getAutoAssignable()
-            && taskResource.getAssignee() != null
-            && isAuthorisationsValid(taskRoleResource);
+               && taskResource.getAssignee() != null
+               && isAuthorisationsValid(taskRoleResource);
     }
 
     private boolean isAuthorisationsValid(TaskRoleResource taskRoleResource) {
-        return  taskRoleResource.getAuthorizations() != null
-                && taskRoleResource.getAuthorizations().length > 0;
+        return taskRoleResource.getAuthorizations() != null
+               && taskRoleResource.getAuthorizations().length > 0;
     }
 
     private boolean findMatchingRoleAssignment(TaskRoleResource taskRoleResource, RoleAssignment roleAssignment) {

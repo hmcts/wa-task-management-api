@@ -91,6 +91,7 @@ public class TaskManagementService {
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final CftQueryService cftQueryService;
+    private RoleAssignmentVerificationService roleAssignmentVerification;
 
 
     @Autowired
@@ -102,7 +103,8 @@ public class TaskManagementService {
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
-                                 CftQueryService cftQueryService) {
+                                 CftQueryService cftQueryService,
+                                 RoleAssignmentVerificationService roleAssignmentVerification) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
@@ -131,7 +133,7 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             Set<PermissionTypes> permissionsUnionForUser =
                 cftTaskMapper.extractUnionOfPermissionsForUser(
                     taskResource.getTaskRoleResources(),
@@ -141,7 +143,7 @@ public class TaskManagementService {
             return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
             return camundaService.getMappedTask(taskId, variables);
         }
     }
@@ -166,7 +168,7 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
@@ -177,7 +179,7 @@ public class TaskManagementService {
             cftTaskDatabaseService.saveTask(task);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
             camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
         }
 
@@ -201,7 +203,7 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
             String taskState = taskResource.getState().getValue();
             taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
 
@@ -217,7 +219,7 @@ public class TaskManagementService {
             CamundaTask camundaTask = camundaService.getUnmappedCamundaTask(taskId);
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
 
-            roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
+            roleAssignmentVerification.roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
                 camundaTask.getAssignee(),
                 userId,
                 variables,
@@ -259,14 +261,14 @@ public class TaskManagementService {
             assignerAccessControlResponse.getUserInfo().getEmail()
         );
         if (isRelease2EndpointsFeatureEnabled) {
-            roleAssignmentVerification(
+            roleAssignmentVerification.roleAssignmentVerification(
                 taskId,
                 assignerAccessControlResponse,
                 assignerPermissionsRequired,
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
             );
 
-            roleAssignmentVerification(
+            roleAssignmentVerification.roleAssignmentVerification(
                 taskId,
                 assigneeAccessControlResponse,
                 assigneePermissionsRequired,
@@ -287,13 +289,13 @@ public class TaskManagementService {
             cftTaskDatabaseService.saveTask(task);
 
         } else {
-            roleAssignmentVerification(
+            roleAssignmentVerification.roleAssignmentVerification(
                 variables,
                 assignerAccessControlResponse.getRoleAssignments(),
                 assignerPermissionsRequired,
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
             );
-            roleAssignmentVerification(
+            roleAssignmentVerification.roleAssignmentVerification(
                 variables,
                 assigneeAccessControlResponse.getRoleAssignments(),
                 assigneePermissionsRequired,
@@ -329,10 +331,10 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
         }
 
         if (isRelease2EndpointsFeatureEnabled) {
@@ -372,7 +374,7 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
 
             //Safe-guard
             if (taskResource.getAssignee() == null) {
@@ -395,7 +397,7 @@ public class TaskManagementService {
             String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
             taskHasCompleted = TaskState.COMPLETED.value().equals(taskState);
 
-            roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
+            roleAssignmentVerification.roleAssignmentVerificationWithAssigneeCheckAndHierarchy(
                 camundaTask.getAssignee(),
                 userId,
                 variables,
@@ -449,7 +451,7 @@ public class TaskManagementService {
             );
 
             if (isRelease2EndpointsFeatureEnabled) {
-                TaskResource taskResource = roleAssignmentVerification(
+                TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(
                     taskId,
                     accessControlResponse,
                     permissionsRequired);
@@ -459,7 +461,7 @@ public class TaskManagementService {
 
             } else {
                 Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-                roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+                roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
 
                 String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
                 taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
@@ -823,106 +825,6 @@ public class TaskManagementService {
 
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId                the task id obtained from camunda.
-     * @param accessControlResponse the access control response containing user's role assignment.
-     * @param permissionsRequired   the permissions that are required by the endpoint.
-     */
-    private TaskResource roleAssignmentVerification(String taskId,
-                                                    AccessControlResponse accessControlResponse,
-                                                    List<PermissionTypes> permissionsRequired) {
-
-        return roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired, null);
-    }
-
-    /**
-     * Helper method to evaluate whether a user should have access to a task supports custom error message.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId                the task id obtained from camunda.
-     * @param accessControlResponse the access control response containing user's role assignment.
-     * @param permissionsRequired   the permissions that are required by the endpoint.
-     * @param customErrorMessage    an error message to return on the exception
-     */
-    private TaskResource roleAssignmentVerification(String taskId,
-                                                    AccessControlResponse accessControlResponse,
-                                                    List<PermissionTypes> permissionsRequired,
-                                                    ErrorMessages customErrorMessage) {
-        Optional<TaskResource> optionalTaskResource = cftQueryService
-            .getTask(taskId, accessControlResponse, permissionsRequired);
-
-        if (optionalTaskResource.isEmpty()) {
-            Optional<TaskResource> optionalTask = cftTaskDatabaseService.findByIdOnly(taskId);
-            if (optionalTask.isEmpty()) {
-                throw new TaskNotFoundException(TASK_NOT_FOUND_ERROR);
-            } else {
-                if (customErrorMessage != null) {
-                    throw new RoleAssignmentVerificationException(customErrorMessage);
-                }
-                throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-            }
-        }
-        return optionalTaskResource.get();
-    }
-
-    private void roleAssignmentVerification(Map<String, CamundaVariable> variables,
-                                            List<RoleAssignment> roleAssignments,
-                                            List<PermissionTypes> permissionsRequired) {
-        roleAssignmentVerification(variables, roleAssignments, permissionsRequired, null);
-    }
-
-    /**
-     * Helper method to evaluate whether a user should have access to a task supports custom error message.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param variables           the task variables obtained from camunda.
-     * @param roleAssignments     the role assignments of the user.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     * @param customErrorMessage  the permissions that are required by the endpoint.
-     */
-    private void roleAssignmentVerification(Map<String, CamundaVariable> variables,
-                                            List<RoleAssignment> roleAssignments,
-                                            List<PermissionTypes> permissionsRequired,
-                                            ErrorMessages customErrorMessage) {
-        boolean hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignments, permissionsRequired);
-        if (!hasAccess) {
-            if (customErrorMessage != null) {
-                throw new RoleAssignmentVerificationException(customErrorMessage);
-            }
-            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-        }
-    }
-
-    /**
-     * Helper method to evaluate whether a user should have access to a task.
-     * This method also performs extra checks for hierarchy and assignee.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param currentAssignee     the IDAM id of the assigned user in the task.
-     * @param userId              the IDAM userId of the user making the request.
-     * @param variables           the task variables obtained from camunda.
-     * @param roleAssignments     the role assignments of the user.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     */
-    private void roleAssignmentVerificationWithAssigneeCheckAndHierarchy(String currentAssignee,
-                                                                         String userId,
-                                                                         Map<String, CamundaVariable> variables,
-                                                                         List<RoleAssignment> roleAssignments,
-                                                                         List<PermissionTypes> permissionsRequired) {
-        boolean hasAccess = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
-            currentAssignee,
-            userId,
-            variables,
-            roleAssignments,
-            permissionsRequired
-        );
-        if (!hasAccess) {
-            throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
-        }
-    }
 
     @SuppressWarnings({"PMD.PrematureDeclaration"})
     private void validateNoteRequest(NotesRequest notesRequest) {
