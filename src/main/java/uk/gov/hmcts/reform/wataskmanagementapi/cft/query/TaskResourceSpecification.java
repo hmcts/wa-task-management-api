@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -59,7 +59,7 @@ public final class TaskResourceSpecification {
 
     public static Specification<TaskResource> buildTaskQuery(
         SearchTaskRequest searchTaskRequest,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
     ) {
 
@@ -76,37 +76,37 @@ public final class TaskResourceSpecification {
             buildApplicationConstraints(searchTaskRequest, availableTasksOnly);
 
         final Specification<TaskResource> roleAssignmentSpec =
-            buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, availableTasksOnly);
+            buildRoleAssignmentConstraints(permissionsRequired, roleAssignments, availableTasksOnly);
 
         return constrainsSpec.and(roleAssignmentSpec);
 
     }
 
     public static Specification<TaskResource> buildSingleTaskQuery(String taskId,
-                                                                   AccessControlResponse accessControlResponse,
+                                                                   List<RoleAssignment> roleAssignments,
                                                                    List<PermissionTypes> permissionsRequired
     ) {
         return searchByTaskIds(singletonList(taskId))
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
+            .and(buildRoleAssignmentConstraints(permissionsRequired, roleAssignments, false));
     }
 
     public static Specification<TaskResource> buildTaskRolePermissionsQuery(
         String taskId,
-        AccessControlResponse accessControlResponse) {
+        List<RoleAssignment> roleAssignments) {
 
         return searchByTaskIds(singletonList(taskId))
-            .and(buildQueryToRetrieveRoleInformation(accessControlResponse));
+            .and(buildQueryToRetrieveRoleInformation(roleAssignments));
     }
 
     public static Specification<TaskResource> buildQueryForCompletable(
-        SearchEventAndCase searchEventAndCase, AccessControlResponse accessControlResponse,
+        SearchEventAndCase searchEventAndCase, List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired, List<String> taskTypes) {
 
         return searchByCaseId(searchEventAndCase.getCaseId())
             .and(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
             .and(searchByTaskTypes(taskTypes))
             //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
+            .and(buildRoleAssignmentConstraints(permissionsRequired, roleAssignments, false));
     }
 
     private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest,

@@ -18,6 +18,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -56,13 +58,24 @@ class TaskAutoRoleAssignmentServiceTest {
     @Mock
     private TaskConfigurationCamundaService camundaService;
 
+    @Mock
+    private RoleAssignmentVerificationService roleAssignmentVerificationService;
+
+    @Mock
+    private CFTTaskDatabaseService cftTaskDatabaseService;
+
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
     private TaskToConfigure testTaskToConfigure;
 
     @BeforeEach
     void setUp() {
-        taskAutoAssignmentService = new TaskAutoAssignmentService(roleAssignmentService, camundaService);
+        taskAutoAssignmentService = new TaskAutoAssignmentService(
+            roleAssignmentService,
+            camundaService,
+            roleAssignmentVerificationService,
+            cftTaskDatabaseService
+        );
         testTaskToConfigure = new TaskToConfigure(
             "taskId",
             "taskType",
@@ -168,8 +181,8 @@ class TaskAutoRoleAssignmentServiceTest {
 
         //set senior-tribunal-caseworker high prioritised user
         Set<TaskRoleResource> taskRoleResources = Set.of(
-            taskRoleResource("tribunal-caseworker", true, 2,new String[]{}),
-            taskRoleResource("senior-tribunal-caseworker", false, 1,new String[]{})
+            taskRoleResource("tribunal-caseworker", true, 2, new String[]{}),
+            taskRoleResource("senior-tribunal-caseworker", false, 1, new String[]{})
         );
         taskResource.setTaskRoleResources(taskRoleResources);
 
@@ -319,8 +332,8 @@ class TaskAutoRoleAssignmentServiceTest {
         roleAssignments.add(roleAssignmentResource2);
 
         Set<TaskRoleResource> taskRoleResources = Set.of(
-            taskRoleResource("tribunal-caseworker", true, 3,null),
-            taskRoleResource("senior-tribunal-caseworker", false, 2,new String[]{})
+            taskRoleResource("tribunal-caseworker", true, 3, null),
+            taskRoleResource("senior-tribunal-caseworker", false, 2, new String[]{})
         );
         taskResource.setTaskRoleResources(taskRoleResources);
 
@@ -351,8 +364,8 @@ class TaskAutoRoleAssignmentServiceTest {
 
         //Authorisations is empty
         Set<TaskRoleResource> taskRoleResources = Set.of(
-            taskRoleResource("tribunal-caseworker", true, 3,new String[]{}),
-            taskRoleResource("senior-tribunal-caseworker", false, 2,new String[]{})
+            taskRoleResource("tribunal-caseworker", true, 3, new String[]{}),
+            taskRoleResource("senior-tribunal-caseworker", false, 2, new String[]{})
         );
         taskResource.setTaskRoleResources(taskRoleResources);
 
@@ -397,11 +410,10 @@ class TaskAutoRoleAssignmentServiceTest {
         assertNull(autoAssignCFTTaskResponse.getAssignee());
 
 
-
         //Authorisations don't match
         taskRoleResources = Set.of(
-            taskRoleResource("tribunal-caseworker", true, 3,new String[]{"Test"}),
-            taskRoleResource("senior-tribunal-caseworker", false, 2,new String[]{})
+            taskRoleResource("tribunal-caseworker", true, 3, new String[]{"Test"}),
+            taskRoleResource("senior-tribunal-caseworker", false, 2, new String[]{})
         );
         taskResource.setTaskRoleResources(taskRoleResources);
 
@@ -672,7 +684,6 @@ class TaskAutoRoleAssignmentServiceTest {
         emptyTaskRoleResourceAuthorization.setAuthorizations(new String[]{});
 
 
-
         TaskRoleResource nullTaskRoleResourceAuthorization = getBaseTaskRoleResource(false);
         nullTaskRoleResourceAuthorization.setAuthorizations(null);
 
@@ -783,7 +794,6 @@ class TaskAutoRoleAssignmentServiceTest {
             autoAssignable
         );
     }
-
 
 
     @Builder

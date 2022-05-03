@@ -78,6 +78,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private CFTTaskMapper cftTaskMapper;
+    @Autowired
+    RoleAssignmentVerificationService roleAssignmentVerificationService;
     @MockBean
     private CftQueryService cftQueryService;
     @Autowired
@@ -97,7 +99,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-
+    private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
 
     @BeforeEach
@@ -110,16 +112,20 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentServiceApi
         );
 
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerification
         );
 
         mockServices.mockServiceAPIs();

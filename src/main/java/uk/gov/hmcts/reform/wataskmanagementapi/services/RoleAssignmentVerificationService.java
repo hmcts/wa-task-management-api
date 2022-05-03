@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -38,31 +37,33 @@ public class RoleAssignmentVerificationService {
      * Helper method to evaluate whether a user should have access to a task.
      * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
      *
-     * @param taskId                the task id obtained from camunda.
-     * @param accessControlResponse the access control response containing user's role assignment.
-     * @param permissionsRequired   the permissions that are required by the endpoint.
+     * @param taskId              the task id obtained from camunda.
+     * @param roleAssignments     the access control response containing user's role assignment.
+     * @param permissionsRequired the permissions that are required by the endpoint.
      */
     public TaskResource roleAssignmentVerification(String taskId,
-                                                    AccessControlResponse accessControlResponse,
-                                                    List<PermissionTypes> permissionsRequired) {
+                                                   List<RoleAssignment> roleAssignments,
+                                                   List<PermissionTypes> permissionsRequired) {
 
-        return roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired, null);
+        return roleAssignmentVerification(taskId, roleAssignments, permissionsRequired, null);
     }
 
     /**
      * Helper method to evaluate whether a user should have access to a task supports custom error message.
      * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
      *
-     * @param taskId                the task id obtained from camunda.
-     * @param accessControlResponse the access control response containing user's role assignment.
-     * @param permissionsRequired   the permissions that are required by the endpoint.
-     * @param customErrorMessage    an error message to return on the exception
+     * @param taskId              the task id obtained from camunda.
+     * @param roleAssignments     the access control response containing user's role assignment.
+     * @param permissionsRequired the permissions that are required by the endpoint.
+     * @param customErrorMessage  an error message to return on the exception
      */
     public TaskResource roleAssignmentVerification(String taskId,
-                                                    AccessControlResponse accessControlResponse,
-                                                    List<PermissionTypes> permissionsRequired,
-                                                    ErrorMessages customErrorMessage) {
-        Optional<TaskResource> optionalTaskResource = getTaskForRolesAndPermissionTypes(taskId, accessControlResponse, permissionsRequired);
+                                                   List<RoleAssignment> roleAssignments,
+                                                   List<PermissionTypes> permissionsRequired,
+                                                   ErrorMessages customErrorMessage) {
+        Optional<TaskResource> optionalTaskResource = getTaskForRolesAndPermissionTypes(
+            taskId, roleAssignments, permissionsRequired
+        );
 
         if (optionalTaskResource.isEmpty()) {
             Optional<TaskResource> optionalTask = cftTaskDatabaseService.findByIdOnly(taskId);
@@ -78,24 +79,9 @@ public class RoleAssignmentVerificationService {
         return optionalTaskResource.get();
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task supports custom error message.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId                the task id obtained from camunda.
-     * @param accessControlResponse the access control response containing user's role assignment.
-     * @param permissionsRequired   the permissions that are required by the endpoint.
-     */
-    public  Optional<TaskResource> getTaskForRolesAndPermissionTypes(String taskId,
-                                                   AccessControlResponse accessControlResponse,
-                                                   List<PermissionTypes> permissionsRequired) {
-        return cftQueryService
-            .getTask(taskId, accessControlResponse, permissionsRequired);
-    }
-
     public void roleAssignmentVerification(Map<String, CamundaVariable> variables,
-                                            List<RoleAssignment> roleAssignments,
-                                            List<PermissionTypes> permissionsRequired) {
+                                           List<RoleAssignment> roleAssignments,
+                                           List<PermissionTypes> permissionsRequired) {
         roleAssignmentVerification(variables, roleAssignments, permissionsRequired, null);
     }
 
@@ -109,9 +95,9 @@ public class RoleAssignmentVerificationService {
      * @param customErrorMessage  the permissions that are required by the endpoint.
      */
     public void roleAssignmentVerification(Map<String, CamundaVariable> variables,
-                                            List<RoleAssignment> roleAssignments,
-                                            List<PermissionTypes> permissionsRequired,
-                                            ErrorMessages customErrorMessage) {
+                                           List<RoleAssignment> roleAssignments,
+                                           List<PermissionTypes> permissionsRequired,
+                                           ErrorMessages customErrorMessage) {
         boolean hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignments, permissionsRequired);
         if (!hasAccess) {
             if (customErrorMessage != null) {
@@ -133,10 +119,10 @@ public class RoleAssignmentVerificationService {
      * @param permissionsRequired the permissions that are required by the endpoint.
      */
     public void roleAssignmentVerificationWithAssigneeCheckAndHierarchy(String currentAssignee,
-                                                                         String userId,
-                                                                         Map<String, CamundaVariable> variables,
-                                                                         List<RoleAssignment> roleAssignments,
-                                                                         List<PermissionTypes> permissionsRequired) {
+                                                                        String userId,
+                                                                        Map<String, CamundaVariable> variables,
+                                                                        List<RoleAssignment> roleAssignments,
+                                                                        List<PermissionTypes> permissionsRequired) {
         boolean hasAccess = permissionEvaluatorService.hasAccessWithAssigneeCheckAndHierarchy(
             currentAssignee,
             userId,
@@ -147,5 +133,20 @@ public class RoleAssignmentVerificationService {
         if (!hasAccess) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);
         }
+    }
+
+    /**
+     * Helper method to evaluate whether a user should have access to a task supports custom error message.
+     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
+     *
+     * @param taskId              the task id obtained from camunda.
+     * @param roleAssignments     the access control response containing user's role assignment.
+     * @param permissionsRequired the permissions that are required by the endpoint.
+     */
+    public Optional<TaskResource> getTaskForRolesAndPermissionTypes(String taskId,
+                                                                    List<RoleAssignment> roleAssignments,
+                                                                    List<PermissionTypes> permissionsRequired) {
+        return cftQueryService
+            .getTask(taskId, roleAssignments, permissionsRequired);
     }
 }

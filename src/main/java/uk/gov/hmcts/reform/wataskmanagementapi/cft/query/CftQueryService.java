@@ -8,9 +8,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -59,7 +59,7 @@ public class CftQueryService {
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
     ) {
         validateRequest(searchTaskRequest);
@@ -68,7 +68,7 @@ public class CftQueryService {
         Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
 
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
+            .buildTaskQuery(searchTaskRequest, roleAssignments, permissionsRequired);
 
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
@@ -78,7 +78,7 @@ public class CftQueryService {
             .map(taskResource ->
                 cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
-                    accessControlResponse.getRoleAssignments())
+                    roleAssignments)
             )
             .collect(Collectors.toList());
 
@@ -87,7 +87,7 @@ public class CftQueryService {
 
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
         SearchEventAndCase searchEventAndCase,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
     ) {
 
@@ -109,19 +109,19 @@ public class CftQueryService {
         }
 
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildQueryForCompletable(searchEventAndCase, accessControlResponse, permissionsRequired, taskTypes);
+            .buildQueryForCompletable(searchEventAndCase, roleAssignments, permissionsRequired, taskTypes);
 
         final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
-        final List<Task> tasks = getTasks(accessControlResponse, taskResources);
+        final List<Task> tasks = getTasks(roleAssignments, taskResources);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
 
     public Optional<TaskResource> getTask(String taskId,
-                                          AccessControlResponse accessControlResponse,
+                                          List<RoleAssignment> roleAssignments,
                                           List<PermissionTypes> permissionsRequired
     ) {
 
@@ -131,13 +131,13 @@ public class CftQueryService {
             return Optional.empty();
         }
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
+            .buildSingleTaskQuery(taskId, roleAssignments, permissionsRequired);
 
         return taskResourceRepository.findOne(taskResourceSpecification);
 
     }
 
-    private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
+    private List<Task> getTasks(List<RoleAssignment> roleAssignments, List<TaskResource> taskResources) {
         if (taskResources.isEmpty()) {
             return emptyList();
         }
@@ -145,7 +145,7 @@ public class CftQueryService {
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
                     taskResource,
-                    accessControlResponse.getRoleAssignments()
+                    roleAssignments
                 )
             )
             .collect(Collectors.toList());

@@ -9,13 +9,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceSpecification;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -84,36 +81,31 @@ public class TaskManagementService {
 
     private final CamundaService camundaService;
     private final CamundaQueryBuilder camundaQueryBuilder;
-    private final PermissionEvaluatorService permissionEvaluatorService;
     private final CFTTaskDatabaseService cftTaskDatabaseService;
     private final CFTTaskMapper cftTaskMapper;
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
-    private final CftQueryService cftQueryService;
-    private RoleAssignmentVerificationService roleAssignmentVerification;
+    private final RoleAssignmentVerificationService roleAssignmentVerification;
 
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
                                  CamundaQueryBuilder camundaQueryBuilder,
-                                 PermissionEvaluatorService permissionEvaluatorService,
                                  CFTTaskDatabaseService cftTaskDatabaseService,
                                  CFTTaskMapper cftTaskMapper,
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
-                                 CftQueryService cftQueryService,
                                  RoleAssignmentVerificationService roleAssignmentVerification) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
-        this.permissionEvaluatorService = permissionEvaluatorService;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
         this.cftTaskMapper = cftTaskMapper;
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
-        this.cftQueryService = cftQueryService;
+        this.roleAssignmentVerification = roleAssignmentVerification;
     }
 
     /**
@@ -133,7 +125,9 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(
+                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
             Set<PermissionTypes> permissionsUnionForUser =
                 cftTaskMapper.extractUnionOfPermissionsForUser(
                     taskResource.getTaskRoleResources(),
@@ -143,7 +137,9 @@ public class TaskManagementService {
             return cftTaskMapper.mapToTaskWithPermissions(taskResource, permissionsUnionForUser);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(
+                variables, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
             return camundaService.getMappedTask(taskId, variables);
         }
     }
@@ -168,7 +164,9 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(
+                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
             //Lock & update Task
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
@@ -179,7 +177,9 @@ public class TaskManagementService {
             cftTaskDatabaseService.saveTask(task);
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(
+                variables, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
             camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
         }
 
@@ -203,7 +203,9 @@ public class TaskManagementService {
                 accessControlResponse.getUserInfo().getUid(),
                 accessControlResponse.getUserInfo().getEmail());
         if (isFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(
+                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
             String taskState = taskResource.getState().getValue();
             taskHasUnassigned = taskState.equals(CFTTaskState.UNASSIGNED.getValue());
 
@@ -263,14 +265,14 @@ public class TaskManagementService {
         if (isRelease2EndpointsFeatureEnabled) {
             roleAssignmentVerification.roleAssignmentVerification(
                 taskId,
-                assignerAccessControlResponse,
+                assignerAccessControlResponse.getRoleAssignments(),
                 assignerPermissionsRequired,
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNER
             );
 
             roleAssignmentVerification.roleAssignmentVerification(
                 taskId,
-                assigneeAccessControlResponse,
+                assigneeAccessControlResponse.getRoleAssignments(),
                 assigneePermissionsRequired,
                 ErrorMessages.ROLE_ASSIGNMENT_VERIFICATIONS_FAILED_ASSIGNEE
             );
@@ -331,10 +333,14 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(
+                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-            roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+            roleAssignmentVerification.roleAssignmentVerification(
+                variables, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
         }
 
         if (isRelease2EndpointsFeatureEnabled) {
@@ -374,7 +380,9 @@ public class TaskManagementService {
         );
 
         if (isRelease2EndpointsFeatureEnabled) {
-            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(taskId, accessControlResponse, permissionsRequired);
+            TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(
+                taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+            );
 
             //Safe-guard
             if (taskResource.getAssignee() == null) {
@@ -453,7 +461,7 @@ public class TaskManagementService {
             if (isRelease2EndpointsFeatureEnabled) {
                 TaskResource taskResource = roleAssignmentVerification.roleAssignmentVerification(
                     taskId,
-                    accessControlResponse,
+                    accessControlResponse.getRoleAssignments(),
                     permissionsRequired);
 
                 final CFTTaskState state = taskResource.getState();
@@ -461,7 +469,9 @@ public class TaskManagementService {
 
             } else {
                 Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
-                roleAssignmentVerification.roleAssignmentVerification(variables, accessControlResponse.getRoleAssignments(), permissionsRequired);
+                roleAssignmentVerification.roleAssignmentVerification(
+                    variables, accessControlResponse.getRoleAssignments(), permissionsRequired
+                );
 
                 String taskState = camundaService.getVariableValue(variables.get(TASK_STATE.value()), String.class);
                 taskStateIsAssignedAlready = TaskState.ASSIGNED.value().equals(taskState);
@@ -685,7 +695,7 @@ public class TaskManagementService {
         }
 
         final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
+            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse.getRoleAssignments());
 
         final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
             taskResourceSpecification);
