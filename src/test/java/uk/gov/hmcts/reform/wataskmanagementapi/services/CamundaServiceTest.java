@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -1523,14 +1525,20 @@ class CamundaServiceTest extends CamundaHelpers {
     @DisplayName("evaluateTaskCompletionDmn()")
     class EvaluateTaskCompletionDmn {
 
-        @Test
-        void should_succeed() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "ia, asylum, wa-task-completion-ia-asylum",
+                "wa, wacasetype, wa-task-completion-wa-wacasetype",
+            }
+        )
+        void should_succeed_for_different_jurisdictions(String jurisdiction, String caseType, String dmn) {
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "ia",
-                "asylum");
+                jurisdiction,
+                caseType);
 
             List<Map<String, CamundaVariable>> mockedResponse = asList(Map.of(
                 "taskType", new CamundaVariable("reviewTheAppeal", "String"),
@@ -1539,7 +1547,8 @@ class CamundaServiceTest extends CamundaHelpers {
 
             when(camundaServiceApi.evaluateDMN(
                 eq(BEARER_SERVICE_TOKEN),
-                eq("wa-task-completion-ia-asylum"),
+                eq(dmn),
+                eq(jurisdiction),
                 anyMap()))
                 .thenReturn(mockedResponse);
 
@@ -1547,21 +1556,27 @@ class CamundaServiceTest extends CamundaHelpers {
             assertEquals(mockedResponse, response);
         }
 
-        @Test
-        void should_throw_a_server_error_exception_when_search_fails() {
-
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "ia, asylum, wa-task-completion-ia-asylum",
+                "wa, wacasetype, wa-task-completion-wa-wacasetype",
+            }
+        )
+        void should_throw_a_server_error_exception_when_search_fails(String jurisdiction, String caseType, String dmn) {
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "ia",
-                "asylum");
+                jurisdiction,
+                caseType);
 
 
             doThrow(FeignException.FeignServerException.class)
                 .when(camundaServiceApi).evaluateDMN(
                     eq(BEARER_SERVICE_TOKEN),
-                    eq("wa-task-completion-ia-asylum"),
+                    eq(dmn),
+                    eq(jurisdiction),
                     anyMap());
 
             assertThatThrownBy(() -> camundaService.evaluateTaskCompletionDmn(searchEventAndCase))

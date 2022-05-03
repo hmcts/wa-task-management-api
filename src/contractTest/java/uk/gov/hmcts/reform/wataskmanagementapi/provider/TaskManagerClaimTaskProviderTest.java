@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 @Provider("wa_task_management_api_claim_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
 //using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
-//@PactFolder("pacts")
+//@PactFolder("target/pacts")
 @PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
