@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -18,6 +19,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
@@ -27,6 +30,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -40,11 +44,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNCONFIGURED;
@@ -59,10 +67,15 @@ class TaskAutoRoleAssignmentServiceTest {
     private TaskConfigurationCamundaService camundaService;
 
     @Mock
-    private RoleAssignmentVerificationService roleAssignmentVerificationService;
+    private CFTTaskDatabaseService cftTaskDatabaseService;
 
     @Mock
-    private CFTTaskDatabaseService cftTaskDatabaseService;
+    private PermissionEvaluatorService permissionEvaluatorService;
+
+    @Mock
+    private CftQueryService cftQueryService;
+
+    private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
@@ -70,6 +83,10 @@ class TaskAutoRoleAssignmentServiceTest {
 
     @BeforeEach
     void setUp() {
+        roleAssignmentVerificationService = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService);
         taskAutoAssignmentService = new TaskAutoAssignmentService(
             roleAssignmentService,
             camundaService,
@@ -347,6 +364,166 @@ class TaskAutoRoleAssignmentServiceTest {
         assertThat(autoAssignCFTTaskResponse.getAssignee())
             .isEqualTo(roleAssignmentResource1.getActorId());
     }
+
+    @Test
+    void should_reassign_task_to_other_user_when_current_user_does_not_have_own_execute_permissions() {
+
+        RoleAssignment roleAssignmentResource = createRoleAssignment(
+            "someinvalidUser@test.com",
+            "case-worker",
+            singletonList("IA")
+        );
+
+        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource);
+
+        TaskResource taskResource = createTaskResource();
+        taskResource.setAssignee(roleAssignmentResource.getActorId());
+
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "someuser@test.com",
+            "tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+
+        roleAssignments.add(roleAssignmentResource1);
+
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "someotheruser@test.com",
+            "senior-tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2),
+            taskRoleResource("senior-tribunal-caseworker", true, 1),
+            taskRoleResource("caseworker", true, 3)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.of(taskResource));
+        when( roleAssignmentService.getRolesByUserId(taskResource.getAssignee()))
+            .thenReturn(roleAssignmentForAssignee);
+        when(cftQueryService.getTask(taskResource.getTaskId(), roleAssignmentForAssignee, List.of(OWN, EXECUTE)))
+            .thenReturn(Optional.empty());
+        when(roleAssignmentService.queryRolesForAutoAssignmentByCaseId(taskResource))
+            .thenReturn(roleAssignments);
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource.getTaskId());
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource2.getActorId());
+    }
+
+    @Test
+    void should_not_reassign_task_to_other_user_when_current_user_have_own_execute_permissions() {
+
+        TaskResource taskResource = createTaskResource();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "someuser@test.com",
+            "tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+
+        roleAssignments.add(roleAssignmentResource1);
+        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource1);
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "someotheruser@test.com",
+            "senior-tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2),
+            taskRoleResource("senior-tribunal-caseworker", true, 1),
+            taskRoleResource("caseworker", true, 3)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+        taskResource.setAssignee(roleAssignmentResource1.getActorId());
+        taskResource.setState(CFTTaskState.ASSIGNED);
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.of(taskResource));
+        when( roleAssignmentService.getRolesByUserId(taskResource.getAssignee()))
+            .thenReturn(roleAssignmentForAssignee);
+        when(cftQueryService.getTask(taskResource.getTaskId(), roleAssignmentForAssignee, List.of(OWN, EXECUTE)))
+            .thenReturn(Optional.of(taskResource));
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource.getTaskId());
+
+        assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(roleAssignmentResource1.getActorId());
+    }
+
+    @Test
+    void should_not_reassign_task_when_task_is_unassigned() {
+
+        TaskResource taskResource = createTaskResource();
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+
+        //first role assignment set
+        RoleAssignment roleAssignmentResource1 = createRoleAssignment(
+            "someuser@test.com",
+            "tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+
+        roleAssignments.add(roleAssignmentResource1);
+        List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource1);
+        //second role assignment set
+        RoleAssignment roleAssignmentResource2 = createRoleAssignment(
+            "someotheruser@test.com",
+            "senior-tribunal-caseworker",
+            List.of("IA", "DIVORCE", "PROBATE")
+        );
+        roleAssignments.add(roleAssignmentResource2);
+
+        //set senior-tribunal-caseworker high prioritised user
+        Set<TaskRoleResource> taskRoleResources = Set.of(
+            taskRoleResource("tribunal-caseworker", true, 2),
+            taskRoleResource("senior-tribunal-caseworker", true, 1),
+            taskRoleResource("caseworker", true, 3)
+        );
+        taskResource.setTaskRoleResources(taskRoleResources);
+        taskResource.setState(CFTTaskState.UNASSIGNED);
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.of(taskResource));
+
+        TaskResource autoAssignCFTTaskResponse = taskAutoAssignmentService.reAutoAssignCFTTask(taskResource.getTaskId());
+
+        assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
+
+        assertThat(autoAssignCFTTaskResponse.getAssignee())
+            .isEqualTo(null);
+    }
+
+    @Test
+    void should_not_reassign_and_throw_exception_when_task_is_not_found() {
+
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.empty());
+
+        assertThrows(TaskNotFoundException.class, () -> taskAutoAssignmentService.reAutoAssignCFTTask("noTask"));
+
+    }
+
 
     @Test
     void auto_assign_should_return_task_assignee_when_auto_assignable_is_true_and_authorisation_is_empty() {
