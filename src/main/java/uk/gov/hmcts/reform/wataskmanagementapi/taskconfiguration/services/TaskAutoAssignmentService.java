@@ -71,7 +71,6 @@ public class TaskAutoAssignmentService {
     }
 
     public TaskResource reAutoAssignCFTTask(String taskId) {
-
         //get the task from database
         TaskResource taskResource = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
             .orElseThrow(() -> new TaskNotFoundException(TASK_NOT_FOUND_ERROR));
@@ -86,6 +85,8 @@ public class TaskAutoAssignmentService {
             //build and run the role assignment clause query with list of permissions required
             Optional<TaskResource> taskWithValidPermissions = roleAssignmentVerificationService
                 .getTaskForRolesAndPermissionTypes(taskId, roleAssignmentsForUser, List.of(OWN, EXECUTE));
+
+            //if existing user role assignments not have required permissions,then unassign and rerun autoassignment
             if (!taskWithValidPermissions.isPresent()) {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
@@ -93,7 +94,6 @@ public class TaskAutoAssignmentService {
             }
         }
         return taskResource;
-
     }
 
 
