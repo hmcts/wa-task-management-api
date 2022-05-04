@@ -450,9 +450,14 @@ task runProviderPactVerification(type: Test) {
   classpath = sourceSets.contractTest.runtimeClasspath
   systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
   systemProperty 'pact.provider.version', project.pacticipantVersion
-  events "started", "skipped", "failed"
-  showExceptions = true
-  showCauses = true
+
+  testLogging {
+    exceptionFormat = 'full'
+    events "started", "skipped", "failed"
+    showExceptions = true
+    showCauses = true
+  }
+  
 }
 
 //task fortifyScan(type: JavaExec)  {
