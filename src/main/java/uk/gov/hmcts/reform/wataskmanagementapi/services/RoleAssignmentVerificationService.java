@@ -37,34 +37,17 @@ public class RoleAssignmentVerificationService {
         this.cftQueryService = cftQueryService;
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId              the task id obtained from camunda.
-     * @param roleAssignments     the access control response containing user's role assignment.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     */
-    public TaskResource roleAssignmentVerification(String taskId,
-                                                   List<RoleAssignment> roleAssignments,
-                                                   List<PermissionTypes> permissionsRequired) {
+    public TaskResource verifyRoleAssignment(String taskId,
+                                             List<RoleAssignment> roleAssignments,
+                                             List<PermissionTypes> permissionsRequired) {
 
-        return roleAssignmentVerification(taskId, roleAssignments, permissionsRequired, null);
+        return verifyRoleAssignment(taskId, roleAssignments, permissionsRequired, null);
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task supports custom error message.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId              the task id obtained from camunda.
-     * @param roleAssignments     the access control response containing user's role assignment.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     * @param customErrorMessage  an error message to return on the exception
-     */
-    public TaskResource roleAssignmentVerification(String taskId,
-                                                   List<RoleAssignment> roleAssignments,
-                                                   List<PermissionTypes> permissionsRequired,
-                                                   ErrorMessages customErrorMessage) {
+    public TaskResource verifyRoleAssignment(String taskId,
+                                             List<RoleAssignment> roleAssignments,
+                                             List<PermissionTypes> permissionsRequired,
+                                             ErrorMessages customErrorMessage) {
         Optional<TaskResource> optionalTaskResource = getTaskForRolesAndPermissionTypes(
             taskId, roleAssignments, permissionsRequired
         );
@@ -83,25 +66,16 @@ public class RoleAssignmentVerificationService {
         return optionalTaskResource.get();
     }
 
-    public void roleAssignmentVerification(Map<String, CamundaVariable> variables,
-                                           List<RoleAssignment> roleAssignments,
-                                           List<PermissionTypes> permissionsRequired) {
-        roleAssignmentVerification(variables, roleAssignments, permissionsRequired, null);
+    public void verifyRoleAssignment(Map<String, CamundaVariable> variables,
+                                     List<RoleAssignment> roleAssignments,
+                                     List<PermissionTypes> permissionsRequired) {
+        verifyRoleAssignment(variables, roleAssignments, permissionsRequired, null);
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task supports custom error message.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param variables           the task variables obtained from camunda.
-     * @param roleAssignments     the role assignments of the user.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     * @param customErrorMessage  the permissions that are required by the endpoint.
-     */
-    public void roleAssignmentVerification(Map<String, CamundaVariable> variables,
-                                           List<RoleAssignment> roleAssignments,
-                                           List<PermissionTypes> permissionsRequired,
-                                           ErrorMessages customErrorMessage) {
+    public void verifyRoleAssignment(Map<String, CamundaVariable> variables,
+                                     List<RoleAssignment> roleAssignments,
+                                     List<PermissionTypes> permissionsRequired,
+                                     ErrorMessages customErrorMessage) {
         boolean hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignments, permissionsRequired);
         if (!hasAccess) {
             if (customErrorMessage != null) {
@@ -111,17 +85,6 @@ public class RoleAssignmentVerificationService {
         }
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task.
-     * This method also performs extra checks for hierarchy and assignee.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param currentAssignee     the IDAM id of the assigned user in the task.
-     * @param userId              the IDAM userId of the user making the request.
-     * @param variables           the task variables obtained from camunda.
-     * @param roleAssignments     the role assignments of the user.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     */
     public void roleAssignmentVerificationWithAssigneeCheckAndHierarchy(String currentAssignee,
                                                                         String userId,
                                                                         Map<String, CamundaVariable> variables,
@@ -139,14 +102,6 @@ public class RoleAssignmentVerificationService {
         }
     }
 
-    /**
-     * Helper method to evaluate whether a user should have access to a task supports custom error message.
-     * If the user does not have access it will throw a {@link RoleAssignmentVerificationException}
-     *
-     * @param taskId              the task id obtained from camunda.
-     * @param roleAssignments     the access control response containing user's role assignment.
-     * @param permissionsRequired the permissions that are required by the endpoint.
-     */
     public Optional<TaskResource> getTaskForRolesAndPermissionTypes(String taskId,
                                                                     List<RoleAssignment> roleAssignments,
                                                                     List<PermissionTypes> permissionsRequired) {
