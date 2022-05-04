@@ -448,7 +448,8 @@ task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
-  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
+  systemProperty 'pact.verifier.publishResults', true
+//  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
   systemProperty 'pact.provider.version', project.pacticipantVersion
 
   testLogging {
@@ -457,7 +458,7 @@ task runProviderPactVerification(type: Test) {
     showExceptions = true
     showCauses = true
   }
-  
+
 }
 
 //task fortifyScan(type: JavaExec)  {
