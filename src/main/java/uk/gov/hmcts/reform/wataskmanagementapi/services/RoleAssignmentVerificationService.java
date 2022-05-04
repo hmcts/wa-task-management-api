@@ -37,17 +37,17 @@ public class RoleAssignmentVerificationService {
         this.cftQueryService = cftQueryService;
     }
 
-    public TaskResource verifyRoleAssignment(String taskId,
-                                             List<RoleAssignment> roleAssignments,
-                                             List<PermissionTypes> permissionsRequired) {
+    public TaskResource verifyRoleAssignments(String taskId,
+                                              List<RoleAssignment> roleAssignments,
+                                              List<PermissionTypes> permissionsRequired) {
 
-        return verifyRoleAssignment(taskId, roleAssignments, permissionsRequired, null);
+        return verifyRoleAssignments(taskId, roleAssignments, permissionsRequired, null);
     }
 
-    public TaskResource verifyRoleAssignment(String taskId,
-                                             List<RoleAssignment> roleAssignments,
-                                             List<PermissionTypes> permissionsRequired,
-                                             ErrorMessages customErrorMessage) {
+    public TaskResource verifyRoleAssignments(String taskId,
+                                              List<RoleAssignment> roleAssignments,
+                                              List<PermissionTypes> permissionsRequired,
+                                              ErrorMessages customErrorMessage) {
         Optional<TaskResource> optionalTaskResource = getTaskForRolesAndPermissionTypes(
             taskId, roleAssignments, permissionsRequired
         );
@@ -66,16 +66,16 @@ public class RoleAssignmentVerificationService {
         return optionalTaskResource.get();
     }
 
-    public void verifyRoleAssignment(Map<String, CamundaVariable> variables,
-                                     List<RoleAssignment> roleAssignments,
-                                     List<PermissionTypes> permissionsRequired) {
-        verifyRoleAssignment(variables, roleAssignments, permissionsRequired, null);
+    public void verifyRoleAssignments(Map<String, CamundaVariable> variables,
+                                      List<RoleAssignment> roleAssignments,
+                                      List<PermissionTypes> permissionsRequired) {
+        verifyRoleAssignments(variables, roleAssignments, permissionsRequired, null);
     }
 
-    public void verifyRoleAssignment(Map<String, CamundaVariable> variables,
-                                     List<RoleAssignment> roleAssignments,
-                                     List<PermissionTypes> permissionsRequired,
-                                     ErrorMessages customErrorMessage) {
+    public void verifyRoleAssignments(Map<String, CamundaVariable> variables,
+                                      List<RoleAssignment> roleAssignments,
+                                      List<PermissionTypes> permissionsRequired,
+                                      ErrorMessages customErrorMessage) {
         boolean hasAccess = permissionEvaluatorService.hasAccess(variables, roleAssignments, permissionsRequired);
         if (!hasAccess) {
             if (customErrorMessage != null) {
