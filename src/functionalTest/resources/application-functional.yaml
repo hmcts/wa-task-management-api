@@ -1,9 +1,37 @@
 targets:
   instance: ${TEST_URL:http://localhost:8087}
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-  documentUrl: ${DOCUMENT_URL:http://dm-store-aat.service.core-compute-aat.internal/documents/c78071ff-a011-42c1-99a2-17b0adb9b906}
-  documentBinaryUrl: ${DOCUMENT_BINARY_URL:http://dm-store-aat.service.core-compute-aat.internal/documents/c78071ff-a011-42c1-99a2-17b0adb9b906/binary}
 
+launch_darkly:
+  url: ${LAUNCH_DARKLY_URL:https://app.launchdarkly.com/api/v2/flags/Work-Allocation/}
+  accessToken: ${LAUNCH_DARKLY_ACCESS_TOKEN:token}
 core_case_data:
   api:
     url: ${CCD_URL:http://ccd-data-store-api}
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+ccd_gateway:
+  url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+idam:
+  test:
+    userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
+
+#Point to in memory database which enables spring context to start and run ft tests against TEST_URL
+spring.flyway.enabled: false
+
+spring:
+  datasource:
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:wa_workflow_api
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none
+      default_schema: cft_task_db

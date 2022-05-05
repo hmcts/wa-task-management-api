@@ -2,18 +2,22 @@ package uk.gov.hmcts.reform.wataskmanagementapi.clients;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.CamundaFeignConfiguration;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.CamelCaseFeignConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTaskCount;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
 
 import java.util.List;
 import java.util.Map;
@@ -23,10 +27,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @FeignClient(
     name = "tasks",
     url = "${camunda.url}",
-    configuration = CamundaFeignConfiguration.class
+    configuration = CamelCaseFeignConfiguration.class
 )
 @Service
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", "PMD.UnnecessaryFullyQualifiedName", "PMD.TooManyMethods"})
 public interface CamundaServiceApi {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
@@ -44,8 +48,27 @@ public interface CamundaServiceApi {
         produces = APPLICATION_JSON_VALUE
     )
     @ResponseBody
-    List<CamundaTask> searchWithCriteria(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-                                         @RequestBody Map<String, Object> body);
+    List<CamundaTask> searchWithCriteriaAndNoPagination(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @RequestBody Map<String, Object> body);
+
+    @PostMapping(value = "/task",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    List<CamundaTask> searchWithCriteriaAndPagination(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                      @RequestParam("firstResult") Integer firstResult,
+                                                      @RequestParam("maxResults") Integer maxResults,
+                                                      @RequestBody Map<String, Object> body);
+
+    @PostMapping(value = "/task/count",
+        consumes = APPLICATION_JSON_VALUE,
+        produces = APPLICATION_JSON_VALUE
+    )
+    @ResponseBody
+    CamundaTaskCount getTaskCount(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                  @RequestBody Map<String, Object> body);
 
     @GetMapping(
         value = "/task/{task-id}",
@@ -96,16 +119,16 @@ public interface CamundaServiceApi {
                     @PathVariable("task-id") String id,
                     @RequestBody Map<String, String> body);
 
-
     @PostMapping(
-        value = "/decision-definition/key/{key}/tenant-id/ia/evaluate",
+        value = "/decision-definition/key/{key}/tenant-id/{jurisdiction}/evaluate",
         consumes = APPLICATION_JSON_VALUE
     )
     List<Map<String, CamundaVariable>> evaluateDMN(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                                    @PathVariable("key") String key,
+                                                   @PathVariable("jurisdiction") String jurisdiction,
                                                    @RequestBody Map<String, Map<String, CamundaVariable>> body);
 
-
+    
     @GetMapping(
         value = "/task/{task-id}/variables",
         produces = APPLICATION_JSON_VALUE
@@ -123,4 +146,19 @@ public interface CamundaServiceApi {
                         @RequestBody Map<String, String> body);
 
 
+    @DeleteMapping(
+        value = "/history/variable-instance/{variable-instance-id}",
+        consumes = APPLICATION_JSON_VALUE
+    )
+    void deleteVariableFromHistory(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                   @PathVariable("variable-instance-id") String variableInstanceId);
+
+
+    @PostMapping(
+        value = "/history/variable-instance",
+        produces = APPLICATION_JSON_VALUE,
+        consumes = APPLICATION_JSON_VALUE
+    )
+    List<HistoryVariableInstance> searchHistory(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+                                                @RequestBody Map<String, Object> body);
 }

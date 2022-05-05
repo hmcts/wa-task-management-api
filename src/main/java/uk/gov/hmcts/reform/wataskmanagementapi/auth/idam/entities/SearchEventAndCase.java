@@ -1,37 +1,28 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-@ApiModel(
-    value = "SearchEventAndCase",
+@Schema(
+    name = "SearchEventAndCase",
     description = "Search task request with event and case id"
 )
 @SuppressWarnings({"PMD.UnnecessaryAnnotationValueElement"})
 @EqualsAndHashCode
 @ToString
-@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SearchEventAndCase {
 
-    @ApiModelProperty(required = true)
-    private String caseId;
-    @ApiModelProperty(required = true)
-    private String eventId;
-    @ApiModelProperty(required = true)
-    private String caseJurisdiction;
-    @ApiModelProperty(required = true)
-    private String caseType;
-
-    private SearchEventAndCase() {
-        //Default constructor for deserialization
-        super();
-    }
+    @Schema(required = true)
+    private final String caseId;
+    @Schema(required = true)
+    private final String eventId;
+    @Schema(required = true)
+    private final String caseJurisdiction;
+    @Schema(required = true)
+    private final String caseType;
 
     public SearchEventAndCase(String caseId, String eventId,
                               String caseJurisdiction, String caseType) {

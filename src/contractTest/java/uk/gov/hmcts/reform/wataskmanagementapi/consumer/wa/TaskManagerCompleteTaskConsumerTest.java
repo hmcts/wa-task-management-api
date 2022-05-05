@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.wa;
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.restassured.http.ContentType;
@@ -13,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
-
-import java.io.IOException;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -42,16 +41,54 @@ public class TaskManagerCompleteTaskConsumerTest extends SpringBootContractBaseT
             .toPact();
     }
 
+    @Pact(provider = "wa_task_management_api_complete_task_by_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeCompleteTaskById204WithAssignAndComplete(PactDslWithProvider builder) {
+
+        return builder
+            .given("complete a task using taskId and assign and complete completion options")
+            .uponReceiving("taskId to complete a task")
+            .path(WA_COMPLETE_TASK_BY_ID)
+            .method(HttpMethod.POST.toString())
+            .body(createCompleteTaskRequest(), String.valueOf(ContentType.JSON))
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.NO_CONTENT.value())
+            .toPact();
+    }
+
     @Test
-    @PactTestFor(pactMethod = "executeCompleteTaskById204")
-    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
+    @PactTestFor(pactMethod = "executeCompleteTaskById204", pactVersion = PactSpecVersion.V3)
+    void testCompleteTaskByTaskId204Test(MockServer mockServer) {
         SerenityRest
             .given()
             .headers(getHttpHeaders())
             .contentType(ContentType.JSON)
-            .body("")
             .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
             .then()
             .statusCode(204);
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeCompleteTaskById204WithAssignAndComplete", pactVersion = PactSpecVersion.V3)
+    void testCompleteTaskByTaskId204WithAssignAndCompleteTest(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createCompleteTaskRequest())
+            .post(mockServer.getUrl() + WA_COMPLETE_TASK_BY_ID)
+            .then()
+            .statusCode(204);
+    }
+
+    private String createCompleteTaskRequest() {
+
+        return "{\n"
+               + "  \"completion_options\": {\n"
+               + "    \"assign_and_complete\": true\n"
+               + "  }\n"
+               + "}";
+
     }
 }

@@ -10,18 +10,28 @@ def component = "task-management-api"
 
 
 def secrets = [
-    'wa-${env}' : [
-        secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
-        secret('idam-secret', 'IA_IDAM_SECRET'),
-        secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
-        secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
-        secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
-        secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+        'wa-${env}' : [
+                secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+                secret('idam-secret', 'IA_IDAM_SECRET'),
 
-    ],
-    's2s-${env}': [
-        secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
-    ]
+                secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+
+                secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
+                secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
+                secret('wa-system-username', 'WA_SYSTEM_USERNAME'),
+                secret('wa-system-password', 'WA_SYSTEM_PASSWORD'),
+
+                secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+
+                secret('cft-task-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+                secret('cft-task-POSTGRES-USER', 'POSTGRES_USERNAME'),
+
+                secret('launch-darkly-test-env-token', 'LAUNCH_DARKLY_ACCESS_TOKEN'),
+
+        ],
+        's2s-${env}': [
+                secret('microservicekey-wa-task-management-api', 'S2S_SECRET_TASK_MANAGEMENT_API'),
+        ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
@@ -32,7 +42,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
      envVariable: envVar
     ]
 }
-
+def branchesToSync = ['demo', 'ithc', 'perftest']
 withPipeline(type, product, component) {
     disableLegacyDeployment()
     loadVaultSecrets(secrets)
@@ -42,15 +52,25 @@ withPipeline(type, product, component) {
     env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
     env.OPEN_ID_IDAM_URL = "https://idam-web-public.aat.platform.hmcts.net"
     env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+    env.DM_STORE_URL = "http://dm-store-aat.service.core-compute-aat.internal"
     env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
     env.PACT_BROKER_FULL_URL = "https://pact-broker.platform.hmcts.net"
     env.PACT_BROKER_URL = "pact-broker.platform.hmcts.net"
     env.PACT_BROKER_PORT = "443"
     env.PACT_BROKER_SCHEME = "https"
+    env.CCD_GW_URL = "https://gateway-ccd.aat.platform.hmcts.net"
 
+    after('checkout') {
+      sh 'date'
+    }
     after('test') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
+    }
+
+    before('functionalTest:preview') {
+        env.MAX_FT_TESTS_PARALLEL_FORKS = 5
+        env.ENABLE_TEST_USER_DELETION = true
     }
 
     after('functionalTest:preview') {
@@ -58,18 +78,29 @@ withPipeline(type, product, component) {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
     }
 
+    before('functionalTest:aat') {
+        env.MAX_FT_TESTS_PARALLEL_FORKS = 5
+        env.ENABLE_TEST_USER_DELETION = true
+    }
+
     after('functionalTest:aat') {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
     }
 
+    after('pact-provider-verification') {
+        steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'build/reports/tests/**/*'
+    }
+
     onMaster() {
-//        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
-//        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
+        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
 
     onPR() {
-//        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER])
-//        enablePactAs([AppPipelineDsl.PactRoles.PROVIDER])
+        enableCleanupOfHelmReleaseOnSuccess()
+        enablePactAs([AppPipelineDsl.PactRoles.CONSUMER, AppPipelineDsl.PactRoles.PROVIDER])
     }
+
+    // Sync environment specific branches with master branch
+    syncBranchesWithMaster(branchesToSync)
 }

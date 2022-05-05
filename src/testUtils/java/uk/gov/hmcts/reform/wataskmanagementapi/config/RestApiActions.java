@@ -7,6 +7,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.ObjectMapperConfig;
+import io.restassured.filter.log.ErrorLoggingFilter;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
@@ -34,24 +37,16 @@ public class RestApiActions {
         return this;
     }
 
-    protected RequestSpecification given() {
-        return RestAssured.given()
-            .spec(specification)
-            .config(RestAssured.config()
-                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                    (type, s) -> {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
-                        objectMapper.registerModule(new Jdk8Module());
-                        objectMapper.registerModule(new JavaTimeModule());
-                        return objectMapper;
-                    }
-                ))
-            ).relaxedHTTPSValidation();
-    }
-
     public Response get(String path, Header header) {
         return this.get(path, null, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
+    }
+
+    public Response get(String path, Headers headers) {
+        return this.get(path, null, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+    }
+
+    public Response get(String path, String resourceId, Header header) {
+        return this.get(path, resourceId, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, new Headers(header));
     }
 
     public Response get(String path, String resourceId, Headers headers) {
@@ -62,7 +57,6 @@ public class RestApiActions {
         return this.get(path, resourceId, APPLICATION_JSON_VALUE, accept, headers);
     }
 
-
     public Response get(String path, String resourceId, String contentType, String accept, Headers headers) {
 
         if (resourceId != null) {
@@ -72,7 +66,8 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path, resourceId);
+                .get(path, resourceId)
+                .prettyPeek();
         } else {
             log.info("Calling GET {}", path);
             return given()
@@ -80,7 +75,8 @@ public class RestApiActions {
                 .accept(accept)
                 .headers(headers)
                 .when()
-                .get(path);
+                .get(path)
+                .prettyPeek();
         }
     }
 
@@ -115,6 +111,32 @@ public class RestApiActions {
             : postWithoutBody(path, resourceId, contentType, accept, headers);
     }
 
+    public Response delete(String path, String resourceId, Headers headers) {
+        return deleteWithoutBody(path, resourceId, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+    }
+
+    public Response delete(String path, String resourceId, Object body, Headers headers) {
+        return deleteWithBody(path, resourceId, body, APPLICATION_JSON_VALUE, APPLICATION_JSON_VALUE, headers);
+    }
+
+    protected RequestSpecification given() {
+        return RestAssured.given()
+            .spec(specification)
+            .config(RestAssured.config()
+                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                    (type, s) -> {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        objectMapper.setPropertyNamingStrategy(propertyNamingStrategy);
+                        objectMapper.registerModule(new Jdk8Module());
+                        objectMapper.registerModule(new JavaTimeModule());
+                        return objectMapper;
+                    })
+                )
+            )
+            .relaxedHTTPSValidation()
+            .filters(new RequestLoggingFilter(), new ResponseLoggingFilter(), new ErrorLoggingFilter());
+    }
+
     private Response postWithBody(String path,
                                   String resourceId,
                                   Object body,
@@ -130,6 +152,7 @@ public class RestApiActions {
                 .body(body)
                 .when()
                 .post(path, resourceId);
+
         } else {
             log.info("Calling POST {}", path);
             return given()
@@ -167,4 +190,57 @@ public class RestApiActions {
         }
     }
 
+
+    private Response deleteWithBody(String path,
+                                    String resourceId,
+                                    Object body,
+                                    String contentType,
+                                    String accept,
+                                    Headers headers) {
+        if (resourceId != null) {
+            log.info("Calling DELETE {} with resource id: {}", path, resourceId);
+
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .body(body)
+                .when()
+                .delete(path, resourceId);
+        } else {
+            log.info("Calling DELETE {}", path);
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .body(body)
+                .when()
+                .delete(path);
+        }
+    }
+
+    private Response deleteWithoutBody(String path,
+                                       String resourceId,
+                                       String contentType,
+                                       String accept,
+                                       Headers headers) {
+        if (resourceId != null) {
+            log.info("Calling DELETE {} with resource id: {}", path, resourceId);
+
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .when()
+                .delete(path, resourceId);
+        } else {
+            log.info("Calling DELETE {}", path);
+            return given()
+                .contentType(contentType)
+                .accept(accept)
+                .headers(headers)
+                .when()
+                .delete(path);
+        }
+    }
 }

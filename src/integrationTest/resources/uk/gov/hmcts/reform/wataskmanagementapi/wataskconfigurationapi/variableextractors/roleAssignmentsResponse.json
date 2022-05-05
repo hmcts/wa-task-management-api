@@ -1,0 +1,23 @@
+{
+  "links": [],
+  "roleAssignmentResponse": [
+    {
+      "id": "428971b1-3954-4783-840f-c2718732b466",
+      "actorIdType": "IDAM",
+      "actorId": "122f8de4-2eb6-4dcf-91c9-16c2c8aaa422",
+      "roleType": "CASE",
+      "roleName": "tribunal-caseworker",
+      "classification": "RESTRICTED",
+      "grantType": "SPECIFIC",
+      "roleCategory": "LEGAL_OPERATIONS",
+      "readOnly": false,
+      "created": "2020-11-09T14:32:23.693195",
+      "attributes": {
+        "caseId": "1604929600826893",
+        "jurisdiction": "IA",
+        "caseType": "Asylum"
+      },
+      "authorisations": []
+    }
+  ]
+}

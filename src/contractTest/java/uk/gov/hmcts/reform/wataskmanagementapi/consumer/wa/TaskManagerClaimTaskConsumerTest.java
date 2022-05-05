@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.consumer.wa;
 import au.com.dius.pact.consumer.MockServer;
 import au.com.dius.pact.consumer.dsl.PactDslWithProvider;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.PactSpecVersion;
 import au.com.dius.pact.core.model.RequestResponsePact;
 import au.com.dius.pact.core.model.annotations.Pact;
 import io.restassured.http.ContentType;
@@ -13,8 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerApplication;
-
-import java.io.IOException;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -43,8 +42,8 @@ public class TaskManagerClaimTaskConsumerTest extends SpringBootContractBaseTest
     }
 
     @Test
-    @PactTestFor(pactMethod = "executeClaimTaskById204")
-    void testClaimTaskByTaskId204Test(MockServer mockServer) throws IOException {
+    @PactTestFor(pactMethod = "executeClaimTaskById204", pactVersion = PactSpecVersion.V3)
+    void testClaimTaskByTaskId204Test(MockServer mockServer) {
         SerenityRest
             .given()
             .headers(getHttpHeaders())

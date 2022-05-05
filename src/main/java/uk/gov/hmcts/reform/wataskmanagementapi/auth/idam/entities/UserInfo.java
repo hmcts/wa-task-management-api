@@ -5,12 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
-import java.util.Objects;
 
 @JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 @Builder
+@EqualsAndHashCode
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserInfo {
 
@@ -57,28 +58,6 @@ public class UserInfo {
 
     public String getFamilyName() {
         return familyName;
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        UserInfo userInfo = (UserInfo) object;
-        return Objects.equals(email, userInfo.email)
-               && Objects.equals(uid, userInfo.uid)
-               && Objects.equals(roles, userInfo.roles)
-               && Objects.equals(name, userInfo.name)
-               && Objects.equals(givenName, userInfo.givenName)
-               && Objects.equals(familyName, userInfo.familyName);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(email, uid, roles, name, givenName, familyName);
     }
 
     @Override

@@ -1,7 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda;
 
-import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@EqualsAndHashCode
+@ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CamundaValue<T> {
     private T value;
     private String type;
@@ -17,6 +22,10 @@ public class CamundaValue<T> {
 
     public static CamundaValue<String> stringValue(String value) {
         return new CamundaValue<>(value, "String");
+    }
+
+    public static CamundaValue<Integer> integerValue(Integer value) {
+        return new CamundaValue<>(value, "Integer");
     }
 
     public static CamundaValue<Boolean> booleanValue(Boolean value) {
@@ -35,29 +44,4 @@ public class CamundaValue<T> {
         return type;
     }
 
-    @Override
-    public boolean equals(Object anotherObject) {
-        if (this == anotherObject) {
-            return true;
-        }
-        if (anotherObject == null || getClass() != anotherObject.getClass()) {
-            return false;
-        }
-        CamundaValue camundaValue = (CamundaValue) anotherObject;
-        return Objects.equals(value, camundaValue.value)
-               && Objects.equals(type, camundaValue.type);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(value, type);
-    }
-
-    @Override
-    public String toString() {
-        return "CamundaValue{"
-               + "value='" + value + '\''
-               + ", type='" + type + '\''
-               + '}';
-    }
 }

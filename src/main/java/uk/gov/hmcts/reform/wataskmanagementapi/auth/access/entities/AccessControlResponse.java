@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 
 import java.util.List;
 
@@ -12,13 +12,13 @@ import java.util.List;
 public class AccessControlResponse {
 
     private UserInfo userInfo;
-    private List<Assignment> roleAssignments;
+    private List<RoleAssignment> roleAssignments;
 
     private AccessControlResponse() {
         //Hidden constructor
     }
 
-    public AccessControlResponse(UserInfo userInfo, List<Assignment> roleAssignments) {
+    public AccessControlResponse(UserInfo userInfo, List<RoleAssignment> roleAssignments) {
         this.userInfo = userInfo;
         this.roleAssignments = roleAssignments;
     }
@@ -27,7 +27,7 @@ public class AccessControlResponse {
         return userInfo;
     }
 
-    public List<Assignment> getRoleAssignments() {
+    public List<RoleAssignment> getRoleAssignments() {
         return roleAssignments;
     }
 }

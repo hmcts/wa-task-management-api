@@ -1,23 +1,26 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.common.base.Objects;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 
 import java.util.List;
 
+@EqualsAndHashCode
+@ToString
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RoleAssignmentRequest {
 
     private RoleRequest roleRequest;
-    private List<Assignment> requestedRoles;
+    private List<RoleAssignment> requestedRoles;
 
 
     private RoleAssignmentRequest() {
         //Hidden constructor
     }
 
-    public RoleAssignmentRequest(RoleRequest roleRequest, List<Assignment> requestedRoles) {
+    public RoleAssignmentRequest(RoleRequest roleRequest, List<RoleAssignment> requestedRoles) {
         this.roleRequest = roleRequest;
         this.requestedRoles = requestedRoles;
     }
@@ -26,33 +29,8 @@ public class RoleAssignmentRequest {
         return roleRequest;
     }
 
-    public List<Assignment> getRequestedRoles() {
+    public List<RoleAssignment> getRequestedRoles() {
         return requestedRoles;
     }
 
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        RoleAssignmentRequest that = (RoleAssignmentRequest) object;
-        return Objects.equal(roleRequest, that.roleRequest)
-               && Objects.equal(requestedRoles, that.requestedRoles);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(roleRequest, requestedRoles);
-    }
-
-    @Override
-    public String toString() {
-        return "RoleAssignmentRequest{"
-               + "roleRequest=" + roleRequest
-               + ", requestedRoles=" + requestedRoles
-               + '}';
-    }
 }

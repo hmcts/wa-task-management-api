@@ -3,15 +3,31 @@
     {
       "actorId": "{ACTOR_ID_PLACEHOLDER}",
       "actorIdType": "IDAM",
-      "classification": "RESTRICTED",
-      "grantType": "SPECIFIC",
+      "classification": "PUBLIC",
+      "grantType": "STANDARD",
       "readOnly": false,
       "roleCategory": "LEGAL_OPERATIONS",
+      "roleName": "case-allocator",
+      "roleType": "ORGANISATION",
+      "attributes": {
+        "jurisdiction": "IA",
+        "primaryLocation": "765324"
+      },
+      "endTime": "{END_TIME_PLACEHOLDER}"
+    },
+    {
+      "actorId": "{ACTOR_ID_PLACEHOLDER}",
+      "actorIdType": "IDAM",
+      "classification": "RESTRICTED",
+      "grantType": "{GRANT_TYPE}",
+      "readOnly": false,
+      "roleCategory": "{ROLE_CATEGORY}",
       "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "CASE",
       "attributes": {
         "caseId": "{CASE_ID_PLACEHOLDER}"
-      }
+      },
+      "endTime": "{END_TIME_PLACEHOLDER}"
     }
   ],
   "roleRequest": {

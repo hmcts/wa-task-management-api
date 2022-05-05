@@ -1,4 +1,6 @@
-variable "product" {}
+variable "product" {
+  default = "wa"
+}
 
 variable "component" {}
 
@@ -18,4 +20,23 @@ variable "common_tags" {
 
 variable "appinsights_instrumentation_key" {
   default = ""
+}
+
+variable "postgres_db_component_name" {
+  default = "cft-task"
+}
+variable "postgresql_database_name" {
+  default = "cft_task_db"
+}
+
+variable "postgresql_user" {
+  default = "wa_wa"
+}
+
+variable "database_sku_name" {
+  default = "GP_Gen5_4"
+}
+
+variable "database_sku_capacity" {
+  default = "4"
 }

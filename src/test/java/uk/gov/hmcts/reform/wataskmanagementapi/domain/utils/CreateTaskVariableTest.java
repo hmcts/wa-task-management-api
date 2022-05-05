@@ -8,11 +8,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTa
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskMapper;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 
 class CreateTaskVariableTest {
 
@@ -20,7 +24,9 @@ class CreateTaskVariableTest {
     Map<String, CamundaVariable> localVariables;
 
     private TaskMapper taskMapper;
-
+    private WarningValues warningValues = new WarningValues(
+        Arrays.asList(new Warning("123", "some warning"),
+            new Warning("456", "some more warning")));
 
     @BeforeEach
     void setup() {
@@ -42,7 +48,8 @@ class CreateTaskVariableTest {
         localVariables.put("region", new CamundaVariable("1", "string"));
         localVariables.put("hasWarnings", new CamundaVariable(false, "boolean"));
         localVariables.put("taskType", new CamundaVariable("task-type", "string"));
-
+        localVariables.put("warningList", new CamundaVariable(warningValues, "WarningValues"));
+        localVariables.put("caseManagementCategory", new CamundaVariable("someCaseManagementCategory", "string"));
     }
 
     @Test
@@ -70,8 +77,18 @@ class CreateTaskVariableTest {
         Assertions.assertThat(task.getCaseId()).isNull();
         Assertions.assertThat(task.getCaseCategory()).isNull();
         Assertions.assertThat(task.getCaseName()).isNull();
-        Assertions.assertThat(task.getAutoAssigned()).isFalse();
+        Assertions.assertThat(task.isAutoAssigned()).isFalse();
         Assertions.assertThat(task.getWarnings()).isFalse();
+        Assertions.assertThat(task.getWarningList()).isNotNull();
+        Assertions.assertThat(task.getCaseManagementCategory()).isNotNull();
+
+    }
+
+    @Test
+    void should_return_string_when_camunda_variable_type_is_string() {
+
+        CamundaVariable camundaVariable = new CamundaVariable(TaskState.ASSIGNED.value(), "string");
+        Assertions.assertThat(camundaVariable.getType()).isEqualTo("string");
 
     }
 }

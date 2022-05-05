@@ -1,0 +1,24 @@
+{
+  "requestedRoles": [
+    {
+      "actorId": "{ACTOR_ID_PLACEHOLDER}",
+      "actorIdType": "IDAM",
+      "classification": "PUBLIC",
+      "grantType": "STANDARD",
+      "readOnly": false,
+      "roleCategory": "LEGAL_OPERATIONS",
+      "roleName": "tribunal-caseworker",
+      "roleType": "ORGANISATION",
+      "attributes": {
+        "primaryLocation": "765324",
+        "jurisdiction": "IA"
+      }
+    }
+  ],
+  "roleRequest": {
+    "assignerId": "{ASSIGNER_ID_PLACEHOLDER}",
+    "process": "staff-organisational-role-mapping",
+    "reference": "{ASSIGNER_ID_PLACEHOLDER}",
+    "replaceExisting": true
+  }
+}

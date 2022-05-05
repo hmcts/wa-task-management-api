@@ -12,12 +12,17 @@ management:
         include: health, info, prometheus
 
 config:
-  enableSwagger: ${ENABLE_SWAGGER:true}
+  privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor}
+  search:
+    defaultMaxResults: 50
+
+core_case_data:
+  api:
+    url: ${CCD_URL:http://ccd-data-store-api}
 
 camunda:
   url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-  dmnKeys:
-    complete-task: "completeTask_IA_Asylum"
 
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
@@ -32,8 +37,7 @@ security:
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
-    - "/v2/api-docs"
-    - "/webjars/springfox-swagger-ui/**"
+    - "/v3/**"
     - "/favicon.ico"
 
 auth:
@@ -51,15 +55,41 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
+  system:
+    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
+    password: ${WA_SYSTEM_PASSWORD:password}
 
 spring:
+  config:
+    import: "optional:configtree:/mnt/secrets/wa/"
   application:
     name: WA Task Management
   main:
     allow-bean-definition-overriding: true
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+    properties:
+      hibernate:
+        query:
+          in_clause_parameter_padding: true
+        default_schema: ${POSTGRES_NAME:cft_task_db}
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+  flyway:
+    enabled: true
+    baselineOnMigrate: true
+    defaultSchema: ${POSTGRES_NAME:cft_task_db}
+    schemas: ${POSTGRES_NAME:cft_task_db}
   security:
     oauth2:
       resourceserver:
@@ -80,14 +110,24 @@ feign:
       default:
         connectTimeout: 30000
         readTimeout: 30000
+        loggerLevel: FULL
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
   connectionTimeout: 5000
   socketTimeout: 5000
 
-
 logging:
   level:
     root: INFO
-    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: DEBUG
+    uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
+    org.zalando.logbook: INFO
+
+logbook:
+  include: /task/**
+
+caffeine:
+  timeout:
+    duration: 30
+    unit: MINUTES
+

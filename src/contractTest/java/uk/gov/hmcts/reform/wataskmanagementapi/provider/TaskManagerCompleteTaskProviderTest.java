@@ -8,37 +8,67 @@ import au.com.dius.pact.provider.junitsupport.State;
 import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
 import au.com.dius.pact.provider.junitsupport.loader.VersionSelector;
 import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_complete_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
+//using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("target/pacts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
-    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
-    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactBroker(
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagerCompleteTaskProviderTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
+    @Mock
+    private TaskManagementService taskManagementService;
+
     @Autowired
-    private CamundaService camundaService;
+    private SystemDateProvider systemDateProvider;
+
+    @Mock
+    private ClientAccessControlService clientAccessControlService;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @State({"complete a task using taskId"})
+    public void completeTaskById() {
+        setInitMockWithoutPrivilegedAccess();
+    }
+
+    @State({"complete a task using taskId and assign and complete completion options"})
+    public void completeTaskByIdWithCompletionOptions() {
+        setInitMockWithPrivilegedAccess();
+    }
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -51,22 +81,36 @@ public class TaskManagerCompleteTaskProviderTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
-            camundaService,
-            accessControlService
+        testTarget.setControllers(new TaskActionsController(
+            taskManagementService,
+            accessControlService,
+            systemDateProvider,
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
         }
 
+        testTarget.setMessageConverters((
+            new MappingJackson2HttpMessageConverter(
+                objectMapper
+            )));
+
     }
 
-    @State({"complete a task using taskId"})
-    public void completeTaskById() {
-        setInitMock();
+    private void setInitMockWithoutPrivilegedAccess() {
+        doNothing().when(taskManagementService).completeTask(any(), any());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(false);
     }
 
-    private void setInitMock() {
-        doNothing().when(camundaService).completeTask(any(),any(),any());
+    private void setInitMockWithPrivilegedAccess() {
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+        doNothing().when(taskManagementService).completeTaskWithPrivilegeAndCompletionOptions(any(), any(), any());
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(clientAccessControlService.hasPrivilegedAccess(any(), any())).thenReturn(true);
+
+
     }
 }

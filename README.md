@@ -27,7 +27,6 @@ The general approach and interaction with Access Management is depicted below.  
 ![task-management](access-management-process.png)
 
 
-
 Since Spring Boot 2.1 bean overriding is disabled. If you want to enable it you will need to set `spring.main.allow-bean-definition-overriding` to `true`.
 
 JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation
@@ -100,16 +99,17 @@ This will do compilation, checkstyle, PMD checks , run tests , but not integrati
     ```
   Note: Make sure the BPMN and DMN are deployed onto Camunda locally.
         Services wa_workflow_api, wa_task_configuration, ia-case-api, ia-case-documents, ia-case-notifications should be running.
+        And WA Case Type CCD definition from wa-ccd-definitions is uploaded as well.
+- To run integration tests docker should be running.
+- To run all tests including junit, integration and functional. You can run the command
+   ```
+       ./gradlew test integration functional
+   ```
+  or
+      ```
+          ./gradlew tests
+      ```
 
- - To run all tests including junit, integration and functional. You can run the command
-    ```
-        ./gradlew test integration functional
-    ```
-   or
-       ```
-           ./gradlew tests
-       ```
-   
 ### Running contract or pact tests:
 
 You can run contract or pact tests as follows:
@@ -135,4 +135,3 @@ and then using it to publish your tests:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-

@@ -1,112 +1,102 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.auth.role;
 
 import feign.FeignException;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.GetRoleAssignmentResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.response.RoleAssignmentResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.exceptions.TestFeignClientException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.either;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doThrow;
+import static java.util.Collections.emptyMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class RoleAssignmentServiceTest {
 
     @Mock
-    private AuthTokenGenerator authTokenGenerator;
-    @Mock
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
+
+    @Mock
+    private AuthTokenGenerator authTokenGenerator;
+
     private RoleAssignmentService roleAssignmentService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         roleAssignmentService = new RoleAssignmentService(roleAssignmentServiceApi, authTokenGenerator);
     }
 
     @Test
-    void getRolesForUser_should_succeed_and_return_role_assignments() {
-        String idamUserId = "someIdamUserId";
-        String mockedAuthToken = "authToken";
-        String mockedServiceToken = "serviceToken";
+    void testGetRolesForUser() {
+        final RoleAssignmentResource mockRoleAssignmentResource = mock(RoleAssignmentResource.class);
+        String idamUserId = "user";
+        String authToken = "token";
+        String serviceAuthToken = "authToken";
+        when(authTokenGenerator.generate()).thenReturn(serviceAuthToken);
+        when(roleAssignmentServiceApi.getRolesForUser(idamUserId, authToken, serviceAuthToken))
+            .thenReturn(mockRoleAssignmentResource);
 
-        List<Assignment> mockedRoleAssignments = createMockRoleAssignments(idamUserId);
-        when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
-        when(roleAssignmentServiceApi.getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken))
-            .thenReturn(new GetRoleAssignmentResponse(mockedRoleAssignments));
+        List<RoleAssignment> createdRolesForUser = getRoleAssignmentList();
+        when(mockRoleAssignmentResource.getRoleAssignmentResponse()).thenReturn(createdRolesForUser);
 
-        List<Assignment> result = roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken);
-
-        result.forEach(roleAssignment -> {
-
-            assertThat(
-                roleAssignment.getRoleName(),
-                either(is("someCaseRoleName")).or(is("someOrganisationalRoleName"))
-            );
-            assertThat(roleAssignment.getRoleType(), either(is(RoleType.ORGANISATION)).or(is(RoleType.CASE)));
-            assertEquals(idamUserId, roleAssignment.getActorId());
-        });
+        List<RoleAssignment> rolesForUser = roleAssignmentService.getRolesForUser(idamUserId, authToken);
+        assertEquals(createdRolesForUser, rolesForUser);
+        verify(mockRoleAssignmentResource, times(1)).getRoleAssignmentResponse();
     }
 
     @Test
-    void getRolesForUser_should_throw_an_InsufficientPermissionsException_when_feign_exception_is_thrown() {
+    void testGetRolesForUserThrowsUnauthorizedException() {
+        String idamUserId = "user";
+        String authToken = "token";
+        String serviceAuthToken = "authToken";
+        when(authTokenGenerator.generate()).thenReturn(serviceAuthToken);
+        when(roleAssignmentServiceApi.getRolesForUser(idamUserId, authToken, serviceAuthToken))
+            .thenThrow(FeignException.class);
 
-        String idamUserId = "someIdamUserId";
-        String mockedAuthToken = "authToken";
-        String mockedServiceToken = "serviceToken";
-
-        when(authTokenGenerator.generate()).thenReturn(mockedServiceToken);
-
-        TestFeignClientException exception =
-            new TestFeignClientException(
-                HttpStatus.SERVICE_UNAVAILABLE.value(),
-                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase()
-            );
-
-        doThrow(exception)
-            .when(roleAssignmentServiceApi).getRolesForUser(idamUserId, mockedAuthToken, mockedServiceToken);
-
-        assertThatThrownBy(() -> roleAssignmentService.getRolesForUser(idamUserId, mockedAuthToken))
-            .isInstanceOf(UnAuthorizedException.class)
-            .hasCauseInstanceOf(FeignException.class)
-            .hasMessage("User did not have sufficient permissions to perform this action");
-
+        assertThrows(UnAuthorizedException.class,
+            () -> roleAssignmentService.getRolesForUser(idamUserId, authToken));
     }
 
-    private List<Assignment> createMockRoleAssignments(String idamUserId) {
-        List<Assignment> mockedAssignments = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            Assignment assignment = mock(Assignment.class);
-            when(assignment.getRoleType()).thenReturn(RoleType.ORGANISATION);
-            when(assignment.getRoleName()).thenReturn("someOrganisationalRoleName");
-            when(assignment.getActorId()).thenReturn(idamUserId);
-            mockedAssignments.add(assignment);
-        }
-        for (int i = 0; i < 10; i++) {
-            Assignment assignment = mock(Assignment.class);
-            when(assignment.getRoleType()).thenReturn(RoleType.CASE);
-            when(assignment.getRoleName()).thenReturn("someCaseRoleName");
-            when(assignment.getActorId()).thenReturn(idamUserId);
-            mockedAssignments.add(assignment);
-        }
-        return mockedAssignments;
+    @Test
+    void testGetRolesForUserThrowsNullPointerWhenIdamUserIdIsNull() {
+        String authToken = "token";
+
+        assertThrows(NullPointerException.class,
+            () -> roleAssignmentService.getRolesForUser(null, authToken));
     }
 
+    @NotNull
+    private List<RoleAssignment> getRoleAssignmentList() {
+        List<RoleAssignment> createdRolesForUser = new ArrayList<>();
+        createdRolesForUser.add(getRoleAssignment());
+        return createdRolesForUser;
+    }
+
+    private RoleAssignment getRoleAssignment() {
+        return RoleAssignment.builder().roleName("tribunal-caseworker")
+            .classification(Classification.PUBLIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .authorisations(List.of("DIVORCE", "373"))
+            .grantType(GrantType.CHALLENGED)
+            .attributes(emptyMap())
+            .build();
+    }
 }

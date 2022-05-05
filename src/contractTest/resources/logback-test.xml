@@ -6,8 +6,4 @@
             </pattern>
         </encoder>
     </appender>
-    <root level="error">
-        <appender-ref ref="STDOUT"/>
-    </root>
-    <logger name="au.com.dius.pact" level="debug"/>
 </configuration>

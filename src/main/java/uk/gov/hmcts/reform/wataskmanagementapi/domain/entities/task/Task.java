@@ -2,125 +2,148 @@ package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Objects;
 
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
+import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
-    "PMD.ExcessiveParameterList", "PMD.ShortClassName","PMD.LinguisticNaming"})
-@ApiModel("Task")
+    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
+@Schema(allowableValues = "Task")
 public class Task {
-    @ApiModelProperty(
+    @Schema(
         required = true,
-        notes = "Unique identifier for the task"
+        description = "Unique identifier for the task"
     )
-    private String id;
-    @ApiModelProperty(
+    private final String id;
+    @Schema(
         required = true,
-        notes = "Name of the task assigned in the process model"
+        description = "Name of the task assigned in the process model"
     )
-    private String name;
-    @ApiModelProperty(
+    private final String name;
+    @Schema(
         required = true,
-        notes = "The single user who has been assigned this task i.e. IDAM ID"
+        description = "The single user who has been assigned this task i.e. IDAM ID"
     )
-    private String assignee;
-    @ApiModelProperty(
+    private final String assignee;
+    @Schema(
         required = true,
-        notes = "Unique identifier for the conceptual business task"
+        description = "Unique identifier for the conceptual business task"
     )
-    private String type;
-    @ApiModelProperty(
+    private final String type;
+    @Schema(
         required = true,
-        notes = "unconfigured, unassigned, configured, assigned, referred, completed, cancelled"
+        description = "unconfigured, unassigned, configured, assigned, referred, completed, cancelled"
     )
-    private String taskState;
-    @ApiModelProperty(
+    private final String taskState;
+    @Schema(
         required = true,
-        notes = " Code indicating the system which is responsible for this task. For MVP will be always SELF"
+        description = " Code indicating the system which is responsible for this task. For MVP will be always SELF"
     )
-    private String taskSystem;
-    @ApiModelProperty(
+    private final String taskSystem;
+    @Schema(
         required = true,
-        notes = "The security classification of the main business entity this task relates to."
-                + " Can be PUBLIC, PRIVATE, RESTRICTED"
+        description = "The security classification of the main business entity this task relates to."
+                      + " Can be PUBLIC, PRIVATE, RESTRICTED"
     )
-    private String securityClassification;
-    @ApiModelProperty(
+    private final String securityClassification;
+    @Schema(
         required = true,
-        notes = "Task title to display in task list UI"
+        description = "Task title to display in task list UI"
     )
-    private String taskTitle;
-    @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
+    private final String taskTitle;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @ApiModelProperty(
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
         example = "2020-09-05T14:47:01.250542+01:00",
-        notes = "Optional due date for the task that will be created"
+        description = "Optional due date for the task that will be created"
     )
-    private ZonedDateTime createdDate;
+    private final ZonedDateTime createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = CAMUNDA_DATA_TIME_FORMAT)
-    @ApiModelProperty(
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
         example = "2020-09-05T14:47:01.250542+01:00",
-        notes = "Optional due date for the task that will be created"
+        description = "Optional due date for the task that will be created"
     )
-    private ZonedDateTime dueDate;
-    @ApiModelProperty(required = true,
-        notes = "`location to display in task list UI"
+    private final ZonedDateTime dueDate;
+    @Schema(required = true,
+        description = "`location to display in task list UI"
     )
-    private String locationName;
-    @ApiModelProperty(required = true,
-        notes = "The ePims ID for the physical location"
+    private final String locationName;
+    @Schema(required = true,
+        description = "The ePims ID for the physical location"
     )
-    private String location;
-    @ApiModelProperty(required = true,
-        notes = "Indicator to the user interface of how this task is to be executed. "
-                + "For MVP, this will always be \"Case Management Task\""
+    private final String location;
+    @Schema(required = true,
+        description = "Indicator to the user interface of how this task is to be executed. "
+                      + "For MVP, this will always be \"Case Management Task\""
     )
-    private String executionType;
-    @ApiModelProperty(required = true,
-        notes = "For MVP, will always be \"IA\""
+    private final String executionType;
+    @Schema(required = true,
+        description = "For MVP, will always be \"IA\""
     )
-    private String jurisdiction;
-    @ApiModelProperty(required = true,
-        notes = " The region ID. For IAC is always \"1\" (national)"
+    private final String jurisdiction;
+    @Schema(required = true,
+        description = " The region ID. For IAC is always \"1\" (national)"
     )
-    private String region;
-    @ApiModelProperty(required = true,
-        notes = " The CCD case type ID"
+    private final String region;
+    @Schema(required = true,
+        description = " The CCD case type ID"
     )
-    private String caseTypeId;
-    @ApiModelProperty(required = true,
-        notes = " Case ID to display in task list UI"
+    private final String caseTypeId;
+    @Schema(required = true,
+        description = " Case ID to display in task list UI"
     )
-    private String caseId;
-    @ApiModelProperty(required = true,
-        notes = " Case category  to display in task list UI"
+    private final String caseId;
+    @Schema(required = true,
+        description = " Case category  to display in task list UI"
     )
-    private String caseCategory;
-    @ApiModelProperty(required = true,
-        notes = " Case name to display in task list UI"
+    private final String caseCategory;
+    @Schema(required = true,
+        description = " Case name to display in task list UI"
     )
-    private String caseName;
-    @ApiModelProperty(required = true,
-        notes = "If TRUE then task was auto-assigned, otherwise FALSE"
+    private final String caseName;
+    @Schema(required = true,
+        description = "If TRUE then task was auto-assigned, otherwise FALSE"
     )
-    private boolean autoAssigned;
+    private final boolean autoAssigned;
 
-    @ApiModelProperty(required = false,
-        notes = "boolean to show if a warning is applied to task by a service task in a subprocess")
-    private Boolean hasWarnings;
+    @Schema(
+        description = "boolean to show if a warning is applied to task by a service task in a subprocess")
+    private final Boolean warnings;
 
-    private Task() {
-        //Hidden constructor
-        super();
-    }
+    @Schema(
+        description = "A list of values containing a warning code and warning text")
+    private final WarningValues warningList;
+
+    @Schema(description = "A value describing the category of the case, for IA, "
+                          + "it has the same value as the AppealType field")
+    private final String caseManagementCategory;
+
+    @Schema(required = true,
+        description = "A value containing the work type id for this task, for IA")
+    private final String workTypeId;
+
+    @Schema(required = true,
+        description = "A value describing the task permissions")
+    private final TaskPermissions permissions;
+    @Schema(required = true,
+        description = "A value describing to users what they should do next")
+    private final String description;
+
+    @Schema(required = true,
+        description = "A value describing the role category")
+    private final String roleCategory;
+
+    @Schema(required = true,
+        description = "A value describing the additional properties")
+    private final Map<String, String> additionalProperties;
+
 
     public Task(String id,
                 String name,
@@ -142,9 +165,14 @@ public class Task {
                 String caseId,
                 String caseCategory,
                 String caseName,
-                Boolean hasWarnings
-
-    ) {
+                Boolean warnings,
+                WarningValues warningList,
+                String caseManagementCategory,
+                String workTypeId,
+                TaskPermissions taskPermissions,
+                String roleCategory,
+                String description,
+                Map<String, String> additionalProperties) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -167,29 +195,14 @@ public class Task {
         this.jurisdiction = jurisdiction;
         this.region = region;
         this.location = location;
-        this.hasWarnings = hasWarnings;
-
-
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public String getExecutionType() {
-        return executionType;
-    }
-
-    public String getJurisdiction() {
-        return jurisdiction;
-    }
-
-    public String getRegion() {
-        return region;
-    }
-
-    public Boolean getAutoAssigned() {
-        return autoAssigned;
+        this.warnings = warnings;
+        this.warningList = warningList;
+        this.caseManagementCategory = caseManagementCategory;
+        this.workTypeId = workTypeId;
+        this.permissions = taskPermissions;
+        this.roleCategory = roleCategory;
+        this.description = description;
+        this.additionalProperties = additionalProperties;
     }
 
     public String getId() {
@@ -236,6 +249,22 @@ public class Task {
         return locationName;
     }
 
+    public String getLocation() {
+        return location;
+    }
+
+    public String getExecutionType() {
+        return executionType;
+    }
+
+    public String getJurisdiction() {
+        return jurisdiction;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
     public String getCaseTypeId() {
         return caseTypeId;
     }
@@ -252,9 +281,40 @@ public class Task {
         return caseName;
     }
 
-    public Boolean getWarnings() {
-        return hasWarnings;
+    public boolean isAutoAssigned() {
+        return autoAssigned;
     }
 
+    public Boolean getWarnings() {
+        return warnings;
+    }
+
+    public WarningValues getWarningList() {
+        return warningList;
+    }
+
+    public String getCaseManagementCategory() {
+        return caseManagementCategory;
+    }
+
+    public String getWorkTypeId() {
+        return workTypeId;
+    }
+
+    public TaskPermissions getPermissions() {
+        return permissions;
+    }
+
+    public String getRoleCategory() {
+        return roleCategory;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public Map<String, String> getAdditionalProperties() {
+        return additionalProperties;
+    }
 }
 

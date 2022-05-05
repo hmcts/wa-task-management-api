@@ -11,34 +11,49 @@ import au.com.dius.pact.provider.spring.junit5.MockMvcTestTarget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskController;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
-@Provider("wa_task_management_api_complete_task_by_id")
+@Provider("wa_task_management_api_assign_task_by_id")
 //Uncomment this and comment the @PacBroker line to test TaskManagerClaimTaskConsumerTest local consumer.
+//using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("target/pacts")
-@PactBroker(scheme = "${PACT_BROKER_SCHEME:https}",
-    host = "${PACT_BROKER_URL:pact-broker.platform.hmcts.net}",
-    port = "${PACT_BROKER_PORT:443}", consumerVersionSelectors = {
-    @VersionSelector(tag = "latest")})
+@PactBroker(
+    url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagerAssignTaskProviderTest {
 
-    @Autowired
+    @Mock
     private AccessControlService accessControlService;
 
+    @Mock
+    private TaskManagementService taskManagementService;
+
     @Autowired
-    private CamundaService camundaService;
+    private SystemDateProvider systemDateProvider;
+
+    @Mock
+    private ClientAccessControlService clientAccessControlService;
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)
@@ -51,14 +66,15 @@ public class TaskManagerAssignTaskProviderTest {
     @BeforeEach
     void beforeCreate(PactVerificationContext context) {
         MockMvcTestTarget testTarget = new MockMvcTestTarget();
-        testTarget.setControllers(new TaskController(
-            camundaService,
-            accessControlService
+        testTarget.setControllers(new TaskActionsController(
+            taskManagementService,
+            accessControlService,
+            systemDateProvider,
+            clientAccessControlService
         ));
         if (context != null) {
             context.setTarget(testTarget);
         }
-
     }
 
     @State({"assign a task using taskId"})
@@ -67,6 +83,10 @@ public class TaskManagerAssignTaskProviderTest {
     }
 
     private void setInitMock() {
-        doNothing().when(camundaService).assignTask(any(),any(),any(),any(),any());
+        AccessControlResponse accessControlResponse = mock((AccessControlResponse.class));
+
+        doNothing().when(taskManagementService).assignTask(any(), any(), any());
+        when(accessControlService.getRoles(anyString())).thenReturn(accessControlResponse);
+        when(accessControlService.getRolesGivenUserId(anyString(), anyString())).thenReturn(accessControlResponse);
     }
 }

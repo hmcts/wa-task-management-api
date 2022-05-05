@@ -7,9 +7,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.Assignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.NoRoleAssignmentsFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -27,17 +29,37 @@ public class AccessControlService {
 
     public AccessControlResponse getRoles(String authToken) {
         UserInfo userInfo = idamService.getUserInfo(authToken);
-        List<Assignment> assignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
+        log.debug("UserInfo successfully retrieved from IDAM");
+        List<RoleAssignment> roleAssignments = roleAssignmentService.getRolesForUser(userInfo.getUid(), authToken);
 
-        assignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
-        return new AccessControlResponse(userInfo, assignments);
+        //Safe-guard
+        if (roleAssignments.isEmpty()) {
+            log.error("No Role Assignments for user '{}'", userInfo.getUid());
+            throw new NoRoleAssignmentsFoundException(
+                "User did not have sufficient permissions to perform this action"
+            );
+        }
+
+        roleAssignments.forEach(role -> log.debug("Response from role assignment service '{}'", role.toString()));
+        return new AccessControlResponse(userInfo, roleAssignments);
     }
 
     public AccessControlResponse getRolesGivenUserId(String userId, String authToken) {
-        List<Assignment> assignments = roleAssignmentService.getRolesForUser(userId, authToken);
+        List<RoleAssignment> roleAssignments = roleAssignmentService.getRolesForUser(userId, authToken);
         return new AccessControlResponse(
             UserInfo.builder().uid(userId).build(),
-            assignments
+            roleAssignments
         );
     }
+
+    public Optional<AccessControlResponse> getAccessControlResponse(String authToken) {
+
+        try {
+            return Optional.of(getRoles(authToken));
+        } catch (NoRoleAssignmentsFoundException e) {
+            return Optional.empty();
+        }
+
+    }
+
 }

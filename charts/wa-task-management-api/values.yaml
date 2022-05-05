@@ -3,16 +3,39 @@ java:
   image: 'hmctspublic.azurecr.io/wa/task-management-api:latest'
   ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
+  autoscaling:
+    enabled: true
+    maxReplicas: 4
+    minReplicas: 2
+    targetCPUUtilizationPercentage: 80 # Default is 80% target CPU utilization
+    targetMemoryUtilizationPercentage: 80 # Default is 80% target Memory utilization
   keyVaults:
     wa:
       secrets:
-        - AppInsightsInstrumentationKey
-        - wa-idam-client-secret
-        - s2s-secret-task-management-api
-        - ld-secret
+        - name: AppInsightsInstrumentationKey
+          alias: azure.application-insights.instrumentation-key
+        - name: wa-system-username
+          alias: WA_SYSTEM_USERNAME
+        - name: wa-system-password
+          alias: WA_SYSTEM_PASSWORD
+        - name: wa-idam-client-secret
+          alias: WA_IDAM_CLIENT_SECRET
+        - name: s2s-secret-task-management-api
+          alias: S2S_SECRET_TASK_MANAGEMENT_API
+        - name: ld-secret
+          alias: LAUNCH_DARKLY_SDK_KEY
+        - name: cft-task-POSTGRES-PASS
+          alias: POSTGRES_PASSWORD
+        - name: cft-task-POSTGRES-USER
+          alias: POSTGRES_USERNAME
   environment:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    POSTGRES_PORT: 5432
+    POSTGRES_HOST: cft-task-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
+    POSTGRES_NAME: cft_task_db
+    POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"

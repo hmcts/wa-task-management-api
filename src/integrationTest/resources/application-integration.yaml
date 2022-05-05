@@ -1,2 +1,49 @@
-config:
-  stacktraceEnabled: false
+spring:
+  datasource:
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
+    hikari:
+      minimum-idle: 1
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
+    properties:
+      hibernate:
+        default_schema: cft_task_db
+        dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+#        show_sql: true
+#        format_sql: true
+  flyway:
+    enabled: true
+    baselineOnMigrate: true
+    defaultSchema: cft_task_db
+    schemas: cft_task_db
+
+idam:
+  test:
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
+
+role-assignment-service:
+  url: http://localhost:8888
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+ccd_gateway:
+  url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+logging:
+  level:
+    org.springframework:
+      dao: debug
+      transaction: debug
+      jdbc.core.JdbcTemplate: info
+#    org.hibernate:
+#      SQL: debug
+#      type.descriptor.sql.BasicBinder: debug
+#      engine: debug
+    uk.gov.hmcts.reform: debug
