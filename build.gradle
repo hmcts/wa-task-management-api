@@ -102,12 +102,7 @@ tasks.withType(Test) {
 
   testLogging {
     exceptionFormat = 'full'
-    events "started", "skipped", "failed"
-    showExceptions = true
-    showCauses = true
   }
-
-  System.setProperty("pact.verifier.publishResults", "true")
 }
 
 test {
@@ -448,15 +443,7 @@ task runProviderPactVerification(type: Test) {
   logger.lifecycle("Runs provider pact Tests")
   testClassesDirs = sourceSets.contractTest.output.classesDirs
   classpath = sourceSets.contractTest.runtimeClasspath
-  systemProperty 'pact.verifier.publishResults', System.getProperty('pact.verifier.publishResults')
   systemProperty 'pact.provider.version', project.pacticipantVersion
-
-  testLogging {
-    exceptionFormat = 'full'
-    events "started", "skipped", "failed"
-    showExceptions = true
-    showCauses = true
-  }
 
 }
 

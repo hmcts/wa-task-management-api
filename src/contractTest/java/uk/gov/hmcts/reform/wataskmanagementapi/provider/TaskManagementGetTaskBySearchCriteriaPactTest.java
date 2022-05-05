@@ -58,24 +58,22 @@ import static org.mockito.Mockito.when;
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )*/
-
 @PactBroker(
+    url = "${PACT_BROKER_FULL_URL}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
+)
+/*@PactBroker(
     scheme = "${PACT_BROKER_SCHEME:http}",
     host = "${PACT_BROKER_URL:localhost}",
     port = "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
-)
+)*/
 
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
-
-    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
-        "name1", "value1",
-        "name2", "value2",
-        "name3", "value3"
-    );
 
     @Mock
     private AccessControlService accessControlService;
@@ -362,5 +360,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest {
         when(taskManagementService.searchWithCriteria(any(), anyInt(), anyInt(), any()))
             .thenReturn(singletonList(createTaskWithNoWarnings()));
     }
+
+    private static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1", "value1",
+        "name2", "value2",
+        "name3", "value3"
+    );
 
 }
