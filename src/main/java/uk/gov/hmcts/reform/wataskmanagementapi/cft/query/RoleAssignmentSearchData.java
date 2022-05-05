@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class RoleAssignmentSearchData {
         }
 
         List<RoleAssignmentForSearch> caseRoleAssignments = roleAssignmentsByRoleType.get(RoleType.CASE.name());
-        List<RoleAssignmentForSearch> caseRepresentatives = getCaseRepresentatives(caseRoleAssignments);
+        Set<RoleAssignmentForSearch> caseRepresentatives = getCaseRepresentatives(caseRoleAssignments);
         if (!CollectionUtils.isEmpty(caseRepresentatives)) {
             finalRoleAssignments.addAll(caseRepresentatives);
         }
@@ -48,9 +49,9 @@ public class RoleAssignmentSearchData {
         return finalRoleAssignments;
     }
 
-    private List<RoleAssignmentForSearch> getCaseRepresentatives(List<RoleAssignmentForSearch> caseRoleAssignments) {
+    private Set<RoleAssignmentForSearch> getCaseRepresentatives(List<RoleAssignmentForSearch> caseRoleAssignments) {
         if (CollectionUtils.isEmpty(caseRoleAssignments)) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
 
         //Group the Case roles
@@ -65,7 +66,7 @@ public class RoleAssignmentSearchData {
                 updateGroupRepresentative(representative, roleAssignmentForSearches);
                 return representative;
             })
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
     }
 
     private void updateGroupRepresentative(RoleAssignmentForSearch groupRepresentative,
