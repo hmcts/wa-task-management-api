@@ -86,7 +86,7 @@ public class CftQueryService {
 
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
-        final List<TaskResource> taskResources = pages.toList();
+        final List<TaskResource> taskResources = pages.getContent();
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->

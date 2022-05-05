@@ -23,6 +23,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -308,11 +309,12 @@ public final class RoleAssignmentFilter {
         // Should be checking that any of the authorisations in the DB are present in the users authorisations
         // If the users authorisations are null/empty then the DB must be null/empty
         if (roleAssignment.getAuthorisations() != null) {
-            Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
-                (Object) roleAssignment.getAuthorisations().toArray()
-            );
-            return builder.or(nullAuthorizations, authorizations);
-
+            Expression<List<String>> authRoot = taskRoleResources.get(AUTHORIZATIONS_COLUMN);
+            Predicate predicate = builder.conjunction();
+            for (String auth : roleAssignment.getAuthorisations()) {
+                predicate = builder.and(predicate, builder.isMember(auth, authRoot));
+            }
+            return builder.or(nullAuthorizations, predicate);
         }
         return nullAuthorizations;
     }
