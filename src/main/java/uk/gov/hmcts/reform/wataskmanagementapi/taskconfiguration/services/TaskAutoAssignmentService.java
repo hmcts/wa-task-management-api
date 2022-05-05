@@ -7,9 +7,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -30,7 +28,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.P
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.OWN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_NOT_FOUND_ERROR;
 
 @Slf4j
 @Component
@@ -39,17 +36,14 @@ public class TaskAutoAssignmentService {
 
     private final TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService;
     private final TaskConfigurationCamundaService taskConfigurationCamundaService;
-    private final RoleAssignmentVerificationService roleAssignmentVerificationService;
-    private final CFTTaskDatabaseService cftTaskDatabaseService;
+    private final CftQueryService cftQueryService;
 
     public TaskAutoAssignmentService(TaskConfigurationRoleAssignmentService taskConfigurationRoleAssignmentService,
                                      TaskConfigurationCamundaService taskConfigurationCamundaService,
-                                     RoleAssignmentVerificationService roleAssignmentVerificationService,
-                                     CFTTaskDatabaseService cftTaskDatabaseService) {
+                                     CftQueryService cftQueryService) {
         this.taskConfigurationRoleAssignmentService = taskConfigurationRoleAssignmentService;
         this.taskConfigurationCamundaService = taskConfigurationCamundaService;
-        this.roleAssignmentVerificationService = roleAssignmentVerificationService;
-        this.cftTaskDatabaseService = cftTaskDatabaseService;
+        this.cftQueryService = cftQueryService;
     }
 
     public void autoAssignTask(TaskToConfigure taskToConfigure, String currentTaskState) {
@@ -70,10 +64,7 @@ public class TaskAutoAssignmentService {
         }
     }
 
-    public TaskResource reAutoAssignCFTTask(String taskId) {
-        //get the task from database
-        TaskResource taskResource = cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId)
-            .orElseThrow(() -> new TaskNotFoundException(TASK_NOT_FOUND_ERROR));
+    public TaskResource reAutoAssignCFTTask(TaskResource taskResource) {
 
         //if task is found and assigned
         if (StringUtils.isNotBlank(taskResource.getAssignee())) {
@@ -83,17 +74,18 @@ public class TaskAutoAssignmentService {
                 taskConfigurationRoleAssignmentService.getRolesByUserId(taskResource.getAssignee());
 
             //build and run the role assignment clause query with list of permissions required
-            Optional<TaskResource> taskWithValidPermissions = roleAssignmentVerificationService
-                .getTaskForRolesAndPermissionTypes(taskId, roleAssignmentsForUser, List.of(OWN, EXECUTE));
+            Optional<TaskResource> taskWithValidPermissions = cftQueryService
+                .getTask(taskResource.getTaskId(), roleAssignmentsForUser, List.of(OWN, EXECUTE));
 
             //if existing user role assignments not have required permissions,then unassign and rerun autoassignment
-            if (!taskWithValidPermissions.isPresent()) {
+            if (taskWithValidPermissions.isEmpty()) {
                 taskResource.setAssignee(null);
                 taskResource.setState(CFTTaskState.UNASSIGNED);
                 return autoAssignCFTTask(taskResource);
             }
+            return taskResource;
         }
-        return taskResource;
+        return autoAssignCFTTask(taskResource);
     }
 
 

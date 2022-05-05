@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.ActorIdType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -20,9 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.auth.role.TaskConfigurationRoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.AutoAssignmentResult;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
@@ -44,11 +40,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.ParameterizedTest.ARGUMENTS_WITH_NAMES_PLACEHOLDER;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
@@ -67,15 +61,7 @@ class TaskAutoRoleAssignmentServiceTest {
     private TaskConfigurationCamundaService camundaService;
 
     @Mock
-    private CFTTaskDatabaseService cftTaskDatabaseService;
-
-    @Mock
-    private PermissionEvaluatorService permissionEvaluatorService;
-
-    @Mock
     private CftQueryService cftQueryService;
-
-    private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
@@ -83,15 +69,10 @@ class TaskAutoRoleAssignmentServiceTest {
 
     @BeforeEach
     void setUp() {
-        roleAssignmentVerificationService = new RoleAssignmentVerificationService(
-            permissionEvaluatorService,
-            cftTaskDatabaseService,
-            cftQueryService);
         taskAutoAssignmentService = new TaskAutoAssignmentService(
             roleAssignmentService,
             camundaService,
-            roleAssignmentVerificationService,
-            cftTaskDatabaseService
+            cftQueryService
         );
         testTaskToConfigure = new TaskToConfigure(
             "taskId",
@@ -404,8 +385,6 @@ class TaskAutoRoleAssignmentServiceTest {
         );
         taskResource.setTaskRoleResources(taskRoleResources);
 
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResource));
         List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource);
         when(roleAssignmentService.getRolesByUserId(taskResource.getAssignee()))
             .thenReturn(roleAssignmentForAssignee);
@@ -415,7 +394,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .thenReturn(roleAssignments);
 
         TaskResource autoAssignCFTTaskResponse =
-            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource.getTaskId());
+            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -455,8 +434,6 @@ class TaskAutoRoleAssignmentServiceTest {
         taskResource.setAssignee(roleAssignmentResource1.getActorId());
         taskResource.setState(CFTTaskState.ASSIGNED);
 
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResource));
         List<RoleAssignment> roleAssignmentForAssignee = List.of(roleAssignmentResource1);
         when(roleAssignmentService.getRolesByUserId(taskResource.getAssignee()))
             .thenReturn(roleAssignmentForAssignee);
@@ -464,7 +441,7 @@ class TaskAutoRoleAssignmentServiceTest {
             .thenReturn(Optional.of(taskResource));
 
         TaskResource autoAssignCFTTaskResponse =
-            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource.getTaskId());
+            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
 
         assertEquals(CFTTaskState.ASSIGNED, autoAssignCFTTaskResponse.getState());
 
@@ -504,28 +481,14 @@ class TaskAutoRoleAssignmentServiceTest {
         taskResource.setTaskRoleResources(taskRoleResources);
         taskResource.setState(CFTTaskState.UNASSIGNED);
 
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResource));
-
         TaskResource autoAssignCFTTaskResponse =
-            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource.getTaskId());
+            taskAutoAssignmentService.reAutoAssignCFTTask(taskResource);
 
         assertEquals(CFTTaskState.UNASSIGNED, autoAssignCFTTaskResponse.getState());
 
         assertThat(autoAssignCFTTaskResponse.getAssignee())
             .isEqualTo(null);
     }
-
-    @Test
-    void should_not_reassign_and_throw_exception_when_task_is_not_found() {
-
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.empty());
-
-        assertThrows(TaskNotFoundException.class, () -> taskAutoAssignmentService.reAutoAssignCFTTask("noTask"));
-
-    }
-
 
     @Test
     void auto_assign_should_return_task_assignee_when_auto_assignable_is_true_and_authorisation_is_empty() {

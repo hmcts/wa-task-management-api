@@ -48,7 +48,7 @@ public class RoleAssignmentVerificationService {
                                               List<RoleAssignment> roleAssignments,
                                               List<PermissionTypes> permissionsRequired,
                                               ErrorMessages customErrorMessage) {
-        Optional<TaskResource> optionalTaskResource = getTaskForRolesAndPermissionTypes(
+        Optional<TaskResource> optionalTaskResource = cftQueryService.getTask(
             taskId, roleAssignments, permissionsRequired
         );
 
@@ -102,10 +102,4 @@ public class RoleAssignmentVerificationService {
         }
     }
 
-    public Optional<TaskResource> getTaskForRolesAndPermissionTypes(String taskId,
-                                                                    List<RoleAssignment> roleAssignments,
-                                                                    List<PermissionTypes> permissionsRequired) {
-        return cftQueryService
-            .getTask(taskId, roleAssignments, permissionsRequired);
-    }
 }
