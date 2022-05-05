@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -106,8 +107,10 @@ public class CftQueryService {
     ) {
 
         //Safe-guard against unsupported Jurisdictions and case types.
-        if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
-            || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
+        if (!Arrays.asList("IA", "WA")
+            .contains(searchEventAndCase.getCaseJurisdiction().toUpperCase(Locale.ROOT))
+            || !Arrays.asList("asylum", "wacasetype")
+            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))) {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 

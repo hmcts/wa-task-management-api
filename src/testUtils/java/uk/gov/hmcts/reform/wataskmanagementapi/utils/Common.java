@@ -381,7 +381,7 @@ public class Common {
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "case-manager",
-            toJsonString(Map.of("caseId", caseId, "caseType","Asylum", "jurisdiction", "IA", "substantive", "Y")),
+            toJsonString(Map.of("caseId", caseId, "caseType", "Asylum", "jurisdiction", "IA", "substantive", "Y")),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             GrantType.SPECIFIC.name(),
             RoleCategory.LEGAL_OPERATIONS.name(),
@@ -565,7 +565,7 @@ public class Common {
             headers.getValue(SERVICE_AUTHORIZATION),
             userInfo,
             "hearing-judge",
-            toJsonString(Map.of("caseId", caseId, "caseType","Asylum", "jurisdiction", "IA")),
+            toJsonString(Map.of("caseId", caseId, "caseType", "Asylum", "jurisdiction", "IA")),
             "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
             GrantType.SPECIFIC.name(),
             RoleCategory.JUDICIAL.name(),
@@ -828,8 +828,8 @@ public class Common {
                                     String authorisations,
                                     String roleType) {
         String body = getBody(caseId, userInfo, roleName, resourceFilename, attributes, grantType, roleCategory,
-                              authorisations,
-                              roleType
+            authorisations,
+            roleType
         );
         roleAssignmentServiceApi.createRoleAssignment(
             body,

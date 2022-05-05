@@ -5,6 +5,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -569,7 +571,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_succeed_and_return_emptyList_when_jurisdiction_is_not_IA() {
+        void should_succeed_and_return_emptyList_when_jurisdiction_is_invalid() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -590,7 +592,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_succeed_and_return_emptyList_when_caseType_is_not_Asylum() {
+        void should_succeed_and_return_emptyList_when_caseType_is_invalid() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
 
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
@@ -610,14 +612,20 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals(new GetTasksCompletableResponse<>(false, emptyList()), response);
         }
 
-        @Test
-        void should_succeed_and_return_emptyList_when_no_task_types_returned() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_succeed_and_return_emptyList_when_no_task_types_returned(String jurisdiction, String caseType) {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "IA",
-                "Asylum"
+                jurisdiction,
+                caseType
             );
 
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase)).thenReturn(emptyList());
@@ -632,14 +640,20 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertEquals(new GetTasksCompletableResponse<>(false, emptyList()), response);
         }
 
-        @Test
-        void should_succeed_and_return_search_results() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_succeed_and_return_search_results(String jurisdiction, String caseType) {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "IA",
-                "Asylum"
+                jurisdiction,
+                caseType
             );
             when(accessControlResponse.getRoleAssignments())
                 .thenReturn(singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
@@ -665,15 +679,22 @@ public class CftQueryServiceTest extends CamundaHelpers {
             verify(taskResourceRepository, times(1)).findAll(any());
         }
 
-        @Test
-        void should_succeed_and_return_search_results_with_task_required_as_false() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_succeed_and_return_search_results_with_task_required_as_false(String jurisdiction,
+                                                                                  String caseType) {
             AccessControlResponse accessControlResponse =
                 new AccessControlResponse(null, singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "IA",
-                "Asylum"
+                jurisdiction,
+                caseType
             );
 
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
@@ -699,14 +720,20 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertFalse(response.isTaskRequiredForEvent());
         }
 
-        @Test
-        void should_succeed_and_return_emptyList_when_cft_db_returns_no_record() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_succeed_and_return_emptyList_when_cft_db_returns_no_record(String jurisdiction, String caseType) {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "IA",
-                "Asylum"
+                jurisdiction,
+                caseType
             );
 
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
@@ -729,14 +756,21 @@ public class CftQueryServiceTest extends CamundaHelpers {
             verify(cftTaskMapper, times(0)).mapToTaskWithPermissions(any(), any());
         }
 
-        @Test
-        void should_succeed_and_returns_empty_results_when_dmn_returns_empty_variables() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_succeed_and_returns_empty_results_when_dmn_returns_empty_variables(String jurisdiction,
+                                                                                       String caseType) {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "IA",
-                "Asylum"
+                jurisdiction,
+                caseType
             );
 
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
@@ -757,14 +791,21 @@ public class CftQueryServiceTest extends CamundaHelpers {
             verify(taskResourceRepository, times(0)).findAll(any());
         }
 
-        @Test
-        void should_succeed_and_return_search_results1() {
+        @ParameterizedTest
+        @CsvSource(
+            value = {
+                "IA, Asylum",
+                "WA, WaCaseType"
+            }
+        )
+        void should_succeed_and_return_search_results_for_different_jurisdictions(String jurisdiction,
+                                                                                  String caseType) {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
                 "someEventId",
-                "IA",
-                "Asylum"
+                jurisdiction,
+                caseType
             );
 
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
