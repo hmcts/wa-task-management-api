@@ -53,11 +53,20 @@ import static org.mockito.Mockito.when;
 //Uncomment this and comment the @PactBroker line to test WorkTypeConsumerTest local consumer.
 //using this, import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
 //@PactFolder("target/pacts")
-@PactBroker(
+/*@PactBroker(
     url = "${PACT_BROKER_SCHEME:http}" + "://" + "${PACT_BROKER_URL:localhost}" + ":" + "${PACT_BROKER_PORT:9292}",
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
+)*/
+
+@PactBroker(
+    scheme = "${PACT_BROKER_SCHEME:http}",
+    host = "${PACT_BROKER_URL:localhost}",
+    port = "${PACT_BROKER_PORT:9292}",
+    consumerVersionSelectors = {
+        @VersionSelector(tag = "master")}
 )
+
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class TaskManagementGetTaskBySearchCriteriaPactTest {
