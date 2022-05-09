@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -350,7 +349,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         }
 
         @Test
-        @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_completion_options_value_is_null()
             throws Exception {
 
@@ -383,7 +381,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         }
 
         @Test
-        @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_unknown_property_provided_in_completion_options()
             throws Exception {
 
@@ -415,7 +412,6 @@ class PostTaskCompleteByIdControllerFailureTest extends SpringBootIntegrationBas
         }
 
         @Test
-        @Disabled("Disabled temporarily see RWA-658 & EUI-4285")
         void should_return_400_bad_request_application_problem_when_completion_options_invalid_value()
             throws Exception {
 
