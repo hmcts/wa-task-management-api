@@ -101,20 +101,20 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
             .body("work_type_resource.id", equalTo("hearing_work"))
             .body("work_type_resource.label", equalTo("Hearing work"))
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
-                                             + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(3))
+                                         + "trigger/decideAnApplication)"))
+            .body("task_role_resources.size()", equalTo(10))
             .body("additional_properties", equalToObject(Map.of(
-                      "key1", "value1",
-                      "key2", "value2",
-                      "key3", "value3",
-                      "key4", "value4"
-                  )));
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3",
+                "key4", "value4"
+            )));
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
@@ -177,7 +177,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
     private void assertPermissions(Map<String, Object> resource, Map<String, Object> expectedPermissions) {
         expectedPermissions.keySet().forEach(key ->
-                                                 assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
+            assertThat(resource).containsEntry(key, expectedPermissions.get(key)));
 
         assertThat(resource.get("task_role_id")).isNotNull();
     }

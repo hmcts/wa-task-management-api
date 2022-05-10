@@ -10,36 +10,24 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 @Slf4j
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/search-for-completable";
-    private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -81,12 +69,12 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                 .body("task_required_for_event", is(scenario.taskRequiredForEvent))
                 .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
                 .body("tasks.id", everyItem(is(equalTo(testVariables.getTaskId()))))
-                .body("tasks.name", everyItem(equalTo("process Application")))
+                .body("tasks.name", everyItem(equalTo("process application")))
                 .body("tasks.type", everyItem(equalTo("processApplication")))
                 .body("tasks.task_state", everyItem(equalTo("unassigned")))
                 .body("tasks.task_system", everyItem(equalTo("SELF")))
                 .body("tasks.security_classification", everyItem(equalTo("PUBLIC")))
-                .body("tasks.task_title", everyItem(equalTo("process Application")))
+                .body("tasks.task_title", everyItem(equalTo("process application")))
                 .body("tasks.created_date", everyItem(notNullValue()))
                 .body("tasks.due_date", everyItem(notNullValue()))
                 .body("tasks.location_name", everyItem(equalTo("Taylor House")))
@@ -120,30 +108,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
 
     private TestVariables createWaTask() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        Response initiationResponse = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
-
-        initiationResponse.prettyPrint();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
         return taskVariables;
     }
 
