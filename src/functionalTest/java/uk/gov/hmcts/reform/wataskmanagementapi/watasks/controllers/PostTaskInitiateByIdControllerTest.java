@@ -179,7 +179,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-
+        
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -229,9 +229,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
-            .body("task_role_resources.size()", equalTo(2))
+            .body("task_role_resources.size()", equalTo(9))
             .body("additional_properties", equalToObject(Map.of(
                 "roleAssignmentId", "assignmentId")));
 
