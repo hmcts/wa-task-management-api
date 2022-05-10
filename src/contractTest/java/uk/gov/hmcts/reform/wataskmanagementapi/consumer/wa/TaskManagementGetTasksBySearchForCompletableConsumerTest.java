@@ -154,6 +154,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .object("permissions", (value) -> {
                             value
                                 .unorderedArray("values", (p) -> p
@@ -198,6 +199,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("warnings", false)
                         .stringType("case_management_category", "Protection")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "a description")
                         .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
@@ -244,6 +246,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", true)
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")
