@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,7 +23,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
-@Ignore("Release 1 test class")
 public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/claim";
@@ -42,7 +40,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
-    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -69,7 +66,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             )));
     }
 
-    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -167,7 +163,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -207,7 +202,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
@@ -260,7 +254,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
@@ -292,7 +285,6 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
-    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_role_base_location_does_not_match_to_the_task_location() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "765324");
