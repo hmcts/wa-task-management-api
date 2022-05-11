@@ -1,10 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
@@ -12,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessContro
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -32,6 +29,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
@@ -42,18 +47,21 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
-        "applications", "priority", "access_requests", "error_management");
+        "applications", "priority", "access_requests", "error_management"
+    );
 
     private final CamundaService camundaService;
     private final CFTTaskMapper cftTaskMapper;
-    private final TaskResourceRepository taskResourceRepository;
+
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     public CftQueryService(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
-                           TaskResourceRepository taskResourceRepository) {
+                           EntityManager entityManager) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
-        this.taskResourceRepository = taskResourceRepository;
+        this.entityManager = entityManager;
     }
 
     public GetTasksResponse<Task> searchForTasks(
@@ -65,9 +73,6 @@ public class CftQueryService {
     ) {
         validateRequest(searchTaskRequest);
 
-        Sort sort = SortQuery.sortByFields(searchTaskRequest);
-        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
-
         //TODO this should pass only prepared data.
         // Role Assignments that are filtered and grouped already.
         // Should also be in one object called SearchData
@@ -77,27 +82,69 @@ public class CftQueryService {
         //    searchTaskRequest);
         //
         //final Specification<TaskResource> taskQuerySpecification = TaskSearchQueryBuilder.build(searchData);
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<TaskResource> criteriaQuery = criteriaBuilder.createQuery(TaskResource.class);
+        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
 
-        final Specification<TaskResource> taskResourceSpecification =
-            TaskSearchQueryBuilder.buildTaskQuery(
-                searchTaskRequest,
-                accessControlResponse,
-                permissionsRequired);
+        criteriaQuery.where(TaskSearchQueryBuilder.buildTaskQuery(
+            searchTaskRequest,
+            accessControlResponse,
+            permissionsRequired,
+            criteriaBuilder,
+            root
+        ));
 
+        criteriaQuery.distinct(true);
 
-        final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
+        criteriaQuery.orderBy(SortQuery.sortByFields(searchTaskRequest, criteriaBuilder, root));
 
-        final List<TaskResource> taskResources = pages.toList();
+        TypedQuery<TaskResource> query = entityManager.createQuery(criteriaQuery);
+
+        Sort sort = SortQuery.sortByFields(searchTaskRequest);
+        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
+
+        query.setFirstResult((int) page.getOffset())
+            .setMaxResults(page.getPageSize());
+
+        final List<TaskResource> taskResources = query.getResultList();
+
+        Long count = getCount(searchTaskRequest, accessControlResponse, permissionsRequired, firstResult);
+
+        //final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
+
+        //final List<TaskResource> taskResources = pages.toList();
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    accessControlResponse.getRoleAssignments())
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         accessControlResponse.getRoleAssignments()
+                     )
             )
             .collect(Collectors.toList());
 
-        return new GetTasksResponse<>(tasks, pages.getTotalElements());
+        return new GetTasksResponse<>(tasks, count);
+    }
+
+    private Long getCount(SearchTaskRequest searchTaskRequest,
+                          AccessControlResponse accessControlResponse,
+                          List<PermissionTypes> permissionsRequired,
+                          int firstResult) {
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
+        Root<TaskResource> taskResourcesRootCount = countQuery.from(TaskResource.class);
+        countQuery.select(criteriaBuilder.countDistinct(taskResourcesRootCount));
+        countQuery.where(TaskSearchQueryBuilder.buildTaskQuery(
+            searchTaskRequest,
+            accessControlResponse,
+            permissionsRequired,
+            criteriaBuilder,
+            taskResourcesRootCount
+        ));
+        countQuery.distinct(true);
+        TypedQuery<Long> typedQuery = entityManager.createQuery(countQuery);
+        typedQuery.setFirstResult(firstResult);
+        return typedQuery.getSingleResult();
     }
 
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
@@ -125,10 +172,26 @@ public class CftQueryService {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
-        final Specification<TaskResource> taskResourceSpecification = TaskSearchQueryBuilder
-            .buildQueryForCompletable(searchEventAndCase, accessControlResponse, permissionsRequired, taskTypes);
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 
-        final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
+        CriteriaQuery<TaskResource> criteriaQuery = criteriaBuilder.createQuery(TaskResource.class);
+        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
+
+        final Predicate taskResourceSpecification = TaskSearchQueryBuilder
+            .buildQueryForCompletable(
+                searchEventAndCase,
+                accessControlResponse,
+                permissionsRequired,
+                taskTypes,
+                criteriaBuilder,
+                root
+            );
+
+        //final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
+        criteriaQuery.distinct(true);
+        criteriaQuery.where(taskResourceSpecification);
+
+        final List<TaskResource> taskResources = entityManager.createQuery(criteriaQuery).getResultList();
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
@@ -147,11 +210,22 @@ public class CftQueryService {
             || taskId.isBlank()) {
             return Optional.empty();
         }
-        final Specification<TaskResource> taskResourceSpecification = TaskSearchQueryBuilder
-            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
 
-        return taskResourceRepository.findOne(taskResourceSpecification);
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
+        CriteriaQuery<TaskResource> criteriaQuery = builder.createQuery(TaskResource.class);
+        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
+
+        final Predicate taskResourceSpecification = TaskSearchQueryBuilder
+            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired, builder, root);
+
+        criteriaQuery.where(taskResourceSpecification);
+
+        try {
+            return Optional.of(entityManager.createQuery(criteriaQuery).getSingleResult());
+        } catch (NoResultException ne) {
+            return Optional.empty();
+        }
     }
 
     private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
@@ -161,9 +235,9 @@ public class CftQueryService {
 
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    accessControlResponse.getRoleAssignments()
-                )
+                     taskResource,
+                     accessControlResponse.getRoleAssignments()
+                 )
             )
             .collect(Collectors.toList());
     }

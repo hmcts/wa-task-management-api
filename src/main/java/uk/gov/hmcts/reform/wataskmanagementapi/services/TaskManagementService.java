@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
@@ -55,6 +54,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -92,6 +97,8 @@ public class TaskManagementService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final CftQueryService cftQueryService;
 
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
@@ -102,7 +109,8 @@ public class TaskManagementService {
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
-                                 CftQueryService cftQueryService) {
+                                 CftQueryService cftQueryService,
+                                 EntityManager entityManager) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
@@ -112,6 +120,7 @@ public class TaskManagementService {
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.cftQueryService = cftQueryService;
+        this.entityManager = entityManager;
     }
 
     /**
@@ -682,11 +691,21 @@ public class TaskManagementService {
             return emptyList();
         }
 
-        final Specification<TaskResource> taskResourceSpecification = TaskSearchQueryBuilder
-            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse);
+        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
-        final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
-            taskResourceSpecification);
+        CriteriaQuery<TaskResource> criteriaQuery = builder.createQuery(TaskResource.class);
+        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
+
+        final Predicate taskResourceSpecification = TaskSearchQueryBuilder
+            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse, builder, root);
+
+        //final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
+        //taskResourceSpecification);
+
+        criteriaQuery.where(taskResourceSpecification);
+
+        final Optional<TaskResource> taskResourceQueryResult
+            = Optional.ofNullable(entityManager.createQuery(criteriaQuery).getSingleResult());
 
         if (taskResourceQueryResult.isEmpty()) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);

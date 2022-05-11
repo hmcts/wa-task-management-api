@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
@@ -59,90 +58,88 @@ public final class RoleAssignmentFilter {
         // avoid creating object
     }
 
-    public static Specification<TaskResource> buildRoleAssignmentConstraints(
+    public static Predicate buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
-        AccessControlResponse accessControlResponse, boolean andPermissions) {
+        AccessControlResponse accessControlResponse,
+        boolean andPermissions,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
 
-        return (root, query, builder) -> {
-            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
+        final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
-            //TODO filters and manipulation of Role Assignments should be moved to a different class e.g.
-            // RoleAssignmentReceiver
-            // this should only be about building the query
-            // filter roles which are active.
-            final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
-                .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+        //TODO filters and manipulation of Role Assignments should be moved to a different class e.g.
+        // RoleAssignmentReceiver
+        // this should only be about building the query
+        // filter roles which are active.
+        final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+            .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
-            //TODO Manipulate RoleAssignment data
-            RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
-                activeRoleAssignments,
-                RoleAssignmentForSearch::getRoleType
-            );
-            List<RoleAssignmentForSearch> roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
+        //TODO Manipulate RoleAssignment data
+        RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
+            activeRoleAssignments,
+            RoleAssignmentForSearch::getRoleType
+        );
+        List<RoleAssignmentForSearch> roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
 
-            // builds query for grant type BASIC, SPECIFIC
-            final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
-                root, taskRoleResources, builder, roleAssignmentsForSearch);
-            //TODO change so you pass the manipulated data
-            //root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
+        // builds query for grant type BASIC, SPECIFIC
+        final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
+            root, taskRoleResources, builder, roleAssignmentsForSearch);
+        //TODO change so you pass the manipulated data
+        //root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
 
-            // builds query for grant type STANDARD, CHALLENGED
-            final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
-                root, taskRoleResources, builder, roleAssignmentsForSearch);
+        // builds query for grant type STANDARD, CHALLENGED
+        final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
+            root, taskRoleResources, builder, roleAssignmentsForSearch);
 
-            // builds query for grant type EXCLUDED
-            final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
-                root, builder, roleAssignmentsForSearch);
+        // builds query for grant type EXCLUDED
+        final Predicate excluded = RoleAssignmentFilter.buildQueryForExcluded(
+            root, builder, roleAssignmentsForSearch);
 
-            final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
+        final Predicate standardChallengedExcluded = builder.and(standardAndChallenged, excluded.not());
 
-            // permissions check
-            List<Predicate> permissionPredicates = new ArrayList<>();
-            for (PermissionTypes type : permissionsRequired) {
-                permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
-            }
-            Predicate permissionPredicate;
-            if (andPermissions) {
-                permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
-            } else {
-                permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
-            }
+        // permissions check
+        List<Predicate> permissionPredicates = new ArrayList<>();
+        for (PermissionTypes type : permissionsRequired) {
+            permissionPredicates.add(builder.isTrue(taskRoleResources.get(type.value().toLowerCase(Locale.ROOT))));
+        }
+        Predicate permissionPredicate;
+        if (andPermissions) {
+            permissionPredicate = builder.and(permissionPredicates.toArray(new Predicate[0]));
+        } else {
+            permissionPredicate = builder.or(permissionPredicates.toArray(new Predicate[0]));
+        }
 
-            query.distinct(true);
-
-            return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
-        };
+        return builder.and(builder.or(basicAndSpecific, standardChallengedExcluded), permissionPredicate);
     }
 
-    public static Specification<TaskResource> buildQueryToRetrieveRoleInformation(
-        AccessControlResponse accessControlResponse) {
+    public static Predicate buildQueryToRetrieveRoleInformation(
+        AccessControlResponse accessControlResponse,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
+        // filter roles which are active.
+        final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+            .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
-        return (root, query, builder) -> {
-            // filter roles which are active.
-            final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
-                .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
+        RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
+            activeRoleAssignments,
+            RoleAssignmentForSearch::getRoleType
+        );
+        List<RoleAssignmentForSearch> roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
 
-            RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
-                activeRoleAssignments,
-                RoleAssignmentForSearch::getRoleType
+        final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
+
+        List<Predicate> rolePredicates = new ArrayList<>();
+        for (RoleAssignmentForSearch roleAssignment : roleAssignmentsForSearch) {
+
+            Predicate rolePredicate = builder.equal(
+                taskRoleResources.get(ROLE_NAME_COLUMN),
+                roleAssignment.getRoleName()
             );
-            List<RoleAssignmentForSearch> roleAssignmentsForSearch = searchData.getRoleAssignmentsForSearch();
 
-            final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
+            rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
 
-            List<Predicate> rolePredicates = new ArrayList<>();
-            for (RoleAssignmentForSearch roleAssignment : roleAssignmentsForSearch) {
-
-                Predicate rolePredicate = builder.equal(
-                    taskRoleResources.get(ROLE_NAME_COLUMN),
-                    roleAssignment.getRoleName()
-                );
-
-                rolePredicates.add(builder.and(rolePredicate, builder.isTrue(taskRoleResources.get(READ_COLUMN))));
-
-            }
-            return builder.or(rolePredicates.toArray(new Predicate[0]));
-        };
+        }
+        return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
     //TODO seems like a pointless method

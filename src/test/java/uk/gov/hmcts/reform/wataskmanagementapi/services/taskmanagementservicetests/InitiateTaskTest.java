@@ -32,6 +32,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,6 +86,8 @@ class InitiateTaskTest extends CamundaHelpers {
     String taskId;
     TaskResource taskResource;
     private InitiateTaskRequest initiateTaskRequest;
+    @Mock
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -97,7 +100,8 @@ class InitiateTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            cftQueryService,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();
@@ -323,7 +327,7 @@ class InitiateTaskTest extends CamundaHelpers {
             .isInstanceOf(DatabaseConflictException.class)
             .hasNoCause()
             .hasMessage("Database Conflict Error: "
-                        + "The action could not be completed because there was a conflict in the database.");
+                            + "The action could not be completed because there was a conflict in the database.");
     }
 
     @Test

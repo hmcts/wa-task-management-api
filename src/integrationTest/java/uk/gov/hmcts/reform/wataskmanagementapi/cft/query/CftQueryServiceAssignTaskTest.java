@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
@@ -53,11 +55,13 @@ public class CftQueryServiceAssignTaskTest {
     private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
+    @Mock
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -98,9 +102,11 @@ public class CftQueryServiceAssignTaskTest {
         List<PermissionTypes> assignerPermissionsRequired = new ArrayList<>();
         assignerPermissionsRequired.add(PermissionTypes.MANAGE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
             assignerAccessControlResponse,
-            assignerPermissionsRequired);
+            assignerPermissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
@@ -118,15 +124,19 @@ public class CftQueryServiceAssignTaskTest {
             .build();
         assignerRoleAssignments.add(assignerRoleAssignment);
 
-        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
-            assignerRoleAssignments);
+        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(
+            null,
+            assignerRoleAssignments
+        );
         List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
         assigneePermissionsRequired.add(OWN);
         assigneePermissionsRequired.add(EXECUTE);
 
-        final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
+        final Optional<TaskResource> assignerTask = cftQueryService.getTask(
+            taskId,
             assigneeAccessControlResponse,
-            assigneePermissionsRequired);
+            assigneePermissionsRequired
+        );
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
@@ -176,15 +186,19 @@ public class CftQueryServiceAssignTaskTest {
             .build();
         assignerRoleAssignments.add(assignerRoleAssignment);
 
-        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
-            assignerRoleAssignments);
+        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(
+            null,
+            assignerRoleAssignments
+        );
         List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
         assigneePermissionsRequired.add(OWN);
         assigneePermissionsRequired.add(EXECUTE);
 
-        final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
+        final Optional<TaskResource> assignerTask = cftQueryService.getTask(
+            taskId,
             assigneeAccessControlResponse,
-            assigneePermissionsRequired);
+            assigneePermissionsRequired
+        );
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);

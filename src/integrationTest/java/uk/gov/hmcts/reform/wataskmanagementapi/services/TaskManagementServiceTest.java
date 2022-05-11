@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -98,6 +100,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
+    @Mock
+    private EntityManager entityManager;
     private ServiceMocks mockServices;
 
     @BeforeEach
@@ -119,16 +123,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            cftQueryService,
+            entityManager
         );
 
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
     }
@@ -298,7 +303,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId);
 
@@ -343,8 +348,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
                     .hasMessage(
-                        "Task Assign and Complete Error: Task assign and complete partially succeeded. "
-                        + "The Task was assigned to the user making the request but the Task could not be completed.");
+                        "Task Assign and Complete Error: Task assign and complete partially succeeded. The Task was"
+                            + " assigned to the user making the request but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId);
 
@@ -389,7 +394,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                                + "The Task state was updated to completed, but the Task could not be completed.");
+                                    + "The Task state was updated to completed, but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId);
             }

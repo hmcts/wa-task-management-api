@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,6 +62,8 @@ class GetTaskTest extends CamundaHelpers {
     CftQueryService cftQueryService;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void getTask_should_succeed_and_return_mapped_task() {
@@ -80,10 +83,10 @@ class GetTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(false);
         when(camundaService.getMappedTask(taskId, mockedVariables)).thenReturn(mockedMappedTask);
 
@@ -108,10 +111,10 @@ class GetTaskTest extends CamundaHelpers {
             singletonList(READ)
         )).thenReturn(false);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(false);
         assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
             .isInstanceOf(RoleAssignmentVerificationException.class)
@@ -131,7 +134,8 @@ class GetTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            cftQueryService,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

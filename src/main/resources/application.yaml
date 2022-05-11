@@ -75,12 +75,14 @@ spring:
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
   jpa:
+    show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       naming:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
+        format_sql: true
         query:
           in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
@@ -120,6 +122,9 @@ launchDarkly:
 logging:
   level:
     root: INFO
+    org:
+      hibernate:
+        type: TRACE
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
 

@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -64,6 +65,8 @@ class AssignTaskTest extends CamundaHelpers {
     TaskAutoAssignmentService taskAutoAssignmentService;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void assignTask_should_succeed() {
@@ -128,7 +131,7 @@ class AssignTaskTest extends CamundaHelpers {
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
             .hasMessage("Role Assignment Verification: "
-                        + "The user assigning the Task has failed the Role Assignment checks performed.");
+                            + "The user assigning the Task has failed the Role Assignment checks performed.");
 
         verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
@@ -170,7 +173,7 @@ class AssignTaskTest extends CamundaHelpers {
             .isInstanceOf(RoleAssignmentVerificationException.class)
             .hasNoCause()
             .hasMessage("Role Assignment Verification: "
-                        + "The user being assigned the Task has failed the Role Assignment checks performed.");
+                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
         verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
     }
@@ -218,7 +221,8 @@ class AssignTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            cftQueryService,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

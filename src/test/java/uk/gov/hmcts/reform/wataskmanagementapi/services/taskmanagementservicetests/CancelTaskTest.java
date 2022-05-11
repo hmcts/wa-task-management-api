@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -67,6 +68,8 @@ class CancelTaskTest extends CamundaHelpers {
     TaskAutoAssignmentService taskAutoAssignmentService;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void cancelTask_should_succeed_and_feature_flag_is_on() {
@@ -79,15 +82,15 @@ class CancelTaskTest extends CamundaHelpers {
 
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));
-        when(cftQueryService.getTask(taskId,accessControlResponse,singletonList(CANCEL)))
+        when(cftQueryService.getTask(taskId, accessControlResponse, singletonList(CANCEL)))
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(true);
 
 
@@ -115,10 +118,10 @@ class CancelTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(false);
 
         taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -177,10 +180,10 @@ class CancelTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(true);
 
 
@@ -203,7 +206,8 @@ class CancelTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            cftQueryService,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

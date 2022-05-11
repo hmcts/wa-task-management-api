@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InOrder;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -40,6 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -123,6 +125,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
+    @Mock
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -137,14 +141,15 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            cftQueryService,
+            entityManager
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);

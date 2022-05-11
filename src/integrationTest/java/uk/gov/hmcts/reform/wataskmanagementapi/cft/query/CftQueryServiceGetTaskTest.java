@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -34,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
@@ -53,11 +55,13 @@ public class CftQueryServiceGetTaskTest {
     private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
+    @Mock
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
     }
 
     @ParameterizedTest(name = "{0}")

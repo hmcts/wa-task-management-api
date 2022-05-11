@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -115,9 +114,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(builder.equal(pathObject, "senior-tribunal-caseworker")).thenReturn(equalPredicate);
         lenient().when(builder.equal(pathObject, new String[]{})).thenReturn(equalPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        Predicate predicate = spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         assertNotNull(builder);
         assertNotNull(predicate);
@@ -175,9 +173,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        Predicate predicate = spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         assertNotNull(builder);
         assertNotNull(predicate);
@@ -195,9 +192,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(null);
 
-        spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        predicate = spec.toPredicate(root, query, builder);
+        predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         assertNotNull(builder);
         assertNotNull(predicate);
@@ -228,10 +224,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        Predicate predicate = spec.toPredicate(root, query, builder);
-        assertNotNull(spec);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
         assertNotNull(predicate);
     }
 
@@ -266,9 +260,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(builder.equal(pathObject, "tribunal-caseworker")).thenReturn(equalPredicate);
         lenient().when(builder.equal(pathObject, new String[]{})).thenReturn(equalPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         //Mockito.verify(builder, Mockito.times(1)).equal(pathObject, "senior-tribunal-caseworker");
         //verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
@@ -317,9 +310,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(builder.equal(pathObject, "tribunal-caseworker")).thenReturn(equalPredicate);
         lenient().when(builder.equal(pathObject, new String[]{"DIVORCE", "PROBATE"})).thenReturn(equalPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         verify(builder, times(1)).equal(pathObject, new String[]{});
         verify(builder, times(1)).equal(pathObject, "Asylum");
@@ -352,9 +344,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        Predicate predicate = spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         assertNotNull(predicate);
     }
@@ -387,9 +378,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
         verify(builder, times(1)).equal(pathObject, new String[]{});
@@ -432,9 +422,8 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
         verify(builder, times(1)).equal(pathObject, new String[]{});
@@ -461,9 +450,8 @@ public class RoleAssignmentFilterTest {
             inActiveRoles()
         );
 
-        Specification<TaskResource> spec = RoleAssignmentFilter.buildRoleAssignmentConstraints(
-            permissionsRequired, accessControlResponse, false);
-        spec.toPredicate(root, query, builder);
+        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+            permissionsRequired, accessControlResponse, false, builder, root);
 
         verify(builder, times(0)).equal(any(), any());
         verify(root, times(1)).join(anyString());
@@ -482,10 +470,8 @@ public class RoleAssignmentFilterTest {
         when(taskRoleResources.get("roleName")).thenReturn(roleNamePath);
         when(builder.equal(roleNamePath, "hmcts-judiciary")).thenReturn(equalPredicate);
 
-        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
-            accessControlResponse);
-
-        spec.toPredicate(root, query, builder);
+        final Predicate predicate = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse, builder, root);
 
         verify(root, times(1)).join(anyString());
         verify(builder, times(0)).equal(any(), any());
@@ -499,10 +485,8 @@ public class RoleAssignmentFilterTest {
             null,
             Collections.emptyList()
         );
-        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
-            accessControlResponse);
-
-        spec.toPredicate(root, query, builder);
+        final Predicate predicate = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse, builder, root);
 
         verify(root, times(1)).join("taskRoleResources");
         verify(builder, times(1)).or(any());
@@ -516,10 +500,8 @@ public class RoleAssignmentFilterTest {
             null,
             inActiveRoles()
         );
-        final Specification<TaskResource> spec = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
-            accessControlResponse);
-
-        spec.toPredicate(root, query, builder);
+        final Predicate predicate = RoleAssignmentFilter.buildQueryToRetrieveRoleInformation(
+            accessControlResponse, builder, root);
 
         verify(root, times(1)).join("taskRoleResources");
         verify(builder, times(1)).or(any());

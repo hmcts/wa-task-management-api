@@ -21,6 +21,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static java.util.Collections.singletonList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.query.RoleAssignmentFilter.buildQueryToRetrieveRoleInformation;
@@ -65,11 +68,12 @@ public final class TaskSearchQueryBuilder {
 
     }
 
-    public static Specification<TaskResource> buildTaskQuery(
+    public static Predicate buildTaskQuery(
         SearchTaskRequest searchTaskRequest,
         AccessControlResponse accessControlResponse,
-        List<PermissionTypes> permissionsRequired
-    ) {
+        List<PermissionTypes> permissionsRequired,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
 
         final boolean availableTasksOnly = isAvailableTasksOnly(searchTaskRequest);
 
@@ -80,45 +84,77 @@ public final class TaskSearchQueryBuilder {
         log.debug("Querying with 'available_tasks_only' set to '{}'", availableTasksOnly);
         log.debug("Querying with 'permissions required' set to '{}'", permissionsRequired);
 
-        final Specification<TaskResource> constrainsSpec =
-            buildApplicationConstraints(searchTaskRequest, availableTasksOnly);
+        final Predicate constrainsSpec =
+            buildApplicationConstraints(searchTaskRequest, availableTasksOnly, builder, root);
 
-        final Specification<TaskResource> roleAssignmentSpec =
-            buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, availableTasksOnly);
+        final Predicate roleAssignmentSpec = buildRoleAssignmentConstraints(
+            permissionsRequired,
+            accessControlResponse,
+            availableTasksOnly,
+            builder,
+            root
+        );
 
-        return constrainsSpec.and(roleAssignmentSpec);
-
+        return builder.and(constrainsSpec, roleAssignmentSpec);
     }
 
-    public static Specification<TaskResource> buildSingleTaskQuery(String taskId,
-                                                                   AccessControlResponse accessControlResponse,
-                                                                   List<PermissionTypes> permissionsRequired
+    public static Predicate buildSingleTaskQuery(String taskId,
+                                                 AccessControlResponse accessControlResponse,
+                                                 List<PermissionTypes> permissionsRequired,
+                                                 CriteriaBuilder builder,
+                                                 Root<TaskResource> root
     ) {
-        return searchByTaskIds(singletonList(taskId))
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
+        Predicate roleAssignmentConstraints = buildRoleAssignmentConstraints(
+            permissionsRequired,
+            accessControlResponse,
+            false,
+            builder,
+            root
+        );
+
+        return builder.and(searchByTaskIds(singletonList(taskId), builder, root), roleAssignmentConstraints);
     }
 
-    public static Specification<TaskResource> buildTaskRolePermissionsQuery(
+    public static Predicate buildTaskRolePermissionsQuery(
         String taskId,
-        AccessControlResponse accessControlResponse) {
+        AccessControlResponse accessControlResponse,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
 
-        return searchByTaskIds(singletonList(taskId))
-            .and(buildQueryToRetrieveRoleInformation(accessControlResponse));
+        return builder.and(
+            searchByTaskIds(singletonList(taskId), builder, root),
+            buildQueryToRetrieveRoleInformation(accessControlResponse, builder, root)
+        );
     }
 
-    public static Specification<TaskResource> buildQueryForCompletable(
-        SearchEventAndCase searchEventAndCase, AccessControlResponse accessControlResponse,
-        List<PermissionTypes> permissionsRequired, List<String> taskTypes) {
+    public static Predicate buildQueryForCompletable(
+        SearchEventAndCase searchEventAndCase,
+        AccessControlResponse accessControlResponse,
+        List<PermissionTypes> permissionsRequired,
+        List<String> taskTypes,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
 
-        return searchByCaseId(searchEventAndCase.getCaseId())
-            .and(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED)))
-            .and(searchByTaskTypes(taskTypes))
-            //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
-            .and(buildRoleAssignmentConstraints(permissionsRequired, accessControlResponse, false));
+        ArrayList<Predicate> predicates = new ArrayList<>();
+
+        predicates.add(searchByCaseId(searchEventAndCase.getCaseId(), builder, root));
+        predicates.add(searchByState(List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED), builder, root));
+        predicates.add(searchByTaskTypes(taskTypes, builder, root));
+        //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
+        predicates.add(buildRoleAssignmentConstraints(
+            permissionsRequired,
+            accessControlResponse,
+            false,
+            builder,
+            root
+        ));
+        return builder.and(predicates.toArray(new Predicate[0]));
     }
 
-    private static Specification<TaskResource> buildApplicationConstraints(SearchTaskRequest searchTaskRequest,
-                                                                           boolean availableTasksOnly) {
+    private static Predicate buildApplicationConstraints(SearchTaskRequest searchTaskRequest,
+                                                         boolean availableTasksOnly,
+                                                         CriteriaBuilder builder,
+                                                         Root<TaskResource> root) {
 
         final EnumMap<SearchParameterKey, SearchParameterList> keyMap = asEnumMapForListOfStrings(searchTaskRequest);
 
@@ -136,21 +172,41 @@ public final class TaskSearchQueryBuilder {
         SearchParameterList workTypeParam = keyMap.get(WORK_TYPE);
         SearchParameterList roleCtgParam = keyMap.get(ROLE_CATEGORY);
 
-        return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
-            .and(searchByState(cftTaskStates)
-                .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
-                    .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
-                        .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
-                            .and(searchByWorkType(
-                                workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
-                                .and(searchByRoleCategory(
-                                    roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())
-                                )
-                            )
-                        )
-                    )
-                )
-            );
+        ArrayList<Predicate> predicates = new ArrayList<>();
+        predicates.add(searchByJurisdiction(
+            jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues(),
+            builder,
+            root
+        ));
+        predicates.add(searchByState(cftTaskStates, builder, root));
+        predicates.add(searchByLocation(
+            locationParam == null ? Collections.emptyList() : locationParam.getValues(),
+            builder,
+            root
+        ));
+
+        predicates.add(searchByCaseIds(
+            caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues(),
+            builder,
+            root
+        ));
+        predicates.add(searchByUser(
+            userParam == null ? Collections.emptyList() : userParam.getValues(),
+            builder,
+            root
+        ));
+        predicates.add(searchByWorkType(
+            workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues(),
+            builder,
+            root
+        ));
+        predicates.add(searchByRoleCategory(
+            roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues(),
+            builder, root
+        ));
+        return builder.and(predicates.toArray(new Predicate[0]));
+
+
     }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {
