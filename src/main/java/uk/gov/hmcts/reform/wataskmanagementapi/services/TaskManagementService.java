@@ -525,7 +525,6 @@ public class TaskManagementService {
      *
      * @param searchEventAndCase    the search request.
      * @param accessControlResponse the access control response containing user id and role assignments.
-     * @return
      */
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
