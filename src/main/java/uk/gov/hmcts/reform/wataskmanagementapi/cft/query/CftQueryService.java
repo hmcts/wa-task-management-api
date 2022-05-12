@@ -225,10 +225,11 @@ public class CftQueryService {
         selectQueryBuilder.where(selectPredicate).build().getResultList();
 
         try {
-            return Optional.of(selectQueryBuilder
+            return selectQueryBuilder
                 .where(selectPredicate)
                 .build()
-                .getSingleResult());
+                .getResultList().stream()
+                .findFirst();
         } catch (NoResultException ne) {
             return Optional.empty();
         }

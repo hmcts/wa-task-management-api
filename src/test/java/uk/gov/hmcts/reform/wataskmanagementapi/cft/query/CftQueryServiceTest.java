@@ -345,6 +345,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             lenient().when(builder.countDistinct(root)).thenReturn(selection);
             lenient().when(countCriteriaQuery.select(selection)).thenReturn(countCriteriaQuery);
             lenient().when(countCriteriaQuery.distinct(true)).thenReturn(countCriteriaQuery);
+            lenient().when(countQuery.setFirstResult(1)).thenReturn(countQuery);
         }
 
         @Test
