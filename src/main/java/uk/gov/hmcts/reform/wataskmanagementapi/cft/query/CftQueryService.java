@@ -32,9 +32,8 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -82,37 +81,16 @@ public class CftQueryService {
         //    searchTaskRequest);
         //
         //final Specification<TaskResource> taskQuerySpecification = TaskSearchQueryBuilder.build(searchData);
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<TaskResource> criteriaQuery = criteriaBuilder.createQuery(TaskResource.class);
-        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
 
-        criteriaQuery.where(TaskSearchQueryBuilder.buildTaskQuery(
+        final List<TaskResource> taskResources = getTaskResources(
+            firstResult,
+            maxResults,
             searchTaskRequest,
             accessControlResponse,
-            permissionsRequired,
-            criteriaBuilder,
-            root
-        ));
+            permissionsRequired
+        );
 
-        criteriaQuery.distinct(true);
-
-        criteriaQuery.orderBy(SortQuery.sortByFields(searchTaskRequest, criteriaBuilder, root));
-
-        TypedQuery<TaskResource> query = entityManager.createQuery(criteriaQuery);
-
-        Sort sort = SortQuery.sortByFields(searchTaskRequest);
-        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
-
-        query.setFirstResult((int) page.getOffset())
-            .setMaxResults(page.getPageSize());
-
-        final List<TaskResource> taskResources = query.getResultList();
-
-        Long count = getCount(searchTaskRequest, accessControlResponse, permissionsRequired, firstResult);
-
-        //final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
-
-        //final List<TaskResource> taskResources = pages.toList();
+        Long count = getTotalCount(searchTaskRequest, accessControlResponse, permissionsRequired, firstResult);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
@@ -126,25 +104,53 @@ public class CftQueryService {
         return new GetTasksResponse<>(tasks, count);
     }
 
-    private Long getCount(SearchTaskRequest searchTaskRequest,
-                          AccessControlResponse accessControlResponse,
-                          List<PermissionTypes> permissionsRequired,
-                          int firstResult) {
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Long> countQuery = criteriaBuilder.createQuery(Long.class);
-        Root<TaskResource> taskResourcesRootCount = countQuery.from(TaskResource.class);
-        countQuery.select(criteriaBuilder.countDistinct(taskResourcesRootCount));
-        countQuery.where(TaskSearchQueryBuilder.buildTaskQuery(
+    private List<TaskResource> getTaskResources(int firstResult,
+                                                int maxResults,
+                                                SearchTaskRequest searchTaskRequest,
+                                                AccessControlResponse accessControlResponse,
+                                                List<PermissionTypes> permissionsRequired) {
+        Sort sort = SortQuery.sortByFields(searchTaskRequest);
+        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        CriteriaBuilder builder = selectQueryBuilder.builder;
+        Root<TaskResource> root = selectQueryBuilder.root;
+
+        List<Order> orders = SortQuery.sortByFields(searchTaskRequest, builder, root);
+        Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(
             searchTaskRequest,
             accessControlResponse,
             permissionsRequired,
-            criteriaBuilder,
-            taskResourcesRootCount
-        ));
-        countQuery.distinct(true);
-        TypedQuery<Long> typedQuery = entityManager.createQuery(countQuery);
-        typedQuery.setFirstResult(firstResult);
-        return typedQuery.getSingleResult();
+            builder,
+            root
+        );
+
+        return selectQueryBuilder
+            .where(selectPredicate)
+            .withOrders(orders)
+            .build()
+            .setFirstResult((int) page.getOffset())
+            .setMaxResults(page.getPageSize())
+            .getResultList();
+    }
+
+    private Long getTotalCount(SearchTaskRequest searchTaskRequest,
+                               AccessControlResponse accessControlResponse,
+                               List<PermissionTypes> permissionsRequired,
+                               int firstResult) {
+        CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager);
+        Predicate countPredicate = TaskSearchQueryBuilder.buildTaskQuery(
+            searchTaskRequest,
+            accessControlResponse,
+            permissionsRequired,
+            countQueryBuilder.builder,
+            countQueryBuilder.root
+        );
+
+        return countQueryBuilder
+            .where(countPredicate)
+            .build()
+            .setFirstResult(firstResult)
+            .getSingleResult();
     }
 
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
@@ -172,26 +178,21 @@ public class CftQueryService {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
 
-        CriteriaQuery<TaskResource> criteriaQuery = criteriaBuilder.createQuery(TaskResource.class);
-        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
+        final Predicate selectPredicate = TaskSearchQueryBuilder.buildQueryForCompletable(
+            searchEventAndCase,
+            accessControlResponse,
+            permissionsRequired,
+            taskTypes,
+            selectQueryBuilder.builder,
+            selectQueryBuilder.root
+        );
 
-        final Predicate taskResourceSpecification = TaskSearchQueryBuilder
-            .buildQueryForCompletable(
-                searchEventAndCase,
-                accessControlResponse,
-                permissionsRequired,
-                taskTypes,
-                criteriaBuilder,
-                root
-            );
-
-        //final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
-        criteriaQuery.distinct(true);
-        criteriaQuery.where(taskResourceSpecification);
-
-        final List<TaskResource> taskResources = entityManager.createQuery(criteriaQuery).getResultList();
+        final List<TaskResource> taskResources = selectQueryBuilder
+            .where(selectPredicate)
+            .build()
+            .getResultList();
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
 
@@ -211,18 +212,23 @@ public class CftQueryService {
             return Optional.empty();
         }
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
 
-        CriteriaQuery<TaskResource> criteriaQuery = builder.createQuery(TaskResource.class);
-        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
+        final Predicate selectPredicate = TaskSearchQueryBuilder.buildSingleTaskQuery(
+            taskId,
+            accessControlResponse,
+            permissionsRequired,
+            selectQueryBuilder.builder,
+            selectQueryBuilder.root
+        );
 
-        final Predicate taskResourceSpecification = TaskSearchQueryBuilder
-            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired, builder, root);
-
-        criteriaQuery.where(taskResourceSpecification);
+        selectQueryBuilder.where(selectPredicate).build().getResultList();
 
         try {
-            return Optional.of(entityManager.createQuery(criteriaQuery).getSingleResult());
+            return Optional.of(selectQueryBuilder
+                .where(selectPredicate)
+                .build()
+                .getSingleResult());
         } catch (NoResultException ne) {
             return Optional.empty();
         }

@@ -227,10 +227,10 @@ public class CftQueryServiceTest extends CamundaHelpers {
         );
     }
 
-    private static List<RoleAssignment> roleAssignmentWithAllGrantTypes(Classification classification) {
+    private static List<RoleAssignment> roleAssignmentWithAllGrantTypes() {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(classification)
+            .classification(Classification.PUBLIC)
             .grantType(GrantType.BASIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
@@ -244,7 +244,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
+            .classification(Classification.PUBLIC)
             .attributes(specificAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.SPECIFIC)
@@ -259,7 +259,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
+            .classification(Classification.PUBLIC)
             .attributes(stdAttributes)
             .roleType(RoleType.ORGANISATION)
             .grantType(GrantType.STANDARD)
@@ -273,7 +273,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .roleType(RoleType.CASE)
-            .classification(classification)
+            .classification(Classification.PUBLIC)
             .attributes(challengedAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
@@ -286,7 +286,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
-            .classification(classification)
+            .classification(Classification.PUBLIC)
             .attributes(excludeddAttributes)
             .grantType(GrantType.EXCLUDED)
             .roleType(RoleType.ORGANISATION)
@@ -302,10 +302,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
     void beforeEach() {
         lenient().when(em.getCriteriaBuilder()).thenReturn(builder);
         lenient().when(builder.createQuery(TaskResource.class)).thenReturn(criteriaQuery);
+        lenient().when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.from(TaskResource.class)).thenReturn(root);
         lenient().when(builder.equal(any(), anyString())).thenReturn(predicate);
         lenient().when(em.createQuery(criteriaQuery)).thenReturn(query);
+        lenient().when(query.setFirstResult(0)).thenReturn(query);
         lenient().when(query.setFirstResult(1)).thenReturn(query);
+        lenient().when(query.setMaxResults(0)).thenReturn(query);
         lenient().when(query.setMaxResults(10)).thenReturn(query);
         lenient().when(builder.in(any())).thenReturn(inObject);
         lenient().when(inObject.value(any())).thenReturn(values);
@@ -341,6 +344,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             lenient().when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
             lenient().when(builder.countDistinct(root)).thenReturn(selection);
             lenient().when(countCriteriaQuery.select(selection)).thenReturn(countCriteriaQuery);
+            lenient().when(countCriteriaQuery.distinct(true)).thenReturn(countCriteriaQuery);
         }
 
         @Test
@@ -359,7 +363,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -391,7 +395,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -424,7 +428,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -456,7 +460,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -484,7 +488,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -519,7 +523,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -552,7 +556,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -583,7 +587,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -609,7 +613,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         void shouldGetTask() {
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
@@ -623,7 +627,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 "caseId"
             );
 
-            when(em.createQuery(criteriaQuery).getSingleResult()).thenReturn(expectedTask);
+            when(em.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(expectedTask));
             Optional<TaskResource> returnedTask =
                 cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
 
@@ -635,7 +639,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         void shouldReturnEmptyTaskResourceWhenTaskIdIsEmpty() {
             final AccessControlResponse accessControlResponse = new AccessControlResponse(
                 null,
-                roleAssignmentWithAllGrantTypes(Classification.PUBLIC)
+                roleAssignmentWithAllGrantTypes()
             );
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
