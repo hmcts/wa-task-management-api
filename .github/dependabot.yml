@@ -3,29 +3,10 @@ updates:
 - package-ecosystem: gradle
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
+  rebase-strategy: "disabled"
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: net.serenity-bdd:serenity-gradle-plugin
-    versions:
-    - 2.3.6
-  - dependency-name: org.springframework.boot
-    versions:
-    - 2.4.2
-    - 2.4.3
-    - 2.4.4
-  - dependency-name: org.springframework.cloud:spring-cloud-starter-openfeign
-    versions:
-    - 3.0.1
-  - dependency-name: org.apache.logging.log4j:log4j-to-slf4j
-    versions:
-    - 2.14.0
-  - dependency-name: org.owasp.dependencycheck
-    versions:
-    - 6.1.0
-  - dependency-name: org.springframework.cloud:spring-cloud-starter-netflix-hystrix
-    versions:
-    - 2.2.6.RELEASE
   - dependency-name: org.apache.tomcat.embed:tomcat-embed-core
     versions:
     - 10.0.0
