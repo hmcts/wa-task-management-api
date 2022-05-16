@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -946,6 +947,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
+    @Disabled
     void should_return_200_correctly_parse_is_available_task_only_true()
         throws Exception {
         UserInfo userInfo = mockServices.mockUserInfo();
@@ -1101,7 +1103,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             .andExpect(jsonPath("total_records").value(0));
 
     }
-    
+
     private List<CamundaVariableInstance> mockedAllVariables(String processInstanceId,
                                                              String jurisdiction,
                                                              String taskId) {

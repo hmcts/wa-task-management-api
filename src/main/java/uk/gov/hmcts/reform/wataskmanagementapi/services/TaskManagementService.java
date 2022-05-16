@@ -699,9 +699,6 @@ public class TaskManagementService {
         final Predicate taskResourceSpecification = TaskSearchQueryBuilder
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse, builder, root);
 
-        //final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
-        //taskResourceSpecification);
-
         criteriaQuery.where(taskResourceSpecification);
 
         final Optional<TaskResource> taskResourceQueryResult

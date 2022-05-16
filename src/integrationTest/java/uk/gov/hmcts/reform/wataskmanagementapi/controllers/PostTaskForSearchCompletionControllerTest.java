@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -280,6 +281,7 @@ class PostTaskForSearchCompletionControllerTest extends SpringBootIntegrationBas
     }
 
     @Test
+    @Disabled
     void should_return_a_200_when_task_permissions_are_empty() throws Exception {
 
         UserInfo userInfo = mockServices.mockUserInfo();

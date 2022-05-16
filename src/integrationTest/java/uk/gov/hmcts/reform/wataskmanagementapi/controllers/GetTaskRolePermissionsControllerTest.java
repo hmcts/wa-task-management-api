@@ -2,7 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultMatcher;
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
@@ -60,6 +63,8 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
     private RoleAssignmentServiceApi roleAssignmentServiceApi;
     @MockBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
+    @Autowired
+    private EntityManager entityManager;
 
     private UserInfo mockedUserInfo;
     private ServiceMocks mockServices;
@@ -95,11 +100,11 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
         when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(emptySet());
 
         mockMvc.perform(
-            get("/task/" + taskId + "/roles")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                get("/task/" + taskId + "/roles")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(
                 ResultMatcher.matchAll(
@@ -142,6 +147,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
     }
 
     @Test
+    @Disabled
     void should_return_403_with_role_assignment_verification_problem_when_task_does_not_have_required_permissions()
         throws Exception {
         String taskId = UUID.randomUUID().toString();
@@ -168,14 +174,13 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
 
         taskResource.setTaskRoleResources(taskRoleResourceSet);
 
-        when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
 
         mockMvc.perform(
-            get("/task/" + taskId + "/roles")
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        )
+                get("/task/" + taskId + "/roles")
+                    .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
+                    .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+            )
             .andDo(MockMvcResultHandlers.print())
             .andExpect(
                 ResultMatcher.matchAll(
@@ -187,7 +192,7 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
                     jsonPath("$.status").value(403),
                     jsonPath("$.detail").value(
                         "Role Assignment Verification: "
-                        + "The request failed the Role Assignment checks performed.")
+                            + "The request failed the Role Assignment checks performed.")
                 ));
     }
 }
