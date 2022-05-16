@@ -42,7 +42,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
@@ -72,43 +72,6 @@ public class CftQueryService {
     ) {
         validateRequest(searchTaskRequest);
 
-        //TODO this should pass only prepared data.
-        // Role Assignments that are filtered and grouped already.
-        // Should also be in one object called SearchData
-        //SearchData searchData = new TaskSearchData(
-        //    new AndPermissionsRequired(permissionsRequired),
-        //    Lists.newArrayList(),//TODO put RoleAssignmentForSearch list in there
-        //    searchTaskRequest);
-        //
-        //final Specification<TaskResource> taskQuerySpecification = TaskSearchQueryBuilder.build(searchData);
-
-        final List<TaskResource> taskResources = getTaskResources(
-            firstResult,
-            maxResults,
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired
-        );
-
-        Long count = getTotalCount(searchTaskRequest, accessControlResponse, permissionsRequired, firstResult);
-
-        final List<Task> tasks = taskResources.stream()
-            .map(taskResource ->
-                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                         taskResource,
-                         accessControlResponse.getRoleAssignments()
-                     )
-            )
-            .collect(Collectors.toList());
-
-        return new GetTasksResponse<>(tasks, count);
-    }
-
-    private List<TaskResource> getTaskResources(int firstResult,
-                                                int maxResults,
-                                                SearchTaskRequest searchTaskRequest,
-                                                AccessControlResponse accessControlResponse,
-                                                List<PermissionTypes> permissionsRequired) {
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
@@ -124,33 +87,26 @@ public class CftQueryService {
             root
         );
 
-        return selectQueryBuilder
+        final List<TaskResource> taskResources = selectQueryBuilder
             .where(selectPredicate)
             .withOrders(orders)
             .build()
             .setFirstResult((int) page.getOffset())
             .setMaxResults(page.getPageSize())
             .getResultList();
-    }
 
-    private Long getTotalCount(SearchTaskRequest searchTaskRequest,
-                               AccessControlResponse accessControlResponse,
-                               List<PermissionTypes> permissionsRequired,
-                               int firstResult) {
-        CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager);
-        Predicate countPredicate = TaskSearchQueryBuilder.buildTaskQuery(
-            searchTaskRequest,
-            accessControlResponse,
-            permissionsRequired,
-            countQueryBuilder.builder,
-            countQueryBuilder.root
-        );
+        Long count = getTotalCount(searchTaskRequest, accessControlResponse, permissionsRequired);
 
-        return countQueryBuilder
-            .where(countPredicate)
-            .build()
-            .setFirstResult(firstResult)
-            .getSingleResult();
+        final List<Task> tasks = taskResources.stream()
+            .map(taskResource ->
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         accessControlResponse.getRoleAssignments()
+                     )
+            )
+            .collect(Collectors.toList());
+
+        return new GetTasksResponse<>(tasks, count);
     }
 
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
@@ -233,6 +189,25 @@ public class CftQueryService {
         } catch (NoResultException ne) {
             return Optional.empty();
         }
+    }
+
+    private Long getTotalCount(SearchTaskRequest searchTaskRequest,
+                               AccessControlResponse accessControlResponse,
+                               List<PermissionTypes> permissionsRequired) {
+
+        CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager);
+        Predicate countPredicate = TaskSearchQueryBuilder.buildTaskQuery(
+            searchTaskRequest,
+            accessControlResponse,
+            permissionsRequired,
+            countQueryBuilder.builder,
+            countQueryBuilder.root
+        );
+
+        return countQueryBuilder
+            .where(countPredicate)
+            .build()
+            .getSingleResult();
     }
 
     private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
