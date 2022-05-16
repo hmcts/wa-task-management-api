@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
 @TestInstance(PER_CLASS)
-public abstract class SpringBootIntegrationBaseTest {
+public abstract class SpringBootIntegrationBaseTest extends RoleAssignmentHelper {
     protected static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
         "name1",
         "value1",

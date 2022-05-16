@@ -93,4 +93,83 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+
+    @Test
+    public void should_return_403_when_excluded_grant_type_applied_to_user_grant_type_standard() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId))
+            .body("task.name", equalTo("process application"))
+            .body("task.type", equalTo("processApplication"))
+            .body("task.task_state", equalTo("unassigned"))
+            .body("task.task_system", equalTo("SELF"))
+            .body("task.security_classification", equalTo("PUBLIC"))
+            .body("task.task_title", equalTo("process application"))
+            .body("task.created_date", notNullValue())
+            .body("task.due_date", notNullValue())
+            .body("task.location_name", equalTo("Taylor House"))
+            .body("task.location", equalTo("765324"))
+            .body("task.execution_type", equalTo("Case Management Task"))
+            .body("task.jurisdiction", equalTo("WA"))
+            .body("task.region", equalTo("1"))
+            .body("task.case_type_id", equalTo("WaCaseType"))
+            .body("task.case_id", equalTo(taskVariables.getCaseId()))
+            .body("task.case_category", equalTo("Protection"))
+            .body("task.case_name", equalTo("Bob Smith"))
+            .body("task.auto_assigned", equalTo(false))
+            .body("task.warnings", equalTo(false))
+            .body("task.case_management_category", equalTo("Protection"))
+            .body("task.work_type_id", equalTo("hearing_work"))
+            .body("task.permissions.values", equalToObject(List.of("Read", "Refer", "Execute")))
+            .body("task.description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
+                                              + "trigger/decideAnApplication)"))
+            .body("task.role_category", equalTo("LEGAL_OPERATIONS"))
+            .body("task.additional_properties", equalToObject(Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3",
+                "key4", "value4"
+            )));
+
+        assertions.taskVariableWasUpdated(
+            taskVariables.getProcessInstanceId(),
+            "cftTaskState",
+            "unassigned"
+        );
+
+        //apply grantType : excluded
+        common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
+            WA_JURISDICTION, WA_CASE_TYPE);
+
+        result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+    }
+
 }
