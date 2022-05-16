@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
@@ -57,7 +58,6 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -691,18 +691,19 @@ public class TaskManagementService {
             return emptyList();
         }
 
-        CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        CriteriaBuilder builder = selectQueryBuilder.builder;
+        Root<TaskResource> root = selectQueryBuilder.root;
 
-        CriteriaQuery<TaskResource> criteriaQuery = builder.createQuery(TaskResource.class);
-        Root<TaskResource> root = criteriaQuery.from(TaskResource.class);
-
-        final Predicate taskResourceSpecification = TaskSearchQueryBuilder
+        final Predicate selectPredicate = TaskSearchQueryBuilder
             .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse, builder, root);
 
-        criteriaQuery.where(taskResourceSpecification);
-
-        final Optional<TaskResource> taskResourceQueryResult
-            = Optional.ofNullable(entityManager.createQuery(criteriaQuery).getSingleResult());
+        final Optional<TaskResource> taskResourceQueryResult = selectQueryBuilder
+            .where(selectPredicate)
+            .build()
+            .getResultList()
+            .stream()
+            .findFirst();
 
         if (taskResourceQueryResult.isEmpty()) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);

@@ -12,12 +12,12 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 public abstract class TaskResourceQueryBuilder<T> {
-    protected final EntityManager entityManager;
-    protected final CriteriaBuilder builder;
-    protected final CriteriaQuery<T> query;
-    protected final Root<TaskResource> root;
-    protected Predicate predicate;
-    protected List<Order> orders;
+    public final EntityManager entityManager;
+    public final CriteriaBuilder builder;
+    public final CriteriaQuery<T> query;
+    public final Root<TaskResource> root;
+    public Predicate predicate;
+    public List<Order> orders;
 
     public TaskResourceQueryBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
