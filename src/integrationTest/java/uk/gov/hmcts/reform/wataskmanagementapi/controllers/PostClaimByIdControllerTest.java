@@ -287,7 +287,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    public void user_should_claim_task_when_grant_type_standard_and_permission_own_execute(
+    public void user_should_claim_task_when_grant_type_standard(
         String jurisdiction, String caseType)
         throws Exception {
 
@@ -349,7 +349,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    public void user_should_not_claim_task_when_grant_type_standard_and_excluded_and_permission_own_execute(
+    public void user_should_not_claim_task_when_grant_type_standard_and_excluded(
         String jurisdiction, String caseType)
         throws Exception {
 
@@ -440,7 +440,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    public void user_should_claim_task_when_grant_type_challenged_and_permission_own_execute(
+    public void user_should_claim_task_when_grant_type_challenged(
         String jurisdiction, String caseType)
         throws Exception {
 
@@ -502,7 +502,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    public void user_should_not_claim_task_when_grant_type_challenged_excluded_and_permission_own_execute(
+    public void user_should_not_claim_task_when_grant_type_challenged_and_excluded(
         String jurisdiction, String caseType)
         throws Exception {
 
@@ -593,7 +593,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    public void user_should_claim_task_when_grant_type_specific_and_permission_own_execute(
+    public void user_should_claim_task_when_grant_type_specific(
         String jurisdiction, String caseType)
         throws Exception {
 
@@ -656,7 +656,7 @@ class PostClaimByIdControllerTest extends SpringBootIntegrationBaseTest {
         "IA, Asylum",
         "WA, WaCaseType"
     })
-    public void user_should_claim_task_when_grant_type_specific_and_excluded_and_permission_own_execute(
+    public void user_should_claim_task_when_grant_type_specific_and_excluded_(
         String jurisdiction, String caseType)
         throws Exception {
 

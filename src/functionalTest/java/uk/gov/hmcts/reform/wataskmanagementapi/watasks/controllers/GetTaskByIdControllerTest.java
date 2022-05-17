@@ -95,7 +95,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
 
     @Test
-    public void should_return_403_when_excluded_grant_type_applied_to_user_grant_type_standard() {
+    public void should_return_403_when_user_grant_type_standard_and_excluded() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
@@ -152,7 +152,7 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             "unassigned"
         );
 
-        //apply grantType : excluded
+        //add excluded grantType
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(),
             WA_JURISDICTION, WA_CASE_TYPE);
 

@@ -134,6 +134,13 @@ public enum TestRolesWithGrantType {
         RoleType.CASE,
         RoleCategory.JUDICIAL
     ),
+    CHALLENGED_ACCESS_JUDICIARY_RESTRICTED(
+        "challenged-access-judiciary",
+        GrantType.CHALLENGED,
+        Classification.RESTRICTED,
+        RoleType.CASE,
+        RoleCategory.JUDICIAL
+    ),
     CHALLENGED_ACCESS_LEGAL_OPS(
         "challenged-access-legal-ops",
         GrantType.CHALLENGED,

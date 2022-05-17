@@ -54,7 +54,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_retrieve_a_task_to_cancel_grant_type_standard() {
+    void should_retrieve_a_task_to_cancel_when_grant_type_standard() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111017";
         final String caseId = "1623278362431017";
 
@@ -84,7 +84,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_not_retrieve_a_task_to_cancel_grant_type_standard_with_excluded() {
+    void should_not_retrieve_a_task_to_cancel_when_grant_type_standard_with_excluded() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111017";
         final String caseId = "1623278362431017";
 
@@ -127,7 +127,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_retrieve_a_task_to_cancel_grant_type_challenged() {
+    void should_retrieve_a_task_to_cancel_when_grant_type_challenged() {
         final String taskId = "8a224730-d2ad-11ec-a1e4-0242ac11000c";
         final String caseId = "1652440325253034";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -156,7 +156,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_not_retrieve_a_task_to_cancel_challenged_with_excluded() {
+    void should_not_retrieve_a_task_to_cancel_when_challenged_with_excluded() {
         final String taskId = "8a224730-d2ad-11ec-a1e4-0242ac11000c";
         final String caseId = "1652440325253034";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -198,7 +198,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_retrieve_a_task_grant_type_specific() {
+    void should_retrieve_a_task_when_grant_type_specific() {
         final String taskId = "0985588a-d2b5-11ec-a1e4-0242ac11000c";
         final String caseId = "1652443548439927";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -227,7 +227,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_retrieve_a_task_grant_type_specific_with_excluded() {
+    void should_retrieve_a_task_when_grant_type_specific_with_excluded() {
         final String taskId = "0985588a-d2b5-11ec-a1e4-0242ac11000c";
         final String caseId = "1652443548439927";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -270,7 +270,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_return_empty_task_resource_when_task_is_null() {
+    void should_return_empty_task_resource_when_task_id_is_null() {
         final String taskId = null;
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -298,7 +298,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_return_empty_task_resource_when_task_is_empty() {
+    void should_return_empty_task_resource_when_task_id_is_empty() {
         final String taskId = "";
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
