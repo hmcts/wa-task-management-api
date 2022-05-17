@@ -289,13 +289,7 @@ public class AuthorizationProvider {
         body.put("surname", "Functional");
         body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        try {
-            log.info("Create user" + objectMapper.writeValueAsString(body));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        
         idamServiceApi.createTestUser(body);
 
         log.info("Test account created successfully");
