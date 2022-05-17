@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -147,7 +146,6 @@ class GetTaskRolePermissionsControllerTest extends SpringBootIntegrationBaseTest
     }
 
     @Test
-    @Disabled
     void should_return_403_with_role_assignment_verification_problem_when_task_does_not_have_required_permissions()
         throws Exception {
         String taskId = UUID.randomUUID().toString();

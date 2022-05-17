@@ -68,6 +68,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -118,7 +119,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
     @Mock
     private Root<TaskResource> root;
     @Mock
+    private Root<TaskResource> subRoot;
+    @Mock
     private CriteriaQuery<Long> countCriteriaQuery;
+    @Mock
+    private Subquery<TaskResource> subQuery;
     @Mock
     private TypedQuery<TaskResource> query;
     @Mock
@@ -341,11 +346,17 @@ public class CftQueryServiceTest extends CamundaHelpers {
         void setup() {
             lenient().when(builder.createQuery(Long.class)).thenReturn(countCriteriaQuery);
             lenient().when(countCriteriaQuery.from(TaskResource.class)).thenReturn(root);
+            lenient().when(countCriteriaQuery.subquery(TaskResource.class)).thenReturn(subQuery);
+            lenient().when(subQuery.from(TaskResource.class)).thenReturn(subRoot);
+            lenient().when(subRoot.join(anyString())).thenReturn(taskRoleResources);
+            lenient().when(subRoot.get(anyString())).thenReturn(path);
+            lenient().when(subRoot.get(anyString()).get(anyString())).thenReturn(path);
+            lenient().when(subQuery.where(predicate)).thenReturn(subQuery);
+            lenient().when(subQuery.distinct(true)).thenReturn(subQuery);
+            lenient().when(subQuery.select(any())).thenReturn(subQuery);
             lenient().when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
-            lenient().when(builder.countDistinct(root)).thenReturn(selection);
+            lenient().when(builder.count(root)).thenReturn(selection);
             lenient().when(countCriteriaQuery.select(selection)).thenReturn(countCriteriaQuery);
-            lenient().when(countCriteriaQuery.distinct(true)).thenReturn(countCriteriaQuery);
-            lenient().when(countQuery.setFirstResult(1)).thenReturn(countQuery);
         }
 
         @Test

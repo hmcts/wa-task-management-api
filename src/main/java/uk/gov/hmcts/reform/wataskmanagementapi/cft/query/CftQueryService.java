@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
@@ -145,9 +146,10 @@ public class CftQueryService {
             selectQueryBuilder.root
         );
 
-        final List<TaskResource> taskResources = selectQueryBuilder
+        TypedQuery<TaskResource> build = selectQueryBuilder
             .where(selectPredicate)
-            .build()
+            .build();
+        final List<TaskResource> taskResources = build
             .getResultList();
 
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
@@ -195,13 +197,16 @@ public class CftQueryService {
                                AccessControlResponse accessControlResponse,
                                List<PermissionTypes> permissionsRequired) {
 
-        CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager);
+        CountTaskResourceQueryBuilder countQueryBuilder = new CountTaskResourceQueryBuilder(entityManager)
+            .createSubQuery()
+            .createSubRoot();
+
         Predicate countPredicate = TaskSearchQueryBuilder.buildTaskQuery(
             searchTaskRequest,
             accessControlResponse,
             permissionsRequired,
             countQueryBuilder.builder,
-            countQueryBuilder.root
+            countQueryBuilder.subRoot
         );
 
         return countQueryBuilder

@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
+import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -55,6 +56,7 @@ import java.io.Serializable;
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,7 +64,11 @@ import java.util.Set;
 import java.util.UUID;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
@@ -142,7 +148,19 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     private CriteriaQuery<TaskResource> criteriaQuery;
     @Mock
+    private Predicate predicate;
+    @Mock
+    private CriteriaBuilder.In<Object> inObject;
+    @Mock
+    private CriteriaBuilder.In<Object> values;
+    @Mock
     private Root<TaskResource> root;
+    @Mock
+    private Path<Object> path;
+    @Mock
+    private Path<Object> authorizations;
+    @Mock
+    private Join<Object, Object> taskRoleResources;
     @Mock
     private TypedQuery<TaskResource> query;
 
@@ -166,7 +184,29 @@ class TaskManagementServiceTest extends CamundaHelpers {
         lenient().when(entityManager.getCriteriaBuilder()).thenReturn(builder);
         lenient().when(builder.createQuery(TaskResource.class)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.from(TaskResource.class)).thenReturn(root);
+        lenient().when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
         lenient().when(entityManager.createQuery(criteriaQuery)).thenReturn(query);
+        lenient().when(builder.in(any())).thenReturn(inObject);
+        lenient().when(inObject.value(any())).thenReturn(values);
+        lenient().when(builder.or(any(), any())).thenReturn(inObject);
+        lenient().when(builder.or(any())).thenReturn(inObject);
+        lenient().when(builder.and(any(), any())).thenReturn(inObject);
+        lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
+        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+            builder,
+            null,
+            Boolean.TRUE
+        );
+        lenient().when(builder.conjunction()).thenReturn(booleanAssertionPredicate);
+        lenient().when(builder.equal(any(), any())).thenReturn(predicate);
+        lenient().when(inObject.value(any())).thenReturn(values);
+
+        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
+
+        lenient().when(authorizations.isNull()).thenReturn(predicate);
+        lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+        lenient().when(root.get(anyString())).thenReturn(path);
+        lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
 
     }
 
@@ -2976,7 +3016,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             taskResource.setTaskRoleResources(taskRoleResourceSet);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(query.getSingleResult()).thenReturn(taskResource);
+            when(query.getResultList()).thenReturn(List.of(taskResource));
 
             final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
                 taskId, accessControlResponse);
@@ -3071,7 +3111,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
             when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(query.getSingleResult()).thenReturn(null);
+            when(query.getResultList()).thenReturn(Collections.emptyList());
 
             assertThrows(RoleAssignmentVerificationException.class, () -> taskManagementService.getTaskRolePermissions(
                 taskId, accessControlResponse));
