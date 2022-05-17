@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
@@ -288,6 +290,12 @@ public class AuthorizationProvider {
         body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            log.info("Create user" + objectMapper.writeValueAsString(body));
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
         idamServiceApi.createTestUser(body);
 
         log.info("Test account created successfully");
