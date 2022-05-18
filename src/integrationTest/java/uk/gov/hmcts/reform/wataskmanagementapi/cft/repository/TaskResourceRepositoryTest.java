@@ -173,10 +173,9 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         await()
             .atMost(10, SECONDS)
             .untilAsserted(() -> {
-                    checkTaskWasSaved(taskResource.getTaskId());
-                    checkTaskWasSaved(otherTaskResource.getTaskId());
-                }
-            );
+                checkTaskWasSaved(taskResource.getTaskId());
+                checkTaskWasSaved(otherTaskResource.getTaskId());
+            });
 
         executorService.shutdown();
         //noinspection ResultOfMethodCallIgnored
