@@ -517,7 +517,6 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_not_claim_task_when_grant_type_challenged_and_excluded() {
         testGrantType = GrantType.CHALLENGED;
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
 
         common.setupChallengedAccessAdmin(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
@@ -527,6 +526,7 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
             "reviewSpecificAccessRequestJudiciary",
             "review specific access request judiciary",
             "review specific access request judiciary");
+        String taskId = taskVariables.getTaskId();
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -549,15 +549,15 @@ public class PostTaskClaimByIdControllerTest extends SpringBootFunctionalBaseTes
     public void user_should_claim_task_when_grant_type_specific_and_excluded() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
 
         common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
 
         common.setupExcludedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
-        
+
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "processApplication", "process application", "process task");
 
+        String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
