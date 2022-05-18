@@ -113,7 +113,7 @@ public class TaskResourceSpecificationTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             scenario.searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -136,7 +136,7 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
-        Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -159,7 +159,7 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
-        Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -185,7 +185,7 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
-        Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -199,14 +199,14 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(STATE, SearchOperator.IN, emptyList())
         ));
 
-        predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
 
         assertNotNull(predicate);
 
-        predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             null, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -225,7 +225,7 @@ public class TaskResourceSpecificationTest {
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
 
-        Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -255,7 +255,7 @@ public class TaskResourceSpecificationTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );
@@ -283,7 +283,7 @@ public class TaskResourceSpecificationTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Predicate predicate = TaskSearchQueryBuilder.buildTaskQuery(
+        final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest, accessControlResponse, permissionsRequired,
             criteriaBuilder, root
         );

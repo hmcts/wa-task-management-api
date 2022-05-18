@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -81,6 +82,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -125,9 +127,13 @@ public class CftQueryServiceTest extends CamundaHelpers {
     @Mock
     private Subquery<TaskResource> subQuery;
     @Mock
+    private CriteriaQuery<TaskResourceSummary> summaryCriteriaQuery;
+    @Mock
     private TypedQuery<TaskResource> query;
     @Mock
     private TypedQuery<Long> countQuery;
+    @Mock
+    private TypedQuery<TaskResourceSummary> summaryQuery;
     @Mock
     private Predicate predicate;
     @Mock
@@ -146,6 +152,16 @@ public class CftQueryServiceTest extends CamundaHelpers {
     private CriteriaBuilderImpl builder;
     @InjectMocks
     private CftQueryService cftQueryService;
+
+    private TaskResourceSummary createTaskResourceSummary() {
+        return new TaskResourceSummary("taskId",
+                                       OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                                       "1623278362430412",
+                                       "TestCase",
+                                       "Asylum",
+                                       "Taylor House",
+                                       "title");
+    }
 
     private TaskResource createTaskResource() {
         return new TaskResource(
@@ -357,6 +373,18 @@ public class CftQueryServiceTest extends CamundaHelpers {
             lenient().when(em.createQuery(countCriteriaQuery)).thenReturn(countQuery);
             lenient().when(builder.count(root)).thenReturn(selection);
             lenient().when(countCriteriaQuery.select(selection)).thenReturn(countCriteriaQuery);
+            lenient().when(countCriteriaQuery.distinct(true)).thenReturn(countCriteriaQuery);
+            lenient().when(countQuery.setFirstResult(1)).thenReturn(countQuery);
+
+            lenient().when(builder.createQuery(TaskResourceSummary.class)).thenReturn(summaryCriteriaQuery);
+            lenient().when(summaryCriteriaQuery.from(TaskResource.class)).thenReturn(root);
+            lenient().when(em.createQuery(summaryCriteriaQuery)).thenReturn(summaryQuery);
+            lenient().when(summaryCriteriaQuery.multiselect(anyList())).thenReturn(summaryCriteriaQuery);
+            lenient().when(summaryCriteriaQuery.distinct(true)).thenReturn(summaryCriteriaQuery);
+            lenient().when(summaryQuery.setFirstResult(0)).thenReturn(summaryQuery);
+            lenient().when(summaryQuery.setFirstResult(1)).thenReturn(summaryQuery);
+            lenient().when(summaryQuery.setMaxResults(0)).thenReturn(summaryQuery);
+            lenient().when(summaryQuery.setMaxResults(10)).thenReturn(summaryQuery);
         }
 
         @Test
@@ -381,6 +409,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
             when(query.getResultList()).thenReturn(List.of(createTaskResource()));
             when(countQuery.getSingleResult()).thenReturn(1L);
 
@@ -414,6 +443,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             Page<TaskResource> taskResources = new PageImpl<>(List.of(createTaskResource()));
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
             when(em.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(createTaskResource()));
             when(countQuery.getSingleResult()).thenReturn(1L);
 
@@ -446,6 +476,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
             when(em.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(createTaskResource()));
             when(countQuery.getSingleResult()).thenReturn(1L);
             GetTasksResponse<Task> taskResourceList
@@ -506,6 +537,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
+            when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
             when(em.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(createTaskResource()));
             when(countQuery.getSingleResult()).thenReturn(1L);
 
@@ -540,10 +572,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
             List<PermissionTypes> permissionsRequired = new ArrayList<>();
             permissionsRequired.add(PermissionTypes.READ);
 
-            when(em.createQuery(criteriaQuery).getResultList()).thenReturn(Collections.emptyList());
-            when(countQuery.getSingleResult()).thenReturn(0L);
+            when(summaryQuery.getResultList()).thenReturn(Collections.emptyList());
             //when(cftTaskMapper.mapToTask(any())).thenReturn(getTask());
-            when(em.createQuery(countCriteriaQuery).getSingleResult()).thenReturn(0L);
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(1, 10, searchTaskRequest, accessControlResponse, permissionsRequired);

@@ -68,7 +68,7 @@ public final class TaskSearchQueryBuilder {
 
     }
 
-    public static Predicate buildTaskQuery(
+    public static Predicate buildTaskSummaryQuery(
         SearchTaskRequest searchTaskRequest,
         AccessControlResponse accessControlResponse,
         List<PermissionTypes> permissionsRequired,
@@ -96,6 +96,14 @@ public final class TaskSearchQueryBuilder {
         );
 
         return builder.and(constrainsSpec, roleAssignmentSpec);
+    }
+
+    public static Predicate buildTaskQuery(
+        List<String> taskIds,
+        CriteriaBuilder builder,
+        Root<TaskResource> root) {
+
+        return searchByTaskIds(taskIds, builder, root);
     }
 
     public static Predicate buildSingleTaskQuery(String taskId,
