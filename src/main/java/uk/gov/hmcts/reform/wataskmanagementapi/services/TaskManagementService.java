@@ -22,8 +22,10 @@ import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -91,6 +93,7 @@ public class TaskManagementService {
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final CftQueryService cftQueryService;
+    private final TaskReconfigurationService taskReconfigurationService;
 
 
     @Autowired
@@ -102,7 +105,8 @@ public class TaskManagementService {
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
-                                 CftQueryService cftQueryService) {
+                                 CftQueryService cftQueryService,
+                                 TaskReconfigurationService taskReconfigurationService) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.permissionEvaluatorService = permissionEvaluatorService;
@@ -112,6 +116,7 @@ public class TaskManagementService {
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.cftQueryService = cftQueryService;
+        this.taskReconfigurationService = taskReconfigurationService;
     }
 
     /**
@@ -697,6 +702,13 @@ public class TaskManagementService {
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );
+    }
+
+    public void performOperation(TaskOperationRequest taskOperationRequest) {
+
+        if(taskOperationRequest.getOperation().getName().equals(TaskOperationName.mark_to_reconfigure)) {
+            taskReconfigurationService.markTasksToReconfigure();
+        }
     }
 
     /**
