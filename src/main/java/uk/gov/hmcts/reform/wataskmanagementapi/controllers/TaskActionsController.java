@@ -309,7 +309,7 @@ public class TaskActionsController extends BaseController {
             .body(new GetTaskRolePermissionsResponse(taskRolePermissions));
     }
 
-    @Operation(description = "Completes a Task identified by an id.")
+    @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
     @ApiResponses({
         @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),

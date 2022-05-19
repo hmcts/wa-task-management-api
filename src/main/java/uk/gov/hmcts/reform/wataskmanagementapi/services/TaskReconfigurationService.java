@@ -7,4 +7,6 @@ import org.springframework.stereotype.Component;
 @Component
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class TaskReconfigurationService {
+    public void markTasksToReconfigure() {
+    }
 }
