@@ -3,23 +3,22 @@
     {
       "actorId": "{ACTOR_ID_PLACEHOLDER}",
       "actorIdType": "IDAM",
-      "classification": "{CLASSIFICATION}",
+      "classification": "PUBLIC",
       "grantType": "{GRANT_TYPE}",
-      "readOnly": "{READ_ONLY}",
+      "readOnly": false,
       "roleCategory": "{ROLE_CATEGORY}",
       "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "{ROLE_TYPE}",
-      "beginTime": "{BEGIN_TIME_PLACEHOLDER}",
+      "beginTime": "2020-01-01T00:00:00Z",
       "endTime": "{END_TIME_PLACEHOLDER}",
       "attributes": "{ATTRIBUTES_PLACEHOLDER}",
-      "authorisations": "{AUTHORISATIONS}",
-      "notes": "{NOTES}"
+      "authorisations": "{AUTHORISATIONS}"
     }
   ],
   "roleRequest": {
     "assignerId": "{ASSIGNER_ID_PLACEHOLDER}",
-    "process": "{PROCESS}",
-    "reference": "{REFERENCE}",
-    "replaceExisting": "{REPLACE_EXISTING}"
+    "process": "staff-organisational-role-mapping",
+    "reference": "{ASSIGNER_ID_PLACEHOLDER}",
+    "replaceExisting": false
   }
 }

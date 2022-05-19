@@ -190,10 +190,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+
 
         common.cleanUpTask(taskId);
     }
@@ -261,10 +264,12 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -330,10 +335,12 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -488,10 +495,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+
 
         common.cleanUpTask(taskId);
     }
@@ -561,10 +571,13 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
-            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
+            .body("title", equalTo("Role Assignment Verification"))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+            .body("detail", equalTo(
+                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+
 
         common.cleanUpTask(taskId);
     }
