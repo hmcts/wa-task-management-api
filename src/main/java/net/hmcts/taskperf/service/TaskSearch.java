@@ -16,12 +16,12 @@ import java.util.stream.Stream;
 import lombok.Value;
 import net.hmcts.taskperf.model.Pagination;
 import net.hmcts.taskperf.model.SearchRequest;
-import net.hmcts.taskperf.model.SortBy;
 import net.hmcts.taskperf.service.sql.SqlStatement;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 /**
  * Main task for performing a task search:
@@ -117,7 +117,7 @@ public class TaskSearch
 	/**
 	 * The order by criteria for the search.
 	 */
-	private final List<SortBy> orderBy;
+	private final List<SortingParameter> orderBy;
 
 	/**
 	 * The offset to request in the SQL.
@@ -272,14 +272,14 @@ public class TaskSearch
 				.collect(Collectors.toSet());
 	}
 
-	private static String addOrderBy(String sql, List<SortBy> sort, String alias)
+	private static String addOrderBy(String sql, List<SortingParameter> sort, String alias)
 	{
 		String orderColumns = "";
 		if (sort != null)
 		{
-			for (SortBy sortBy : sort)
+			for (SortingParameter sortBy : sort)
 			{
-				orderColumns += alias + "." + getSortColumn(sortBy.getColumn()) + " " + sortBy.getDirection().toString() + ", ";
+				orderColumns += alias + "." + getSortColumn(sortBy.getSortBy()) + " " + sortBy.getSortOrder().toString() + ", ";
 			}
 		}
 		return sql.replace("[ORDER_BY]", orderColumns);

@@ -10,5 +10,5 @@ pagination:
   pageNumber: 1
   pageSize: 25
 sort:
-  - column: due_date
-    direction: desc
+  - sortBy: due_date
+    sortOrder: desc
