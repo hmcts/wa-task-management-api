@@ -1,0 +1,14 @@
+---
+filter:
+  states: [ASSIGNED,UNASSIGNED]
+  jurisdictions: [IA]
+  roleCategories: [LEGAL_OPERATIONS]
+  workTypes: []
+  permissions: [r]
+  assignees: [2e8c64df-f577-42bf-9aa8-1c50b43117c2]
+pagination:
+  pageNumber: 1
+  pageSize: 25
+sort:
+  - column: DUE_DATE_TIME
+    direction: DESC
