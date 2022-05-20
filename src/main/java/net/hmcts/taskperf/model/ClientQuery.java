@@ -3,6 +3,7 @@ package net.hmcts.taskperf.model;
 import java.util.List;
 
 import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 /**
  * A representation of the search query provided by the client.
@@ -15,5 +16,5 @@ public class ClientQuery
 {
 	private ClientFilter filter;
 	private Pagination pagination;
-	private List<SortBy> sort;
+	private List<SortingParameter> sort;
 }
