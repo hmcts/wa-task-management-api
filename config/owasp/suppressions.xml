@@ -54,8 +54,8 @@
         <packageUrl regex="true">^pkg:maven/org\.springframework\.plugin/spring\-plugin\-core@.*$</packageUrl>
         <cve>CVE-2022-22968</cve>
     </suppress>
-  <suppress until="2022-05-31">
-    <notes>Temp suppress till resolved https://tools.hmcts.net/jira/browse/RWA-1406</notes>
-    <cve>CVE-2016-1000027</cve>
-  </suppress>
+    <suppress until="2022-05-31">
+      <notes>Temp suppress till resolved https://tools.hmcts.net/jira/browse/RWA-1406</notes>
+      <cve>CVE-2016-1000027</cve>
+    </suppress>
 </suppressions>
