@@ -37,8 +37,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.G
 
 @Slf4j
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyMethods", "PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports"})
-//TODO Rename this class to something like TaskSearchQueryBuilder
-// Should also have an interface such as QueryBuilder with a method like buildQuery(QueryData)
 public final class RoleAssignmentFilter {
 
     public static final String CASE_ID_COLUMN = "caseId";
@@ -67,14 +65,9 @@ public final class RoleAssignmentFilter {
 
         final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
-        //TODO filters and manipulation of Role Assignments should be moved to a different class e.g.
-        // RoleAssignmentReceiver
-        // this should only be about building the query
-        // filter roles which are active.
         final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
             .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
-        //TODO Manipulate RoleAssignment data
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
             activeRoleAssignments,
             RoleAssignmentForSearch::getRoleType
@@ -84,8 +77,6 @@ public final class RoleAssignmentFilter {
         // builds query for grant type BASIC, SPECIFIC
         final Predicate basicAndSpecific = RoleAssignmentFilter.buildQueryForBasicAndSpecific(
             root, taskRoleResources, builder, roleAssignmentsForSearch);
-        //TODO change so you pass the manipulated data
-        //root, taskRoleResources, builder, roleAssignmentsForSearch, grantTypes);
 
         // builds query for grant type STANDARD, CHALLENGED
         final Predicate standardAndChallenged = RoleAssignmentFilter.buildQueryForStandardAndChallenged(
@@ -142,7 +133,6 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    //TODO seems like a pointless method
     private static Predicate buildQueryForBasicAndSpecific(Root<TaskResource> root,
                                                            final Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                            CriteriaBuilder builder,
@@ -156,7 +146,6 @@ public final class RoleAssignmentFilter {
         return builder.or(rolePredicates.toArray(new Predicate[0]));
     }
 
-    //TODO seems like a pointless method
     private static Predicate buildQueryForStandardAndChallenged(Root<TaskResource> root,
                                                                 final Join<TaskResource,
                                                                     TaskRoleResource> taskRoleResources,
@@ -191,9 +180,6 @@ public final class RoleAssignmentFilter {
     private static List<Predicate> buildPredicates(Root<TaskResource> root,
                                                    Join<TaskResource, TaskRoleResource> taskRoleResources,
                                                    CriteriaBuilder builder,
-                                                   //TODO - Generic RoleAssignmentsForSearch or similar here
-                                                   // SearchData //ORG roles, Representative Case Roles,
-                                                   // Any other Case Roles
                                                    List<RoleAssignmentForSearch> roleAssignmentList,
                                                    //grouped Role Assignment Map for the required Grant Types e.g.
                                                    // Specific, Basic
@@ -301,9 +287,6 @@ public final class RoleAssignmentFilter {
                                                CriteriaBuilder builder,
                                                RoleAssignmentForSearch roleAssignment) {
         Predicate nullAuthorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
-        //TODO check this is correct.
-        // Should be checking that any of the authorisations in the DB are present in the users authorisations
-        // If the users authorisations are null/empty then the DB must be null/empty
         if (roleAssignment.getAuthorisations() != null) {
             Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
                 (Object) roleAssignment.getAuthorisations().toArray()
