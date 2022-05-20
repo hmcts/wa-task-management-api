@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Value;
+import net.hmcts.taskperf.model.ClientFilter;
 import net.hmcts.taskperf.model.Pagination;
 import net.hmcts.taskperf.model.SearchRequest;
 import net.hmcts.taskperf.service.sql.SqlStatement;
@@ -58,6 +59,11 @@ public class TaskSearch
 	 * System timestamp when the search was initiated.
 	 */
 	private final long startTime;
+
+	/**
+	 * The client query object built from the search request.
+	 */
+	private final ClientFilter clientFilter;
 
 	/**
 	 * Keep track of the timings.
@@ -141,9 +147,10 @@ public class TaskSearch
 		this.startTime = System.currentTimeMillis();
 		log("Started");
 		this.explainQueries = explainQueries;
-		Set<RoleAssignment> roleAssignments = RoleAssignmentHelper.filterRoleAssignments(searchRequest);
-		this.roleSignatures = RoleAssignmentHelper.buildRoleSignatures(roleAssignments, searchRequest.getQuery().getFilter().getPermissions());
-		this.filterSignatures = FilterHelper.buildFilterSignatures(searchRequest.getQuery().getFilter());
+		this.clientFilter = ClientFilter.of(searchRequest.getQuery());
+		Set<RoleAssignment> roleAssignments = RoleAssignmentHelper.filterRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter);
+		this.roleSignatures = RoleAssignmentHelper.buildRoleSignatures(roleAssignments, clientFilter.getPermissions());
+		this.filterSignatures = FilterHelper.buildFilterSignatures(clientFilter);
 		buildExtraConstraints(searchRequest, SEARCH_SQL_TASK_ALIAS);
 		Pagination pagination = searchRequest.getQuery().getPagination();
 		offset = (pagination.getPageNumber() - 1) * pagination.getPageSize();
@@ -218,7 +225,7 @@ public class TaskSearch
 
 	private void buildExtraConstraints(SearchRequest searchRequest, String alias)
 	{
-		Set<String> caseIds = searchRequest.getQuery().getFilter().getCaseIds();
+		Set<String> caseIds = clientFilter.getCaseIds();
 		if (caseIds != null && !caseIds.isEmpty())
 		{
 			if (caseIds.size() == 1)
@@ -232,7 +239,7 @@ public class TaskSearch
 				extraConstraintParameters.add(caseIds);
 			}
 		}
-		Set<String> assignees = searchRequest.getQuery().getFilter().getAssignees();
+		Set<String> assignees = clientFilter.getAssignees();
 		if (assignees != null && !assignees.isEmpty())
 		{
 			if (assignees.size() == 1)
@@ -246,7 +253,7 @@ public class TaskSearch
 				extraConstraintParameters.add(assignees);
 			}
 		}
-		Set<String> excludedCaseIds = buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(searchRequest));
+		Set<String> excludedCaseIds = buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter));
 		if (!excludedCaseIds.isEmpty())
 		{
 			if (excludedCaseIds.size() == 1)

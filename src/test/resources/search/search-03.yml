@@ -1,10 +1,18 @@
 ---
-filter:
-  states: [ASSIGNED,UNASSIGNED]
-  jurisdictions: [IA]
-  roleCategories: [LEGAL_OPERATIONS]
-  workTypes: []
-  permissions: [r, o, x]
+listFilters:
+  - key: state
+    operator: IN
+    values: [ASSIGNED,UNASSIGNED]
+  - key: jurisdiction
+    operator: IN
+    values: [IA]
+  - key: role_category
+    operator: IN
+    values: [LEGAL_OPERATIONS]
+booleanFilters:
+  - key: available_tasks_only
+    operator: BOOLEAN
+    values: false
 pagination:
   pageNumber: 1
   pageSize: 25

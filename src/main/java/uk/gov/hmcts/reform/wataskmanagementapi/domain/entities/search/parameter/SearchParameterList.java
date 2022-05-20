@@ -1,14 +1,17 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter;
 
+import java.util.List;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
-
-import java.util.List;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 @Schema(
     name = "SearchParameter",
@@ -41,7 +44,7 @@ public class SearchParameterList implements SearchParameter<List<String>> {
     private final List<String> values;
 
     @JsonCreator
-    public SearchParameterList(SearchParameterKey key, SearchOperator operator, List<String> values) {
+    public SearchParameterList(@JsonProperty("key") SearchParameterKey key, @JsonProperty("operator") SearchOperator operator, @JsonProperty("values") List<String> values) {
         this.key = key;
         this.operator = operator;
         this.values = values;

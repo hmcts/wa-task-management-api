@@ -1,10 +1,11 @@
 ---
-filter:
-  states: [ASSIGNED,UNASSIGNED]
-  jurisdictions: [IA, SSCS]
-  roleCategories: []
-  workTypes: []
-  permissions: [r]
+listFilters:
+  - key: state
+    operator: IN
+    values: [ASSIGNED,UNASSIGNED]
+  - key: jurisdiction
+    operator: IN
+    values: [IA, SSCS]
 pagination:
   pageNumber: 1
   pageSize: 25

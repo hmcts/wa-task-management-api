@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.hmcts.taskperf.model.SearchRequest;
+import net.hmcts.taskperf.model.ClientFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -20,22 +20,22 @@ public class RoleAssignmentHelper
 	 * in any tasks being added to the query result set, whereas a role assignment with jurisdiction =
 	 * IA, SSCS or null can.
 	 */
-	public static Set<RoleAssignment> filterRoleAssignments(SearchRequest searchRequest)
+	public static Set<RoleAssignment> filterRoleAssignments(Collection<RoleAssignment> roleAssignments, ClientFilter clientFilter)
 	{
 		return
 				filterByAttribute(
 					filterByAttribute(
 						filterByAttribute(
 							filterByAttribute(
-									searchRequest.getUser().getRoleAssignments().stream(),
+									roleAssignments.stream(),
 									RoleAttributeDefinition.JURISDICTION,
-									searchRequest.getQuery().getFilter().getJurisdictions()),
+									clientFilter.getJurisdictions()),
 							RoleAttributeDefinition.REGION,
-							searchRequest.getQuery().getFilter().getRegions()),
+							clientFilter.getRegions()),
 						RoleAttributeDefinition.BASE_LOCATION,
-						searchRequest.getQuery().getFilter().getLocations()),
+						clientFilter.getLocations()),
 					RoleAttributeDefinition.CASE_ID,
-					searchRequest.getQuery().getFilter().getCaseIds())
+					clientFilter.getCaseIds())
 				.filter(RoleAssignmentHelper::isTaskAccessGrantType)
 				.filter(RoleAssignmentHelper::hasJurisdictionAttribute)
 				.collect(Collectors.toSet());
@@ -44,15 +44,15 @@ public class RoleAssignmentHelper
 	/**
 	 * Return just the role assignments which are of grant type EXCLUDED.
 	 */
-	public static Set<RoleAssignment> exclusionRoleAssignments(SearchRequest searchRequest)
+	public static Set<RoleAssignment> exclusionRoleAssignments(Collection<RoleAssignment> roleAssignments, ClientFilter clientFilter)
 	{
 		return
 				// No need to include exclusions that are for a jurisdiction that
 				// isn't being queried.
 				filterByAttribute(
-						searchRequest.getUser().getRoleAssignments().stream(),
+						roleAssignments.stream(),
 						RoleAttributeDefinition.JURISDICTION,
-						searchRequest.getQuery().getFilter().getJurisdictions())
+						clientFilter.getJurisdictions())
 				.filter(ra -> ra.getGrantType() == GrantType.EXCLUDED)
 				.filter(RoleAssignmentHelper::hasJurisdictionAttribute)
 				.collect(Collectors.toSet());
