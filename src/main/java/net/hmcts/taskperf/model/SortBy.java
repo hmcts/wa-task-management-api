@@ -1,12 +1,13 @@
 package net.hmcts.taskperf.model;
 
 import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder;
 
 @Value
 public class SortBy
 {
 	private Column column;
-	private Direction direction;
+	private SortOrder direction;
 
 	public static enum Column
 	{

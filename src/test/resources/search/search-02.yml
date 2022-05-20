@@ -10,4 +10,4 @@ pagination:
   pageSize: 25
 sort:
   - column: DUE_DATE_TIME
-    direction: DESC
+    direction: desc

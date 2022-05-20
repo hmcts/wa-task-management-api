@@ -277,7 +277,7 @@ public class TaskSearch
 		{
 			for (SortBy sortBy : sort)
 			{
-				orderColumns += alias + "." + sortBy.getColumn().value() + " " + sortBy.getDirection().value() + ", ";
+				orderColumns += alias + "." + sortBy.getColumn().value() + " " + sortBy.getDirection().toString() + ", ";
 			}
 		}
 		return sql.replace("[ORDER_BY]", orderColumns);
