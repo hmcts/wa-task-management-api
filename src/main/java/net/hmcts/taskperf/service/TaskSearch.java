@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Value;
 import net.hmcts.taskperf.model.Pagination;
@@ -20,6 +21,7 @@ import net.hmcts.taskperf.service.sql.SqlStatement;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 
 /**
  * Main task for performing a task search:
@@ -277,10 +279,31 @@ public class TaskSearch
 		{
 			for (SortBy sortBy : sort)
 			{
-				orderColumns += alias + "." + sortBy.getColumn().value() + " " + sortBy.getDirection().toString() + ", ";
+				orderColumns += alias + "." + getSortColumn(sortBy.getColumn()) + " " + sortBy.getDirection().toString() + ", ";
 			}
 		}
 		return sql.replace("[ORDER_BY]", orderColumns);
+	}
+
+	private static final Map<String, String> SORT_COLUMNS =
+			Stream.of(new String[][] {
+				{ "duedate", "due_date_time" }, 
+				{ "due_date", "due_date_time" }, 
+				{ "tasktitle", "task_title" }, 
+				{ "task_title", "task_title" }, 
+				{ "locationname", "location_name" }, 
+				{ "location_name", "location_name" }, 
+				{ "casecategory", "case_category" }, 
+				{ "case_category", "case_category" }, 
+				{ "caseid", "case_id" }, 
+				{ "case_id", "case_id" }, 
+				{ "casename", "case_name" }, 
+				{ "case_name", "case_name" }
+			}).collect(Collectors.toMap(data -> data[0], data -> data[1]));
+
+	private static final String getSortColumn(SortField sortField)
+	{
+		return SORT_COLUMNS.get(sortField.getId().toLowerCase());
 	}
 
 	private static String addExtraConstraints(String sql, String extraConstraints)
