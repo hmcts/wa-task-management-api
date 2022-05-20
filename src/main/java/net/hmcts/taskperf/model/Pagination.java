@@ -5,6 +5,6 @@ import lombok.Value;
 @Value
 public class Pagination
 {
-	private int pageNumber;
-	private int pageSize;
+	private int firstResult;
+	private int maxResults;
 }

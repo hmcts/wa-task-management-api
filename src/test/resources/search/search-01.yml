@@ -7,8 +7,8 @@ listFilters:
     operator: IN
     values: [IA, SSCS]
 pagination:
-  pageNumber: 1
-  pageSize: 25
+  firstResult: 0
+  maxResults: 25
 sort:
   - sortBy: due_date
     sortOrder: desc
