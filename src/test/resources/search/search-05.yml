@@ -1,11 +1,17 @@
 ---
-filter:
-  states: [ASSIGNED,UNASSIGNED]
-  jurisdictions: [IA]
-  roleCategories: [LEGAL_OPERATIONS]
-  workTypes: []
-  permissions: [r]
-  assignees: [2e8c64df-f577-42bf-9aa8-1c50b43117c2]
+listFilters:
+  - key: state
+    operator: IN
+    values: [ASSIGNED,UNASSIGNED]
+  - key: jurisdiction
+    operator: IN
+    values: [IA]
+  - key: role_category
+    operator: IN
+    values: [LEGAL_OPERATIONS]
+  - key: user
+    operator: IN
+    values: [2e8c64df-f577-42bf-9aa8-1c50b43117c2]
 pagination:
   pageNumber: 1
   pageSize: 25

@@ -4,6 +4,8 @@ import java.util.List;
 
 import lombok.Value;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
 /**
  * A representation of the search query provided by the client.
@@ -14,7 +16,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 @Value
 public class ClientQuery
 {
-	private ClientFilter filter;
+	private List<SearchParameterList> listFilters;
+	private List<SearchParameterBoolean> booleanFilters;
 	private Pagination pagination;
 	private List<SortingParameter> sort;
 }

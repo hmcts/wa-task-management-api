@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -10,6 +11,7 @@ import lombok.ToString;
 )
 @EqualsAndHashCode
 @ToString
+@AllArgsConstructor
 public class SortingParameter {
 
     @Schema(required = true,
@@ -21,10 +23,10 @@ public class SortingParameter {
     @Schema(required = true, allowableValues = "asc, desc", example = "asc")
     private final SortOrder sortOrder;
 
-    public SortingParameter(SortField sortBy, SortOrder sortOrder) {
-        this.sortBy = sortBy;
-        this.sortOrder = sortOrder;
-    }
+//    public SortingParameter(SortField sortBy, SortOrder sortOrder) {
+//        this.sortBy = sortBy;
+//        this.sortOrder = sortOrder;
+//    }
 
     public SortField getSortBy() {
         return sortBy;

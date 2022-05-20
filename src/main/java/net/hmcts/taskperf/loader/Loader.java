@@ -42,8 +42,8 @@ public class Loader
 		ObjectMapper mapper = makeObjectMapper();
 		try (InputStream input = getResourceAsStream("search/search-" + id + ".yml"))
 		{
-			ClientQuery filter = mapper.readValue(input, ClientQuery.class);
-			return filter;
+			ClientQuery query = mapper.readValue(input, ClientQuery.class);
+			return query;
 		}
 	}
 
