@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchData;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
@@ -56,13 +55,6 @@ public final class TaskSearchQueryBuilder {
 
     private TaskSearchQueryBuilder() {
         // avoid creating object
-    }
-
-    public static Specification<TaskResource> build(final SearchData searchData) {
-
-        //TODO placeholder for new build Task Query logic
-        throw new UnsupportedOperationException();
-
     }
 
     public static Specification<TaskResource> buildTaskQuery(
@@ -138,18 +130,28 @@ public final class TaskSearchQueryBuilder {
 
         return searchByJurisdiction(jurisdictionParam == null ? Collections.emptyList() : jurisdictionParam.getValues())
             .and(searchByState(cftTaskStates)
-                .and(searchByLocation(locationParam == null ? Collections.emptyList() : locationParam.getValues())
-                    .and(searchByCaseIds(caseIdParam == null ? Collections.emptyList() : caseIdParam.getValues())
-                        .and(searchByUser(userParam == null ? Collections.emptyList() : userParam.getValues())
-                            .and(searchByWorkType(
-                                workTypeParam == null ? Collections.emptyList() : workTypeParam.getValues())
-                                .and(searchByRoleCategory(
-                                    roleCtgParam == null ? Collections.emptyList() : roleCtgParam.getValues())
-                                )
-                            )
-                        )
-                    )
-                )
+                     .and(searchByLocation(locationParam == null
+                                               ? Collections.emptyList()
+                                               : locationParam.getValues())
+                              .and(searchByCaseIds(caseIdParam == null
+                                                       ? Collections.emptyList()
+                                                       : caseIdParam.getValues())
+                                       .and(searchByUser(userParam == null
+                                                             ? Collections.emptyList()
+                                                             : userParam.getValues())
+                                                .and(searchByWorkType(
+                                                    workTypeParam == null
+                                                        ? Collections.emptyList()
+                                                        : workTypeParam.getValues())
+                                                         .and(searchByRoleCategory(
+                                                             roleCtgParam == null
+                                                                 ? Collections.emptyList()
+                                                                 : roleCtgParam.getValues())
+                                                         )
+                                                )
+                                       )
+                              )
+                     )
             );
     }
 

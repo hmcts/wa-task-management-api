@@ -6,26 +6,15 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 
 public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -50,26 +39,8 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
-
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "Process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "Process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
-
-        restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            caseworkerCredentials.getHeaders()
-        );
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
@@ -81,12 +52,12 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value())
             .and()
             .body("task.id", equalTo(taskId))
-            .body("task.name", equalTo("Process Application"))
+            .body("task.name", equalTo("process application"))
             .body("task.type", equalTo("processApplication"))
             .body("task.task_state", equalTo("unassigned"))
             .body("task.task_system", equalTo("SELF"))
             .body("task.security_classification", equalTo("PUBLIC"))
-            .body("task.task_title", equalTo("Process Application"))
+            .body("task.task_title", equalTo("process application"))
             .body("task.created_date", notNullValue())
             .body("task.due_date", notNullValue())
             .body("task.location_name", equalTo("Taylor House"))

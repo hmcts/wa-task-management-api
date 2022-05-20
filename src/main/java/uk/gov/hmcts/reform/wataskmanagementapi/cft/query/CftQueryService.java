@@ -68,22 +68,11 @@ public class CftQueryService {
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
 
-        //TODO this should pass only prepared data.
-        // Role Assignments that are filtered and grouped already.
-        // Should also be in one object called SearchData
-        //SearchData searchData = new TaskSearchData(
-        //    new AndPermissionsRequired(permissionsRequired),
-        //    Lists.newArrayList(),//TODO put RoleAssignmentForSearch list in there
-        //    searchTaskRequest);
-        //
-        //final Specification<TaskResource> taskQuerySpecification = TaskSearchQueryBuilder.build(searchData);
-
         final Specification<TaskResource> taskResourceSpecification =
             TaskSearchQueryBuilder.buildTaskQuery(
                 searchTaskRequest,
                 accessControlResponse,
                 permissionsRequired);
-
 
         final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
 
