@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import javax.persistence.LockModeType;
 import javax.persistence.QueryHint;
@@ -27,6 +28,8 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     Optional<TaskResource> findById(@NonNull String id);
 
     Optional<TaskResource> getByTaskId(String id);
+
+    List<TaskResource> getByCaseId(String caseId);
 
     @Modifying
     @QueryHints({

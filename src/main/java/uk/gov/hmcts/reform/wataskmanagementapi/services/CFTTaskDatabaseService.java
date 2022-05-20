@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -25,6 +26,10 @@ public class CFTTaskDatabaseService {
 
     public Optional<TaskResource> findByIdOnly(String taskId) {
         return tasksRepository.getByTaskId(taskId);
+    }
+
+    public List<TaskResource> findByCaseIdOnly(String caseId) {
+        return tasksRepository.getByCaseId(caseId);
     }
 
     public TaskResource saveTask(TaskResource task) {
