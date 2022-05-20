@@ -13,8 +13,8 @@ listFilters:
     operator: IN
     values: [1651158394904755]
 pagination:
-  pageNumber: 1
-  pageSize: 25
+  firstResult: 0
+  maxResults: 25
 sort:
   - sortBy: due_date
     sortOrder: desc

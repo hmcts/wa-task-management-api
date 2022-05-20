@@ -153,8 +153,8 @@ public class TaskSearch
 		this.filterSignatures = FilterHelper.buildFilterSignatures(clientFilter);
 		buildExtraConstraints(searchRequest, SEARCH_SQL_TASK_ALIAS);
 		Pagination pagination = searchRequest.getQuery().getPagination();
-		offset = (pagination.getPageNumber() - 1) * pagination.getPageSize();
-		limit = pagination.getPageSize();
+		offset = pagination.getFirstResult();
+		limit = pagination.getMaxResults();
 		orderBy = searchRequest.getQuery().getSort();
 		log("Starting to build queries");
 		buildSearchSqlStatement();
