@@ -325,6 +325,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
         lenient().when(builder.createQuery(TaskResource.class)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.from(TaskResource.class)).thenReturn(root);
+        lenient().when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
         lenient().when(builder.equal(any(), anyString())).thenReturn(predicate);
         lenient().when(em.createQuery(criteriaQuery)).thenReturn(query);
         lenient().when(query.setFirstResult(0)).thenReturn(query);
