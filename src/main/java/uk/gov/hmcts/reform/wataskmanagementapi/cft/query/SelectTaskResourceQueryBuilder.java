@@ -5,6 +5,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.JoinType;
 
 public class SelectTaskResourceQueryBuilder extends TaskResourceQueryBuilder<TaskResource> {
 
@@ -19,7 +20,9 @@ public class SelectTaskResourceQueryBuilder extends TaskResourceQueryBuilder<Tas
 
     @Override
     public TypedQuery<TaskResource> build() {
-        CriteriaQuery<TaskResource> criteriaQuery = query.distinct(true);
+        root.fetch("taskRoleResources", JoinType.INNER);
+        CriteriaQuery<TaskResource> criteriaQuery = query.select(root).distinct(true);
+
         if (predicate != null) {
             criteriaQuery.where(predicate);
         }
