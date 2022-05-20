@@ -204,8 +204,6 @@ public final class TaskSearchQueryBuilder {
             builder, root
         ));
         return builder.and(predicates.toArray(new Predicate[0]));
-
-
     }
 
     private static List<CFTTaskState> getCftTaskStates(SearchParameterList stateParam) {

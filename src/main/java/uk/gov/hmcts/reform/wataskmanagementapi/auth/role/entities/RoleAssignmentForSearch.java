@@ -25,7 +25,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAtt
 public class RoleAssignmentForSearch {
 
     @EqualsAndHashCode.Exclude
-    private String id; //If we keep the original roleAssignment then won't need this.
+    private String id;
     private String roleName;
     private String classification;
     private String grantType;
