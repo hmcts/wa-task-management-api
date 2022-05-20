@@ -1,0 +1,387 @@
+---
+roleAssignments:
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: ORGANISATION
+    roleName: tribunal-caseworker
+    classification: PUBLIC
+    grantType: STANDARD
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+    authorisations:
+
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: ORGANISATION
+    roleName: case-allocator
+    classification: PUBLIC
+    grantType: STANDARD
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+    authorisations:
+
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: ORGANISATION
+    roleName: task-supervisor
+    classification: PUBLIC
+    grantType: STANDARD
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+    authorisations:
+
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1648824275071941
+    authorisations:
+
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070261515249
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071562813135
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1648824194842828
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071633264425
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070919067361
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070134588746
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071337496083
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071653545554
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070328922644
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649069868635053
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070418912638
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071154555482
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070866554882
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071249688579
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071462517828
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649071052257934
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649070382420113
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649069999145733
+    authorisations:
+    
+  - actorIdType: IDAM
+    actorId: user-001
+    roleType: CASE
+    roleName: case-manager
+    classification: RESTRICTED
+    grantType: SPECIFIC
+    roleCategory: LEGAL_OPERATIONS
+    readOnly: false
+    beginTime:
+    endTime:
+    created:
+    attributes:
+      jurisdiction: IA
+      caseType: Asylum
+      caseId: 1649069581675766
+    authorisations:
+    
