@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.sql.DataSource;
+
 import org.springframework.stereotype.Service;
 import org.zalando.problem.violations.Violation;
 
@@ -18,6 +20,7 @@ import net.hmcts.taskperf.model.SearchRequest;
 import net.hmcts.taskperf.model.User;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -35,19 +38,42 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 @Service
 public class TaskSearchAdaptor {
 
+	public static final boolean ENABLED = false;
 	private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
+    private final DataSource dataSource;
 
     public TaskSearchAdaptor(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
-                           TaskResourceRepository taskResourceRepository) {
+                           TaskResourceRepository taskResourceRepository,
+                           DataSource dataSource) {
 		this.cftTaskMapper = cftTaskMapper;
 		this.taskResourceRepository = taskResourceRepository;
+		this.dataSource = dataSource;
 	}
 
+    public boolean isEnabled()
+    {
+    	return ENABLED;
+    }
+
+    /*
+     * TODO: not at all sure this is the right way to get the connection for the
+     *       current request.  For performance testing, need to ensure that this
+     *       is not creating a new connection, but using the same connection that
+     *       will be used, for example, to retrieve the full task objects once
+     *       the sorted IDs have been retrieved.
+     */
     private Connection getConnection()
     {
-    	throw new UnsupportedOperationException("Adaptor.getConnection needs to be implemented.");
+    	try
+    	{
+    		return dataSource.getConnection();
+    	}
+    	catch (SQLException e)
+    	{
+    		throw new RuntimeException("Adaptor failed to get the connection.", e);
+    	}
     }
 
 	/**
@@ -57,7 +83,7 @@ public class TaskSearchAdaptor {
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
     ) {
         validateRequest(searchTaskRequest);
@@ -80,7 +106,7 @@ public class TaskSearchAdaptor {
         		permissionsRequired,
         		new Pagination(firstResult, maxResults),
         		searchTaskRequest.getSortingParameters());
-        User user = new User(accessControlResponse.getRoleAssignments());
+        User user = new User(roleAssignments);
         SearchRequest searchRequest = new SearchRequest(clientQuery, user);
         try
         {
@@ -91,15 +117,15 @@ public class TaskSearchAdaptor {
 	        		.collect(Collectors.toList());
 	        // 2. Retrieve the full TaskResource data for each task ID, in the right order.
 	        List<TaskResource> taskResources = getTaskResources(orderedTaskIds);
-	
+
 	        final List<Task> tasks = taskResources.stream()
 	            .map(taskResource ->
 	                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
 	                    taskResource,
-	                    accessControlResponse.getRoleAssignments())
+                        roleAssignments)
 	            )
 	            .collect(Collectors.toList());
-	
+
 	        return new GetTasksResponse<>(tasks, results.getTotalCount());
         }
         catch (SQLException e)
@@ -161,7 +187,7 @@ public class TaskSearchAdaptor {
 	 */
 	private void validateRequest(SearchTaskRequest searchTaskRequest) {
 	    List<Violation> violations = new ArrayList<>();
-	
+
 	    //Validate work-type
 	    List<SearchParameterList> workType = new ArrayList<>();
 	    for (SearchParameter<?> sp : searchTaskRequest.getSearchParameters()) {
@@ -169,7 +195,7 @@ public class TaskSearchAdaptor {
 	            workType.add((SearchParameterList) sp);
 	        }
 	    }
-	
+
 	    if (!workType.isEmpty()) {
 	        //validate work type
 	        SearchParameterList workTypeParameter = workType.get(0);
@@ -184,7 +210,7 @@ public class TaskSearchAdaptor {
 	            }
 	        });
 	    }
-	
+
 	    if (!violations.isEmpty()) {
 	        throw new CustomConstraintViolationException(violations);
 	    }
