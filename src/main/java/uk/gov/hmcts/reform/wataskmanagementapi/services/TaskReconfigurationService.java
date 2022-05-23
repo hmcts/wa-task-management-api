@@ -33,8 +33,8 @@ public class TaskReconfigurationService {
         List<TaskResource> taskResources = caseIds.stream()
             .map(caseId -> cftTaskDatabaseService.findByCaseIdOnly((String) caseId))
             .flatMap(Collection::stream)
-            .filter(task -> task.getState().equals(CFTTaskState.ASSIGNED) || task.getState().equals(CFTTaskState.UNASSIGNED))
-            .filter(task -> Objects.isNull(task.getReconfigureRequestTime()))
+            .filter(task -> (task.getState().equals(CFTTaskState.ASSIGNED) || task.getState().equals(CFTTaskState.UNASSIGNED))
+                            && Objects.isNull(task.getReconfigureRequestTime()))
             .collect(Collectors.toList());
 
         taskResources.stream()
