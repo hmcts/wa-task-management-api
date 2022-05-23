@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import lombok.Value;
 import net.hmcts.taskperf.model.ClientFilter;
+import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
 import net.hmcts.taskperf.model.SearchRequest;
 import net.hmcts.taskperf.service.sql.SqlStatement;
@@ -87,6 +88,11 @@ public class TaskSearch
 	private final List<Task> tasks = new ArrayList<>();
 
 	/**
+	 * The permissions the user must have for tasks returned.
+	 */
+	private final Set<String> permissions;
+
+	/**
 	 * The SQL statement to retrieve the requested page of tasks.
 	 */
 	private final SqlStatement searchStatement = new SqlStatement();
@@ -131,27 +137,28 @@ public class TaskSearch
 	 */
 	private int limit;
 
-	public static Results searchTasks(SearchRequest searchRequest, Connection connection, boolean explainQueries) throws SQLException
+	public static Results searchTasks(ClientQuery clientQuery, List<RoleAssignment> roleAssignments, Connection connection, boolean explainQueries) throws SQLException
 	{
-		TaskSearch taskSearch = new TaskSearch(searchRequest, explainQueries);
+		TaskSearch taskSearch = new TaskSearch(clientQuery, roleAssignments, explainQueries);
 		taskSearch.run(connection);
 		return new Results(taskSearch.totalCount, taskSearch.tasks, taskSearch.queryPlans, taskSearch.log);
 	}
 
-	private TaskSearch(SearchRequest searchRequest, boolean explainQueries)
+	private TaskSearch(ClientQuery clientQuery, List<RoleAssignment> roleAssignments, boolean explainQueries)
 	{
 		this.startTime = System.currentTimeMillis();
 		log("Started");
 		this.explainQueries = explainQueries;
-		this.clientFilter = ClientFilter.of(searchRequest.getQuery());
-		Set<RoleAssignment> roleAssignments = RoleAssignmentHelper.filterRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter);
-		this.roleSignatures = RoleAssignmentHelper.buildRoleSignatures(roleAssignments, clientFilter.getPermissions());
+		this.clientFilter = ClientFilter.of(clientQuery);
+		Set<RoleAssignment> filteredroleAssignments = RoleAssignmentHelper.filterRoleAssignments(roleAssignments, clientFilter);
+		this.permissions = buildPermissions(clientFilter);
+		this.roleSignatures = RoleAssignmentHelper.buildRoleSignatures(filteredroleAssignments, permissions);
 		this.filterSignatures = FilterHelper.buildFilterSignatures(clientFilter);
-		buildExtraConstraints(searchRequest, SEARCH_SQL_TASK_ALIAS);
-		Pagination pagination = searchRequest.getQuery().getPagination();
+		buildExtraConstraints(filteredroleAssignments, SEARCH_SQL_TASK_ALIAS);
+		Pagination pagination = clientQuery.getPagination();
 		offset = pagination.getFirstResult();
 		limit = pagination.getMaxResults();
-		orderBy = searchRequest.getQuery().getSort();
+		orderBy = clientQuery.getSort();
 		log("Starting to build queries");
 		buildSearchSqlStatement();
 		log("Search query built");
@@ -183,10 +190,37 @@ public class TaskSearch
 		log("Finished count");
 	}
 
+	private static Set<String> buildPermissions(ClientFilter clientFilter)
+	{
+		Set<String> permissions = new HashSet<>();
+		if (clientFilter.isAvailableTasksOnly())
+		{
+			// TODO: should be changed to use the claim permission, once available
+			// TODO: currently removes the permission requested when it is not one
+			//       of the 'available' permissions.  Arguably this should return
+			//       tasks where the user has BOTH any of the available task
+			//       permissions AND any of the requested permissions.  But that
+			//       makes the query complex - we should probably not expose
+			//       the ability to request specific permissions through the API,
+			//       but flags/properties for particular types of query, which
+			//       we then interpret to determine what permissions we should
+			//       search for.  (There are other reasons for this, too - we
+			//       don't want to have to index on all the permissions, just
+			//       the ones we need for the search scenarios we have to support.
+			permissions.add("o");
+			permissions.add("x");
+		}
+		else
+		{
+			permissions.add("r");
+		}
+		return permissions;
+	}
+
 	/**
 	 * The SQL for doing the actual search for tasks.
 	 */
-	private static final String SEARCH_SQL = "" +	
+	private static final String SEARCH_SQL = "" +
 		    "select t.task_id\n" +
 		    "from   cft_task_db.tasks t\n" +
 		    "where  indexed\n" +
@@ -214,17 +248,17 @@ public class TaskSearch
 		searchStatement.addParameter(limit);
 	}
 
-	private void buildExtraConstraints(SearchRequest searchRequest, String alias)
+	private void buildExtraConstraints(Set<RoleAssignment> roleAssignments, String alias)
 	{
 		buildExtraConstraint(clientFilter.getCaseIds(), alias, "case_id", true);
 		buildExtraConstraint(clientFilter.getAssignees(), alias, "assignee", true);
 		buildExtraConstraint(clientFilter.getTaskTypes(), alias, "task_type", true);
 		buildExtraConstraint(clientFilter.getTaskIds(), alias, "task_id", true);
 		buildExtraConstraint(
-				buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter)),
+				buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(roleAssignments, clientFilter)),
 				alias, "case_id", false);
+		buildAvailableTasksOnlyConstraint(alias);
 	}
-
 
 	private void buildExtraConstraint(Set<String> values, String alias, String column, boolean include)
 	{
@@ -242,6 +276,15 @@ public class TaskSearch
 			}
 		}
 	}
+
+	private void buildAvailableTasksOnlyConstraint(String alias)
+	{
+		if (clientFilter.isAvailableTasksOnly())
+		{
+			extraConstraints += "\nand " + alias + ".assignee is null";
+		}
+	}
+
 	private Set<String> buildExcludedCaseIds(Set<RoleAssignment> roleAssignments)
 	{
 		return
@@ -267,17 +310,17 @@ public class TaskSearch
 
 	private static final Map<String, String> SORT_COLUMNS =
 			Stream.of(new String[][] {
-				{ "duedate", "due_date_time" }, 
-				{ "due_date", "due_date_time" }, 
-				{ "tasktitle", "task_title" }, 
-				{ "task_title", "task_title" }, 
-				{ "locationname", "location_name" }, 
-				{ "location_name", "location_name" }, 
-				{ "casecategory", "case_category" }, 
-				{ "case_category", "case_category" }, 
-				{ "caseid", "case_id" }, 
-				{ "case_id", "case_id" }, 
-				{ "casename", "case_name" }, 
+				{ "duedate", "due_date_time" },
+				{ "due_date", "due_date_time" },
+				{ "tasktitle", "task_title" },
+				{ "task_title", "task_title" },
+				{ "locationname", "location_name" },
+				{ "location_name", "location_name" },
+				{ "casecategory", "case_category" },
+				{ "case_category", "case_category" },
+				{ "caseid", "case_id" },
+				{ "case_id", "case_id" },
+				{ "casename", "case_name" },
 				{ "case_name", "case_name" }
 			}).collect(Collectors.toMap(data -> data[0], data -> data[1]));
 
@@ -326,7 +369,7 @@ public class TaskSearch
 	 */
 	private static String COUNT_SQL = "" +
 			"select count(*) as count\n" +
-			"from   cft_task_db.tasks t\n" + 
+			"from   cft_task_db.tasks t\n" +
 			"where  indexed\n" +
 			"and    state in ('ASSIGNED','UNASSIGNED')\n" +
 			"and    cft_task_db.filter_signatures(task_id) && ?\n" +

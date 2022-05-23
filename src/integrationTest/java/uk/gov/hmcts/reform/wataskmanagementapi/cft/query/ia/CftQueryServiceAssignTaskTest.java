@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     @Autowired
     private EntityManager entityManager;
 
+    @MockBean
+    private TaskSearchAdaptor taskSearchAdaptor;
+
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
@@ -70,7 +74,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration
+                                              allowedJurisdictionConfiguration, taskSearchAdaptor
         );
     }
 
@@ -395,7 +399,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     }
 
     private static Stream<GrantType> getGrantTypes() {
-        return Stream.of(GrantType.STANDARD, GrantType.SPECIFIC);
+        return Stream.of(GrantType.BASIC, GrantType.STANDARD, GrantType.SPECIFIC);
     }
 
 }

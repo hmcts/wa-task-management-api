@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,11 +83,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    @MockBean
+    private TaskSearchAdaptor taskSearchAdaptor;
+
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
         cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
-                                              allowedJurisdictionConfiguration
+                                              allowedJurisdictionConfiguration, taskSearchAdaptor
         );
     }
 

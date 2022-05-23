@@ -43,10 +43,9 @@ public class Main
 		String searchId = args[0];
 		User user = Loader.loadUser(userId);
 		ClientQuery clientQuery = Loader.loadClientQuery(searchId);
-		SearchRequest searchRequest = new SearchRequest(clientQuery, user);
 		try (Connection connection = getTaskDbConnection())
 		{
-			TaskSearch.Results searchResults = TaskSearch.searchTasks(searchRequest, connection, EXPLAIN_QUERIES);
+			TaskSearch.Results searchResults = TaskSearch.searchTasks(clientQuery, user.getRoleAssignments(), connection, EXPLAIN_QUERIES);
 			System.out.println("Results\n*******");
 			System.out.println("Count : " + searchResults.getTotalCount());
 			for (Task task : searchResults.getTasks())
