@@ -99,7 +99,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         assignerPermissionsRequired.add(PermissionTypes.MANAGE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-            assignerAccessControlResponse,
+            assignerAccessControlResponse.getRoleAssignments(),
             assignerPermissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
@@ -124,7 +124,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         assigneePermissionsRequired.add(EXECUTE);
 
         final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
-            assigneeAccessControlResponse,
+            assigneeAccessControlResponse.getRoleAssignments(),
             assigneePermissionsRequired);
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
@@ -155,7 +155,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.MANAGE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
@@ -180,7 +182,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         assigneePermissionsRequired.add(EXECUTE);
 
         final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
-            assigneeAccessControlResponse,
+            assigneeAccessControlResponse.getRoleAssignments(),
             assigneePermissionsRequired);
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
@@ -210,7 +212,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(MANAGE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
@@ -237,7 +241,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(MANAGE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
@@ -263,7 +269,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
@@ -290,7 +298,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.EXECUTE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
@@ -317,7 +327,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.OWN);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isEmpty()).isTrue();
     }
 
@@ -343,7 +355,9 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(MANAGE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId, accessControlResponse, permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
+        );
         Assertions.assertThat(task.isEmpty()).isTrue();
     }
 

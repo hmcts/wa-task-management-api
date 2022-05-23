@@ -100,7 +100,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             scenario.firstResult,
             scenario.maxResults,
             scenario.searchTaskRequest,
-            accessControlResponse,
+            accessControlResponse.getRoleAssignments(),
             permissionsRequired
         );
 
@@ -136,7 +136,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult, scenario.maxResults, scenario.searchTaskRequest,
-            accessControlResponse, permissionsRequired
+            accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
         //then
@@ -157,14 +157,14 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
-                -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
+                -1, 1, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             ))
             .hasNoCause()
             .hasMessage("Offset index must not be less than zero");
 
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
-                0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
+                0, 0, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
