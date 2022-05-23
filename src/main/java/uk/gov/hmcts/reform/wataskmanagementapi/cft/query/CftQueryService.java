@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirementBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionRequirements;
@@ -50,17 +52,35 @@ public class CftQueryService {
 
     private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
+    private final TaskSearchAdaptor taskSearchAdaptor;
+
     public CftQueryService(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
                            TaskResourceDao taskResourceDao,
-                           AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
+                           AllowedJurisdictionConfiguration allowedJurisdictionConfiguration,
+                           TaskSearchAdaptor taskSearchAdaptor) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
         this.taskResourceDao = taskResourceDao;
         this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
+        this.taskSearchAdaptor = taskSearchAdaptor;
     }
 
     public GetTasksResponse<Task> searchForTasks(
+        int firstResult,
+        int maxResults,
+        SearchTaskRequest searchTaskRequest,
+        List<RoleAssignment> roleAssignments,
+        List<PermissionTypes> permissionsRequired
+    ) {
+        if (taskSearchAdaptor.isEnabled()) {
+            return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
+        } else {
+            return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
+        }
+    }
+
+    private GetTasksResponse<Task> originalSearchForTasks(
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
