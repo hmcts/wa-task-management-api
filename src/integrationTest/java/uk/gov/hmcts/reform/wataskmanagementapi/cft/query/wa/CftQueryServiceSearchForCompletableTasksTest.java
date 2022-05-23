@@ -12,7 +12,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -87,9 +86,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         when(camundaService.getVariableValue(any(), any())).thenReturn("processApplication");
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(searchEventAndCase,
-            accessControlResponse, permissionsRequired);
+            roleAssignments, permissionsRequired);
         Assertions.assertThat(task).isNotNull();
         Assertions.assertThat(task.isTaskRequiredForEvent()).isTrue();
         Assertions.assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
@@ -141,9 +139,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         when(camundaService.getVariableValue(any(), any())).thenReturn("processApplication");
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(searchEventAndCase,
-            accessControlResponse, permissionsRequired);
+            roleAssignments, permissionsRequired);
         Assertions.assertThat(task).isNotNull();
         Assertions.assertThat(task.isTaskRequiredForEvent()).isTrue();
         Assertions.assertThat(task.getTasks().size()).isEqualTo(0);
@@ -181,9 +178,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         when(camundaService.getVariableValue(any(), any())).thenReturn("processApplication");
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(searchEventAndCase,
-            accessControlResponse, permissionsRequired);
+            roleAssignments, permissionsRequired);
         Assertions.assertThat(task).isNotNull();
         Assertions.assertThat(task.isTaskRequiredForEvent()).isTrue();
         Assertions.assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
@@ -235,9 +231,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         when(camundaService.getVariableValue(any(), any())).thenReturn("processApplication");
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(searchEventAndCase,
-            accessControlResponse, permissionsRequired);
+            roleAssignments, permissionsRequired);
         Assertions.assertThat(task).isNotNull();
         Assertions.assertThat(task.isTaskRequiredForEvent()).isTrue();
         Assertions.assertThat(task.getTasks().size()).isEqualTo(0);
@@ -275,9 +270,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         when(camundaService.getVariableValue(any(), any())).thenReturn("processApplication");
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(searchEventAndCase,
-            accessControlResponse, permissionsRequired);
+            roleAssignments, permissionsRequired);
         Assertions.assertThat(task).isNotNull();
         Assertions.assertThat(task.isTaskRequiredForEvent()).isTrue();
         Assertions.assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
@@ -329,9 +323,8 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
 
         when(camundaService.getVariableValue(any(), any())).thenReturn("processApplication");
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         final GetTasksCompletableResponse<Task> task = cftQueryService.searchForCompletableTasks(searchEventAndCase,
-            accessControlResponse, permissionsRequired);
+            roleAssignments, permissionsRequired);
         Assertions.assertThat(task).isNotNull();
         Assertions.assertThat(task.isTaskRequiredForEvent()).isTrue();
         Assertions.assertThat(task.getTasks().get(0).getCaseId()).isEqualTo(caseId);
