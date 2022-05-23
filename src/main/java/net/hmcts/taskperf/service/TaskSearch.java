@@ -25,11 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortField;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 /**
- * Main task for performing a task search:
- *   1. Runs the search of task headers.
- *   2. Collates the results in a TaskPaginator, sorting and paginating dynamically.
- *   3. Retrieves the full task data for each task in the requested page of results.
- *   4. Returns all the task data and a count of the total of matching tasks in the database.
+ * Main process for performing a task search.
  */
 public class TaskSearch
 {
@@ -191,19 +187,14 @@ public class TaskSearch
 	 * The SQL for doing the actual search for tasks.
 	 */
 	private static final String SEARCH_SQL = "" +	
-		    "select t2.*,\n" +
-		    "       (select array_agg(array[r.role_name, r.read::text||r.own::text||r.execute::text||r.manage::text||r.cancel::text] || r.authorizations)\n" +
-		    "        from cft_task_db.task_roles r where r.task_id = t2.task_id) as permissions\n" +
-		    "from   cft_task_db.tasks t2\n" +
-		    "where  t2.task_id in (\n" +
-		    "        select t.task_id\n" +
-		    "        from   cft_task_db.tasks t\n" +
-		    "        where  indexed\n" +
-		    "        and    state in ('ASSIGNED','UNASSIGNED')\n" +
-		    "        and    cft_task_db.filter_signatures(task_id) && ?\n" +
-		    "        and    cft_task_db.role_signatures(task_id) && ?[EXTRA_CONSTRAINTS]\n" +
-		    "        order by [ORDER_BY]t.major_priority desc, t.priority_date_time desc, t.minor_priority desc\n" +
-		    "        offset ? limit ?)";
+		    "select t.task_id\n" +
+		    "from   cft_task_db.tasks t\n" +
+		    "where  indexed\n" +
+		    "and    state in ('ASSIGNED','UNASSIGNED')\n" +
+		    "and    cft_task_db.filter_signatures(t.task_id) && ?\n" +
+		    "and    cft_task_db.role_signatures(t.task_id) && ?[EXTRA_CONSTRAINTS]\n" +
+		    "order by [ORDER_BY]t.major_priority desc, t.priority_date_time desc, t.minor_priority desc\n" +
+		    "offset ? limit ?";
 
 	private static final String SEARCH_SQL_TASK_ALIAS = "t";
 
@@ -225,78 +216,32 @@ public class TaskSearch
 
 	private void buildExtraConstraints(SearchRequest searchRequest, String alias)
 	{
-		Set<String> caseIds = clientFilter.getCaseIds();
-		if (caseIds != null && !caseIds.isEmpty())
+		buildExtraConstraint(clientFilter.getCaseIds(), alias, "case_id", true);
+		buildExtraConstraint(clientFilter.getAssignees(), alias, "assignee", true);
+		buildExtraConstraint(clientFilter.getTaskTypes(), alias, "task_type", true);
+		buildExtraConstraint(clientFilter.getTaskIds(), alias, "task_id", true);
+		buildExtraConstraint(
+				buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter)),
+				alias, "case_id", false);
+	}
+
+
+	private void buildExtraConstraint(Set<String> values, String alias, String column, boolean include)
+	{
+		if (values != null && !values.isEmpty())
 		{
-			if (caseIds.size() == 1)
+			if (values.size() == 1)
 			{
-				extraConstraints += "\nand " + alias + ".case_id = ?";
-				extraConstraintParameters.add(caseIds.stream().findFirst().get());
+				extraConstraints += "\nand " + alias + "." + column + (include ? " = " : " <> ") + "?";
+				extraConstraintParameters.add(values.stream().findFirst().get());
 			}
 			else
 			{
-				extraConstraints += "\nand " + alias + ".case_id in ?";
-				extraConstraintParameters.add(caseIds);
-			}
-		}
-		Set<String> assignees = clientFilter.getAssignees();
-		if (assignees != null && !assignees.isEmpty())
-		{
-			if (assignees.size() == 1)
-			{
-				extraConstraints += "\nand " + alias + ".assignee = ?";
-				extraConstraintParameters.add(assignees.stream().findFirst().get());
-			}
-			else
-			{
-				extraConstraints += "\nand " + alias + ".assignee in ?";
-				extraConstraintParameters.add(assignees);
-			}
-		}
-		Set<String> taskTypes = clientFilter.getTaskTypes();
-		if (taskTypes != null && !taskTypes.isEmpty())
-		{
-			if (taskTypes.size() == 1)
-			{
-				extraConstraints += "\nand " + alias + ".task_type = ?";
-				extraConstraintParameters.add(taskTypes.stream().findFirst().get());
-			}
-			else
-			{
-				extraConstraints += "\nand " + alias + ".task_type in ?";
-				extraConstraintParameters.add(taskTypes);
-			}
-		}
-		Set<String> taskIds = clientFilter.getTaskIds();
-		if (taskIds != null && !taskIds.isEmpty())
-		{
-			if (taskIds.size() == 1)
-			{
-				extraConstraints += "\nand " + alias + ".task_id = ?";
-				extraConstraintParameters.add(taskIds.stream().findFirst().get());
-			}
-			else
-			{
-				extraConstraints += "\nand " + alias + ".task_id in ?";
-				extraConstraintParameters.add(taskIds);
-			}
-		}
-		Set<String> excludedCaseIds = buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter));
-		if (!excludedCaseIds.isEmpty())
-		{
-			if (excludedCaseIds.size() == 1)
-			{
-				extraConstraints += "\nand not " + alias + ".case_id = ?";
-				extraConstraintParameters.add(excludedCaseIds.stream().findFirst().get());
-			}
-			else
-			{
-				extraConstraints += "\nand not " + alias + ".case_id = any(?)";
-				extraConstraintParameters.add(excludedCaseIds);
+				extraConstraints += "\nand " + (include ? "" : "not ") + alias + "." + column + " = any(?)";
+				extraConstraintParameters.add(values);
 			}
 		}
 	}
-
 	private Set<String> buildExcludedCaseIds(Set<RoleAssignment> roleAssignments)
 	{
 		return
