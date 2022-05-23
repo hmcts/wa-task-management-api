@@ -253,6 +253,34 @@ public class TaskSearch
 				extraConstraintParameters.add(assignees);
 			}
 		}
+		Set<String> taskTypes = clientFilter.getTaskTypes();
+		if (taskTypes != null && !taskTypes.isEmpty())
+		{
+			if (taskTypes.size() == 1)
+			{
+				extraConstraints += "\nand " + alias + ".task_type = ?";
+				extraConstraintParameters.add(taskTypes.stream().findFirst().get());
+			}
+			else
+			{
+				extraConstraints += "\nand " + alias + ".task_type in ?";
+				extraConstraintParameters.add(taskTypes);
+			}
+		}
+		Set<String> taskIds = clientFilter.getTaskIds();
+		if (taskIds != null && !taskTypes.isEmpty())
+		{
+			if (taskIds.size() == 1)
+			{
+				extraConstraints += "\nand " + alias + ".task_id = ?";
+				extraConstraintParameters.add(taskIds.stream().findFirst().get());
+			}
+			else
+			{
+				extraConstraints += "\nand " + alias + ".task_id in ?";
+				extraConstraintParameters.add(taskIds);
+			}
+		}
 		Set<String> excludedCaseIds = buildExcludedCaseIds(RoleAssignmentHelper.exclusionRoleAssignments(searchRequest.getUser().getRoleAssignments(), clientFilter));
 		if (!excludedCaseIds.isEmpty())
 		{
