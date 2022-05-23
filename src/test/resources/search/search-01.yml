@@ -6,6 +6,7 @@ listFilters:
   - key: jurisdiction
     operator: IN
     values: [IA, SSCS]
+permissions: [Read]
 pagination:
   firstResult: 0
   maxResults: 25
