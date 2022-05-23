@@ -3,7 +3,6 @@ package net.hmcts.taskperf.model;
 import java.util.List;
 
 import lombok.Value;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
@@ -19,7 +18,6 @@ public class ClientQuery
 {
 	private List<SearchParameterList> listFilters;
 	private List<SearchParameterBoolean> booleanFilters;
-	private List<PermissionTypes> permissions;
 	private Pagination pagination;
 	private List<SortingParameter> sort;
 }

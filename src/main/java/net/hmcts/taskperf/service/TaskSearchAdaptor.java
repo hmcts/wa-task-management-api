@@ -104,15 +104,12 @@ public class TaskSearchAdaptor {
         ClientQuery clientQuery = new ClientQuery(
         		getSearchParameterLists(searchTaskRequest),
         		getSearchParameterBooleans(searchTaskRequest),
-        		permissionsRequired,
         		new Pagination(firstResult, maxResults),
         		searchTaskRequest.getSortingParameters());
-        User user = new User(roleAssignments);
-        SearchRequest searchRequest = new SearchRequest(clientQuery, user);
         try
         {
             // 1.2 Run the search and build an ordered list of the task IDs.
-        	TaskSearch.Results results = TaskSearch.searchTasks(searchRequest, getConnection(), EXPLAIN_QUERIES);
+        	TaskSearch.Results results = TaskSearch.searchTasks(clientQuery, roleAssignments, getConnection(), EXPLAIN_QUERIES);
 	        List<String> orderedTaskIds = results.getTasks().stream()
 	        		.map(t -> t.getAttributes().get("task_id").toString())
 	        		.collect(Collectors.toList());

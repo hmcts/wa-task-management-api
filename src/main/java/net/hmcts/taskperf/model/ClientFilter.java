@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.Value;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
@@ -34,7 +33,7 @@ public class ClientFilter
 	private Set<String> locations;
 	private Set<String> caseIds;
 	private Set<String> assignees;
-	private Set<String> permissions;
+	private boolean availableTasksOnly;
 
 	public static ClientFilter of(ClientQuery clientQuery)
 	{
@@ -52,37 +51,23 @@ public class ClientFilter
 				getConstraints(searchParameters, SearchParameterKey.LOCATION),
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
 				getConstraints(searchParameters, SearchParameterKey.USER),
-				permissions(clientQuery.getPermissions()));
+				availableTasksOnly(clientQuery));
 	}
 
-	private static Set<String> permissions(List<PermissionTypes> permissionTypes)
+	private static boolean availableTasksOnly(ClientQuery clientQuery)
 	{
 		return
-				permissionTypes.stream()
-				.map(ClientFilter::mapPermissionType)
-				.filter(p -> p != null)
-				.collect(Collectors.toSet());
+				clientQuery.getBooleanFilters() != null &&
+				clientQuery.getBooleanFilters().stream()
+				.anyMatch(ClientFilter::isAvailableTasksOnly);
 	}
 
-	private static String mapPermissionType(PermissionTypes permissionTypes)
+	private static boolean isAvailableTasksOnly(SearchParameterBoolean searchParameter)
 	{
-		String code;
-		switch (permissionTypes)
-		{
-		case READ:
-			code = "r";
-			break;
-		case OWN:
-			code = "o";
-			break;
-		case EXECUTE:
-			code = "x";
-			break;
-		default:
-			code = null;
-			break;
-		}
-		return code;
+		return
+				searchParameter.getKey().equals(SearchParameterKey.AVAILABLE_TASKS_ONLY) &&
+				searchParameter.getOperator().equals(SearchOperator.BOOLEAN) &&
+				searchParameter.getValues();
 	}
 
 	/**
