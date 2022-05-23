@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
@@ -64,6 +65,8 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
+    private RoleAssignmentVerificationService roleAssignmentVerificationService;
+
     @Bean
     @Primary
     public SearchRequestCustomDeserializer searchRequestCustomDeserializer() {
@@ -79,16 +82,20 @@ public class TaskManagementProviderTestConfiguration {
     @Bean
     @Primary
     public TaskManagementService taskManagementService() {
+        roleAssignmentVerificationService = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         return new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerificationService
         );
     }
 
