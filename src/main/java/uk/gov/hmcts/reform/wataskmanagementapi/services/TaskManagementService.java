@@ -718,7 +718,7 @@ public class TaskManagementService {
 
     public void performOperation(TaskOperationRequest taskOperationRequest) {
 
-        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.mark_to_reconfigure)) {
+        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
             taskReconfigurationService.markTasksToReconfigure(taskOperationRequest.getTaskFilters());
         }
     }

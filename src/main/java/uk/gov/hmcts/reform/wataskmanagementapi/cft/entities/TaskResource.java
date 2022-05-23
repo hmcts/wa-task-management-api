@@ -52,6 +52,7 @@ public class TaskResource implements Serializable {
 
     private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
+    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -59,7 +60,7 @@ public class TaskResource implements Serializable {
     private String taskName;
     private String taskType;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -96,7 +97,7 @@ public class TaskResource implements Serializable {
     private String roleCategory;
     private Boolean hasWarnings = false;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime assignmentExpiry;
     @EqualsAndHashCode.Include()
     private String caseId;
@@ -116,7 +117,7 @@ public class TaskResource implements Serializable {
 
     private String terminationReason;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -131,7 +132,7 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = JSONB)
     private Map<String, String> additionalProperties;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reconfigureRequestTime;
 
     protected TaskResource() {
