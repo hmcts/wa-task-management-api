@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Value;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey;
@@ -26,6 +28,8 @@ public class ClientFilter
 	private Set<String> jurisdictions;
 	private Set<String> roleCategories;
 	private Set<String> workTypes;
+	private Set<String> taskTypes;
+	private Set<String> taskIds;
 	private Set<String> regions;
 	private Set<String> locations;
 	private Set<String> caseIds;
@@ -37,52 +41,48 @@ public class ClientFilter
 		List<SearchParameter<?>> searchParameters = new ArrayList<>();
 		if (clientQuery.getListFilters() != null) searchParameters.addAll(clientQuery.getListFilters());
 		if (clientQuery.getBooleanFilters() != null) searchParameters.addAll(clientQuery.getBooleanFilters());
-		// Throw an exception if there is any parameter given that we don't currently cope with.
-		limitSupport(searchParameters);
 		return new ClientFilter(
 				getConstraints(searchParameters, SearchParameterKey.STATE),
 				getConstraints(searchParameters, SearchParameterKey.JURISDICTION),
 				getConstraints(searchParameters, SearchParameterKey.ROLE_CATEGORY),
 				getConstraints(searchParameters, SearchParameterKey.WORK_TYPE),
+				getConstraints(searchParameters, SearchParameterKey.TASK_TYPE),
+				getConstraints(searchParameters, SearchParameterKey.TASK_ID),
 				new HashSet<>(), // region not yet required in filter.
 				getConstraints(searchParameters, SearchParameterKey.LOCATION),
 				getConstraints(searchParameters, SearchParameterKey.CASE_ID),
 				getConstraints(searchParameters, SearchParameterKey.USER),
-				permissions(searchParameters));
+				permissions(clientQuery.getPermissions()));
 	}
 
-	private static Set<String> permissions(List<SearchParameter<?>> searchParameters)
-	{
-		Set<String> permissions = new HashSet<>();
-		if (searchParameters.stream().anyMatch(
-				sp ->
-					sp.getKey().equals(SearchParameterKey.AVAILABLE_TASKS_ONLY) &&
-					sp.getOperator().equals(SearchOperator.BOOLEAN) &&
-					sp.getValues().equals(true)))
-		{
-			permissions.add("o");
-			permissions.add("x");
-		}
-		else
-		{
-			permissions.add("r");
-		}
-		return permissions;
-	}
-
-	private static void limitSupport(List<SearchParameter<?>> searchParameters)
-	{
-		if (searchParameters.stream().anyMatch(p -> unsupported(p)))
-		{
-			throw new RuntimeException("Unsupported search parameter." + searchParameters);
-		}
-	}
-
-	private static boolean unsupported(SearchParameter<?> searchParameter)
+	private static Set<String> permissions(List<PermissionTypes> permissionTypes)
 	{
 		return
-				searchParameter.getKey().equals(SearchParameterKey.TASK_ID) ||
-				searchParameter.getKey().equals(SearchParameterKey.TASK_TYPE);
+				permissionTypes.stream()
+				.map(ClientFilter::mapPermissionType)
+				.filter(p -> p != null)
+				.collect(Collectors.toSet());
+	}
+
+	private static String mapPermissionType(PermissionTypes permissionTypes)
+	{
+		String code;
+		switch (permissionTypes)
+		{
+		case READ:
+			code = "r";
+			break;
+		case OWN:
+			code = "o";
+			break;
+		case EXECUTE:
+			code = "x";
+			break;
+		default:
+			code = null;
+			break;
+		}
+		return code;
 	}
 
 	/**
