@@ -40,7 +40,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 
 import java.util.List;
 import java.util.Optional;
-import javax.validation.Valid;
 
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -102,7 +101,7 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Claim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = NO_CONTENT,  content = {
+        @ApiResponse(responseCode = "204", description = NO_CONTENT, content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
@@ -126,7 +125,7 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Unclaim the identified Task for the currently logged in user.")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task unclaimed",  content = {
+        @ApiResponse(responseCode = "204", description = "Task unclaimed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
@@ -245,12 +244,12 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "Update Task with notes")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Updated Task with notes",content = {
+        @ApiResponse(responseCode = "204", description = "Updated Task with notes", content = {
             @Content(mediaType = APPLICATION_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
-        @ApiResponse(responseCode = "400", description = BAD_REQUEST,content = {
+        @ApiResponse(responseCode = "400", description = BAD_REQUEST, content = {
             @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
-        @ApiResponse(responseCode = "404", description = NOT_FOUND,content = {
+        @ApiResponse(responseCode = "404", description = NOT_FOUND, content = {
             @Content(mediaType = APPLICATION_PROBLEM_JSON_VALUE, schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "415", description = UNSUPPORTED_MEDIA_TYPE),
         @ApiResponse(responseCode = "500", description = INTERNAL_SERVER_ERROR)
@@ -261,7 +260,7 @@ public class TaskActionsController extends BaseController {
     public ResponseEntity<Void> updatesTaskWithNotes(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
         @PathVariable(TASK_ID) String taskId,
-        @Valid @RequestBody NotesRequest notesRequest
+        @RequestBody NotesRequest notesRequest
     ) {
 
         boolean hasAccess = clientAccessControlService.hasExclusiveAccess(serviceAuthToken);

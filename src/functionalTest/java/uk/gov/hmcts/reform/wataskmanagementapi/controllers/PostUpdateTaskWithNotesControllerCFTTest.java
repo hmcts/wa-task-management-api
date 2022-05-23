@@ -91,16 +91,17 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
     }
 
     @Test
-    public void should_return_a_400_when_the_notes_are_not_provided() throws JsonProcessingException {
+    public void should_return_a_400_when_the_notes_are_not_provided() {
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
 
-        String notesRequest = objectMapper.writeValueAsString(null);
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            notesRequest,
+            "{}",
             caseworkerCredentials.getHeaders()
         );
 
@@ -112,7 +113,7 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
                 "https://github.com/hmcts/wa-task-management-api/problem/bad-request"))
             .body("title", equalTo("Bad Request"))
             .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
-            .body("detail", equalTo("Invalid request message"));
+            .body("detail", equalTo("Bad Request: Invalid request message"));
 
         common.cleanUpTask(taskId);
     }
@@ -122,7 +123,8 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
-
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
         String notesRequest = objectMapper.writeValueAsString(new NotesRequest(emptyList()));
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -140,6 +142,64 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
             .body("title", equalTo("Constraint Violation"))
             .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
             .body("violations[0].field", equalTo("note_resource"))
+            .body("violations[0].message", equalTo("must not be empty"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_400_when_the_notesResource_code_is_invalid() {
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            addNotesWithNonValidCode(),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("code"))
+            .body("violations[0].message", equalTo("must not be empty"));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_return_a_400_when_the_notesResource_note_type_is_invalid() {
+
+        TestVariables taskVariables = common.setupTaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        common.insertTaskInCftTaskDb(taskVariables, "followUpOverdueReasonsForAppeal",
+            caseworkerCredentials.getHeaders());
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            addNotesWithNonValidNoteType(),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.BAD_REQUEST.value())
+            .and()
+            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+            .body("type", equalTo(
+                "https://github.com/hmcts/wa-task-management-api/problem/constraint-validation"))
+            .body("title", equalTo("Constraint Violation"))
+            .body("status", equalTo(HttpStatus.BAD_REQUEST.value()))
+            .body("violations[0].field", equalTo("note_type"))
             .body("violations[0].message", equalTo("must not be empty"));
 
         common.cleanUpTask(taskId);
@@ -247,6 +307,46 @@ public class PostUpdateTaskWithNotesControllerCFTTest extends SpringBootFunction
                + "\"note_type\": \"WARNING\","
                + "\"user_id\": \"some-user\","
                + "\"content\": \"Description2\""
+               + "}"
+               + "]"
+               + "}";
+    }
+
+    @NotNull
+    private String addNotesWithNonValidCode() {
+        return "{\"notes\": "
+               + "["
+               + "{"
+               + "\"code\": \"TA02\","
+               + "\"note_type\": \"WARNING\","
+               + "\"user_id\": \"some-user\","
+               + "\"content\": \"Description2\""
+               + "},"
+               + "{"
+               + "\"code\": \"\","
+               + "\"note_type\": \"note_type\","
+               + "\"user_id\": \"\","
+               + "\"content\": \"\""
+               + "}"
+               + "]"
+               + "}";
+    }
+
+    @NotNull
+    private String addNotesWithNonValidNoteType() {
+        return "{\"notes\": "
+               + "["
+               + "{"
+               + "\"code\": \"TA02\","
+               + "\"note_type\": \"WARNING\","
+               + "\"user_id\": \"some-user\","
+               + "\"content\": \"Description2\""
+               + "},"
+               + "{"
+               + "\"code\": \"Code\","
+               + "\"note_type\": \"\","
+               + "\"user_id\": \"\","
+               + "\"content\": \"\""
                + "}"
                + "]"
                + "}";

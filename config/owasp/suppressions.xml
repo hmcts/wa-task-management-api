@@ -16,30 +16,6 @@
         <cpe>cpe:/a:nim-lang:nim-lang</cpe>
         <cve>CVE-2020-23171</cve>
     </suppress>
-    <suppress until="2022-03-01">
-        <notes><![CDATA[
-     Suppressing as our spring boot version needs to be updated
-   ]]></notes>
-        <cve>CVE-2021-22060</cve>
-    </suppress>
-    <suppress until="2022-03-01">
-        <notes><![CDATA[
-     Suppressing as our spring boot version needs to be updated
-   ]]></notes>
-        <cve>CVE-2018-1258</cve>
-    </suppress>
-    <suppress until="2022-03-01">
-        <notes><![CDATA[
-     Suppressing as our spring security version needs to be updated
-   ]]></notes>
-        <cve>CVE-2021-22112</cve>
-    </suppress>
-    <suppress until="2022-03-01">
-        <notes><![CDATA[
-     Suppressing as our open feign version needs to be updated
-   ]]></notes>
-        <cve>CVE-2021-22044</cve>
-    </suppress>
     <suppress>
         <notes><![CDATA[
    file name: spring-security-core-5.4.9.jar
@@ -71,25 +47,11 @@
         <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
         <cve>CVE-2020-36518</cve>
     </suppress>
-    <suppress until="2022-05-01">
+    <suppress until="2022-06-01">
         <notes><![CDATA[
-   file name: postgresql-42.3.1.jar
+   file name: spring-plugin-core-2.0.0.RELEASE.jar
    ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.postgresql/postgresql@.*$</packageUrl>
-        <cve>CVE-2022-26520</cve>
-    </suppress>
-    <suppress until="2022-05-01">
-        <notes><![CDATA[
-   file name: postgresql-42.3.1.jar
-   ]]></notes>
-        <packageUrl regex="true">^pkg:maven/org\.postgresql/postgresql@.*$</packageUrl>
-        <cve>CVE-2022-21724</cve>
-    </suppress>
-    <suppress until="2022-05-01">
-      <notes><![CDATA[
-      file name: spring-beans-5.3.16.jar
-      ]]></notes>
-      <packageUrl regex="true">^pkg:maven/org\.springframework/spring\-beans@.*$</packageUrl>
-      <vulnerabilityName>CVE-2022-22965</vulnerabilityName>
+        <packageUrl regex="true">^pkg:maven/org\.springframework\.plugin/spring\-plugin\-core@.*$</packageUrl>
+        <cve>CVE-2022-22968</cve>
     </suppress>
 </suppressions>

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Objects;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
@@ -139,6 +140,11 @@ public class Task {
         description = "A value describing the role category")
     private final String roleCategory;
 
+    @Schema(required = true,
+        description = "A value describing the additional properties")
+    private final Map<String, String> additionalProperties;
+
+
     public Task(String id,
                 String name,
                 String type,
@@ -165,8 +171,8 @@ public class Task {
                 String workTypeId,
                 TaskPermissions taskPermissions,
                 String roleCategory,
-                String description
-    ) {
+                String description,
+                Map<String, String> additionalProperties) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -196,6 +202,7 @@ public class Task {
         this.permissions = taskPermissions;
         this.roleCategory = roleCategory;
         this.description = description;
+        this.additionalProperties = additionalProperties;
     }
 
     public String getId() {
@@ -304,6 +311,10 @@ public class Task {
 
     public String getDescription() {
         return description;
+    }
+
+    public Map<String, String> getAdditionalProperties() {
+        return additionalProperties;
     }
 }
 

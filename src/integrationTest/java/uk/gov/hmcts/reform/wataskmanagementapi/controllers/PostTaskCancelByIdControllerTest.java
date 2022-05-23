@@ -1,14 +1,11 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
@@ -26,7 +23,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks;
 
 import java.time.OffsetDateTime;
@@ -40,13 +36,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNCONFIGURED;
@@ -77,8 +69,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
     private PermissionEvaluatorService permissionEvaluatorService;
     @MockBean
     private CftQueryService cftQueryService;
-    @SpyBean
-    private CFTTaskDatabaseService cftTaskDatabaseService;
+
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     @Mock
@@ -101,8 +92,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
             .thenReturn(IDAM_USER_ID);
         when(mockedUserInfo.getEmail())
             .thenReturn(IDAM_USER_EMAIL);
-        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
-            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
+
         mockServices = new ServiceMocks(
             idamWebApi,
             serviceAuthorisationApi,
@@ -111,9 +101,12 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+
     @Test
     void should_succeed_and_return_204_and_update_cft_task_state() throws Exception {
 
+        when(accessControlService.getRoles(IDAM_AUTHORIZATION_TOKEN))
+            .thenReturn(new AccessControlResponse(mockedUserInfo, singletonList(mockedRoleAssignment)));
         initiateATask(taskId);
 
         when(permissionEvaluatorService.hasAccess(any(), any(), any()))
@@ -123,7 +116,7 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
 
         TaskResource task = spy(TaskResource.class);
-        when(cftQueryService.getTask(anyString(),any(),any())).thenReturn(Optional.of(task));
+        when(cftQueryService.getTask(anyString(), any(), any())).thenReturn(Optional.of(task));
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
@@ -147,38 +140,6 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         assertEquals(CANCELLED, taskResource.get().getState());
     }
 
-    @Test
-    void should_return_500_with_application_problem_response_when_cancel_call_fails() throws Exception {
-
-        mockServices.mockServiceAPIs();
-
-        when(permissionEvaluatorService.hasAccess(any(), any(), any()))
-            .thenReturn(true);
-
-        initiateATask(taskId);
-
-        CamundaTask camundaTasks = mockServices.getCamundaTask("processInstanceId", taskId);
-        when(camundaServiceApi.getTask(any(), eq(taskId))).thenReturn(camundaTasks);
-
-        doThrow(FeignException.FeignServerException.class).when(camundaServiceApi).bpmnEscalation(any(), any(), any());
-
-        mockMvc.perform(
-            post(ENDPOINT_BEING_TESTED)
-                .header(AUTHORIZATION, IDAM_AUTHORIZATION_TOKEN)
-                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
-                .contentType(MediaType.APPLICATION_JSON_VALUE)
-        ).andExpect(
-            ResultMatcher.matchAll(
-                status().is5xxServerError(),
-                content().contentType(APPLICATION_PROBLEM_JSON_VALUE),
-                jsonPath("$.type").value("https://github.com/hmcts/wa-task-management-api/problem/task-cancel-error"),
-                jsonPath("$.title").value("Task Cancel Error"),
-                jsonPath("$.status").value(500),
-                jsonPath("$.detail").value(
-                    "Task Cancel Error: Unable to cancel the task.")
-            ));
-    }
-
     private void initiateATask(String id) {
 
         TaskResource taskResource = new TaskResource(
@@ -191,6 +152,5 @@ class PostTaskCancelByIdControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setCreated(OffsetDateTime.now());
         taskResourceRepository.save(taskResource);
     }
-
 
 }

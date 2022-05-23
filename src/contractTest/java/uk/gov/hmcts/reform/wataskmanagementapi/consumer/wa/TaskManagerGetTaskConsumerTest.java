@@ -52,6 +52,22 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     }
 
     @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
+    public RequestResponsePact executeGetWaTaskById200(PactDslWithProvider builder) {
+        return builder
+            .given("get a wa task using taskId")
+            .uponReceiving("taskId to get a wa task")
+            .path(WA_GET_TASK_BY_ID)
+            .method(HttpMethod.GET.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskForWa())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_get_task_by_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeGetTaskByIdWithWarnings200(PactDslWithProvider builder) {
         return builder
             .given("get a task using taskId with warnings")
@@ -70,6 +86,20 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     @Test
     @PactTestFor(pactMethod = "executeGetTaskById200", pactVersion = PactSpecVersion.V3)
     void testGetTaskByTaskId200Test(MockServer mockServer) {
+
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .get(mockServer.getUrl() + WA_GET_TASK_BY_ID)
+            .then()
+            .statusCode(200);
+
+    }
+
+    @Test
+    @PactTestFor(pactMethod = "executeGetWaTaskById200", pactVersion = PactSpecVersion.V3)
+    void testGetWaTaskByTaskId200Test(MockServer mockServer) {
 
         SerenityRest
             .given()
@@ -158,7 +188,51 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
                                 .stringType("warningText", "Text1")
                             )
                         )
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
+                        )
                 )).build();
+    }
+
+    private DslPart createResponseForGetTaskForWa() {
+        return newJsonBody(
+            o -> o
+                .object("task",
+                    task -> task
+                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("name", "Process Application")
+                        .stringType("type", "processApplication")
+                        .stringType("task_state", "unassigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "Process Application")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .booleanType("auto_assigned", false)
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "WA")
+                        .stringType("region", "1")
+                        .stringType("location", "765324")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("case_type_id", "WaCaseType")
+                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_category", "Protection")
+                        .stringType("case_name", "Bob Smith")
+                        .booleanType("warnings", false)
+                        .stringType("case_management_category", "Protection")
+                        .stringType("work_type_id", "hearing_work")
+                        .stringType("role_category", "LEGAL_OPERATIONS")
+                        .stringType("description", "aDescription")
+                        .stringType("role_category", "LEGAL_OPERATIONS")
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
+                        )
+                )).build();
+
     }
 
     private Map<String, String> getTaskManagementServiceResponseHeaders() {
