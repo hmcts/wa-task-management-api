@@ -41,10 +41,8 @@ public class Main
 		}
 		String userId = args[0];
 		String searchId = args[0];
-//		String expectedId = args[0];
 		User user = Loader.loadUser(userId);
 		ClientQuery clientQuery = Loader.loadClientQuery(searchId);
-//		Expected expected = Loader.loadExpected(expectedId);
 		SearchRequest searchRequest = new SearchRequest(clientQuery, user);
 		try (Connection connection = getTaskDbConnection())
 		{

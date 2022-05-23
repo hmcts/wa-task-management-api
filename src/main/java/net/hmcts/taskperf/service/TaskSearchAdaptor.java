@@ -39,6 +39,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 public class TaskSearchAdaptor {
 
 	public static final boolean ENABLED = false;
+	public static final boolean EXPLAIN_QUERIES = false;
 	private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
     private final DataSource dataSource;
@@ -111,7 +112,7 @@ public class TaskSearchAdaptor {
         try
         {
             // 1.2 Run the search and build an ordered list of the task IDs.
-        	TaskSearch.Results results = TaskSearch.searchTasks(searchRequest, getConnection(), false);
+        	TaskSearch.Results results = TaskSearch.searchTasks(searchRequest, getConnection(), EXPLAIN_QUERIES);
 	        List<String> orderedTaskIds = results.getTasks().stream()
 	        		.map(t -> t.getAttributes().get("task_id").toString())
 	        		.collect(Collectors.toList());

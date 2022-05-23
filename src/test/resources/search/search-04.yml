@@ -12,6 +12,7 @@ listFilters:
   - key: caseId
     operator: IN
     values: [1651158394904755]
+permissions: [Read]
 pagination:
   firstResult: 0
   maxResults: 25

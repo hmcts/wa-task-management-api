@@ -13,6 +13,7 @@ booleanFilters:
   - key: available_tasks_only
     operator: BOOLEAN
     values: true
+permissions: [Read]
 pagination:
   firstResult: 0
   maxResults: 25

@@ -268,7 +268,7 @@ public class TaskSearch
 			}
 		}
 		Set<String> taskIds = clientFilter.getTaskIds();
-		if (taskIds != null && !taskTypes.isEmpty())
+		if (taskIds != null && !taskIds.isEmpty())
 		{
 			if (taskIds.size() == 1)
 			{
