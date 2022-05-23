@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -69,59 +68,6 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         taskId = UUID.randomUUID().toString();
         task = createTask(taskId);
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
-    }
-
-    //@Disabled("RWA-1053: Needs updating see ticket")
-    @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed()
-        throws InterruptedException {
-
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-        OffsetDateTime created = OffsetDateTime.parse("2022-05-08T20:15:45.345875+01:00");
-        OffsetDateTime dueDate = OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00");
-
-        TaskResource taskResource = new TaskResource(
-            UUID.randomUUID().toString(),
-            "some task name",
-            "some task type",
-            CFTTaskState.ASSIGNED,
-            created,
-            dueDate
-        );
-        taskResource.setCreated(created);
-
-        executorService.execute(() -> {
-            taskResourceRepository.insertAndLock(
-                taskResource.getTaskId(),
-                taskResource.getCreated(),
-                taskResource.getDueDateTime()
-            );
-            await().timeout(10, TimeUnit.SECONDS);
-            taskResourceRepository.save(taskResource);
-        });
-
-        TaskResource otherTaskResource = new TaskResource(
-            "other task id",
-            "other task name",
-            "other task type",
-            CFTTaskState.ASSIGNED,
-            created,
-            dueDate
-        );
-
-        assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(
-            otherTaskResource.getTaskId(),
-            otherTaskResource.getCreated(),
-            otherTaskResource.getDueDateTime()
-        ));
-
-        checkTaskWasSaved(taskResource.getTaskId());
-        checkTaskWasSaved(otherTaskResource.getTaskId());
-
-        executorService.shutdown();
-        //noinspection ResultOfMethodCallIgnored
-        executorService.awaitTermination(13, TimeUnit.SECONDS);
     }
 
     @Test
