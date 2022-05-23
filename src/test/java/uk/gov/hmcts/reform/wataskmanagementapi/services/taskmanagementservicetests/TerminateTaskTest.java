@@ -19,7 +19,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
@@ -56,21 +58,30 @@ class TerminateTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
+    @Mock
+    private TaskReconfigurationService taskReconfigurationService;
+
+    RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
 
     @BeforeEach
     public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerification,
+            taskReconfigurationService
         );
 
         taskId = UUID.randomUUID().toString();

@@ -1,16 +1,13 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.entities;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
-import org.springframework.format.annotation.DateTimeFormat;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
@@ -18,7 +15,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +28,6 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-
-import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 @ToString
 @Getter

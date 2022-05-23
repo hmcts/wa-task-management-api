@@ -323,17 +323,17 @@ public class TaskActionsController extends BaseController {
     @PostMapping(path = "/operation")
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> performOperation(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthToken,
-                                             @RequestBody TaskOperationRequest taskOperationRequest) {
-            boolean hasExclusiveAccessRequest =
-                clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
+                                                 @RequestBody TaskOperationRequest taskOperationRequest) {
+        boolean hasExclusiveAccessRequest =
+            clientAccessControlService.hasExclusiveAccess(serviceAuthToken);
 
-            if (hasExclusiveAccessRequest) {
-                taskManagementService.performOperation(
-                    taskOperationRequest
-                );
-            } else {
-                throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
-            }
+        if (hasExclusiveAccessRequest) {
+            taskManagementService.performOperation(
+                taskOperationRequest
+            );
+        } else {
+            throw new GenericForbiddenException(GENERIC_FORBIDDEN_ERROR);
+        }
 
         return ResponseEntity
             .noContent()
