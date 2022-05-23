@@ -129,7 +129,7 @@ public class TaskSearchController extends BaseController {
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchTaskRequest,
-                accessControlResponse,
+                accessControlResponse.getRoleAssignments(),
                 permissionsRequired
             );
 
@@ -202,7 +202,7 @@ public class TaskSearchController extends BaseController {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
             response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
-                accessControlResponse,
+                accessControlResponse.getRoleAssignments(),
                 permissionsRequired
             );
         } else {
