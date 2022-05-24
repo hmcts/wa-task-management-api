@@ -13,9 +13,9 @@ public enum TaskOperationName {
         });
 
     private final String value;
-    private final TypeReference typeReference;
+    private final TypeReference<String> typeReference;
 
-    TaskOperationName(String value, TypeReference typeReference) {
+    TaskOperationName(String value, TypeReference<String> typeReference) {
         this.value = value;
         this.typeReference = typeReference;
     }
@@ -24,7 +24,7 @@ public enum TaskOperationName {
         return value;
     }
 
-    public TypeReference getTypeReference() {
+    public TypeReference<String> getTypeReference() {
         return typeReference;
     }
 }
