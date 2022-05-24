@@ -81,7 +81,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
-    void should_build_query_for_basic_and_specific(Classification classification) {
+    void should_build_query_for_specific(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -128,7 +128,7 @@ public class RoleAssignmentFilterTest {
 
     @ParameterizedTest
     @EnumSource(value = Classification.class, names = {"PUBLIC"})
-    void should_build_query_for_basic_and_specific_when_attributes_does_not_match(Classification classification) {
+    void should_build_query_for_specific_when_attributes_does_not_match(Classification classification) {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -137,7 +137,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .roleType(RoleType.ORGANISATION)
             .classification(classification)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -183,7 +183,7 @@ public class RoleAssignmentFilterTest {
     }
 
     @Test
-    void should_build_query_for_basic_and_specific_with_out_attributes() {
+    void should_build_query_for_specific_with_out_attributes() {
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
@@ -192,7 +192,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -327,7 +327,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(null)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -367,7 +367,7 @@ public class RoleAssignmentFilterTest {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(Classification.UNKNOWN)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();

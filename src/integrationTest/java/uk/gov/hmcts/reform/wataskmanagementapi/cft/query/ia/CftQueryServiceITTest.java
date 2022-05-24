@@ -87,7 +87,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     @ParameterizedTest()
     @MethodSource({
-        "grantTypeBasicScenarioHappyPath",
         "grantTypeSpecificScenarioHappyPath",
         "grantTypeStandardScenarioHappyPath",
         "grantTypeChallengedScenarioHappyPath",
@@ -128,7 +127,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     @ParameterizedTest
     @MethodSource({
-        "grantTypeBasicErrorScenario",
         "grantTypeSpecificErrorScenario",
         "grantTypeStandardErrorScenario",
         "grantTypeChallengedErrorScenario",
@@ -180,144 +178,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
-    }
-
-    private static Stream<TaskQueryScenario> grantTypeBasicScenarioHappyPath() {
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
-        ));
-
-        final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_classification_as_public")
-            .firstResult(0)
-            .maxResults(10)
-            .searchTaskRequest(searchTaskRequest)
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PUBLIC))
-            .expectedAmountOfTasksInResponse(2)
-            .expectedTotalRecords(2)
-            // taskId and caseId
-            .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111027", "1623278362431027"
-                )
-            ).build();
-
-        final TaskQueryScenario privateClassification = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_classification_as_private")
-            .firstResult(0)
-            .maxResults(10)
-            .searchTaskRequest(searchTaskRequest)
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
-            .expectedAmountOfTasksInResponse(4)
-            .expectedTotalRecords(4)
-            .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111027", "1623278362431027",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111028", "1623278362431028"
-                )
-            ).build();
-
-        final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_classification_as_restricted")
-            .firstResult(0)
-            .maxResults(10)
-            .searchTaskRequest(searchTaskRequest)
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.RESTRICTED))
-            .expectedAmountOfTasksInResponse(6)
-            .expectedTotalRecords(6)
-            .expectedTaskDetails(newArrayList(
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111007", "1623278362431007",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111008", "1623278362431008",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111009", "1623278362431009",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111027", "1623278362431027",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111028", "1623278362431028",
-                    "8d6cc5cf-c973-11eb-bdba-0242ac111029", "1623278362431029"
-                )
-            ).build();
-
-        return Stream.of(
-            publicClassification,
-            privateClassification,
-            restrictedClassification
-        );
-    }
-
-    private static Stream<TaskQueryScenario> grantTypeBasicErrorScenario() {
-
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
-            .classification(Classification.RESTRICTED)
-            .grantType(GrantType.BASIC)
-            .roleType(RoleType.ORGANISATION)
-            .authorisations(List.of("DIVORCE", "PROBATE"))
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
-        ));
-
-        final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_authorizations")
-            .searchTaskRequest(searchTaskRequest)
-            .roleAssignments(roleAssignments)
-            .firstResult(0)
-            .maxResults(10)
-            .expectedAmountOfTasksInResponse(0)
-            .expectedTotalRecords(0)
-            .build();
-
-        final TaskQueryScenario invalidJurisdiction = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_invalid_jurisdiction")
-            .searchTaskRequest(invalidJurisdiction())
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
-            .firstResult(0)
-            .maxResults(10)
-            .expectedAmountOfTasksInResponse(0)
-            .expectedTotalRecords(0)
-            .build();
-
-        final TaskQueryScenario invalidLocation = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_invalid_location")
-            .searchTaskRequest(invalidLocation())
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
-            .firstResult(0)
-            .maxResults(10)
-            .expectedAmountOfTasksInResponse(0)
-            .expectedTotalRecords(0)
-            .build();
-
-        final TaskQueryScenario invalidCaseId = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_invalid_caseId")
-            .searchTaskRequest(invalidCaseId())
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
-            .firstResult(0)
-            .maxResults(10)
-            .expectedAmountOfTasksInResponse(0)
-            .expectedTotalRecords(0)
-            .build();
-
-        final TaskQueryScenario invalidUser = TaskQueryScenario.builder()
-            .scenarioName("basic_grant_type_with_invalid_user")
-            .searchTaskRequest(invalidUserId())
-            .roleAssignments(roleAssignmentsWithGrantTypeBasic(Classification.PRIVATE))
-            .firstResult(0)
-            .maxResults(10)
-            .expectedAmountOfTasksInResponse(0)
-            .expectedTotalRecords(0)
-            .build();
-
-        return Stream.of(
-            withAuthorizations,
-            invalidJurisdiction,
-            invalidLocation,
-            invalidCaseId,
-            invalidUser
-        );
     }
 
     private static Stream<TaskQueryScenario> grantTypeSpecificScenarioHappyPath() {
@@ -1223,7 +1083,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("inActiveRole")
             .classification(Classification.PUBLIC)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().plusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1254,7 +1114,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.RESTRICTED)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(null)
             .endTime(null)
@@ -1287,29 +1147,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             new SearchParameterList(CASE_ID, SearchOperator.IN, List.of(assignee))
         ));
         return searchTaskRequest;
-    }
-
-    private static List<RoleAssignment> roleAssignmentsWithGrantTypeBasic(Classification classification) {
-        List<RoleAssignment> roleAssignments = new ArrayList<>();
-        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("other-caseworker")
-            .classification(classification)
-            .grantType(GrantType.BASIC)
-            .roleType(RoleType.ORGANISATION)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
-            .classification(classification)
-            .grantType(GrantType.BASIC)
-            .roleType(RoleType.CASE)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
-            .build();
-        roleAssignments.add(roleAssignment);
-
-        return roleAssignments;
     }
 
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeSpecific(Classification classification) {
@@ -1488,7 +1325,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .classification(classification)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .roleType(RoleType.ORGANISATION)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -1580,7 +1417,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1589,7 +1426,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1598,7 +1435,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         roleAssignment = RoleAssignment.builder().roleName("pagination-role")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .build();
@@ -1613,7 +1450,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .attributes(attributes)
@@ -1622,7 +1459,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)
-            .grantType(GrantType.BASIC)
+            .grantType(GrantType.SPECIFIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .attributes(attributes)
