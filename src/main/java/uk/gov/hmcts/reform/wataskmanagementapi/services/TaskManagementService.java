@@ -716,11 +716,12 @@ public class TaskManagementService {
             );
     }
 
-    public void performOperation(TaskOperationRequest taskOperationRequest) {
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
 
         if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
-            taskReconfigurationService.markTasksToReconfigure(taskOperationRequest.getTaskFilters());
+            return taskReconfigurationService.markTasksToReconfigure(taskOperationRequest.getTaskFilters());
         }
+        return List.of();
     }
 
     /**

@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,6 +68,18 @@ class CFTTaskDatabaseServiceTest {
         assertNotNull(actualTaskResource);
         assertTrue(actualTaskResource.isPresent());
         assertEquals(someTaskResource, actualTaskResource.get());
+    }
+
+    @Test
+    void should_find_by_case_id() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.getByCaseId("1234")).thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findByCaseIdOnly("1234");
+
+        assertNotNull(actualTaskResource);
+        assertEquals(someTaskResource, actualTaskResource.get(0));
     }
 
     @Test
