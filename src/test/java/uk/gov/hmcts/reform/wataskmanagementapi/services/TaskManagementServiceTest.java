@@ -165,7 +165,6 @@ class TaskManagementServiceTest extends
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
         TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
 
         List<TaskResource> taskResources = cancelledTaskResources();
@@ -181,7 +180,6 @@ class TaskManagementServiceTest extends
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
         TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
 
         List<TaskResource> taskResources = taskResources(OffsetDateTime.now().minusDays(1));
@@ -3193,5 +3191,6 @@ class TaskManagementServiceTest extends
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
     }
+
 
 }

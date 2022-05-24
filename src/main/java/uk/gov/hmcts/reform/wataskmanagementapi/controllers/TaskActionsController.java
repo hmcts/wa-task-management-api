@@ -311,7 +311,7 @@ public class TaskActionsController extends BaseController {
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task has been completed", content = {
+        @ApiResponse(responseCode = "204", description = "Task operation has been completed", content = {
             @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
