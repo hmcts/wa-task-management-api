@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 
 import java.util.List;
 

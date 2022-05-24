@@ -103,9 +103,6 @@ spring:
           oidc:
             client-id: ${WA_IDAM_CLIENT_ID:wa}
             client-secret: ${WA_IDAM_CLIENT_SECRET:something}
-  jackson:
-    mapper:
-      ACCEPT_CASE_INSENSITIVE_ENUMS: true
 
 feign:
   client:
