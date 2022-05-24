@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
@@ -61,13 +60,13 @@ public final class RoleAssignmentFilter {
 
     public static Specification<TaskResource> buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
-        AccessControlResponse accessControlResponse, boolean andPermissions) {
+        List<RoleAssignment> roleAssignments, boolean andPermissions) {
 
         return (root, query, builder) -> {
             final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
             // filter roles which are active.
-            final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+            final List<RoleAssignment> activeRoleAssignments = roleAssignments
                 .stream().filter(r -> hasBeginTimePermission(r) && hasEndTimePermission(r))
                 .collect(Collectors.toList());
 
@@ -104,11 +103,11 @@ public final class RoleAssignmentFilter {
     }
 
     public static Specification<TaskResource> buildQueryToRetrieveRoleInformation(
-        AccessControlResponse accessControlResponse) {
+        List<RoleAssignment> roleAssignments) {
 
         return (root, query, builder) -> {
             // filter roles which are active.
-            final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+            final List<RoleAssignment> activeRoleAssignments = roleAssignments
                 .stream()
                 .filter(r -> hasBeginTimePermission(r) && hasEndTimePermission(r))
                 .collect(Collectors.toList());
