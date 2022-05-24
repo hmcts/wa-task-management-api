@@ -108,7 +108,13 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                          + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(3));
+            .body("task_role_resources.size()", equalTo(10))
+            .body("additional_properties", equalToObject(Map.of(
+                "key1", "value1",
+                "key2", "value2",
+                "key3", "value3",
+                "key4", "value4"
+            )));
 
         assertPermissions(
             getTaskResource(result, "task-supervisor"),

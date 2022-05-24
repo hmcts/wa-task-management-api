@@ -73,7 +73,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+            .body("detail", equalTo("Role Assignment Verification: "
+                                    + "The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -123,7 +124,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         initiateTask(assignerCredentials.getHeaders(), taskVariables,
             "processApplication", "process application", "process task");
 
-        //first assign 
+        //first assign
         common.setupFtpaJudgeForSpecificAccess(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
         assignTaskAndValidate(taskVariables, getAssigneeId(assigneeCredentials.getHeaders()));
 
@@ -136,7 +137,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void assigner_has_grant_type_specific_and_permission_manage_own_should_assign_a_task_to_assignee_with_manage_own_permission() {
-        //assigner role : manage, own 
+        //assigner role : manage, own
         //assignee role : manage, own
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         taskId = taskVariables.getTaskId();
@@ -155,7 +156,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @Test
     public void assigner_has_grant_type_specific_and_permission_manage_own_should_assign_a_task_to_assignee_with_own_permission() {
-        //assigner role : manage, own 
+        //assigner role : manage, own
         //assignee role : manage, execute
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         taskId = taskVariables.getTaskId();
@@ -427,7 +428,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+            .body("detail", equalTo("Role Assignment Verification: The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -462,7 +463,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+            .body("detail", equalTo("Role Assignment Verification: The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
