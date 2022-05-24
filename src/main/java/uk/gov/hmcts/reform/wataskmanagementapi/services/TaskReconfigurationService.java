@@ -25,7 +25,7 @@ public class TaskReconfigurationService {
     }
 
     @Transactional
-    public void markTasksToReconfigure(List<TaskFilter> taskFilters) {
+    public List<TaskResource> markTasksToReconfigure(List<TaskFilter> taskFilters) {
         List<Object> caseIds = taskFilters.stream().filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
             .flatMap(filter -> filter.getValues().stream())
             .collect(Collectors.toList());
@@ -46,5 +46,7 @@ public class TaskReconfigurationService {
                 taskResource.setReconfigureRequestTime(OffsetDateTime.now());
                 cftTaskDatabaseService.saveTask(taskResource);
             });
+
+        return taskResources;
     }
 }
