@@ -134,7 +134,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
     }
 
     @Test
-    void given_task_is_created_when_findById_then_task_roles_and_work_types_have_expected_values() {
+    void given_task_is_created_when_find_by_id_then_task_roles_and_work_types_have_expected_values() {
 
         TaskResource createdTask = createTask(taskId);
         assertThat(createdTask.getTaskId()).isEqualTo(taskId);
