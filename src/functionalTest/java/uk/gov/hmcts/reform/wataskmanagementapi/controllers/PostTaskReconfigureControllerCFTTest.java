@@ -36,16 +36,15 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
-
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_assigned() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
 
         String assignEndpoint = "task/{task-id}/assign";
+        String taskId = taskVariables.getTaskId();
         Response result = restApiActions.post(
             assignEndpoint,
             taskId,
@@ -70,14 +69,14 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskVariables.getTaskId());
     }
 
 
     @Test
     public void should_return_a_204_after_tasks_are_marked_for_reconfigure_when_task_status_is_unassigned() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
+
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
@@ -91,7 +90,7 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskId);
+        common.cleanUpTask(taskVariables.getTaskId());
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
@@ -103,7 +102,6 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         TaskFilter filter = new TaskFilter("case_id", List.of(caseId), TaskFilterOperator.IN);
         return List.of(filter);
     }
-
 
 }
 
