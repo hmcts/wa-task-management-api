@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -77,6 +78,8 @@ class CompleteTaskTest extends CamundaHelpers {
 
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void completeTask_should_succeed_and_feature_flag_is_on() {
@@ -252,7 +255,8 @@ class CompleteTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            roleAssignmentVerification
+            roleAssignmentVerification,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

@@ -979,7 +979,7 @@ public class Common {
         );
     }
 
-    private void createSupervisor(UserInfo userInfo, Headers headers, String jurisidiction) {
+    private void createSupervisor(UserInfo userInfo, Headers headers, String jurisdiction) {
         log.info("Creating task supervisor organizational Role");
 
         postRoleAssignment(
@@ -990,11 +990,11 @@ public class Common {
             "task-supervisor",
             toJsonString(Map.of(
                 "primaryLocation", "765324",
-                "jurisdiction", jurisidiction
+                "jurisdiction", jurisdiction
             )),
-            R2_ROLE_ASSIGNMENT_REQUEST,
-            GrantType.STANDARD.name(),
-            RoleCategory.LEGAL_OPERATIONS.name(),
+            "requests/roleAssignment/r2/set-organisational-role-assignment-request.json",
+            "STANDARD",
+            "LEGAL_OPERATIONS",
             toJsonString(List.of()),
             RoleType.ORGANISATION.name(),
             Classification.PUBLIC.name(),

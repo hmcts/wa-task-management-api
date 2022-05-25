@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.EXECUTE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes.MANAGE;
@@ -54,11 +56,13 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -85,6 +89,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment
             .builder()
             .roleName("tribunal-caseworker")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -98,9 +103,11 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         List<PermissionTypes> assignerPermissionsRequired = new ArrayList<>();
         assignerPermissionsRequired.add(PermissionTypes.MANAGE);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
             assignerAccessControlResponse.getRoleAssignments(),
-            assignerPermissionsRequired);
+            assignerPermissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
@@ -109,6 +116,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         RoleAssignment assignerRoleAssignment = RoleAssignment
             .builder()
             .roleName("senior-tribunal-caseworker")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -117,15 +125,19 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             .build();
         assignerRoleAssignments.add(assignerRoleAssignment);
 
-        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
-            assignerRoleAssignments);
+        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(
+            null,
+            assignerRoleAssignments
+        );
         List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
         assigneePermissionsRequired.add(OWN);
         assigneePermissionsRequired.add(EXECUTE);
 
-        final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
+        final Optional<TaskResource> assignerTask = cftQueryService.getTask(
+            taskId,
             assigneeAccessControlResponse.getRoleAssignments(),
-            assigneePermissionsRequired);
+            assigneePermissionsRequired
+        );
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
@@ -147,6 +159,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
+            .roleType(RoleType.CASE)
             .grantType(GrantType.CHALLENGED)
             .attributes(tcAttributes)
             .build();
@@ -166,6 +179,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         RoleAssignment assignerRoleAssignment = RoleAssignment
             .builder()
             .roleName("senior-tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -175,15 +189,19 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             .build();
         assignerRoleAssignments.add(assignerRoleAssignment);
 
-        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(null,
-            assignerRoleAssignments);
+        AccessControlResponse assigneeAccessControlResponse = new AccessControlResponse(
+            null,
+            assignerRoleAssignments
+        );
         List<PermissionTypes> assigneePermissionsRequired = new ArrayList<>();
         assigneePermissionsRequired.add(OWN);
         assigneePermissionsRequired.add(EXECUTE);
 
-        final Optional<TaskResource> assignerTask = cftQueryService.getTask(taskId,
+        final Optional<TaskResource> assignerTask = cftQueryService.getTask(
+            taskId,
             assigneeAccessControlResponse.getRoleAssignments(),
-            assigneePermissionsRequired);
+            assigneePermissionsRequired
+        );
         Assertions.assertThat(assignerTask.isPresent()).isTrue();
         Assertions.assertThat(assignerTask.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(assignerTask.get().getCaseId()).isEqualTo(caseId);
@@ -200,6 +218,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -230,6 +249,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
@@ -259,6 +279,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
@@ -288,6 +309,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
+            .roleType(RoleType.CASE)
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
@@ -316,6 +338,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("PROBATE", "SCSS"))
@@ -344,6 +367,7 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
