@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ public abstract class RoleAssignmentHelper {
             .attributes(attributes)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
+            .roleType(RoleType.CASE)
             .build();
 
         roleAssignments.add(roleAssignment);

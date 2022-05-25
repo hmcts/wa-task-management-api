@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.zalando.problem.violations.Violation;
@@ -13,7 +12,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.NoteResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceSpecification;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -52,6 +52,11 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -88,6 +93,8 @@ public class TaskManagementService {
     private final TaskAutoAssignmentService taskAutoAssignmentService;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
 
+    @PersistenceContext
+    private final EntityManager entityManager;
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
@@ -97,7 +104,8 @@ public class TaskManagementService {
                                  LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider,
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
-                                 RoleAssignmentVerificationService roleAssignmentVerification) {
+                                 RoleAssignmentVerificationService roleAssignmentVerification,
+                                 EntityManager entityManager) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
@@ -106,6 +114,7 @@ public class TaskManagementService {
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
         this.roleAssignmentVerification = roleAssignmentVerification;
+        this.entityManager = entityManager;
     }
 
     /**
@@ -123,7 +132,8 @@ public class TaskManagementService {
             .getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
                 accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail());
+                accessControlResponse.getUserInfo().getEmail()
+            );
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
                 taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
@@ -162,7 +172,8 @@ public class TaskManagementService {
             .getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
                 accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail());
+                accessControlResponse.getUserInfo().getEmail()
+            );
         if (isFeatureEnabled) {
             roleAssignmentVerification.verifyRoleAssignments(
                 taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
@@ -201,7 +212,8 @@ public class TaskManagementService {
             .getBooleanValue(
                 FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
                 accessControlResponse.getUserInfo().getUid(),
-                accessControlResponse.getUserInfo().getEmail());
+                accessControlResponse.getUserInfo().getEmail()
+            );
         if (isFeatureEnabled) {
             TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
                 taskId, accessControlResponse.getRoleAssignments(), permissionsRequired
@@ -286,7 +298,8 @@ public class TaskManagementService {
             camundaService.assignTask(
                 taskId,
                 assigneeUserId,
-                false);
+                false
+            );
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
 
@@ -309,7 +322,8 @@ public class TaskManagementService {
             camundaService.assignTask(
                 taskId,
                 assigneeUserId,
-                isTaskStateAssigned);
+                isTaskStateAssigned
+            );
         }
     }
 
@@ -462,7 +476,8 @@ public class TaskManagementService {
                 TaskResource taskResource = roleAssignmentVerification.verifyRoleAssignments(
                     taskId,
                     accessControlResponse.getRoleAssignments(),
-                    permissionsRequired);
+                    permissionsRequired
+                );
 
                 final CFTTaskState state = taskResource.getState();
                 taskStateIsAssignedAlready = state.getValue().equals(CFTTaskState.ASSIGNED.getValue());
@@ -484,15 +499,19 @@ public class TaskManagementService {
                 TaskResource task = findByIdAndObtainLock(taskId);
                 task.setState(CFTTaskState.COMPLETED);
                 //Perform Camunda updates
-                camundaService.assignAndCompleteTask(taskId,
+                camundaService.assignAndCompleteTask(
+                    taskId,
                     accessControlResponse.getUserInfo().getUid(),
-                    taskStateIsAssignedAlready);
+                    taskStateIsAssignedAlready
+                );
                 //Commit transaction
                 cftTaskDatabaseService.saveTask(task);
             } else {
-                camundaService.assignAndCompleteTask(taskId,
+                camundaService.assignAndCompleteTask(
+                    taskId,
                     accessControlResponse.getUserInfo().getUid(),
-                    taskStateIsAssignedAlready);
+                    taskStateIsAssignedAlready
+                );
             }
 
         } else {
@@ -694,11 +713,19 @@ public class TaskManagementService {
             return emptyList();
         }
 
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildTaskRolePermissionsQuery(taskResource.get().getTaskId(), accessControlResponse.getRoleAssignments());
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        CriteriaBuilder builder = selectQueryBuilder.builder;
+        Root<TaskResource> root = selectQueryBuilder.root;
 
-        final Optional<TaskResource> taskResourceQueryResult = cftTaskDatabaseService.findTaskBySpecification(
-            taskResourceSpecification);
+        final Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskRolePermissionsQuery(
+            taskResource.get().getTaskId(), accessControlResponse.getRoleAssignments(), builder, root);
+
+        final Optional<TaskResource> taskResourceQueryResult = selectQueryBuilder
+            .where(selectPredicate)
+            .build()
+            .getResultList()
+            .stream()
+            .findFirst();
 
         if (taskResourceQueryResult.isEmpty()) {
             throw new RoleAssignmentVerificationException(ROLE_ASSIGNMENT_VERIFICATIONS_FAILED);

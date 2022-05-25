@@ -33,6 +33,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,6 +89,8 @@ class InitiateTaskTest extends CamundaHelpers {
     String taskId;
     TaskResource taskResource;
     private InitiateTaskRequest initiateTaskRequest;
+    @Mock
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -104,7 +107,8 @@ class InitiateTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            roleAssignmentVerification
+            roleAssignmentVerification,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();
