@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.controlle
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -35,6 +36,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore
     @Test
     public void given_task_is_configured_then_expect_task_is_auto_assigned() throws Exception {
         caseId = given.iCreateACcdCase();
