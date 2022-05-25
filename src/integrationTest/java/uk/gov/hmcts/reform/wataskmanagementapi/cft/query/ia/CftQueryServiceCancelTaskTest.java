@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 
@@ -51,11 +53,13 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
     private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -82,6 +86,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment
             .builder()
             .roleName("tribunal-caseworker")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -112,6 +117,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
@@ -141,6 +147,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
@@ -169,6 +176,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
@@ -198,6 +206,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
+            .roleType(RoleType.CASE)
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
             .grantType(GrantType.CHALLENGED)
@@ -223,6 +232,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("DIVORCE", "373"))
@@ -250,6 +260,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(Classification.PUBLIC)
+            .roleType(RoleType.CASE)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .authorisations(List.of("PROBATE", "SCSS"))
@@ -277,6 +288,7 @@ public class CftQueryServiceCancelTaskTest extends RoleAssignmentHelper {
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))

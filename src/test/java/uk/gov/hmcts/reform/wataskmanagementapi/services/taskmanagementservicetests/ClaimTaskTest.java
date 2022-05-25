@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -65,6 +66,8 @@ class ClaimTaskTest extends CamundaHelpers {
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void claimTask_should_succeed() {
@@ -143,7 +146,8 @@ class ClaimTaskTest extends CamundaHelpers {
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            roleAssignmentVerification
+            roleAssignmentVerification,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

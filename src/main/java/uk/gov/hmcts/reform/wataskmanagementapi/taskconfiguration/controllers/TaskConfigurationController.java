@@ -86,6 +86,8 @@ public class TaskConfigurationController {
         String taskName = (String) variables.get(TASK_NAME.value());
         String taskTypeId = (String) variables.get(CamundaVariableDefinition.TASK_ID.value());
 
+        log.info("Get configuration for case (id={}, name={}, taskType={})", caseId, taskName, taskTypeId);
+
         ConfigureTaskResponse response =
             configureTaskService.getConfiguration(
                 new TaskToConfigure(
