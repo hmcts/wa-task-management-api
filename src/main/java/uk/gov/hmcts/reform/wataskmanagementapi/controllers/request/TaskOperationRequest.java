@@ -22,20 +22,20 @@ public class TaskOperationRequest {
     @Schema(required = true)
     private final TaskOperation operation;
     @Schema(required = true)
-    private final List<TaskFilter> taskFilters;
+    private final List<TaskFilter> taskFilter;
 
     @JsonCreator
     public TaskOperationRequest(TaskOperation operation,
-                                @JsonProperty("taskFilter") @JsonAlias("task_filter") List<TaskFilter> taskFilters) {
+                                @JsonProperty("taskFilter") @JsonAlias("task_filter") List<TaskFilter> taskFilter) {
         this.operation = operation;
-        this.taskFilters = taskFilters;
+        this.taskFilter = taskFilter;
     }
 
     public TaskOperation getOperation() {
         return operation;
     }
 
-    public List<TaskFilter> getTaskFilters() {
-        return taskFilters;
+    public List<TaskFilter> getTaskFilter() {
+        return taskFilter;
     }
 }

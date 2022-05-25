@@ -20,7 +20,7 @@ import java.util.UUID;
 
 public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBaseTest {
 
-    private static final String ENDPOINT_BEING_TESTED = "task/operation";
+    private static final String ENDPOINT_BEING_TESTED = "/task/operation";
     private TestAuthenticationCredentials caseworkerCredentials;
     private String assigneeId;
 
@@ -69,7 +69,7 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskVariables.getTaskId());
+        common.cleanUpTask(taskId);
     }
 
 
@@ -90,7 +90,9 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-        common.cleanUpTask(taskVariables.getTaskId());
+        String taskId = taskVariables.getTaskId();
+
+        common.cleanUpTask(taskId);
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
