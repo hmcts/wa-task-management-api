@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
@@ -112,12 +113,10 @@ public class TaskResourceSpecificationTest {
         );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
-
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            scenario.searchTaskRequest, accessControlResponse, permissionsRequired,
+            scenario.searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired,
             criteriaBuilder, root
         );
-
         assertNotNull(predicate);
 
         verify(criteriaBuilder, times(scenario.expectedEqualPredicate)).equal(any(), anyString());
@@ -127,17 +126,13 @@ public class TaskResourceSpecificationTest {
     @Test
     void should_build_task_query_with_empty_search_parameters() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -150,17 +145,13 @@ public class TaskResourceSpecificationTest {
     @Test
     void should_build_task_query_with_search_parameters_as_null() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(null);
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -176,17 +167,15 @@ public class TaskResourceSpecificationTest {
             new SearchParameterList(STATE, SearchOperator.IN, singletonList(null)),
             new SearchParameterList(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, singletonList(null))
         ));
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
+
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(mockPredicate);
 
+        List<RoleAssignment> roleAssignments = roleAssignmentWithBasicGrantTypeOnly(PUBLIC);
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignments, permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -200,14 +189,14 @@ public class TaskResourceSpecificationTest {
         ));
 
         predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignments, permissionsRequired,
             criteriaBuilder, root
         );
 
         assertNotNull(predicate);
 
         predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            null, accessControlResponse, permissionsRequired,
+            null, roleAssignments, permissionsRequired,
             criteriaBuilder, root
         );
         assertNotNull(predicate);
@@ -216,17 +205,13 @@ public class TaskResourceSpecificationTest {
     @Test
     void should_build_task_query_with_out_search_parameter_and_return_conjunction_as_null() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(emptyList());
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         lenient().when(criteriaBuilder.conjunction()).thenReturn(null);
 
         Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
         assertNotNull(predicate);
@@ -248,15 +233,11 @@ public class TaskResourceSpecificationTest {
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false)
         ));
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -276,15 +257,11 @@ public class TaskResourceSpecificationTest {
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
-            searchTaskRequest, accessControlResponse, permissionsRequired,
+            searchTaskRequest, roleAssignmentWithBasicGrantTypeOnly(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -294,15 +271,11 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_single_task_query() {
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithSpecificGrantType(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         final Predicate predicate = TaskSearchQueryBuilder.buildSingleTaskQuery(
-            "someTaskId", accessControlResponse, permissionsRequired,
+            "someTaskId", roleAssignmentWithSpecificGrantType(PUBLIC), permissionsRequired,
             criteriaBuilder, root
         );
 
@@ -311,13 +284,9 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_task_role_permissions_query() {
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithSpecificGrantType(PUBLIC)
-        );
 
         final Predicate predicate = TaskSearchQueryBuilder.buildTaskRolePermissionsQuery(
-            "someTaskId", accessControlResponse, criteriaBuilder, root);
+            "someTaskId", roleAssignmentWithSpecificGrantType(PUBLIC), criteriaBuilder, root);
 
         assertNotNull(predicate);
     }
@@ -327,16 +296,16 @@ public class TaskResourceSpecificationTest {
         "searchParameterForCompletable"
     })
     void should_build_task_query_for_search_for_completable(SearchTaskRequestScenario scenario) {
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
         Predicate predicate = TaskSearchQueryBuilder.buildQueryForCompletable(
-            scenario.searchEventAndCase, accessControlResponse, permissionsRequired, List.of("taskType"),
-            criteriaBuilder, root
+            scenario.searchEventAndCase,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC),
+            permissionsRequired,
+            List.of("taskType"),
+            criteriaBuilder,
+            root
         );
 
         assertNotNull(predicate);
@@ -348,10 +317,6 @@ public class TaskResourceSpecificationTest {
 
     @Test
     void should_build_task_query_for_search_for_completable_negated() {
-        AccessControlResponse accessControlResponse = new AccessControlResponse(
-            null,
-            roleAssignmentWithBasicGrantTypeOnly(PUBLIC)
-        );
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
@@ -359,7 +324,13 @@ public class TaskResourceSpecificationTest {
             "caseId", "eventId", "IA", "caseType");
 
         Predicate predicate = TaskSearchQueryBuilder.buildQueryForCompletable(
-            searchEventAndCase, accessControlResponse, permissionsRequired, emptyList(), criteriaBuilder, root);
+            searchEventAndCase,
+            roleAssignmentWithBasicGrantTypeOnly(PUBLIC),
+            permissionsRequired,
+            emptyList(),
+            criteriaBuilder,
+            root
+        );
 
         assertNotNull(predicate);
 

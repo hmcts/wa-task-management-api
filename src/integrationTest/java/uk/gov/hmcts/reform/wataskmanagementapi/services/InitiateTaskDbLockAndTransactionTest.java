@@ -125,31 +125,35 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ArgumentCaptor<TaskResource> taskResourceCaptor;
     private TaskResource testTaskResource;
     private TaskResource assignedTask;
+    private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
     private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         taskId = UUID.randomUUID().toString();
-
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService,
+            roleAssignmentVerification,
             entityManager
         );
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-                           IDAM_USER_ID,
-                           IDAM_USER_EMAIL
-                       )
+            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
         ).thenReturn(true);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);

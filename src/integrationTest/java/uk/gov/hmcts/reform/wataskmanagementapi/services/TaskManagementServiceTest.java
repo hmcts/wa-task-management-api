@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -68,6 +67,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+    @Autowired
+    private EntityManager entityManager;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @Autowired
@@ -80,6 +81,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private CFTTaskMapper cftTaskMapper;
+    @Autowired
+    RoleAssignmentVerificationService roleAssignmentVerificationService;
     @MockBean
     private CftQueryService cftQueryService;
     @Autowired
@@ -99,9 +102,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
-
-    @Mock
-    private EntityManager entityManager;
+    private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
 
     @BeforeEach
@@ -114,16 +115,20 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentServiceApi
         );
 
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService,
+            roleAssignmentVerification,
             entityManager
         );
 
@@ -348,8 +353,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskAssignAndCompleteException.class)
                     .hasNoCause()
                     .hasMessage(
-                        "Task Assign and Complete Error: Task assign and complete partially succeeded. The Task was"
-                            + " assigned to the user making the request but the Task could not be completed.");
+                        "Task Assign and Complete Error: Task assign and complete partially succeeded. "
+                        + "The Task was assigned to the user making the request but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId);
 

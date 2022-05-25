@@ -617,6 +617,39 @@ public class Common {
         );
     }
 
+    public void setupExcludedAccessJudiciary(Headers headers, String caseId, String jurisdiction, String caseType) {
+        UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
+
+        log.info("Creating Conflict of Interest role for judicial users Role");
+
+        postRoleAssignment(
+            caseId,
+            headers.getValue(AUTHORIZATION),
+            headers.getValue(SERVICE_AUTHORIZATION),
+            userInfo.getUid(),
+            "conflict-of-interest",
+            toJsonString(Map.of(
+                "jurisdiction", jurisdiction,
+                "caseType", caseType,
+                "caseId", caseId
+            )),
+            R2_ROLE_ASSIGNMENT_REQUEST,
+            GrantType.EXCLUDED.name(),
+            RoleCategory.JUDICIAL.name(),
+            toJsonString(List.of()),
+            RoleType.CASE.name(),
+            Classification.RESTRICTED.name(),
+            "staff-organisational-role-mapping",
+            userInfo.getUid(),
+            false,
+            false,
+            null,
+            "2020-01-01T00:00:00Z",
+            null,
+            userInfo.getUid()
+        );
+    }
+
     public void setupCFTOrganisationalWithMultipleRoles(Headers headers) {
 
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));

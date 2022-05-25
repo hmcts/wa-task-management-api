@@ -55,8 +55,8 @@
         <cve>CVE-2022-22968</cve>
     </suppress>
     <suppress>
-      <notes><![CDATA[Ignored since we are not vulnerable]]></notes>
-      <packageUrl regex="true">^pkg:maven/org\.springframework/spring.*$</packageUrl>
-      <cve>CVE-2016-1000027</cve>
+        <notes>This project doesn't use HttpInvokerServiceExporter
+            https://github.com/spring-projects/spring-framework/issues/24434#issuecomment-579669626</notes>
+        <cve>CVE-2016-1000027</cve>
     </suppress>
 </suppressions>

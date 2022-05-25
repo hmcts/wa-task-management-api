@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
+package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeD
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -57,8 +59,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-@Sql("/scripts/data.sql")
-public class CftQueryServiceITTest {
+@Sql("/scripts/ia/data.sql")
+public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
@@ -102,7 +104,7 @@ public class CftQueryServiceITTest {
             scenario.firstResult,
             scenario.maxResults,
             scenario.searchTaskRequest,
-            accessControlResponse,
+            accessControlResponse.getRoleAssignments(),
             permissionsRequired
         );
 
@@ -138,7 +140,7 @@ public class CftQueryServiceITTest {
         //when
         final GetTasksResponse<Task> allTasks = cftQueryService.searchForTasks(
             scenario.firstResult, scenario.maxResults, scenario.searchTaskRequest,
-            accessControlResponse, permissionsRequired
+            accessControlResponse.getRoleAssignments(), permissionsRequired
         );
 
         //then
@@ -156,19 +158,19 @@ public class CftQueryServiceITTest {
         permissionsRequired.add(PermissionTypes.READ);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
-                -1, 1, searchTaskRequest, accessControlResponse, permissionsRequired
+                -1, 1, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             ))
             .hasNoCause()
             .hasMessage("Offset index must not be less than zero");
 
 
         Assertions.assertThatThrownBy(() -> cftQueryService.searchForTasks(
-                0, 0, searchTaskRequest, accessControlResponse, permissionsRequired
+                0, 0, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             ))
             .hasNoCause()
             .hasMessage("Limit must not be less than one");
@@ -177,7 +179,7 @@ public class CftQueryServiceITTest {
     private static Stream<TaskQueryScenario> grantTypeBasicScenarioHappyPath() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -250,7 +252,7 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
@@ -314,7 +316,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeSpecificScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(CASE_ID, SearchOperator.IN, List.of(
                 "1623278362431003"
             ))
@@ -370,8 +372,8 @@ public class CftQueryServiceITTest {
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
@@ -386,7 +388,7 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario withAuthorizations = TaskQueryScenario.builder()
@@ -450,7 +452,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeStandardScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ));
 
@@ -511,14 +513,14 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeStandardErrorScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("standard-caseworker")
@@ -593,7 +595,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeChallengedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -711,7 +713,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -773,12 +775,12 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeWithStandardAndExcludedErrorScenario() {
         final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("standard-caseworker")
@@ -823,7 +825,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeWithChallengedAndExcludedScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario publicClassification = TaskQueryScenario.builder()
@@ -887,7 +889,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeWithAvailableTasksOnlyScenarioHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
             new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, true)
         ));
@@ -943,7 +945,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> grantTypeWithChallengedAndExcludedErrorScenario() {
         final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -992,7 +994,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> withAllGrantTypesHappyPath() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         final TaskQueryScenario restrictedClassification = TaskQueryScenario.builder()
@@ -1024,7 +1026,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> sortByFieldScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -1049,7 +1051,7 @@ public class CftQueryServiceITTest {
             ).build();
 
         searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ), List.of(
             new SortingParameter(SortField.CASE_NAME_SNAKE_CASE, SortOrder.DESCENDANT),
@@ -1085,7 +1087,7 @@ public class CftQueryServiceITTest {
 
     private static Stream<TaskQueryScenario> paginatedResultsScenario() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION)),
             new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324"))
         ), List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT)));
 
@@ -1209,7 +1211,7 @@ public class CftQueryServiceITTest {
     private static Stream<TaskQueryScenario> inActiveRole() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -1240,7 +1242,7 @@ public class CftQueryServiceITTest {
     private static Stream<TaskQueryScenario> inValidBeginAndEndTime() {
 
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(List.of(
-            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA"))
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of(IA_JURISDICTION))
         ));
 
         List<RoleAssignment> roleAssignments = new ArrayList<>();
@@ -1307,7 +1309,7 @@ public class CftQueryServiceITTest {
     private static List<RoleAssignment> roleAssignmentsWithGrantTypeSpecific(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
             RoleAttributeDefinition.JURISDICTION.value(), "SCSS",
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
@@ -1322,8 +1324,8 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> stcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
@@ -1358,7 +1360,7 @@ public class CftQueryServiceITTest {
 
         final Map<String, String> stcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
@@ -1391,7 +1393,7 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> stcAttributes = Map.of(
-            RoleAttributeDefinition.JURISDICTION.value(), "IA"
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
@@ -1413,7 +1415,7 @@ public class CftQueryServiceITTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
@@ -1447,7 +1449,7 @@ public class CftQueryServiceITTest {
     ) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.JURISDICTION.value(), "IA"
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
@@ -1488,8 +1490,8 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> specificAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), "1623278362431003"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
@@ -1504,7 +1506,7 @@ public class CftQueryServiceITTest {
 
         final Map<String, String> stdAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
@@ -1518,7 +1520,7 @@ public class CftQueryServiceITTest {
         roleAssignments.add(roleAssignment);
 
         final Map<String, String> challengedAttributes = Map.of(
-            RoleAttributeDefinition.JURISDICTION.value(), "IA"
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION
         );
         roleAssignment = RoleAssignment.builder().roleName("senior-tribunal-caseworker")
             .classification(classification)
@@ -1551,7 +1553,7 @@ public class CftQueryServiceITTest {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
             RoleAttributeDefinition.REGION.value(), "1",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.BASE_LOCATION.value(), "765324"
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
@@ -1601,7 +1603,7 @@ public class CftQueryServiceITTest {
 
     private static List<RoleAssignment> mapRoleAssignments(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
-        final Map<String, String> attributes = Map.of(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum");
+        final Map<String, String> attributes = Map.of(RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE);
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .classification(classification)
             .roleType(RoleType.ORGANISATION)

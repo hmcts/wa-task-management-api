@@ -3,9 +3,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
@@ -61,7 +61,7 @@ public final class TaskSearchQueryBuilder {
 
     public static Predicate buildTaskSummaryQuery(
         SearchTaskRequest searchTaskRequest,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
@@ -80,7 +80,7 @@ public final class TaskSearchQueryBuilder {
 
         final Predicate roleAssignmentSpec = buildRoleAssignmentConstraints(
             permissionsRequired,
-            accessControlResponse,
+            roleAssignments,
             availableTasksOnly,
             builder,
             root
@@ -98,14 +98,14 @@ public final class TaskSearchQueryBuilder {
     }
 
     public static Predicate buildSingleTaskQuery(String taskId,
-                                                 AccessControlResponse accessControlResponse,
+                                                 List<RoleAssignment> roleAssignments,
                                                  List<PermissionTypes> permissionsRequired,
                                                  CriteriaBuilder builder,
                                                  Root<TaskResource> root
     ) {
         Predicate roleAssignmentConstraints = buildRoleAssignmentConstraints(
             permissionsRequired,
-            accessControlResponse,
+            roleAssignments,
             false,
             builder,
             root
@@ -116,19 +116,19 @@ public final class TaskSearchQueryBuilder {
 
     public static Predicate buildTaskRolePermissionsQuery(
         String taskId,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
 
         return builder.and(
             searchByTaskIds(singletonList(taskId), builder, root),
-            buildQueryToRetrieveRoleInformation(accessControlResponse, builder, root)
+            buildQueryToRetrieveRoleInformation(roleAssignments, builder, root)
         );
     }
 
     public static Predicate buildQueryForCompletable(
         SearchEventAndCase searchEventAndCase,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired,
         List<String> taskTypes,
         CriteriaBuilder builder,
@@ -142,7 +142,7 @@ public final class TaskSearchQueryBuilder {
         //.and(searchByUser(List.of(accessControlResponse.getUserInfo().getUid())))
         predicates.add(buildRoleAssignmentConstraints(
             permissionsRequired,
-            accessControlResponse,
+            roleAssignments,
             false,
             builder,
             root

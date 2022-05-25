@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -72,6 +73,9 @@ class CompleteTaskTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
+
+    RoleAssignmentVerificationService roleAssignmentVerification;
+
     TaskManagementService taskManagementService;
     String taskId;
     @Mock
@@ -86,16 +90,16 @@ class CompleteTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));
-        when(cftQueryService.getTask(taskId, accessControlResponse, asList(OWN, EXECUTE)))
+        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
             .thenReturn(Optional.of(taskResource));
         when(taskResource.getAssignee()).thenReturn(userInfo.getUid());
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
         ).thenReturn(true);
         Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
         taskManagementService.completeTask(taskId, accessControlResponse);
@@ -125,10 +129,10 @@ class CompleteTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
         ).thenReturn(false);
 
         taskManagementService.completeTask(taskId, accessControlResponse);
@@ -177,10 +181,10 @@ class CompleteTaskTest extends CamundaHelpers {
         when(camundaService.getUnmappedCamundaTask(taskId)).thenReturn(mockedUnmappedTask);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
         ).thenReturn(false);
 
         assertThatThrownBy(() -> taskManagementService.completeTask(
@@ -222,10 +226,10 @@ class CompleteTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                 RELEASE_2_ENDPOINTS_FEATURE,
-                 IDAM_USER_ID,
-                 IDAM_USER_EMAIL
-             )
+            RELEASE_2_ENDPOINTS_FEATURE,
+            IDAM_USER_ID,
+            IDAM_USER_EMAIL
+            )
         ).thenReturn(true);
 
         assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
@@ -238,16 +242,20 @@ class CompleteTaskTest extends CamundaHelpers {
 
     @BeforeEach
     public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService,
+            roleAssignmentVerification,
             entityManager
         );
 

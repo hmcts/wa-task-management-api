@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignmentForSearch;
@@ -58,14 +57,14 @@ public final class RoleAssignmentFilter {
 
     public static Predicate buildRoleAssignmentConstraints(
         List<PermissionTypes> permissionsRequired,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         boolean andPermissions,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
 
         final Join<TaskResource, TaskRoleResource> taskRoleResources = root.join(TASK_ROLE_RESOURCES);
 
-        final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+        final List<RoleAssignment> activeRoleAssignments = roleAssignments
             .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
@@ -104,11 +103,11 @@ public final class RoleAssignmentFilter {
     }
 
     public static Predicate buildQueryToRetrieveRoleInformation(
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         CriteriaBuilder builder,
         Root<TaskResource> root) {
         // filter roles which are active.
-        final List<RoleAssignment> activeRoleAssignments = accessControlResponse.getRoleAssignments()
+        final List<RoleAssignment> activeRoleAssignments = roleAssignments
             .stream().filter(RoleAssignmentFilter::filterByActiveRole).collect(Collectors.toList());
 
         RoleAssignmentSearchData searchData = new RoleAssignmentSearchData(
