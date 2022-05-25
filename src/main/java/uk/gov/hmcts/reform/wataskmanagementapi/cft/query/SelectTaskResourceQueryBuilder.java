@@ -8,8 +8,15 @@ import javax.persistence.criteria.CriteriaQuery;
 
 public class SelectTaskResourceQueryBuilder extends TaskResourceQueryBuilder<TaskResource> {
 
-    public SelectTaskResourceQueryBuilder(EntityManager entityManager) {
+    private boolean shouldFetchTaskRoles;
+
+    public SelectTaskResourceQueryBuilder(EntityManager entityManager, boolean shouldFetchTaskRoles) {
         super(entityManager);
+        this.shouldFetchTaskRoles = shouldFetchTaskRoles;
+    }
+
+    public SelectTaskResourceQueryBuilder(EntityManager entityManager) {
+        this(entityManager, false);
     }
 
     @Override
@@ -19,7 +26,10 @@ public class SelectTaskResourceQueryBuilder extends TaskResourceQueryBuilder<Tas
 
     @Override
     public TypedQuery<TaskResource> build() {
-        CriteriaQuery<TaskResource> criteriaQuery = query.distinct(true);
+        if (shouldFetchTaskRoles) {
+            root.fetch("taskRoleResources");
+        }
+        CriteriaQuery<TaskResource> criteriaQuery = query.select(root).distinct(true);
 
         if (predicate != null) {
             criteriaQuery.where(predicate);
