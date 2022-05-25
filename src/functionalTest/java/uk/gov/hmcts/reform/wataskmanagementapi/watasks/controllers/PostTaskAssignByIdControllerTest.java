@@ -509,6 +509,41 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    @Test
+    public void should_not_assign_task_when_assignee_grant_type_challenged_and_excluded() {
+
+        testGrantType = GrantType.CHALLENGED;
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        taskId = taskVariables.getTaskId();
+
+        common.setupChallengedAccessLegalOps(assignerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        initiateTask(assignerCredentials.getHeaders(), taskVariables,
+            "reviewSpecificAccessRequestLegalOps",
+            "review specific access request legal ops",
+            "review specific access request legal ops");
+
+        common.setupChallengedAccessJudiciary(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        common.setupExcludedAccessJudiciary(assigneeCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskVariables.getTaskId(),
+            new AssignTaskRequest(getAssigneeId(assigneeCredentials.getHeaders())),
+            assignerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .and()
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+
+        common.cleanUpTask(taskId);
+    }
+
     private void assignTaskAndValidate(TestVariables taskVariables, String assigneeId) {
 
         Response result = restApiActions.post(

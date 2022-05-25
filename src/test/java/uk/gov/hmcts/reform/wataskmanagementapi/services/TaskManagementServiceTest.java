@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
+import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,7 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
-import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentMother;
+import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -50,14 +52,24 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -102,8 +114,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
-class TaskManagementServiceTest extends
-    CamundaHelpers {
+class TaskManagementServiceTest extends CamundaHelpers {
 
     public static final String A_TASK_TYPE = "followUpOverdueReasonsForAppeal";
     public static final String A_TASK_NAME = "follow Up Overdue Reasons For Appeal";
@@ -132,6 +143,28 @@ class TaskManagementServiceTest extends
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
+    @Mock(extraInterfaces = Serializable.class)
+    private CriteriaBuilderImpl builder;
+    @Mock
+    private CriteriaQuery<TaskResource> criteriaQuery;
+    @Mock
+    private Predicate predicate;
+    @Mock
+    private CriteriaBuilder.In<Object> inObject;
+    @Mock
+    private CriteriaBuilder.In<Object> values;
+    @Mock
+    private Root<TaskResource> root;
+    @Mock
+    private Path<Object> path;
+    @Mock
+    private Path<Object> authorizations;
+    @Mock
+    private Join<Object, Object> taskRoleResources;
+    @Mock
+    private TypedQuery<TaskResource> query;
 
     @BeforeEach
     public void setUp() {
@@ -149,10 +182,39 @@ class TaskManagementServiceTest extends
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            roleAssignmentVerification
+            roleAssignmentVerification,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();
+
+        lenient().when(entityManager.getCriteriaBuilder()).thenReturn(builder);
+        lenient().when(builder.createQuery(TaskResource.class)).thenReturn(criteriaQuery);
+        lenient().when(criteriaQuery.from(TaskResource.class)).thenReturn(root);
+        lenient().when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
+        lenient().when(entityManager.createQuery(criteriaQuery)).thenReturn(query);
+        lenient().when(builder.in(any())).thenReturn(inObject);
+        lenient().when(inObject.value(any())).thenReturn(values);
+        lenient().when(builder.or(any(), any())).thenReturn(inObject);
+        lenient().when(builder.or(any())).thenReturn(inObject);
+        lenient().when(builder.and(any(), any())).thenReturn(inObject);
+        lenient().when(builder.and(any(), any(), any(), any(), any(), any(), any())).thenReturn(inObject);
+        BooleanAssertionPredicate booleanAssertionPredicate = new BooleanAssertionPredicate(
+            builder,
+            null,
+            Boolean.TRUE
+        );
+        lenient().when(builder.conjunction()).thenReturn(booleanAssertionPredicate);
+        lenient().when(builder.equal(any(), any())).thenReturn(predicate);
+        lenient().when(inObject.value(any())).thenReturn(values);
+
+        lenient().when(taskRoleResources.get(anyString())).thenReturn(authorizations);
+
+        lenient().when(authorizations.isNull()).thenReturn(predicate);
+        lenient().when(root.join(anyString())).thenReturn(taskRoleResources);
+        lenient().when(root.get(anyString())).thenReturn(path);
+        lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
+
     }
 
     @Nested
@@ -262,16 +324,16 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(accessControlResponse.getRoleAssignments())
-                .thenReturn(singletonList(RoleAssignmentMother.complete().build()));
+                .thenReturn(singletonList(RoleAssignmentCreator.aRoleAssignment().build()));
             TaskResource taskResource = spy(TaskResource.class);
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(READ)))
                 .thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             doReturn(mockedMappedTask)
@@ -295,10 +357,10 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.empty());
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
@@ -319,10 +381,10 @@ class TaskManagementServiceTest extends
             TaskResource taskResource = spy(TaskResource.class);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.getTask(taskId, accessControlResponse))
@@ -415,10 +477,10 @@ class TaskManagementServiceTest extends
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
@@ -441,10 +503,10 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.claimTask(
@@ -530,10 +592,10 @@ class TaskManagementServiceTest extends
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -563,10 +625,10 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -654,7 +716,7 @@ class TaskManagementServiceTest extends
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user assigning the Task has failed the Role Assignment checks performed.");
+                                + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -696,7 +758,7 @@ class TaskManagementServiceTest extends
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
+                                + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -752,10 +814,10 @@ class TaskManagementServiceTest extends
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    SECONDARY_IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -802,10 +864,10 @@ class TaskManagementServiceTest extends
             when(camundaService.getTaskVariables(taskId)).thenReturn(mockedVariables);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    SECONDARY_IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -826,7 +888,7 @@ class TaskManagementServiceTest extends
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user being assigned the Task has failed the Role Assignment checks performed.");
+                                + "The user being assigned the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -841,10 +903,10 @@ class TaskManagementServiceTest extends
                 .thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    SECONDARY_IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     SECONDARY_IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             AccessControlResponse assigneeAccessControlResponse = mock(AccessControlResponse.class);
@@ -857,7 +919,8 @@ class TaskManagementServiceTest extends
             when(cftQueryService.getTask(
                 taskId,
                 assignerAccessControlResponse.getRoleAssignments(),
-                singletonList(MANAGE))).thenReturn(Optional.empty());
+                singletonList(MANAGE)
+            )).thenReturn(Optional.empty());
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
 
@@ -869,7 +932,7 @@ class TaskManagementServiceTest extends
                 .isInstanceOf(RoleAssignmentVerificationException.class)
                 .hasNoCause()
                 .hasMessage("Role Assignment Verification: "
-                            + "The user assigning the Task has failed the Role Assignment checks performed.");
+                                + "The user assigning the Task has failed the Role Assignment checks performed.");
 
             verify(camundaService, times(0)).assignTask(any(), any(), anyBoolean());
         }
@@ -928,10 +991,10 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -958,10 +1021,10 @@ class TaskManagementServiceTest extends
             )).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(false);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -1021,10 +1084,10 @@ class TaskManagementServiceTest extends
             TaskResource taskResource = spy(TaskResource.class);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
@@ -1047,10 +1110,10 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1084,10 +1147,10 @@ class TaskManagementServiceTest extends
             )).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(false);
 
             taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -1108,10 +1171,10 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.findByIdOnly(taskId))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(
@@ -1154,10 +1217,10 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.cancelTask(taskId, accessControlResponse))
@@ -1189,10 +1252,10 @@ class TaskManagementServiceTest extends
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
             Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
 
@@ -1223,10 +1286,10 @@ class TaskManagementServiceTest extends
             )).thenReturn(true);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(false);
             boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals("COMPLETED");
             taskManagementService.completeTask(taskId, accessControlResponse);
@@ -1311,10 +1374,10 @@ class TaskManagementServiceTest extends
             TaskResource taskResource = spy(TaskResource.class);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
@@ -1346,10 +1409,10 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.of(taskResource));
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             taskManagementService.completeTask(taskId, accessControlResponse);
@@ -1367,10 +1430,10 @@ class TaskManagementServiceTest extends
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             TaskResource taskResource = spy(TaskResource.class);
@@ -1402,10 +1465,10 @@ class TaskManagementServiceTest extends
             when(taskResource.getAssignee()).thenReturn(null);
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
             assertThatThrownBy(() -> taskManagementService.completeTask(
                 taskId,
@@ -1447,10 +1510,10 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.empty());
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                    RELEASE_2_ENDPOINTS_FEATURE,
-                    IDAM_USER_ID,
-                    IDAM_USER_EMAIL
-                )
+                     RELEASE_2_ENDPOINTS_FEATURE,
+                     IDAM_USER_ID,
+                     IDAM_USER_EMAIL
+                 )
             ).thenReturn(true);
 
             assertThatThrownBy(() -> taskManagementService.completeTask(taskId, accessControlResponse))
@@ -1502,10 +1565,10 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
@@ -1538,10 +1601,10 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(false);
 
                 boolean taskStateIsAssignedAlready = mockedVariables.get("taskState").getValue().equals("ASSIGNED");
@@ -1578,7 +1641,7 @@ class TaskManagementServiceTest extends
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -1590,10 +1653,10 @@ class TaskManagementServiceTest extends
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -1631,10 +1694,10 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
                 Map<String, CamundaVariable> mockedVariables = createMockCamundaVariables();
 
@@ -1670,10 +1733,10 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(false);
 
                 boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals(COMPLETED.value());
@@ -1714,7 +1777,7 @@ class TaskManagementServiceTest extends
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -1751,10 +1814,10 @@ class TaskManagementServiceTest extends
                 TaskResource taskResource = spy(TaskResource.class);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -1812,10 +1875,10 @@ class TaskManagementServiceTest extends
 
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
 
@@ -1848,10 +1911,10 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(false);
                 boolean taskStateIsAssignedAlready = mockedVariables.get("taskState").getValue().equals("ASSIGNED");
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -1870,10 +1933,10 @@ class TaskManagementServiceTest extends
                 final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
                 TaskResource taskResource = spy(TaskResource.class);
 
@@ -1890,7 +1953,7 @@ class TaskManagementServiceTest extends
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
             }
 
             @Test
@@ -1900,10 +1963,10 @@ class TaskManagementServiceTest extends
                 when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
                 TaskResource taskResource = spy(TaskResource.class);
@@ -1953,10 +2016,10 @@ class TaskManagementServiceTest extends
                 when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
 
@@ -1995,10 +2058,10 @@ class TaskManagementServiceTest extends
                     .thenReturn(Optional.of(taskResource));
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
                 taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -2032,10 +2095,10 @@ class TaskManagementServiceTest extends
                 )).thenReturn(true);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(false);
 
                 boolean taskHasCompleted = mockedVariables.get("taskState").getValue().equals(COMPLETED.value());
@@ -2058,10 +2121,10 @@ class TaskManagementServiceTest extends
                 List<RoleAssignment> roleAssignments = List.of(roleAssignment);
                 when(accessControlResponse.getRoleAssignments()).thenReturn(roleAssignments);
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
                 TaskResource taskResource = spy(TaskResource.class);
 
@@ -2078,7 +2141,7 @@ class TaskManagementServiceTest extends
                     .isInstanceOf(RoleAssignmentVerificationException.class)
                     .hasNoCause()
                     .hasMessage("Role Assignment Verification: "
-                                + "The request failed the Role Assignment checks performed.");
+                                    + "The request failed the Role Assignment checks performed.");
 
                 verify(camundaService, times(0)).completeTask(any(), anyBoolean());
             }
@@ -2098,10 +2161,10 @@ class TaskManagementServiceTest extends
                 when(taskResource.getAssignee()).thenReturn(null);
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
                     taskId,
@@ -2134,10 +2197,10 @@ class TaskManagementServiceTest extends
                     .thenReturn(Optional.empty());
 
                 when(launchDarklyFeatureFlagProvider.getBooleanValue(
-                        RELEASE_2_ENDPOINTS_FEATURE,
-                        IDAM_USER_ID,
-                        IDAM_USER_EMAIL
-                    )
+                         RELEASE_2_ENDPOINTS_FEATURE,
+                         IDAM_USER_ID,
+                         IDAM_USER_EMAIL
+                     )
                 ).thenReturn(true);
 
                 assertThatThrownBy(() -> taskManagementService.completeTaskWithPrivilegeAndCompletionOptions(
@@ -2506,7 +2569,7 @@ class TaskManagementServiceTest extends
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(GenericServerErrorException.class)
                 .hasMessage("Generic Server Error: The action could not be completed "
-                            + "because there was a problem when initiating the task.");
+                                + "because there was a problem when initiating the task.");
         }
 
         @Test
@@ -2518,7 +2581,7 @@ class TaskManagementServiceTest extends
             assertThatThrownBy(() -> taskManagementService.initiateTask(taskId, initiateTaskRequest))
                 .isInstanceOf(DatabaseConflictException.class)
                 .hasMessage("Database Conflict Error: "
-                            + "The action could not be completed because there was a conflict in the database.");
+                                + "The action could not be completed because there was a conflict in the database.");
         }
 
         @Test
@@ -2718,7 +2781,8 @@ class TaskManagementServiceTest extends
         @Test
         void should_succeed() {
             List<NoteResource> existingNotesList = new ArrayList<>();
-            final NoteResource existingNoteResource = new NoteResource("someCode",
+            final NoteResource existingNoteResource = new NoteResource(
+                "someCode",
                 "noteTypeVal",
                 "userVal",
                 "someContent"
@@ -2734,13 +2798,15 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.of(taskResourceById));
 
             List<NoteResource> mergedNotesList = new ArrayList<>();
-            NoteResource noteResource = new NoteResource("Warning Code",
+            NoteResource noteResource = new NoteResource(
+                "Warning Code",
                 "Warning",
                 "userId",
                 "Warning Description"
             );
             mergedNotesList.add(noteResource);
-            noteResource = new NoteResource("Warning Code",
+            noteResource = new NoteResource(
+                "Warning Code",
                 "Warning",
                 "userId",
                 "Warning Description"
@@ -2783,7 +2849,8 @@ class TaskManagementServiceTest extends
                 .thenReturn(Optional.of(taskResourceById));
 
             List<NoteResource> mergedNotesList = new ArrayList<>();
-            NoteResource noteResource = new NoteResource("Warning Code",
+            NoteResource noteResource = new NoteResource(
+                "Warning Code",
                 "Warning",
                 "userId",
                 "Warning Description"
@@ -2974,7 +3041,7 @@ class TaskManagementServiceTest extends
             taskResource.setTaskRoleResources(taskRoleResourceSet);
 
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.of(taskResource));
+            when(entityManager.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(taskResource));
 
             final List<TaskRolePermissions> taskRolePermissions = taskManagementService.getTaskRolePermissions(
                 taskId, accessControlResponse);
@@ -3018,7 +3085,6 @@ class TaskManagementServiceTest extends
             assertEquals("tribunal-caseworker", expectedRolePermission.getRoleName());
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
             verify(cftTaskMapper, times(3)).mapToTaskRolePermissions(any());
         }
 
@@ -3038,7 +3104,6 @@ class TaskManagementServiceTest extends
             assertTrue(taskRolePermissions.isEmpty());
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, never()).findTaskBySpecification(any());
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
 
@@ -3053,7 +3118,6 @@ class TaskManagementServiceTest extends
                 taskId, accessControlResponse));
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, never()).findTaskBySpecification(any());
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
 
@@ -3070,13 +3134,12 @@ class TaskManagementServiceTest extends
             Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
             when(Optional.of(taskResource).get().getTaskRoleResources()).thenReturn(taskRoleResourceSet);
             when(cftTaskDatabaseService.findByIdOnly(taskId)).thenReturn(Optional.of(taskResource));
-            when(cftTaskDatabaseService.findTaskBySpecification(any())).thenReturn(Optional.empty());
+            when(entityManager.createQuery(criteriaQuery).getResultList()).thenReturn(Collections.emptyList());
 
             assertThrows(RoleAssignmentVerificationException.class, () -> taskManagementService.getTaskRolePermissions(
                 taskId, accessControlResponse));
 
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
-            verify(cftTaskDatabaseService, times(1)).findTaskBySpecification(any());
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
     }

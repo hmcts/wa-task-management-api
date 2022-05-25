@@ -20,13 +20,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_claim_task_by_id", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
 
@@ -128,7 +130,8 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     private DslPart createResponseForGetTask() {
         return newJsonBody(
             o -> o
-                .object("task",
+                .object(
+                    "task",
                     task -> task
                         .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
                         .stringType("name", "JakeO")
@@ -158,7 +161,8 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     private DslPart createResponseForGetTaskWithWarnings() {
         return newJsonBody(
             o -> o
-                .object("task",
+                .object(
+                    "task",
                     task -> task
                         .stringType("id", "7694d1ec-1f0b-4256-82be-a8309ab99136")
                         .stringType("name", "JakeO")
@@ -199,7 +203,8 @@ public class TaskManagerGetTaskConsumerTest extends SpringBootContractBaseTest {
     private DslPart createResponseForGetTaskForWa() {
         return newJsonBody(
             o -> o
-                .object("task",
+                .object(
+                    "task",
                     task -> task
                         .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
                         .stringType("name", "Process Application")

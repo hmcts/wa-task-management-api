@@ -91,11 +91,11 @@ INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execu
 		values('8d6cc5cf-c973-11eb-bdba-0242ac115008', 'tribunal-caseworker', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, '{"DIVORCE", "PROBATE"}', 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111006', '2021-05-09T20:15:45.345875+01:00');
 
 INSERT INTO cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id, case_name, case_type_id, created, description, due_date_time, has_warnings, jurisdiction, LOCATION, location_name, major_priority, minor_priority, notes, region, region_name, role_category, security_classification, state, task_name, task_system, task_type, termination_reason, title, work_type, execution_type_code)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac111026', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431026', 'TestCase', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'PUBLIC', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac111026', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431026', 'TestCase', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-04-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'PUBLIC', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac115027', 'senior-tribunal-caseworker', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, '{"DIVORCE", "PROBATE"}', 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111026', '2021-05-09T20:15:45.345875+01:00');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac115027', 'senior-tribunal-caseworker', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, '{"DIVORCE", "PROBATE"}', 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111026', '2021-04-09T20:15:45.345875+01:00');
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac115028', 'tribunal-caseworker', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, '{"DIVORCE", "PROBATE"}', 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111026', '2021-05-09T20:15:45.345875+01:00');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac115028', 'tribunal-caseworker', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, '{"DIVORCE", "PROBATE"}', 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111026', '2021-04-09T20:15:45.345875+01:00');
 
 
 /*
@@ -107,9 +107,9 @@ INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execu
 		values('8d6cc5cf-c973-11eb-bdba-0242ac115009', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111007', '2021-05-09T20:15:45.345875+01:00');
 
 INSERT INTO cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id, case_name, case_type_id, created, description, due_date_time, has_warnings, jurisdiction, LOCATION, location_name, major_priority, minor_priority, notes, region, region_name, role_category, security_classification, state, task_name, task_system, task_type, termination_reason, title, work_type, execution_type_code)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac111027', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431027', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'PUBLIC', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac111027', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431027', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-04-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'PUBLIC', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac115029', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111027', '2021-05-09T20:15:45.345875+01:00');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac115029', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111027', '2021-04-09T20:15:45.345875+01:00');
 
 /*
 GrantType Basic - private
@@ -120,9 +120,9 @@ INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execu
 		values('8d6cc5cf-c973-11eb-bdba-0242ac115010', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111008', '2021-05-09T20:15:45.345875+01:00');
 
 INSERT INTO cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id, case_name, case_type_id, created, description, due_date_time, has_warnings, jurisdiction, LOCATION, location_name, major_priority, minor_priority, notes, region, region_name, role_category, security_classification, state, task_name, task_system, task_type, termination_reason, title, work_type, execution_type_code)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac111028', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431028', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'PRIVATE', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac111028', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431028', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-04-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'PRIVATE', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac115030', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111028', '2021-05-09T20:15:45.345875+01:00');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac115030', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111028', '2021-04-09T20:15:45.345875+01:00');
 
 /*
 GrantType Basic - RESTRICTED
@@ -133,9 +133,9 @@ INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execu
 		values('8d6cc5cf-c973-11eb-bdba-0242ac115011', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111009', '2021-05-09T20:15:45.345875+01:00');
 
 INSERT INTO cft_task_db.tasks (task_id, assignee, assignment_expiry, auto_assigned, business_context, case_id, case_name, case_type_id, created, description, due_date_time, has_warnings, jurisdiction, LOCATION, location_name, major_priority, minor_priority, notes, region, region_name, role_category, security_classification, state, task_name, task_system, task_type, termination_reason, title, work_type, execution_type_code)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac111029', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431029', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-05-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'RESTRICTED', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac111029', 'SELF', '2022-05-09T20:15:45.345875+01:00', FALSE, 'CFT_TASK', '1623278362431029', 'TestCase4', 'Asylum', '2021-05-09T20:15:45.345875+01:00', 'description', '2022-04-09T20:15:45.345875+01:00', FALSE, 'IA', '765324', 'Taylor House', 0, 0, '[{"user": "userVal", "noteType": "noteTypeVal"}]', '1', 'TestRegion', 'JUDICIAL', 'RESTRICTED', 'UNASSIGNED', 'taskName', 'SELF', 'startAppeal', NULL, 'title', 'hearing_work', 'MANUAL');
 INSERT INTO cft_task_db.task_roles (task_role_id, role_name, "read", own, "execute", manage, cancel, refer, authorizations, assignment_priority, auto_assignable, role_category, task_id, created)
-		values('8d6cc5cf-c973-11eb-bdba-0242ac115031', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111029', '2021-05-09T20:15:45.345875+01:00');
+		values('8d6cc5cf-c973-11eb-bdba-0242ac115031', 'hmcts-judiciary', 'true', FALSE, FALSE, FALSE, FALSE, FALSE, NULL, 0, FALSE, 'JUDICIAL', '8d6cc5cf-c973-11eb-bdba-0242ac111029', '2021-04-09T20:15:45.345875+01:00');
 
 /*
 Used by pagination test

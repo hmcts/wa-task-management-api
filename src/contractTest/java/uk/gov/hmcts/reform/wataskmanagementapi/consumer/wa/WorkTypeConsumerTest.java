@@ -14,16 +14,20 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.ContextConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_get_work_types", port = "8991")
+@ContextConfiguration(classes = {EntityManager.class, EntityManagerFactory.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
 
@@ -80,7 +84,7 @@ public class WorkTypeConsumerTest extends SpringBootContractBaseTest {
     @Test
     @PactTestFor(pactMethod = "executeGetWorkTypesByUserId200", pactVersion = PactSpecVersion.V3)
     void testGetAllWorkTypesByUserId(MockServer mockServer) {
-        
+
         SerenityRest
             .given()
             .headers(getHttpHeaders())

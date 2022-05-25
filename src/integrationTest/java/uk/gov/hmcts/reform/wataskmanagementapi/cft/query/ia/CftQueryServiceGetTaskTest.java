@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
+package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
@@ -13,13 +13,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import uk.gov.hmcts.reform.wataskmanagementapi.RoleAssignmentHelper;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classification;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -30,16 +34,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
+import javax.persistence.EntityManager;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.LOCATION;
 
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
-@Sql("/scripts/complete_task_data.sql")
-public class CftQueryServiceCompleteTaskTest {
+@Sql("/scripts/ia/get_task_data.sql")
+public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
 
@@ -49,16 +56,18 @@ public class CftQueryServiceCompleteTaskTest {
     private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
+    @Autowired
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("getGrantTypes")
-    void should_retrieve_a_task_to_complete(GrantType grantType) {
+    void should_get_a_task(GrantType grantType) {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111017";
         final String caseId = "1623278362431017";
 
@@ -67,12 +76,12 @@ public class CftQueryServiceCompleteTaskTest {
         Map<String, String> tcAttributes = new HashMap<>();
 
         if (grantType == GrantType.SPECIFIC) {
-            tcAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-            tcAttributes.put(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum");
+            tcAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION);
+            tcAttributes.put(RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE);
             tcAttributes.put(RoleAttributeDefinition.CASE_ID.value(), caseId);
         } else if (grantType == GrantType.STANDARD) {
-            tcAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), "IA");
-            tcAttributes.put(RoleAttributeDefinition.CASE_TYPE.value(), "Asylum");
+            tcAttributes.put(RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION);
+            tcAttributes.put(RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE);
             tcAttributes.put(RoleAttributeDefinition.CASE_ID.value(), caseId);
             tcAttributes.put(LOCATION.name(), "1");
         }
@@ -80,18 +89,18 @@ public class CftQueryServiceCompleteTaskTest {
         RoleAssignment roleAssignment = RoleAssignment
             .builder()
             .roleName("tribunal-caseworker")
+            .roleType(RoleType.ORGANISATION)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
             .grantType(grantType)
             .attributes(tcAttributes)
+            .authorisations(List.of("373"))
             .build();
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
+        permissionsRequired.add(PermissionTypes.READ);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
@@ -100,16 +109,17 @@ public class CftQueryServiceCompleteTaskTest {
     }
 
     @Test
-    void should_retrieve_a_task_to_complete_challenged() {
+    void should_get_a_task_to_with_challenged_grant_type() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111018";
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -120,14 +130,19 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
+        permissionsRequired.add(PermissionTypes.READ);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
+        Set<TaskRoleResource> taskRoleResourceSet = task.get().getTaskRoleResources();
+        Assertions.assertThat(taskRoleResourceSet).isNotEmpty();
+        taskRoleResourceSet.stream().forEach(taskRoleResource -> {
+            assertArrayEquals(new String[]{"DIVORCE", "373"}, taskRoleResource.getAuthorizations());
+            Assertions.assertThat(taskRoleResource.getAssignmentPriority()).isEqualTo(8);
+            Assertions.assertThat(taskRoleResource.getAutoAssignable()).isTrue();
+        });
     }
 
     @Test
@@ -136,11 +151,12 @@ public class CftQueryServiceCompleteTaskTest {
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -165,11 +181,12 @@ public class CftQueryServiceCompleteTaskTest {
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -180,9 +197,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.OWN);
-        permissionsRequired.add(PermissionTypes.EXECUTE);
-
+        permissionsRequired.add(PermissionTypes.READ);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
@@ -194,11 +209,12 @@ public class CftQueryServiceCompleteTaskTest {
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -220,11 +236,12 @@ public class CftQueryServiceCompleteTaskTest {
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -235,6 +252,7 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
+        permissionsRequired.add(PermissionTypes.MANAGE);
         permissionsRequired.add(PermissionTypes.CANCEL);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
@@ -247,11 +265,12 @@ public class CftQueryServiceCompleteTaskTest {
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -262,7 +281,8 @@ public class CftQueryServiceCompleteTaskTest {
         roleAssignments.add(roleAssignment);
 
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
-        permissionsRequired.add(PermissionTypes.MANAGE);
+        permissionsRequired.add(PermissionTypes.OWN);
+        permissionsRequired.add(PermissionTypes.EXECUTE);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
@@ -274,11 +294,12 @@ public class CftQueryServiceCompleteTaskTest {
         final String caseId = "1623278362431018";
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> tcAttributes = Map.of(
-            RoleAttributeDefinition.CASE_TYPE.value(), "Asylum",
-            RoleAttributeDefinition.JURISDICTION.value(), "IA",
+            RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE,
+            RoleAttributeDefinition.JURISDICTION.value(), IA_JURISDICTION,
             RoleAttributeDefinition.CASE_ID.value(), caseId
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
+            .roleType(RoleType.CASE)
             .classification(Classification.PUBLIC)
             .beginTime(LocalDateTime.now().minusYears(1))
             .endTime(LocalDateTime.now().plusYears(1))
@@ -290,7 +311,6 @@ public class CftQueryServiceCompleteTaskTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.OWN);
         permissionsRequired.add(PermissionTypes.EXECUTE);
-
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
         Assertions.assertThat(task.isEmpty()).isTrue();
