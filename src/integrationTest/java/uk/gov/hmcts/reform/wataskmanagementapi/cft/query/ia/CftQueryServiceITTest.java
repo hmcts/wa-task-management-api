@@ -24,7 +24,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
@@ -66,8 +66,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     @MockBean
     private CamundaService camundaService;
-    @Autowired
-    private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
     @Autowired
@@ -76,7 +74,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager));
     }
 
     @ParameterizedTest()
