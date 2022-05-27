@@ -130,6 +130,10 @@ public class Task {
     private final String workTypeId;
 
     @Schema(required = true,
+        description = "A value containing the work type label for this task, for IA")
+    private final String workTypeLabel;
+
+    @Schema(required = true,
         description = "A value describing the task permissions")
     private final TaskPermissions permissions;
     @Schema(required = true,
@@ -169,6 +173,7 @@ public class Task {
                 WarningValues warningList,
                 String caseManagementCategory,
                 String workTypeId,
+                String workTypeLabel,
                 TaskPermissions taskPermissions,
                 String roleCategory,
                 String description,
@@ -199,6 +204,7 @@ public class Task {
         this.warningList = warningList;
         this.caseManagementCategory = caseManagementCategory;
         this.workTypeId = workTypeId;
+        this.workTypeLabel = workTypeLabel;
         this.permissions = taskPermissions;
         this.roleCategory = roleCategory;
         this.description = description;
@@ -299,6 +305,10 @@ public class Task {
 
     public String getWorkTypeId() {
         return workTypeId;
+    }
+
+    public String getWorkTypeLabel() {
+        return workTypeLabel;
     }
 
     public TaskPermissions getPermissions() {
