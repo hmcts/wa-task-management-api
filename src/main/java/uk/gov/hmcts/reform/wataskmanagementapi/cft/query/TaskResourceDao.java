@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,7 @@ public class TaskResourceDao {
         return summaryQueryBuilder
             .where(selectPredicate)
             .withOrders(orders)
+            .withSelections(selections)
             .build()
             .setFirstResult((int) page.getOffset())
             .setMaxResults(page.getPageSize())
@@ -72,11 +74,11 @@ public class TaskResourceDao {
 
         selections.add(root.get("taskId"));
 
-        if (searchTaskRequest.getSortingParameters().isEmpty()) {
+        List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
+        if (sortingParameters == null || sortingParameters.isEmpty()) {
             selections.add(root.get("dueDateTime"));
         } else {
-            searchTaskRequest.getSortingParameters()
-                .forEach(p -> selections.add(root.get(p.getSortBy().getCftVariableName())));
+            sortingParameters.forEach(p -> selections.add(root.get(p.getSortBy().getCftVariableName())));
         }
         return selections;
     }
