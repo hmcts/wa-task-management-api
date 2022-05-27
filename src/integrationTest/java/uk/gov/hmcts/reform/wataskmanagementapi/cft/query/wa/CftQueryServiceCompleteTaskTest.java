@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -24,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import javax.persistence.EntityManager;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -37,16 +37,15 @@ public class CftQueryServiceCompleteTaskTest extends RoleAssignmentHelper {
     @MockBean
     private CamundaService camundaService;
     @Autowired
-    private TaskResourceRepository taskResourceRepository;
+    private EntityManager entityManager;
 
     private CftQueryService cftQueryService;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, taskResourceRepository);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
     }
-
 
     @Test
     void should_retrieve_a_task_when_grant_type_standard() {

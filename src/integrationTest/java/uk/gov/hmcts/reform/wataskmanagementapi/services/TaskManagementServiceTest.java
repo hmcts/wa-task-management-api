@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -66,6 +67,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+    @Autowired
+    private EntityManager entityManager;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @Autowired
@@ -129,16 +132,17 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService
+            taskReconfigurationService,
+            entityManager
         );
 
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
     }
@@ -308,7 +312,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId);
 
@@ -399,7 +403,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                                + "The Task state was updated to completed, but the Task could not be completed.");
+                                    + "The Task state was updated to completed, but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId);
             }

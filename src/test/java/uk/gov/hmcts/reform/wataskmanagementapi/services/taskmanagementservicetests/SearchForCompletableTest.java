@@ -28,6 +28,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -67,6 +68,8 @@ class SearchForCompletableTest extends CamundaHelpers {
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
 
     @Test
@@ -321,7 +324,8 @@ class SearchForCompletableTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService
+            taskReconfigurationService,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

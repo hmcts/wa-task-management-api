@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,6 +65,8 @@ class TerminateTaskTest extends CamundaHelpers {
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @BeforeEach
     public void setUp() {
@@ -81,7 +84,8 @@ class TerminateTaskTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService
+            taskReconfigurationService,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();
