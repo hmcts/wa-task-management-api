@@ -192,6 +192,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         lenient().when(builder.createQuery(TaskResource.class)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.from(TaskResource.class)).thenReturn(root);
         lenient().when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
+        lenient().when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
         lenient().when(entityManager.createQuery(criteriaQuery)).thenReturn(query);
         lenient().when(builder.in(any())).thenReturn(inObject);
         lenient().when(inObject.value(any())).thenReturn(values);

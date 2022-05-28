@@ -190,6 +190,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             null,
             "Some Case Management Category",
             "hearing_work",
+            "Hearing work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
             "Description",
@@ -309,6 +310,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
+            assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
         }
 
         @Test
@@ -382,6 +384,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             assertNotNull(taskResourceList);
             assertEquals("4d4b6fgh-c91f-433f-92ac-e456ae34f72a", taskResourceList.getTasks().get(0).getId());
             assertEquals("hearing_work", taskResourceList.getTasks().get(0).getWorkTypeId());
+            assertEquals("Hearing work", taskResourceList.getTasks().get(0).getWorkTypeLabel());
         }
 
         @Test

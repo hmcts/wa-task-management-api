@@ -27,6 +27,7 @@ import javax.persistence.criteria.Selection;
 
 @Slf4j
 @Service
+@SuppressWarnings({"PMD.UnnecessaryFullyQualifiedName"})
 public class TaskResourceDao {
 
     @PersistenceContext

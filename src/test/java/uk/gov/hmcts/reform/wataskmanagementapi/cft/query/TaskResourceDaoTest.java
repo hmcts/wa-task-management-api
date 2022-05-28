@@ -124,6 +124,7 @@ class TaskResourceDaoTest {
     void beforeEach() {
         lenient().when(em.getCriteriaBuilder()).thenReturn(builder);
         lenient().when(builder.createQuery(TaskResource.class)).thenReturn(criteriaQuery);
+        lenient().when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.distinct(true)).thenReturn(criteriaQuery);
         lenient().when(criteriaQuery.from(TaskResource.class)).thenReturn(root);
         lenient().when(builder.equal(any(), anyString())).thenReturn(predicate);
