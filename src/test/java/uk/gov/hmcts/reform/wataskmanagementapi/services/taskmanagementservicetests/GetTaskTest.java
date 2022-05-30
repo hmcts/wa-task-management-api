@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,8 +61,12 @@ class GetTaskTest extends CamundaHelpers {
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
     CftQueryService cftQueryService;
+
+    RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void getTask_should_succeed_and_return_mapped_task() {
@@ -122,16 +128,21 @@ class GetTaskTest extends CamundaHelpers {
 
     @BeforeEach
     public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerification,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

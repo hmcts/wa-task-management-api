@@ -20,13 +20,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_search", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBootContractBaseTest {
 
@@ -241,6 +243,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .booleanType("warnings", false)
                         .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
@@ -274,6 +277,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .booleanType("warnings", false)
                         .stringType("case_management_category", "Protection")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
@@ -324,6 +328,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         )
                         .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")

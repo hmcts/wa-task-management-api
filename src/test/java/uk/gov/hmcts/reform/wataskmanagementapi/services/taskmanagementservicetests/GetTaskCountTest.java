@@ -15,11 +15,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaHelpers;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,8 +53,12 @@ class GetTaskCountTest extends CamundaHelpers {
     ConfigureTaskService configureTaskService;
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
+
+    RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
     String taskId;
+    @Mock
+    private EntityManager entityManager;
 
     @Test
     void getTaskCount_should_succeed_and_return_count() {
@@ -80,16 +86,21 @@ class GetTaskCountTest extends CamundaHelpers {
 
     @BeforeEach
     public void setUp() {
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerification,
+            entityManager
         );
 
         taskId = UUID.randomUUID().toString();

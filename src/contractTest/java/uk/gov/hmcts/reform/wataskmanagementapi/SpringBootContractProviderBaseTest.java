@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
@@ -20,6 +21,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.WorkTypesService;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 @ExtendWith(SpringExtension.class)
 //Uncomment @PactFolder and comment the @PactBroker line to test local consumer.
@@ -30,6 +33,7 @@ import java.util.Map;
     consumerVersionSelectors = {
         @VersionSelector(tag = "master")}
 )
+@ContextConfiguration(classes = {EntityManager.class, EntityManagerFactory.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 @IgnoreNoPactsToVerify
 public class SpringBootContractProviderBaseTest {
