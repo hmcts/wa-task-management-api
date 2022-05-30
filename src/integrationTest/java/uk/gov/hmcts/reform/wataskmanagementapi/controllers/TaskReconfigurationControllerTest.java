@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -71,7 +73,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
     @MockBean
     private ClientAccessControlService clientAccessControlService;
 
-    @Autowired
+    @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private String taskId;
@@ -99,9 +101,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId0");
-        taskResources.stream().forEach(task -> {
-            assertNotNull(task.getReconfigureRequestTime());
-        });
+        assertNotNull(taskResources.get(0).getReconfigureRequestTime());
     }
 
     @Test
@@ -155,9 +155,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId3");
-        taskResources.stream().forEach(task -> {
-            assertNotNull(task.getReconfigureRequestTime());
-        });
+        assertNotNull(taskResources.get(0).getReconfigureRequestTime());
     }
 
     @Test
@@ -175,9 +173,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId4");
-        taskResources.stream().forEach(task -> {
-            assertNull(task.getReconfigureRequestTime());
-        });
+        assertNull(taskResources.get(0).getReconfigureRequestTime());
     }
 
 
@@ -197,6 +193,48 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
     }
 
+    @Test
+    void should_not_perform_mark_to_reconfigure_if_no_tasks_found() throws Exception {
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId5");
+        assertEquals(0, latestTaskResources.size());
+    }
+
+    @Test
+    void should_not_perform_mark_to_reconfigure_if_tasks_is_locked_by_another_process() throws Exception {
+
+        createTaskAndRoleAssignments(ASSIGNED, "caseId6");
+
+        List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
+        taskResourcesTobeLocked.stream().forEach(task -> {
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId()))
+                .thenThrow(new OptimisticLockException());
+        });
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId6")))
+        ).andExpectAll(
+            status().is(HttpStatus.INTERNAL_SERVER_ERROR.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
+        taskResources.stream().forEach(task -> {
+            assertNull(task.getReconfigureRequestTime());
+        });
+    }
+
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {
         TaskOperation operation = new TaskOperation(operationName, UUID.randomUUID().toString());
         return new TaskOperationRequest(operation, taskFilters(caseId));
@@ -209,8 +247,8 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
     private void insertDummyTaskInDb(String jurisdiction,
                                      String caseType,
-                                     String taskId,
-                                     CFTTaskState cftTaskState,
+                                     String caseId,
+                                     String taskId, CFTTaskState cftTaskState,
                                      TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
             taskId,
@@ -226,7 +264,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setLocation("765324");
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("caseId1");
+        taskResource.setCaseId(caseId);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
@@ -244,7 +282,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
         String jurisdiction = "IA";
         String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, cftTaskState, assignerTaskRoleResource);
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
