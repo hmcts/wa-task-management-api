@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 @ContextConfiguration(classes = {CamundaConsumerApplication.class})
 public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBaseTest {
 
-    private static final String TASK_ID = "704c8b1c-e89b-436a-90f6-953b1dc40157";
     private static final String WA_URL = "/task";
     private static final String WA_RECONFIGURE_TASK_BY_ID = WA_URL + "/operation";
 

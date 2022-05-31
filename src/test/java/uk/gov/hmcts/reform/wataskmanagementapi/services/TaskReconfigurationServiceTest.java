@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 
@@ -15,9 +16,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -35,17 +38,18 @@ class TaskReconfigurationServiceTest {
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskFilter> taskFilters = createTaskFilters();
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
         List<TaskResource> taskResources = taskResources(null);
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
+        taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
             assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
         });
@@ -54,14 +58,15 @@ class TaskReconfigurationServiceTest {
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        List<TaskFilter> taskFilters = createTaskFilters();
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
         List<TaskResource> taskResources = cancelledTaskResources();
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
+        taskResourcesMarked.forEach(taskResource -> {
             assertNull(taskResource.getReconfigureRequestTime());
         });
 
@@ -69,21 +74,19 @@ class TaskReconfigurationServiceTest {
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        List<TaskFilter> taskFilters = createTaskFilters();
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
-        List<TaskResource> taskResources = taskResources(OffsetDateTime.now().minusDays(1));
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-        });
-
+        assertEquals(0, taskResourcesMarked.size());
     }
 
-    private List<TaskFilter> createTaskFilters() {
-        TaskFilter filter = new TaskFilter("case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
+    private List<TaskFilter<?>> createTaskFilters() {
+        MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
         return List.of(filter);
     }
 

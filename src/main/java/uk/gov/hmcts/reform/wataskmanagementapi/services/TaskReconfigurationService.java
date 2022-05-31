@@ -5,10 +5,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 
 import java.time.OffsetDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -25,18 +25,16 @@ public class TaskReconfigurationService {
     }
 
     @Transactional
-    public List<TaskResource> markTasksToReconfigure(List<TaskFilter> taskFilters) {
-        List<Object> caseIds = taskFilters.stream().filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
-            .flatMap(filter -> filter.getValues().stream())
+    public List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
+        List<String> caseIds = taskFilters.stream()
+            .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
+            .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter)filter).getValues().stream())
+            .map(Object::toString)
             .collect(Collectors.toList());
 
-        List<TaskResource> taskResources = caseIds.stream()
-            .map(caseId -> cftTaskDatabaseService.findByCaseIdOnly((String) caseId))
-            .flatMap(Collection::stream)
-            .filter(task -> (task.getState().equals(CFTTaskState.ASSIGNED)
-                             || task.getState().equals(CFTTaskState.UNASSIGNED))
-                            && Objects.isNull(task.getReconfigureRequestTime()))
-            .collect(Collectors.toList());
+        List<TaskResource> taskResources = cftTaskDatabaseService
+            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+                caseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         taskResources.stream()
             .map(task -> cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId())

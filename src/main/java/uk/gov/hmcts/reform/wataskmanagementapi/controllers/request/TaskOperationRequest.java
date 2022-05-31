@@ -10,6 +10,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.Task
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 
 import java.util.List;
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 
 @Schema(
     name = "TaskOperationRequest",
@@ -20,14 +22,27 @@ import java.util.List;
 public class TaskOperationRequest {
 
     @Schema(required = true)
-    private final TaskOperation operation;
-    @Schema(required = true)
-    private final List<TaskFilter> taskFilter;
+    private TaskOperation operation;
+
+    @Schema(
+        required = true,
+        description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
+    @NotEmpty(message = "At least one task_filter element is required.")
+    private List<@Valid TaskFilter<?>> taskFilter;
+
+    private TaskOperationRequest() {
+        //Default constructor for deserialization
+        super();
+    }
 
     @JsonCreator
     public TaskOperationRequest(TaskOperation operation,
-                                @JsonProperty("taskFilter") @JsonAlias("task_filter") List<TaskFilter> taskFilter) {
+                                @JsonProperty("taskFilter") @JsonAlias("task_filter") List<TaskFilter<?>> taskFilter) {
         this.operation = operation;
+        this.taskFilter = taskFilter;
+    }
+
+    public TaskOperationRequest(List<TaskFilter<?>> taskFilter) {
         this.taskFilter = taskFilter;
     }
 
@@ -35,7 +50,7 @@ public class TaskOperationRequest {
         return operation;
     }
 
-    public List<TaskFilter> getTaskFilter() {
+    public List<TaskFilter<?>> getTaskFilter() {
         return taskFilter;
     }
 }

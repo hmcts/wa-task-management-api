@@ -9,7 +9,7 @@ class TaskFilterTest {
 
     @Test
     void isWellImplemented() {
-        final Class<?> classUnderTest = TaskFilter.class;
+        final Class<?> classUnderTest = MarkTaskToReconfigureTaskFilter.class;
 
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)

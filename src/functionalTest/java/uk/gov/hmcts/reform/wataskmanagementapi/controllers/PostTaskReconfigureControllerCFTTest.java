@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
@@ -100,8 +101,9 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 
-    private List<TaskFilter> taskFilters(String caseId) {
-        TaskFilter filter = new TaskFilter("case_id", List.of(caseId), TaskFilterOperator.IN);
+    private List<TaskFilter<?>> taskFilters(String caseId) {
+        MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of(caseId), TaskFilterOperator.IN);
         return List.of(filter);
     }
 
