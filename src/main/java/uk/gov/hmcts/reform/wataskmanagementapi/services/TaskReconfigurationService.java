@@ -55,7 +55,7 @@ public class TaskReconfigurationService {
     }
 
     @Transactional
-    public List<String> updateReconfigureRequestTime(List<String> taskIds,
+    protected List<String> updateReconfigureRequestTime(List<String> taskIds,
                                                       List<TaskResource> successfulTaskResources) {
         List<String> failedTaskIds = new ArrayList<>();
         taskIds.stream().forEach(taskId -> {
