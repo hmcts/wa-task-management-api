@@ -189,6 +189,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
 
         List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
 

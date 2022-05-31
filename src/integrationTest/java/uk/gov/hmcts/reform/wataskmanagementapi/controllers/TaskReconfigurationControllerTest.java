@@ -204,7 +204,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId6")))
         ).andExpectAll(
-            status().is(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            status().is(HttpStatus.CONFLICT.value())
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
