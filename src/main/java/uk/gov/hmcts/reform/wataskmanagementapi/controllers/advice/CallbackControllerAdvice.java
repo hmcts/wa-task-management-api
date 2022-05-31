@@ -18,8 +18,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.TaskStateIncorrectExce
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.UnAuthorizedException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 
-import javax.persistence.OptimisticLockException;
-
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -79,7 +77,7 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler({NullPointerException.class, ServerErrorException.class,
-        RequireDbLockException.class, OptimisticLockException.class})
+        RequireDbLockException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
     }
