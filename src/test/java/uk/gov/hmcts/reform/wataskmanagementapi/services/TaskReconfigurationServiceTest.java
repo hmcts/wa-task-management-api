@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 
@@ -37,7 +38,7 @@ class TaskReconfigurationServiceTest {
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskFilter> taskFilters = createTaskFilters();
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
         List<TaskResource> taskResources = taskResources(null);
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -48,7 +49,7 @@ class TaskReconfigurationServiceTest {
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
+        taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
             assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
         });
@@ -57,7 +58,7 @@ class TaskReconfigurationServiceTest {
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        List<TaskFilter> taskFilters = createTaskFilters();
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
         List<TaskResource> taskResources = cancelledTaskResources();
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
@@ -65,7 +66,7 @@ class TaskReconfigurationServiceTest {
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
+        taskResourcesMarked.forEach(taskResource -> {
             assertNull(taskResource.getReconfigureRequestTime());
         });
 
@@ -73,7 +74,7 @@ class TaskReconfigurationServiceTest {
 
     @Test
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        List<TaskFilter> taskFilters = createTaskFilters();
+        List<TaskFilter<?>> taskFilters = createTaskFilters();
 
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
@@ -83,8 +84,9 @@ class TaskReconfigurationServiceTest {
         assertEquals(0, taskResourcesMarked.size());
     }
 
-    private List<TaskFilter> createTaskFilters() {
-        TaskFilter filter = new TaskFilter("case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
+    private List<TaskFilter<?>> createTaskFilters() {
+        MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
         return List.of(filter);
     }
 

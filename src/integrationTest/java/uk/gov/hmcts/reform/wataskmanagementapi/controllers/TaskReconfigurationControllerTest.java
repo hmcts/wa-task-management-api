@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
@@ -99,7 +100,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId0");
-        taskResources.stream().forEach(task -> {
+        taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
         });
     }
@@ -119,7 +120,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId2");
-        taskResources.stream().forEach(task -> {
+        taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
         });
 
@@ -133,7 +134,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId2");
-        latestTaskResources.stream().forEach(task1 -> {
+        latestTaskResources.forEach(task1 -> {
             TaskResource match = taskResources.stream().filter(task2 -> task1.getTaskId().equals(task2.getTaskId()))
                 .findFirst().get();
             assertEquals(match.getReconfigureRequestTime(), task1.getReconfigureRequestTime());
@@ -155,7 +156,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId3");
-        taskResources.stream().forEach(task -> {
+        taskResources.forEach(task -> {
             assertNotNull(task.getReconfigureRequestTime());
         });
     }
@@ -175,7 +176,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId4");
-        taskResources.stream().forEach(task -> {
+        taskResources.forEach(task -> {
             assertNull(task.getReconfigureRequestTime());
         });
     }
@@ -202,8 +203,8 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         return new TaskOperationRequest(operation, taskFilters(caseId));
     }
 
-    private List<TaskFilter> taskFilters(String caseId) {
-        TaskFilter filter = new TaskFilter("case_id", List.of(caseId), TaskFilterOperator.IN);
+    private List<TaskFilter<?>> taskFilters(String caseId) {
+        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter("case_id", List.of(caseId), TaskFilterOperator.IN);
         return List.of(filter);
     }
 

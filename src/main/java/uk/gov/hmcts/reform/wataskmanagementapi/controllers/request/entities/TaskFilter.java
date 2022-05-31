@@ -1,46 +1,22 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
 
-import java.util.List;
 
-@Schema(
-    name = "TaskFilter",
-    description = "Name of filter and value"
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = MarkTaskToReconfigureTaskFilter.class, name = "MarkTaskToReconfigureTaskFilter"),
+    @JsonSubTypes.Type(value = ExecuteReconfigureTaskFilter.class, name = "ExecuteReconfigureTaskFilter") }
 )
-@EqualsAndHashCode
-@ToString
-public class TaskFilter {
+public interface TaskFilter<T> {
 
-    @Schema(required = true)
-    private final String key;
+    String getKey();
 
-    @Schema(required = true)
-    private final List<Object> values;
+    TaskFilterOperator getOperator();
 
-    @Schema(required = true)
-    private final TaskFilterOperator operator;
-
-    @JsonCreator
-    public TaskFilter(String key, List<Object> values, TaskFilterOperator operator) {
-        this.key = key;
-        this.values = values;
-        this.operator = operator;
-    }
-
-    public String getKey() {
-        return key;
-    }
-
-    public List<Object> getValues() {
-        return values;
-    }
-
-    public TaskFilterOperator getOperator() {
-        return operator;
-    }
+    T getValues();
 }

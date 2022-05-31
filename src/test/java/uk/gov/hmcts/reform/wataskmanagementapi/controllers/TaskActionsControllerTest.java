@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskReq
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
@@ -424,8 +425,9 @@ class TaskActionsControllerTest {
         return new TaskOperationRequest(operation, taskFilters());
     }
 
-    private List<TaskFilter> taskFilters() {
-        TaskFilter filter = new TaskFilter("case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
+    private List<TaskFilter<?>> taskFilters() {
+        MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
         return List.of(filter);
     }
 }

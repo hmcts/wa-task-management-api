@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 
 import java.time.OffsetDateTime;
@@ -24,9 +25,10 @@ public class TaskReconfigurationService {
     }
 
     @Transactional
-    public List<TaskResource> markTasksToReconfigure(List<TaskFilter> taskFilters) {
-        List<String> caseIds = taskFilters.stream().filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
-            .flatMap(filter -> filter.getValues().stream())
+    public List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
+        List<String> caseIds = taskFilters.stream()
+            .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
+            .flatMap(filter -> ((MarkTaskToReconfigureTaskFilter)filter).getValues().stream())
             .map(Object::toString)
             .collect(Collectors.toList());
 
