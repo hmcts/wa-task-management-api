@@ -19,12 +19,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.advice.ErrorMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskOperation;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskFilterOperator;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTaskRolePermissionsResponse;
@@ -383,51 +377,9 @@ class TaskActionsControllerTest {
         assertEquals(response.getBody().getPermissionsList(), taskRolePermissions);
     }
 
-    @Test
-    void should_perform_task_operation_mark_reconfigure_with_privileged_access() {
-
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-            .thenReturn(true);
-
-        ResponseEntity response = taskActionsController.performOperation(
-            SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)
-        );
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-    }
-
-    @Test
-    void should_not_perform_task_operation_mark_reconfigure_when_no_privileged_access() {
-
-        when(clientAccessControlService.hasExclusiveAccess(SERVICE_AUTHORIZATION_TOKEN))
-            .thenReturn(false);
-
-        assertThatThrownBy(() -> taskActionsController.performOperation(
-            SERVICE_AUTHORIZATION_TOKEN,
-            taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE)))
-            .isInstanceOf(GenericForbiddenException.class)
-            .hasNoCause()
-            .hasMessage("Forbidden: "
-                        + "The action could not be completed because the "
-                        + "client/user had insufficient rights to a resource.");
-    }
-
     private NotesRequest addNotes() {
         NoteResource noteResource = new NoteResource(
             "code", "notetype", "userId", "content");
         return new NotesRequest(List.of(noteResource));
-    }
-
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
-        TaskOperation operation = new TaskOperation(operationName, "run_id1");
-        return new TaskOperationRequest(operation, taskFilters());
-    }
-
-    private List<TaskFilter<?>> taskFilters() {
-        MarkTaskToReconfigureTaskFilter filter = new MarkTaskToReconfigureTaskFilter(
-            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
-        return List.of(filter);
     }
 }
