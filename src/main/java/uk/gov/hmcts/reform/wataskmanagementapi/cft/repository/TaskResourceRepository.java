@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -30,6 +31,9 @@ public interface TaskResourceRepository extends CrudRepository<TaskResource, Str
     Optional<TaskResource> getByTaskId(String id);
 
     List<TaskResource> getByCaseId(String caseId);
+
+    List<TaskResource> findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
+        List<String> caseIds, List<CFTTaskState> states);
 
     @Modifying
     @QueryHints({

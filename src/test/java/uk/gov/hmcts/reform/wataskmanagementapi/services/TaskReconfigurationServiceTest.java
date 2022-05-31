@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +40,8 @@ class TaskReconfigurationServiceTest {
         List<TaskFilter> taskFilters = createTaskFilters();
 
         List<TaskResource> taskResources = taskResources(null);
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
@@ -57,7 +60,8 @@ class TaskReconfigurationServiceTest {
         List<TaskFilter> taskFilters = createTaskFilters();
 
         List<TaskResource> taskResources = cancelledTaskResources();
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
@@ -71,15 +75,12 @@ class TaskReconfigurationServiceTest {
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
         List<TaskFilter> taskFilters = createTaskFilters();
 
-        List<TaskResource> taskResources = taskResources(OffsetDateTime.now().minusDays(1));
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
 
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-        });
-
+        assertEquals(0, taskResourcesMarked.size());
     }
 
     private List<TaskFilter> createTaskFilters() {

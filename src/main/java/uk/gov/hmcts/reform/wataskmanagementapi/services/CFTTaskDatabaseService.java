@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
 import java.sql.SQLException;
@@ -30,6 +31,11 @@ public class CFTTaskDatabaseService {
 
     public List<TaskResource> findByCaseIdOnly(String caseId) {
         return tasksRepository.getByCaseId(caseId);
+    }
+
+    public List<TaskResource> getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+        List<String> caseIds, List<CFTTaskState> states) {
+        return tasksRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(caseIds, states);
     }
 
     public TaskResource saveTask(TaskResource task) {

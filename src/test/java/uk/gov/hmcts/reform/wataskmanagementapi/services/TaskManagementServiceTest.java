@@ -183,7 +183,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
 
         List<TaskResource> taskResources = taskResources(null);
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
@@ -201,7 +202,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
         TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
 
         List<TaskResource> taskResources = cancelledTaskResources();
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
 
         List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
 
@@ -215,15 +217,12 @@ class TaskManagementServiceTest extends CamundaHelpers {
     void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
         TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
 
-        List<TaskResource> taskResources = taskResources(OffsetDateTime.now().minusDays(1));
-        when(cftTaskDatabaseService.findByCaseIdOnly(anyString())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
 
         List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
 
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-        });
-
+        assertEquals(0, taskResourcesMarked.size());
     }
 
     @BeforeEach

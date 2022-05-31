@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
 
 import java.sql.SQLException;
@@ -74,9 +75,23 @@ class CFTTaskDatabaseServiceTest {
     void should_find_by_case_id() {
         TaskResource someTaskResource = mock(TaskResource.class);
 
-        when(taskResourceRepository.getByCaseId("1234")).thenReturn(List.of(someTaskResource));
+        when(taskResourceRepository.getByCaseId("12345")).thenReturn(List.of(someTaskResource));
 
-        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findByCaseIdOnly("1234");
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService.findByCaseIdOnly("12345");
+
+        assertNotNull(actualTaskResource);
+        assertEquals(someTaskResource, actualTaskResource.get(0));
+    }
+
+    @Test
+    void should_find_by_case_ids_states_reconfiguration_time_is_null() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByCaseIdInAndStateInAndReconfigureRequestTimeIsNull(
+            List.of("1234"), List.of(CFTTaskState.ASSIGNED))).thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService
+            .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(List.of("1234"), List.of(CFTTaskState.ASSIGNED));
 
         assertNotNull(actualTaskResource);
         assertEquals(someTaskResource, actualTaskResource.get(0));
