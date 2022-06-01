@@ -28,6 +28,7 @@ public class TaskReconfigurationService {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
     }
 
+    @Transactional(noRollbackFor = TaskReconfigurationException.class)
     public List<TaskResource> markTasksToReconfigure(List<TaskFilter<?>> taskFilters) {
         List<String> caseIds = taskFilters.stream()
             .filter(filter -> filter.getKey().equalsIgnoreCase("case_id"))
@@ -54,8 +55,7 @@ public class TaskReconfigurationService {
         return successfulTaskResources;
     }
 
-    @Transactional
-    protected List<String> updateReconfigureRequestTime(List<String> taskIds,
+    private List<String> updateReconfigureRequestTime(List<String> taskIds,
                                                       List<TaskResource> successfulTaskResources) {
         List<String> failedTaskIds = new ArrayList<>();
         taskIds.stream().forEach(taskId -> {
