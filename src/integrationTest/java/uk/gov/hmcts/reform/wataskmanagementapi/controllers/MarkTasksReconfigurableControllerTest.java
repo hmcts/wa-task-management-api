@@ -422,4 +422,3 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
     }
 
 }
-
