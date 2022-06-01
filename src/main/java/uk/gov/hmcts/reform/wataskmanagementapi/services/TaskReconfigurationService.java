@@ -42,12 +42,15 @@ public class TaskReconfigurationService {
 
         List<TaskResource> successfulTaskResources = new ArrayList<>();
         List<String> taskIds = taskResources.stream()
-            .map(taskResource -> taskResource.getTaskId())
+            .map(TaskResource::getTaskId)
             .collect(Collectors.toList());
+
         List<String> failedTaskIds = updateReconfigureRequestTime(taskIds, successfulTaskResources);
+
         if (!failedTaskIds.isEmpty()) {
             failedTaskIds = updateReconfigureRequestTime(failedTaskIds, successfulTaskResources);
         }
+
         if (!failedTaskIds.isEmpty()) {
             throw new TaskReconfigurationException(TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED, caseIds);
         }
@@ -55,13 +58,16 @@ public class TaskReconfigurationService {
         return successfulTaskResources;
     }
 
+
     private List<String> updateReconfigureRequestTime(List<String> taskIds,
                                                       List<TaskResource> successfulTaskResources) {
         List<String> failedTaskIds = new ArrayList<>();
-        taskIds.stream().forEach(taskId -> {
+        taskIds.forEach(taskId -> {
+
             try {
                 Optional<TaskResource> optionalTaskResource = cftTaskDatabaseService
                     .findByIdAndObtainPessimisticWriteLock(taskId);
+
                 if (optionalTaskResource.isPresent()) {
                     TaskResource taskResource = optionalTaskResource.get();
                     taskResource.setReconfigureRequestTime(OffsetDateTime.now());
