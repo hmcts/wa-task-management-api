@@ -42,6 +42,7 @@ public class TaskResourceDao {
                                                             SearchTaskRequest searchTaskRequest,
                                                             List<RoleAssignment> roleAssignments,
                                                             List<PermissionTypes> permissionsRequired) {
+        Pageable page = OffsetPageableRequest.of(firstResult, maxResults);
         TaskResourceSummaryQueryBuilder summaryQueryBuilder = new TaskResourceSummaryQueryBuilder(entityManager);
         CriteriaBuilder builder = summaryQueryBuilder.builder;
         Root<TaskResource> root = summaryQueryBuilder.root;
@@ -56,7 +57,6 @@ public class TaskResourceDao {
             root
         );
 
-        Pageable page = OffsetPageableRequest.of(firstResult, maxResults);
         List<Order> orders = getSortOrders(searchTaskRequest, builder, root);
         return summaryQueryBuilder
             .where(selectPredicate)
