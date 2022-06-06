@@ -2,24 +2,16 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.AccessControlService;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.restrict.ClientAccessControlService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
@@ -49,30 +41,14 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SERVICE_AUTHORIZATION_TOKEN;
 
 @SuppressWarnings("checkstyle:LineLength")
-class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
+class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "/task/operation";
 
     @MockBean
-    private IdamWebApi idamWebApi;
-    @MockBean
-    private CamundaServiceApi camundaServiceApi;
-    @MockBean
-    private AuthTokenGenerator authTokenGenerator;
-    @MockBean
-    private RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @MockBean
-    private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
-    private PermissionEvaluatorService permissionEvaluatorService;
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-    @MockBean
-    private AccessControlService accessControlService;
-    @MockBean
     private ClientAccessControlService clientAccessControlService;
 
-    @Autowired
+    @SpyBean
     private CFTTaskDatabaseService cftTaskDatabaseService;
 
     private String taskId;
@@ -210,8 +186,8 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
 
     private void insertDummyTaskInDb(String jurisdiction,
                                      String caseType,
-                                     String taskId,
-                                     CFTTaskState cftTaskState,
+                                     String caseId,
+                                     String taskId, CFTTaskState cftTaskState,
                                      TaskRoleResource taskRoleResource) {
         TaskResource taskResource = new TaskResource(
             taskId,
@@ -227,7 +203,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         taskResource.setLocation("765324");
         taskResource.setLocationName("Taylor House");
         taskResource.setRegion("TestRegion");
-        taskResource.setCaseId("caseId1");
+        taskResource.setCaseId(caseId);
 
         taskRoleResource.setTaskId(taskId);
         Set<TaskRoleResource> taskRoleResourceSet = Set.of(taskRoleResource);
@@ -245,7 +221,7 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
         );
         String jurisdiction = "IA";
         String caseType = "Asylum";
-        insertDummyTaskInDb(jurisdiction, caseType, taskId, cftTaskState, assignerTaskRoleResource);
+        insertDummyTaskInDb(jurisdiction, caseType, caseId, taskId, cftTaskState, assignerTaskRoleResource);
 
         List<RoleAssignment> assignerRoles = new ArrayList<>();
 
@@ -264,4 +240,3 @@ class TaskReconfigurationControllerTest extends SpringBootIntegrationBaseTest {
     }
 
 }
-
