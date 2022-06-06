@@ -185,7 +185,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
     }
 
     @Test
-    void should_return_empty_task_resource_when_authorisations_are_not_fully_matched() {
+    void should_return_task_resource_when_authorisations_are_partially_matched() {
         final String taskId = "8d6cc5cf-c973-11eb-bdba-0242ac111004";
         final String caseId = "1623278362431004";
 
@@ -207,7 +207,7 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
         createRoleAssignment(roleAssignments, roleAssignmentRequest);
 
         final Optional<TaskResource> task = cftQueryService.getTask(taskId, roleAssignments, permissionsRequired);
-        Assertions.assertThat(task.isEmpty()).isTrue();
+        Assertions.assertThat(task.isEmpty()).isFalse();
 
     }
 
