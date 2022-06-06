@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Order;
@@ -139,16 +138,11 @@ public class TaskResourceDao {
         );
 
         selectQueryBuilder.where(selectPredicate).build().getResultList();
-
-        try {
-            return selectQueryBuilder
-                .where(selectPredicate)
-                .build()
-                .getResultList().stream()
-                .findFirst();
-        } catch (NoResultException ne) {
-            return Optional.empty();
-        }
+        return selectQueryBuilder
+            .where(selectPredicate)
+            .build()
+            .getResultList().stream()
+            .findFirst();
     }
 
     public List<TaskResource> getCompletableTaskResources(SearchEventAndCase searchEventAndCase,
@@ -172,9 +166,9 @@ public class TaskResourceDao {
             .getResultList();
     }
 
-    public List<Order> getSortOrders(SearchTaskRequest searchTaskRequest,
-                                     CriteriaBuilder builder,
-                                     Root<TaskResource> root) {
+    private List<Order> getSortOrders(SearchTaskRequest searchTaskRequest,
+                                      CriteriaBuilder builder,
+                                      Root<TaskResource> root) {
         final List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
 
         List<Order> orders = new ArrayList<>();

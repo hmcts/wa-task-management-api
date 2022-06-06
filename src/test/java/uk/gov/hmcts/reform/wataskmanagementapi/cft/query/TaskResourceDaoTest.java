@@ -50,7 +50,6 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -323,14 +322,17 @@ class TaskResourceDaoTest {
     void shouldReturnTaskSummary() {
         final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+            List.of(
+                new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT),
+                new SortingParameter(SortField.LOCATION_NAME_CAMEL_CASE, SortOrder.DESCENDANT)
+            )
         );
 
         List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
@@ -351,12 +353,12 @@ class TaskResourceDaoTest {
     void shouldReturnTasks() {
         final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -402,12 +404,12 @@ class TaskResourceDaoTest {
     void shouldReturnTotalTaskCounts() {
         final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003")),
-                new SearchParameterList(WORK_TYPE, SearchOperator.IN, asList("hearing_work"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -455,11 +457,11 @@ class TaskResourceDaoTest {
     void should_raise_exception_when_invalid_limit() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
             ),
             List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
         );
@@ -482,13 +484,13 @@ class TaskResourceDaoTest {
     void should_raise_exception_when_invalid_offset() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(
-                new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
-                new SearchParameterList(LOCATION, SearchOperator.IN, asList("765324")),
-                new SearchParameterList(STATE, SearchOperator.IN, asList("ASSIGNED")),
-                new SearchParameterList(USER, SearchOperator.IN, asList("TEST")),
-                new SearchParameterList(CASE_ID, SearchOperator.IN, asList("1623278362431003"))
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003"))
             ),
-            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, SortOrder.ASCENDANT))
+            List.of()
         );
 
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
