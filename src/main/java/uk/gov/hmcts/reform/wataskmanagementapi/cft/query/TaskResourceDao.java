@@ -184,7 +184,7 @@ public class TaskResourceDao {
     private List<Order> generateOrders(List<SortingParameter> sortingParameters,
                                        CriteriaBuilder criteriaBuilder,
                                        Root<TaskResource> root) {
-        return sortingParameters.stream().map((sortingParameter) -> {
+        return sortingParameters.stream().map(sortingParameter -> {
             switch (sortingParameter.getSortOrder()) {
                 case ASCENDANT:
                     return criteriaBuilder.asc(root.get(sortingParameter.getSortBy().getCftVariableName()));

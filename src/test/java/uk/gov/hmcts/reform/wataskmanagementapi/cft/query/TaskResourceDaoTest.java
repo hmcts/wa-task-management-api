@@ -425,7 +425,7 @@ class TaskResourceDaoTest {
             permissionsRequired
         );
 
-        assertEquals(totalCount, 1);
+        assertEquals(1, totalCount);
     }
 
     @Test
