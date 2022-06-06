@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
@@ -14,6 +13,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingPar
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -42,15 +42,12 @@ public class TaskResourceDao {
                                                             SearchTaskRequest searchTaskRequest,
                                                             List<RoleAssignment> roleAssignments,
                                                             List<PermissionTypes> permissionsRequired) {
-        Sort sort = SortQuery.sortByFields(searchTaskRequest);
-        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
         TaskResourceSummaryQueryBuilder summaryQueryBuilder = new TaskResourceSummaryQueryBuilder(entityManager);
         CriteriaBuilder builder = summaryQueryBuilder.builder;
         Root<TaskResource> root = summaryQueryBuilder.root;
 
         List<Selection<?>> selections = getSelections(searchTaskRequest, root);
 
-        List<Order> orders = SortQuery.sortByFields(searchTaskRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskSummaryQuery(
             searchTaskRequest,
             roleAssignments,
@@ -59,6 +56,8 @@ public class TaskResourceDao {
             root
         );
 
+        Pageable page = OffsetPageableRequest.of(firstResult, maxResults);
+        List<Order> orders = getSortOrders(searchTaskRequest, builder, root);
         return summaryQueryBuilder
             .where(selectPredicate)
             .withOrders(orders)
@@ -93,7 +92,7 @@ public class TaskResourceDao {
         List<String> taskIds = taskResourcesSummary.stream()
             .map(TaskResourceSummary::getTaskId)
             .collect(Collectors.toList());
-        List<Order> orders = SortQuery.sortByFields(searchTaskRequest, builder, root);
+        List<Order> orders = getSortOrders(searchTaskRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(taskIds, builder, root);
 
         return selectQueryBuilder
@@ -171,5 +170,35 @@ public class TaskResourceDao {
             .where(selectPredicate)
             .build()
             .getResultList();
+    }
+
+    public List<Order> getSortOrders(SearchTaskRequest searchTaskRequest,
+                                     CriteriaBuilder builder,
+                                     Root<TaskResource> root) {
+        final List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
+
+        List<Order> orders = new ArrayList<>();
+        if (sortingParameters == null || sortingParameters.isEmpty()) {
+            orders.add(builder.desc(root.get("dueDateTime")));
+        } else {
+            orders.addAll(generateOrders(sortingParameters, builder, root));
+        }
+
+        return orders;
+    }
+
+    private List<Order> generateOrders(List<SortingParameter> sortingParameters,
+                                       CriteriaBuilder criteriaBuilder,
+                                       Root<TaskResource> root) {
+        return sortingParameters.stream().map((sortingParameter) -> {
+            switch (sortingParameter.getSortOrder()) {
+                case ASCENDANT:
+                    return criteriaBuilder.asc(root.get(sortingParameter.getSortBy().getCftVariableName()));
+                case DESCENDANT:
+                    return criteriaBuilder.desc(root.get(sortingParameter.getSortBy().getCftVariableName()));
+                default:
+                    return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 }
