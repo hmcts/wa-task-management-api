@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
@@ -156,6 +157,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
+
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
     @Mock(extraInterfaces = Serializable.class)
     private CriteriaBuilderImpl builder;
     @Mock
@@ -245,8 +250,10 @@ class TaskManagementServiceTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskReconfigurationService,
-            entityManager
+            entityManager,
+            allowedJurisdictionConfiguration
         );
+
 
         taskId = UUID.randomUUID().toString();
 
@@ -2458,7 +2465,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 "Asylum"
             );
 
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase)).thenReturn(emptyList());
 
             GetTasksCompletableResponse<Task> response = taskManagementService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -2479,17 +2485,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 "Asylum"
             );
 
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
-                .thenReturn(mockTaskCompletionDMNResponse());
-            when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
-
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            when(camundaQueryBuilder.createCompletableTasksQuery(any(), any()))
-                .thenReturn(camundaSearchQuery);
-
-            when(camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery))
-                .thenReturn(emptyList());
-
             GetTasksCompletableResponse<Task> response = taskManagementService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse
@@ -2500,7 +2495,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
 
         @Test
-        void should_succeed_and_return_emptyList_when_performSearachAction_no_results() {
+        void should_succeed_and_return_emptyList_when_performSearchAction_no_results() {
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             SearchEventAndCase searchEventAndCase = new SearchEventAndCase(
                 "someCaseId",
@@ -2509,22 +2504,11 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 "Asylum"
             );
 
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
-                .thenReturn(mockTaskCompletionDMNResponse());
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
 
             CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            when(camundaQueryBuilder.createCompletableTasksQuery(any(), any()))
-                .thenReturn(camundaSearchQuery);
 
             List<CamundaTask> searchResults = singletonList(createMockedUnmappedTask());
-            when(camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery))
-                .thenReturn(searchResults);
-
-            when(camundaService.performSearchAction(searchResults, accessControlResponse, asList(OWN, EXECUTE)))
-                .thenReturn(emptyList());
 
             GetTasksCompletableResponse<Task> response = taskManagementService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -2547,22 +2531,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
                 "Asylum"
             );
 
-            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
-            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
-            when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
-                .thenReturn(mockTaskCompletionDMNResponse());
-
-            CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
-            when(camundaQueryBuilder.createCompletableTasksQuery(any(), any()))
-                .thenReturn(camundaSearchQuery);
-
-            List<CamundaTask> searchResults = singletonList(createMockedUnmappedTaskWithNoAssignee());
-            when(camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery))
-                .thenReturn(searchResults);
-
-            when(camundaService.performSearchAction(searchResults, accessControlResponse, asList(OWN, EXECUTE)))
-                .thenReturn(emptyList());
 
             GetTasksCompletableResponse<Task> response = taskManagementService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -2588,6 +2556,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
+
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions()).thenReturn(List.of("ia"));
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes()).thenReturn(List.of("asylum"));
 
             CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
             when(camundaQueryBuilder.createCompletableTasksQuery(any(), any()))
@@ -2628,7 +2599,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
             CamundaSearchQuery camundaSearchQuery = mock(CamundaSearchQuery.class);
             when(camundaQueryBuilder.createCompletableTasksQuery(any(), any()))
                 .thenReturn(camundaSearchQuery);
-
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions()).thenReturn(List.of("ia"));
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes()).thenReturn(List.of("asylum"));
             List<CamundaTask> searchResults = singletonList(createMockedUnmappedTask());
             when(camundaService.searchWithCriteriaAndNoPagination(camundaSearchQuery))
                 .thenReturn(searchResults);
