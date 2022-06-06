@@ -59,4 +59,7 @@
             https://github.com/spring-projects/spring-framework/issues/24434#issuecomment-579669626</notes>
         <cve>CVE-2016-1000027</cve>
     </suppress>
+    <suppress>
+      <cve>CVE-2022-22976</cve>
+    </suppress>
 </suppressions>
