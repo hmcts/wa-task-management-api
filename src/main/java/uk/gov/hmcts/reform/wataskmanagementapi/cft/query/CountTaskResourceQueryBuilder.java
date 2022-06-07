@@ -39,9 +39,7 @@ public class CountTaskResourceQueryBuilder extends TaskResourceQueryBuilder<Long
         CriteriaQuery<Long> criteriaQuery = query.select(select);
 
         subQuery.select(subRoot.get("taskId")).distinct(true);
-        if (predicate != null) {
-            subQuery.where(predicate);
-        }
+        subQuery.where(predicate);
         CriteriaBuilder.In<TaskResource> value = builder.in(root).value(subQuery);
         criteriaQuery.where(value);
         return entityManager.createQuery(criteriaQuery);

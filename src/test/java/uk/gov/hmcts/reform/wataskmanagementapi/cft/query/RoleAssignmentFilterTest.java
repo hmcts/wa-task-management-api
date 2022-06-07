@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
@@ -50,13 +49,7 @@ public class RoleAssignmentFilterTest {
     @Mock
     private Root<TaskResource> root;
     @Mock
-    private Root<Object> objectRoot;
-    @Mock
-    private CriteriaQuery<?> query;
-    @Mock
     private CriteriaBuilder builder;
-    @Mock
-    private Path<String> stringPath;
     @Mock
     private Predicate permissionsPredicate;
     @Mock
@@ -75,7 +68,6 @@ public class RoleAssignmentFilterTest {
     private Path<Object> classificationPath;
 
     @BeforeEach
-    @SuppressWarnings("unchecked")
     public void setUp() {
         lenient().when(root.join("taskRoleResources")).thenReturn(taskRoleResources);
         lenient().when(taskRoleResources.get("read")).thenReturn(pathObject);
@@ -249,8 +241,6 @@ public class RoleAssignmentFilterTest {
         RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, roleAssignmentWithStandardGrantType(classification), false, builder, root);
 
-        //Mockito.verify(builder, Mockito.times(1)).equal(pathObject, "senior-tribunal-caseworker");
-        //verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
         verify(builder, times(1)).equal(pathObject, new String[]{});
         verify(builder, times(1)).equal(pathObject, "Asylum");
         verify(builder, times(1)).equal(pathObject, "IA");
@@ -348,7 +338,7 @@ public class RoleAssignmentFilterTest {
         lenient().when(taskRoleResources.get("authorizations")).thenReturn(pathObject);
         lenient().when(pathObject.isNull()).thenReturn(authorizationsPredicate);
 
-        Predicate predicate = RoleAssignmentFilter.buildRoleAssignmentConstraints(
+        RoleAssignmentFilter.buildRoleAssignmentConstraints(
             permissionsRequired, roleAssignments, false, builder, root);
 
         verify(builder, times(1)).equal(pathObject, "hmcts-judiciary");
