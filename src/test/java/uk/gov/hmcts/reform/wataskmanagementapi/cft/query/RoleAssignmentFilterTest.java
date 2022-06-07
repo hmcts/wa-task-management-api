@@ -291,13 +291,15 @@ public class RoleAssignmentFilterTest {
 
         verify(root, times(1)).join(anyString());
         verify(root, times(6)).get(anyString());
-        verify(builder, times(2)).in(any());
         verify(builder, times(4)).or(any());
         verify(builder, times(3)).or(any(), any());
         verify(builder, times(4)).and(any(), any());
         verify(builder, times(1)).and(
             any(), any(), any(), any(), any(), any(), any());
         verify(builder, times(2)).conjunction();
+        if (classification != Classification.PUBLIC) {
+            verify(builder, times(2)).in(any());
+        }
     }
 
     @Test
