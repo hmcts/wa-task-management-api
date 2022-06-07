@@ -49,7 +49,7 @@ public class Assertions {
             .body("value", hasItem(value));
     }
 
-    public void taskStateWasUpdatedinDatabase(String taskId, String value, Headers authenticationHeaders) {
+    public void taskStateWasUpdatedInDatabase(String taskId, String value, Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
             "task/{task-id}",
@@ -65,7 +65,7 @@ public class Assertions {
             .log();
     }
 
-    public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName,String value,
+    public void taskFieldWasUpdatedInDatabase(String taskId, String fieldName, String value,
                                               Headers authenticationHeaders) {
 
         Response result = restApiActions.get(
