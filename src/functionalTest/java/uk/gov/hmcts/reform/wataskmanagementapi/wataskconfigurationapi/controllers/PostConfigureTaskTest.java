@@ -68,7 +68,6 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .body("region.value", is("1"))
             .body("location.value", is("765324"))
             .body("locationName.value", is("Taylor House"))
-            .body("priorityDate.value", is("Taylor House"))
             .body("taskState.value", is("assigned"))
             .body("caseId.value", is(createTaskMessage.getCaseId()))
             .body("securityClassification.value", is("PUBLIC"))
