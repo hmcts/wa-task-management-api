@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +40,7 @@ public class TaskReconfigurationController extends BaseController {
 
     @Operation(description = "performs specified operation like marking tasks to reconfigure and execute reconfigure.")
     @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Task operation has been completed", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = Object.class))}),
+        @ApiResponse(responseCode = "204", description = "Task operation has been completed"),
         @ApiResponse(responseCode = "400", description = BAD_REQUEST),
         @ApiResponse(responseCode = "403", description = FORBIDDEN),
         @ApiResponse(responseCode = "401", description = UNAUTHORIZED),

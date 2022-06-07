@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import javax.persistence.OptimisticLockException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -68,7 +70,6 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
     void should_perform_mark_to_reconfigure_if_tasks_status_is_assigned() throws Exception {
 
         createTaskAndRoleAssignments(CFTTaskState.ASSIGNED, "caseId0");
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -79,8 +80,10 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId0");
-        assertNotNull(taskResources.get(0).getReconfigureRequestTime());
-
+        taskResources.forEach(task -> {
+            assertNotNull(task.getReconfigureRequestTime());
+            assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
+        });
     }
 
     @Test
@@ -115,6 +118,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         latestTaskResources.forEach(task1 -> {
             TaskResource match = taskResources.stream().filter(task2 -> task1.getTaskId().equals(task2.getTaskId()))
                 .findFirst().get();
+            assertTrue(LocalDate.now().equals(match.getReconfigureRequestTime().toLocalDate()));
             assertEquals(match.getReconfigureRequestTime(), task1.getReconfigureRequestTime());
         });
     }
@@ -123,7 +127,6 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
     void should_perform_mark_to_reconfigure_if_tasks_status_is_unassigned() throws Exception {
 
         createTaskAndRoleAssignments(UNASSIGNED, "caseId3");
-
         mockMvc.perform(
             post(ENDPOINT_BEING_TESTED)
                 .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
@@ -134,7 +137,10 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId3");
-        assertNotNull(taskResources.get(0).getReconfigureRequestTime());
+        taskResources.forEach(task -> {
+            assertNotNull(task.getReconfigureRequestTime());
+            assertTrue(LocalDate.now().equals(task.getReconfigureRequestTime().toLocalDate()));
+        });
     }
 
     @Test
