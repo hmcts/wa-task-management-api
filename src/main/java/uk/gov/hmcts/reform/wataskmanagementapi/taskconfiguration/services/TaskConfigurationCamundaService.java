@@ -67,7 +67,8 @@ public class TaskConfigurationCamundaService {
             return camundaServiceApi.getVariables(serviceTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             log.error(
-                "Task Configuration Failure : Error occurred while fetching the variables for task with id '{}'", id)
+                "Task Configuration Failure : Error occurred while fetching the variables for task with id '{}' "
+                   + "and exception message {}", id, ex.getMessage())
             ;
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the variables for task with id: %s",
@@ -81,7 +82,8 @@ public class TaskConfigurationCamundaService {
             return camundaServiceApi.getTask(serviceTokenGenerator.generate(), id);
         } catch (FeignException ex) {
             log.error(
-                "Task Configuration Failure - Get Task : Error occurred while fetching the task with id '{}'", id
+                "Task Configuration Failure - Get Task : Error occurred while fetching the task with id '{}' "
+                   + "and exception message: {}", id, ex.getMessage()
             );
             throw new ResourceNotFoundException(String.format(
                 "There was a problem fetching the task with id: %s",
@@ -100,7 +102,9 @@ public class TaskConfigurationCamundaService {
             log.info("Task id '{}' configured", taskId);
         } catch (FeignException ex) {
             log.error(
-                "Task Configuration Failure : Error occurred while adding task variables to task id '{}'", taskId
+                "Task Configuration Failure : Error occurred while adding local task variables to task id '{}'."
+                    + "list of variables: {}",
+                taskId, processVariablesToAdd.toString()
             );
             throw new ResourceNotFoundException(String.format(
                 "There was a problem updating task variables to task id: %s",
@@ -123,7 +127,8 @@ public class TaskConfigurationCamundaService {
             log.info("Task Id '{}' assigned", taskId);
         } catch (FeignException ex) {
             log.error(
-                "Task Configuration Failure - Assign Task: Error occurred while assigning to task id '{}'", taskId
+                "Task Configuration Failure - Assign Task: Error occurred while assigning to task id '{}' for userId: "
+                    + "'{}'", taskId, userId
             );
             throw new ServerErrorException(
                 String.format(
