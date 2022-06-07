@@ -3,5 +3,6 @@
   "caseAccessCategory": "categoryA,categoryC",
   "appellantGivenNames": "Bob",
   "appellantFamilyName": "Smith",
-  "appealType": "protection"
+  "appealType": "protection",
+  "urgent": "Yes"
 }
