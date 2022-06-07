@@ -61,8 +61,8 @@ idam:
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   system:
-    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
-    password: ${WA_SYSTEM_PASSWORD:password}
+    username: ${WA_SYSTEM_USERNAME:wa-caseofficer-public-a@fake.hmcts.net}
+    password: ${WA_SYSTEM_PASSWORD:London01}
 
 spring:
   config:
