@@ -37,7 +37,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
 
     }
 
-    @Pact(provider = "wa_task_management_api_reconfigure_task_by_id", consumer = "wa_task_management_api")
+    @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeReconfigureTaskById204(PactDslWithProvider builder) {
 
         return builder

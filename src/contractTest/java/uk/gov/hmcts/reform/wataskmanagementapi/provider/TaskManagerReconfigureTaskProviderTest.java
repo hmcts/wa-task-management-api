@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootContractProviderBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.TaskActionsController;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -42,13 +44,13 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
 
     }
 
-    @State({"reconfigure tasks using caseId"})
+    @State({"reconfigure a task using caseId"})
     public void reconfigureTasksByCaseId() {
         setInitMock();
     }
 
     private void setInitMock() {
-        doNothing().when(taskManagementService).performOperation(any());
+        when(taskManagementService.performOperation(any())).thenReturn(List.of());
         when(clientAccessControlService.hasExclusiveAccess(anyString())).thenReturn(true);
     }
 }
