@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
@@ -33,6 +34,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAu
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_ENUMS_USING_TO_STRING;
 import static com.fasterxml.jackson.databind.DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_USING_DEFAULT_VALUE;
@@ -41,6 +44,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
 
 public class TaskManagementProviderTestConfiguration {
 
+    @MockBean
+    private EntityManager entityManager;
+    @MockBean
+    private EntityManagerFactory entityManagerFactory;
     @MockBean
     private CamundaService camundaService;
     @MockBean
@@ -64,6 +71,8 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
 
+    private RoleAssignmentVerificationService roleAssignmentVerificationService;
+
     @Bean
     @Primary
     public SearchRequestCustomDeserializer searchRequestCustomDeserializer() {
@@ -79,16 +88,21 @@ public class TaskManagementProviderTestConfiguration {
     @Bean
     @Primary
     public TaskManagementService taskManagementService() {
+        roleAssignmentVerificationService = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         return new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerificationService,
+            entityManager
         );
     }
 

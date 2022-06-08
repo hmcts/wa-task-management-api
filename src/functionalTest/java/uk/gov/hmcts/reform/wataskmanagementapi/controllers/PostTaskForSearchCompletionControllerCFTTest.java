@@ -104,6 +104,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
                 .body("tasks[0].work_type_id", equalTo(scenario.workTypeId))
+                .body("tasks[0].work_type_label", equalTo(scenario.workTypeLabel))
                 .body("tasks[0].role_category", equalTo(scenario.roleCategory));
 
             common.cleanUpTask(testVariables.getTaskId());
@@ -722,6 +723,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "processApplication",
                 "decideAnApplication",
                 "applications",
+                "Applications",
                 "LEGAL_OPERATIONS",
                 false
             ),
@@ -729,6 +731,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "reviewAdditionalEvidence",
                 "markEvidenceAsReviewed",
                 "decision_making_work",
+                "Decision-making work",
                 "LEGAL_OPERATIONS",
                 true
             ),
@@ -736,6 +739,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "reviewAdditionalHomeOfficeEvidence",
                 "markEvidenceAsReviewed",
                 "decision_making_work",
+                "Decision-making work",
                 "LEGAL_OPERATIONS",
                 true
             )
@@ -748,6 +752,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         private String taskId;
         private String eventId;
         private String workTypeId;
+        private String workTypeLabel;
         private String roleCategory;
         private boolean taskRequiredForEvent;
     }

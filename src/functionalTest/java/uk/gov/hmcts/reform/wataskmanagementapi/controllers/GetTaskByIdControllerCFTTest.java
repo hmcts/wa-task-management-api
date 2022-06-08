@@ -275,7 +275,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.region", notNullValue())
             .body("task.case_type_id", notNullValue())
             .body("task.case_id", notNullValue())
-            .body("task.case_type_id", notNullValue())
+            .body("task.work_type_id", notNullValue())
+            .body("task.work_type_label", notNullValue())
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
@@ -381,7 +382,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and()
             .body("task.id", equalTo(taskId))
-            .body("task.work_type_id", equalTo("decision_making_work"));
+            .body("task.work_type_id", equalTo("decision_making_work"))
+            .body("task.work_type_label", equalTo("Decision-making work"));
 
         common.cleanUpTask(taskId);
     }

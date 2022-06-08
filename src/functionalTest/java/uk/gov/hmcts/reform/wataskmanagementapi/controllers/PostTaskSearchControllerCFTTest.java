@@ -698,6 +698,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.warnings", everyItem(notNullValue()))
             .body("tasks.description", everyItem(notNullValue()))
             .body("tasks.permissions.values", everyItem(notNullValue()))
+            .body("tasks.work_type_id", everyItem(notNullValue()))
+            .body("tasks.work_type_label", everyItem(notNullValue()))
             .body("total_records", greaterThanOrEqualTo(1));
 
         tasksCreated
