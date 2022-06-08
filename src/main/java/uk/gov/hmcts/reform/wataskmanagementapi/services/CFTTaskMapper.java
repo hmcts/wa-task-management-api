@@ -66,6 +66,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
@@ -142,8 +144,9 @@ public class CFTTaskMapper {
             createdDate,
             read(attributes, TASK_ROLES, null),
             read(attributes, TASK_CASE_CATEGORY, null),
-            read(attributes, TASK_ADDITIONAL_PROPERTIES, null)
-        );
+            read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
+            read(attributes, TASK_NEXT_HEARING_ID, null),
+            readDate(attributes, TASK_NEXT_HEARING_DATE, null));
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -189,7 +192,9 @@ public class CFTTaskMapper {
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getNextHearingId(),
+            taskResource.getNextHearingDate().toZonedDateTime()
         );
     }
 

@@ -45,13 +45,15 @@ import javax.persistence.OneToMany;
         )
     }
 )
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields",
+    "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
     private static final String PGSQL_ENUM = "pgsql_enum";
     public static final String JSONB = "jsonb";
+    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -59,7 +61,7 @@ public class TaskResource implements Serializable {
     private String taskName;
     private String taskType;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -96,7 +98,7 @@ public class TaskResource implements Serializable {
     private String roleCategory;
     private Boolean hasWarnings = false;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime assignmentExpiry;
     @EqualsAndHashCode.Include()
     private String caseId;
@@ -116,7 +118,7 @@ public class TaskResource implements Serializable {
 
     private String terminationReason;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -130,6 +132,11 @@ public class TaskResource implements Serializable {
     @Type(type = "jsonb")
     @Column(columnDefinition = JSONB)
     private Map<String, String> additionalProperties;
+
+    private String nextHearingId;
+
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime nextHearingDate;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -258,8 +265,10 @@ public class TaskResource implements Serializable {
                         String terminationReason,
                         OffsetDateTime created,
                         Set<TaskRoleResource> taskRoleResources,
-                        String caseCategory, Map<String,
-        String> additionalProperties) {
+                        String caseCategory,
+                        Map<String, String> additionalProperties,
+                        String nextHearingId,
+                        OffsetDateTime nextHearingDate) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -293,6 +302,8 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
         this.caseCategory = caseCategory;
         this.additionalProperties = additionalProperties;
+        this.nextHearingId = nextHearingId;
+        this.nextHearingDate = nextHearingDate;
     }
 
     public void setTaskId(String taskId) {
@@ -425,5 +436,13 @@ public class TaskResource implements Serializable {
 
     public void setAdditionalProperties(Map<String, String> additionalProperties) {
         this.additionalProperties = additionalProperties;
+    }
+
+    public void setNextHearingId(String nextHearingId) {
+        this.nextHearingId = nextHearingId;
+    }
+
+    public void setNextHearingDate(OffsetDateTime nextHearingDate) {
+        this.nextHearingDate = nextHearingDate;
     }
 }
