@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import static org.zalando.problem.Status.CONFLICT;
 
+@SuppressWarnings("java:S110")
 public class TaskReconfigurationException extends AbstractThrowableProblem {
 
     private static final long serialVersionUID = 1L;
