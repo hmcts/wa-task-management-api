@@ -1,8 +1,7 @@
-package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities;
+package uk.gov.hmcts.reform.wataskmanagementapi.controllers.request;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
