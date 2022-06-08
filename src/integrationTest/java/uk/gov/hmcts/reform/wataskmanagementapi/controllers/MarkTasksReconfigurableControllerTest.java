@@ -26,8 +26,10 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import javax.persistence.OptimisticLockException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.CANCELLED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState.UNASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.SERVICE_AUTHORIZATION;
@@ -155,9 +158,7 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         );
 
         List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId4");
-        taskResources.forEach(task -> {
-            assertNull(task.getReconfigureRequestTime());
-        });
+        assertNull(taskResources.get(0).getReconfigureRequestTime());
     }
 
 
@@ -175,6 +176,190 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
         ).andExpectAll(
             status().is(HttpStatus.FORBIDDEN.value())
         );
+    }
+
+    @Test
+    void should_not_perform_mark_to_reconfigure_if_no_tasks_found() throws Exception {
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId5")))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> latestTaskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId5");
+        assertEquals(0, latestTaskResources.size());
+    }
+
+    @Test
+    void should_not_perform_mark_to_reconfigure_if_tasks_is_locked_by_another_process() throws Exception {
+
+        createTaskAndRoleAssignments(ASSIGNED, "caseId6");
+
+        List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
+        taskResourcesTobeLocked.stream().forEach(task -> {
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId()))
+                .thenThrow(new OptimisticLockException());
+        });
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId6")))
+        ).andExpectAll(
+            status().is(HttpStatus.CONFLICT.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId6");
+        taskResources.stream().forEach(task -> {
+            assertNull(task.getReconfigureRequestTime());
+        });
+    }
+
+    @Test
+    void should_partially_perform_mark_to_reconfigure_when_one_of_task_is_locked_by_another_process() throws Exception {
+
+        createTaskAndRoleAssignments(ASSIGNED, "caseId7");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(UNASSIGNED, "caseId7");
+
+        List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId7");
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(0).getTaskId()))
+            .thenThrow(new OptimisticLockException());
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(1).getTaskId()))
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(1)));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId7")))
+        ).andExpectAll(
+            status().is(HttpStatus.CONFLICT.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId7");
+        assertNull(taskResources.get(0).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(1).getReconfigureRequestTime());
+    }
+
+    @Test
+    void should_partially_perform_mark_to_reconfigure_when_some_of_tasks_failed_to_be_marked_to_reconfigure() throws Exception {
+
+        //4 tasks
+        createTaskAndRoleAssignments(ASSIGNED, "caseId8");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(ASSIGNED, "caseId8");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(UNASSIGNED, "caseId8");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(UNASSIGNED, "caseId8");
+
+        //2 tasks failed, 2 tasks succeeded
+        List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId8");
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(0).getTaskId()))
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(0)));
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(1).getTaskId()))
+            .thenThrow(new OptimisticLockException());
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(2).getTaskId()))
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(2)));
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(3).getTaskId()))
+            .thenThrow(new OptimisticLockException());
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId8")))
+        ).andExpectAll(
+            status().is(HttpStatus.CONFLICT.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId8");
+        assertNotNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(0).getTaskId()))
+            .findFirst().get().getReconfigureRequestTime());
+        assertNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(1).getTaskId()))
+            .findFirst().get().getReconfigureRequestTime());
+        assertNotNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(2).getTaskId()))
+            .findFirst().get().getReconfigureRequestTime());
+        assertNull(taskResources.stream()
+            .filter(task -> task.getTaskId().equals(taskResourcesTobeLocked.get(3).getTaskId()))
+            .findFirst().get().getReconfigureRequestTime());
+    }
+
+    @Test
+    void should_retry_and_perform_mark_to_reconfigure_if_first_attempt_failed_to_mark_task_to_reconfigure() throws Exception {
+
+        createTaskAndRoleAssignments(ASSIGNED, "caseId9");
+
+        List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId9");
+        taskResourcesTobeLocked.stream().forEach(task -> {
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(task.getTaskId()))
+                .thenThrow(new OptimisticLockException())
+                .thenReturn(Optional.of(taskResourcesTobeLocked.get(0)));
+        });
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId9")))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId9");
+        taskResources.stream().forEach(task -> {
+            assertNotNull(task.getReconfigureRequestTime());
+        });
+    }
+
+    @Test
+    void should_retry_and_perform_mark_to_reconfigure_when_first_attempt_failed_to_mark_multiple_tasks_to_be_reconfigurable() throws Exception {
+
+        //4 tasks
+        createTaskAndRoleAssignments(ASSIGNED, "caseId10");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(ASSIGNED, "caseId10");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(UNASSIGNED, "caseId10");
+        taskId = UUID.randomUUID().toString();
+        createTaskAndRoleAssignments(UNASSIGNED, "caseId10");
+
+        //2 tasks failed, 2 tasks succeeded
+        List<TaskResource> taskResourcesTobeLocked = cftTaskDatabaseService.findByCaseIdOnly("caseId10");
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(0).getTaskId()))
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(0)));
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(1).getTaskId()))
+            .thenThrow(new OptimisticLockException())
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(1)));
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(2).getTaskId()))
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(2)));
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskResourcesTobeLocked.get(3).getTaskId()))
+            .thenThrow(new OptimisticLockException())
+            .thenReturn(Optional.of(taskResourcesTobeLocked.get(3)));
+
+        mockMvc.perform(
+            post(ENDPOINT_BEING_TESTED)
+                .header(SERVICE_AUTHORIZATION, SERVICE_AUTHORIZATION_TOKEN)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(asJsonString(taskOperationRequest(MARK_TO_RECONFIGURE, "caseId10")))
+        ).andExpectAll(
+            status().is(HttpStatus.NO_CONTENT.value())
+        );
+
+        List<TaskResource> taskResources = cftTaskDatabaseService.findByCaseIdOnly("caseId10");
+        assertNotNull(taskResources.get(0).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(1).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(2).getReconfigureRequestTime());
+        assertNotNull(taskResources.get(3).getReconfigureRequestTime());
     }
 
     private TaskOperationRequest taskOperationRequest(TaskOperationName operationName, String caseId) {

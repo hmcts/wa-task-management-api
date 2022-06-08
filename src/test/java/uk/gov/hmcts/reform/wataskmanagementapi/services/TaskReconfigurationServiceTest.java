@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -37,16 +38,18 @@ class TaskReconfigurationServiceTest {
     @Test
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
 
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
         List<TaskFilter<?>> taskFilters = createTaskFilters();
-
         List<TaskResource> taskResources = taskResources(null);
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
             .thenReturn(Optional.of(taskResources.get(0)))
             .thenReturn(Optional.of(taskResources.get(1)));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
 
+        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
         List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
 
         taskResourcesMarked.forEach(taskResource -> {
