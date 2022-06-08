@@ -5,7 +5,7 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-class TaskFilterTest {
+class MarkTaskToReconfigureTaskFilterTest {
 
     @Test
     void isWellImplemented() {
