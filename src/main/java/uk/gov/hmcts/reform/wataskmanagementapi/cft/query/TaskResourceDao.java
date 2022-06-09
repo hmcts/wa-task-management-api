@@ -84,7 +84,7 @@ public class TaskResourceDao {
 
     public List<TaskResource> getTaskResources(SearchTaskRequest searchTaskRequest,
                                                List<TaskResourceSummary> taskResourcesSummary) {
-        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager);
+        SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager, true);
         CriteriaBuilder builder = selectQueryBuilder.builder;
         Root<TaskResource> root = selectQueryBuilder.root;
 
