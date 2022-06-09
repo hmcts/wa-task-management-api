@@ -3,5 +3,7 @@
   "caseAccessCategory": "categoryA,categoryC",
   "appellantGivenNames": "Bob",
   "appellantFamilyName": "Smith",
-  "appealType": "protection"
+  "appealType": "protection",
+  "nextHearingId": "next-hearing-id",
+  "nextHearingDate": "2022-06-22T00:00:00Z"
 }
