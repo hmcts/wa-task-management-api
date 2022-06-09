@@ -133,6 +133,9 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = JSONB)
     private Map<String, String> additionalProperties;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime reconfigureRequestTime;
+
     private String nextHearingId;
 
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
@@ -436,6 +439,10 @@ public class TaskResource implements Serializable {
 
     public void setAdditionalProperties(Map<String, String> additionalProperties) {
         this.additionalProperties = additionalProperties;
+    }
+
+    public void setReconfigureRequestTime(OffsetDateTime reconfigureRequestTime) {
+        this.reconfigureRequestTime = reconfigureRequestTime;
     }
 
     public void setNextHearingId(String nextHearingId) {
