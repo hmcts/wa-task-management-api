@@ -182,55 +182,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     private TypedQuery<TaskResource> query;
 
-    @Test
-    void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
-
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
-
-        List<TaskResource> taskResources = taskResources(null);
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResources.get(0)))
-            .thenReturn(Optional.of(taskResources.get(1)));
-
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
-
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNotNull(taskResource.getReconfigureRequestTime());
-            assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
-        });
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
-
-        List<TaskResource> taskResources = cancelledTaskResources();
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(taskResources);
-
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
-
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-        });
-
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
-
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(List.of());
-
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
-
-        assertEquals(0, taskResourcesMarked.size());
-    }
-
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
@@ -285,17 +236,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
         lenient().when(root.get(anyString())).thenReturn(path);
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
 
-    }
-
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
-        TaskOperation operation = new TaskOperation(operationName, "run_id1");
-        return new TaskOperationRequest(operation, taskFilters());
-    }
-
-    private List<TaskFilter<?>> taskFilters() {
-        TaskFilter<List<String>> filter = new MarkTaskToReconfigureTaskFilter(
-            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
-        return List.of(filter);
     }
 
     private List<TaskResource> taskResources(OffsetDateTime reconfigureTime) {
@@ -3229,5 +3169,67 @@ class TaskManagementServiceTest extends CamundaHelpers {
         }
     }
 
+    @Test
+    void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
+
+        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
+        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+
+        List<TaskResource> taskResources = taskResources(null);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.of(taskResources.get(0)))
+            .thenReturn(Optional.of(taskResources.get(1)));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+
+        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+
+        taskResourcesMarked.stream().forEach(taskResource -> {
+            assertNotNull(taskResource.getReconfigureRequestTime());
+            assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
+        });
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+
+        List<TaskResource> taskResources = cancelledTaskResources();
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+
+        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+
+        taskResourcesMarked.stream().forEach(taskResource -> {
+            assertNull(taskResource.getReconfigureRequestTime());
+        });
+
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
+
+        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+
+        assertEquals(0, taskResourcesMarked.size());
+    }
+
+    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
+        TaskOperation operation = new TaskOperation(operationName, "run_id1");
+        return new TaskOperationRequest(operation, taskFilters());
+    }
+
+    private List<TaskFilter<?>> taskFilters() {
+        TaskFilter<List<String>> filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
+        return List.of(filter);
+    }
 
 }
