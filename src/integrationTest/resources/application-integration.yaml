@@ -49,4 +49,4 @@ logging:
     uk.gov.hmcts.reform: debug
 config:
   allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil}
-  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum, wacasetype}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
