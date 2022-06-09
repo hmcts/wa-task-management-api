@@ -119,6 +119,8 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
+    @MockBean
+    private TaskReconfigurationService taskReconfigurationService;
     @Autowired
     private TransactionHelper transactionHelper;
     @Captor
@@ -128,6 +130,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     private RoleAssignmentVerificationService roleAssignmentVerification;
     @Mock
     private EntityManager entityManager;
+
 
     @BeforeEach
     void setUp() {
@@ -146,6 +149,7 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
+            taskReconfigurationService,
             entityManager
         );
 
