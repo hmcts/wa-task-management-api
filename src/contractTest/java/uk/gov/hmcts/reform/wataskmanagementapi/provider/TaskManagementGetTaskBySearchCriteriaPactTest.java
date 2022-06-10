@@ -114,8 +114,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
             getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            "nextHearingId",
+            ZonedDateTime.now()
+        );
     }
 
     public Task createTaskWithWarnings() {
@@ -207,8 +208,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             RoleCategory.LEGAL_OPERATIONS.name(),
             "aDescription",
             getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            "nextHearingId",
+            ZonedDateTime.now()
+        );
     }
 
     @TestTemplate
