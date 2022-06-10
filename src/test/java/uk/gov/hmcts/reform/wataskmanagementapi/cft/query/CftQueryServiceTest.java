@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
@@ -152,6 +153,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
     private CriteriaBuilderImpl builder;
     @InjectMocks
     private CftQueryService cftQueryService;
+    @Mock
+    private TaskSearchAdaptor taskSearchAdaptor;
 
     private TaskResourceSummary createTaskResourceSummary() {
         return new TaskResourceSummary("taskId",
@@ -387,6 +390,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             lenient().when(summaryQuery.setFirstResult(1)).thenReturn(summaryQuery);
             lenient().when(summaryQuery.setMaxResults(0)).thenReturn(summaryQuery);
             lenient().when(summaryQuery.setMaxResults(10)).thenReturn(summaryQuery);
+            lenient().when(taskSearchAdaptor.isEnabled()).thenReturn(false);
         }
 
         @Test
