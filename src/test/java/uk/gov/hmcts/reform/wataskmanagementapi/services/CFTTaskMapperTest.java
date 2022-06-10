@@ -63,25 +63,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.integerValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ADDITIONAL_PROPERTIES;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ASSIGNEE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.AUTO_ASSIGNED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_MANAGEMENT_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CASE_TYPE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.EXECUTION_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_SYSTEM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.CONFIGURED;
 
 @ExtendWith(MockitoExtension.class)
@@ -299,6 +281,10 @@ class CFTTaskMapperTest {
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
         mappedValues.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
         mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
+        String nextHearingId = "nextHearingId";
+        mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
+        String nextHearingDate = OffsetDateTime.now().format(CAMUNDA_DATA_TIME_FORMATTER);
+        mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
@@ -333,6 +319,8 @@ class CFTTaskMapperTest {
         assertEquals("someStaffLocationName", taskResource.getLocationName());
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
+        assertEquals(nextHearingId, taskResource.getNextHearingId());
+        assertEquals(nextHearingDate, taskResource.getNextHearingDate().format(CAMUNDA_DATA_TIME_FORMATTER));
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(
