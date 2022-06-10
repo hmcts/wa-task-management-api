@@ -573,6 +573,52 @@ class CaseConfigurationProviderServiceTest {
                 ));
     }
 
+    @Test
+    void should_return_default_value_from_configuration_dmn_when_additional_properties_is_empty() {
+        String someCaseId = "someCaseId";
+        Map<String, Object> taskAttributes = Map.of("taskAdditionalProperties", Map.of());
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+
+        List<PermissionsDmnEvaluationResponse> permissions = List.of(
+            new PermissionsDmnEvaluationResponse(
+                stringValue("reviewSpecificAccessRequestJudiciary"),
+                stringValue("Read,Refer,Own,Manage,Cancel"),
+                null,
+                null,
+                null,
+                stringValue("JUDICIAL"),
+                stringValue("categoryB")
+            )
+        );
+
+        lenient().when(dmnEvaluationService.evaluateTaskPermissionsDmn(any(), any(), any(), any()))
+            .thenReturn(permissions);
+
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue("roleAssignmentId")
+                )
+            ));
+
+        TaskConfigurationResults mappedData = caseConfigurationProviderService
+            .getCaseRelatedConfiguration(someCaseId, taskAttributes);
+
+        Assertions.assertThat(mappedData.getPermissionsDmnResponse()).isEmpty();
+        Map<String, String> additionalProperties = ImmutableMap.of(
+            "roleAssignmentId", "roleAssignmentId"
+        );
+        Assertions.assertThat(mappedData.getConfigurationDmnResponse())
+            .isNotEmpty()
+            .hasSize(1)
+            .contains(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties"),
+                    stringValue(writeValueAsString(additionalProperties))
+                ));
+    }
+
 
     private String writeValueAsString(Map<String, String> data) {
         try {
