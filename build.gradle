@@ -358,7 +358,7 @@ dependencies {
 
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.15.3'
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.15.3'
-  testImplementation group: 'com.h2database', name: 'h2', version: '1.4.197'
+  testImplementation group: 'com.h2database', name: 'h2', version: '2.1.212'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
