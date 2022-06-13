@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
@@ -43,6 +44,8 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
+    @Disabled("AM role-assignment enabled v1.1 of their validation which breaks this flow needs to be reviewed")
+    @Ignore
     public void given_configure_task_then_expect_task_state_is_assigned() throws Exception {
         caseId = given.iCreateACcdCase();
 
