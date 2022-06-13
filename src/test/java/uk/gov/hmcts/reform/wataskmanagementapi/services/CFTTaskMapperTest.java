@@ -1335,7 +1335,7 @@ class CFTTaskMapperTest {
             taskRoleResources,
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
@@ -1796,7 +1796,7 @@ class CFTTaskMapperTest {
             singleton(roleResource),
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
