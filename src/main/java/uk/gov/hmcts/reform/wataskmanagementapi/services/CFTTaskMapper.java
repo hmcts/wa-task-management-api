@@ -66,6 +66,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
@@ -77,6 +78,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
+
 
 @Service
 @SuppressWarnings(
@@ -105,6 +107,7 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
+        OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, ZonedDateTime.now().toOffsetDateTime());
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
 
@@ -142,7 +145,8 @@ public class CFTTaskMapper {
             createdDate,
             read(attributes, TASK_ROLES, null),
             read(attributes, TASK_CASE_CATEGORY, null),
-            read(attributes, TASK_ADDITIONAL_PROPERTIES, null)
+            read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
+            priorityDate
         );
     }
 
@@ -438,6 +442,15 @@ public class CFTTaskMapper {
                 case ADDITIONAL_PROPERTIES:
                     Map<String, String> additionalProperties = extractAdditionalProperties(value);
                     taskResource.setAdditionalProperties(additionalProperties);
+                    break;
+                case MINOR_PRIORITY:
+                    taskResource.setMinorPriority(Integer.parseInt((String) value));
+                    break;
+                case MAJOR_PRIORITY:
+                    taskResource.setMajorPriority(Integer.parseInt((String) value));
+                    break;
+                case PRIORITY_DATE:
+                    taskResource.setPriorityDate(OffsetDateTime.parse((String) value));
                     break;
                 default:
                     break;

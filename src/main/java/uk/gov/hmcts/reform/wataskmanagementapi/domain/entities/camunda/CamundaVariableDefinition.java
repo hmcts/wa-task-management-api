@@ -31,7 +31,10 @@ public enum CamundaVariableDefinition {
     CASE_MANAGEMENT_CATEGORY("caseManagementCategory"),
     ROLE_CATEGORY("roleCategory"),
     DESCRIPTION("description"),
-    ADDITIONAL_PROPERTIES("additionalProperties");
+    ADDITIONAL_PROPERTIES("additionalProperties"),
+    MINOR_PRIORITY("minorPriority"),
+    MAJOR_PRIORITY("majorPriority"),
+    PRIORITY_DATE("priorityDate");
 
     private final String value;
 

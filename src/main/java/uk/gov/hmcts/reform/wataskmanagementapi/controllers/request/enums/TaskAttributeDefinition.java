@@ -43,7 +43,8 @@ public enum TaskAttributeDefinition {
     TASK_TITLE("task_title", new TypeReference<String>() {}),
     TASK_TYPE("task_type", new TypeReference<String>() {}),
     TASK_WORK_TYPE("task_work_type", new TypeReference<String>() {}),
-    TASK_ADDITIONAL_PROPERTIES("task_additional_properties", new TypeReference<Map<String, String>>() {});
+    TASK_ADDITIONAL_PROPERTIES("task_additional_properties", new TypeReference<Map<String, String>>() {}),
+    TASK_PRIORITY_DATE("task_priority_date", new TypeReference<Map<String, String>>() {});
 
     private final String value;
     private final TypeReference typeReference;

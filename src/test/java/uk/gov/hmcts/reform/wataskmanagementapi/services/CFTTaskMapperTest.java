@@ -1243,7 +1243,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             taskRoleResources,
             "caseCategory",
-            EXPECTED_ADDITIONAL_PROPERTIES
+            EXPECTED_ADDITIONAL_PROPERTIES,
+            OffsetDateTime.now()
         );
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
@@ -1669,7 +1670,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             singleton(roleResource),
             "caseCategory",
-            EXPECTED_ADDITIONAL_PROPERTIES
+            EXPECTED_ADDITIONAL_PROPERTIES,
+            OffsetDateTime.now()
         );
     }
 

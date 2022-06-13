@@ -135,6 +135,10 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reconfigureRequestTime;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime priorityDate;
+
+
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
@@ -263,7 +267,8 @@ public class TaskResource implements Serializable {
                         OffsetDateTime created,
                         Set<TaskRoleResource> taskRoleResources,
                         String caseCategory,
-                        Map<String, String> additionalProperties) {
+                        Map<String, String> additionalProperties,
+                        OffsetDateTime priorityDate) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -297,6 +302,7 @@ public class TaskResource implements Serializable {
         this.taskRoleResources = taskRoleResources;
         this.caseCategory = caseCategory;
         this.additionalProperties = additionalProperties;
+        this.priorityDate = priorityDate;
     }
 
     public void setTaskId(String taskId) {
@@ -433,5 +439,9 @@ public class TaskResource implements Serializable {
 
     public void setReconfigureRequestTime(OffsetDateTime reconfigureRequestTime) {
         this.reconfigureRequestTime = reconfigureRequestTime;
+    }
+
+    public void setPriorityDate(OffsetDateTime priorityDate) {
+        this.priorityDate = priorityDate;
     }
 }

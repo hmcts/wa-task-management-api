@@ -233,8 +233,12 @@ public class Common {
     }
 
     public TestVariables setupWATaskAndRetrieveIds() {
+        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+    }
 
-        String caseId = given.iCreateWACcdCase();
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFile) {
+
+        String caseId = given.iCreateWACcdCase(resourceFile);
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
