@@ -125,5 +125,5 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .body("title.value", is("task name"))
             .body("task-supervisor.value", is("Read,Refer,Manage,Cancel"));
     }
-    
+
 }
