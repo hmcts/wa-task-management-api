@@ -1262,6 +1262,8 @@ class CFTTaskMapperTest {
             EXPECTED_ADDITIONAL_PROPERTIES,
                 "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+            OffsetDateTime.now()
+        );
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1689,6 +1691,8 @@ class CFTTaskMapperTest {
             EXPECTED_ADDITIONAL_PROPERTIES,
                 "nextHearingId",
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+            OffsetDateTime.now()
+        );
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {
