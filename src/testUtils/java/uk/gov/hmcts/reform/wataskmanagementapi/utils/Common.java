@@ -253,6 +253,10 @@ public class Common {
         return response;
     }
 
+    public TestVariables setupWATaskAndRetrieveIds() {
+        return setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
+    }
+
     public TestVariables setupWATaskAndRetrieveIds(String resourceFileName) {
 
         String caseId = given.iCreateWACcdCase(resourceFileName);
