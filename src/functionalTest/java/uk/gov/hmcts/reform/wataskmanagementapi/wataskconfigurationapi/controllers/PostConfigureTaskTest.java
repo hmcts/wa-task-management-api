@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticatio
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -137,4 +136,5 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
             .body("title.value", is("task name"))
             .body("task-supervisor.value", is("Read,Refer,Execute,Manage,Cancel"));
     }
+    
 }
