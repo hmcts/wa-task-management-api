@@ -461,7 +461,8 @@ public class CFTTaskMapper {
     private Map<String, String> extractAdditionalProperties(Object value) {
         if (value != null) {
             try {
-                return objectMapper.readValue((String) value, new TypeReference<>() {});
+                return objectMapper.readValue((String) value, new TypeReference<>() {
+                });
             } catch (JsonProcessingException e) {
                 throw new IllegalArgumentException("Additional Properties mapping issue.", e);
             }

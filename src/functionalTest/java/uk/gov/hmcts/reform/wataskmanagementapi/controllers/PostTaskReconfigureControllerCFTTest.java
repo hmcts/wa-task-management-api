@@ -58,7 +58,7 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", assigneeId, caseworkerCredentials.getHeaders());
 
         result = restApiActions.post(

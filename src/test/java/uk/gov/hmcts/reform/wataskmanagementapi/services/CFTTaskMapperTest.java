@@ -90,10 +90,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 class CFTTaskMapperTest {
 
     public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
-        "name1",
-        "value1",
-        "name2",
-        "value2"
+        "name1", "value1",
+        "name2", "value2"
     );
     private final String taskId = "SOME_TASK_ID";
 
@@ -622,7 +620,7 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
+                + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -644,9 +642,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                    + "[PUBLIC, RESTRICTED, PRIVATE]")
+                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
+                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -690,6 +688,28 @@ class CFTTaskMapperTest {
         );
 
         assertNull(taskResource.getAdditionalProperties());
+    }
+
+    @Test
+    void should_return_role_assignment_id_when_additional_properties_have_role_assignment_id() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(Map.of("roleAssignmentId", "1234567890")));
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues)
+        );
+
+        assertNotNull(taskResource.getAdditionalProperties());
+        assertEquals(taskResource.getAdditionalProperties().get("roleAssignmentId"), "1234567890");
     }
 
     @Test
@@ -1828,7 +1848,7 @@ class CFTTaskMapperTest {
 
     private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
         return asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),

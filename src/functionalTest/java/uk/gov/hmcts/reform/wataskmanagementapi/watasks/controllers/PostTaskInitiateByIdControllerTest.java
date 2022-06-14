@@ -179,7 +179,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
-        
+
         ZonedDateTime createdDate = ZonedDateTime.now();
         String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
         ZonedDateTime dueDate = createdDate.plusDays(1);
@@ -233,7 +233,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("task_role_resources.size()", equalTo(9))
             .body("additional_properties", equalToObject(Map.of(
-                "roleAssignmentId", "assignmentId")));
+                "roleAssignmentId", "roleAssignmentId")));
 
         assertPermissions(
             getTaskResource(result, "judge"),
