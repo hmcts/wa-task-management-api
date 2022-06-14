@@ -82,7 +82,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "key2", "value2",
                 "key3", "value3",
                 "key4", "value4"
-            )));
+            )))
+            .body("task.next_hearing_id", equalTo("next-hearing-id"))
+            .body("task.next_hearing_date", notNullValue());
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),
@@ -144,7 +146,9 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
                 "key2", "value2",
                 "key3", "value3",
                 "key4", "value4"
-            )));
+            )))
+            .body("task.next_hearing_id", equalTo("next-hearing-id"))
+            .body("task.next_hearing_date", notNullValue());
 
         assertions.taskVariableWasUpdated(
             taskVariables.getProcessInstanceId(),

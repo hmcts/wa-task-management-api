@@ -5,5 +5,5 @@
   "appellantFamilyName": "Smith",
   "appealType": "protection",
   "nextHearingId": "next-hearing-id",
-  "nextHearingDate": "2022-06-22T00:00:00Z"
+  "nextHearingDate": "{NEXT_HEARING_DATE}"
 }

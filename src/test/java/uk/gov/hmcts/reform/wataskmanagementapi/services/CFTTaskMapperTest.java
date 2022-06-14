@@ -303,7 +303,7 @@ class CFTTaskMapperTest {
         mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
         String nextHearingId = "nextHearingId";
         mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
-        String nextHearingDate = OffsetDateTime.now().format(CAMUNDA_DATA_TIME_FORMATTER);
+        String nextHearingDate = OffsetDateTime.now().toString();
         mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
@@ -340,7 +340,7 @@ class CFTTaskMapperTest {
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
         assertEquals(nextHearingId, taskResource.getNextHearingId());
-        assertEquals(nextHearingDate, taskResource.getNextHearingDate().format(CAMUNDA_DATA_TIME_FORMATTER));
+        assertEquals(OffsetDateTime.parse(nextHearingDate), taskResource.getNextHearingDate());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(

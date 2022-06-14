@@ -448,7 +448,9 @@ public class CFTTaskMapper {
                     taskResource.setNextHearingId((String) value);
                     break;
                 case NEXT_HEARING_DATE:
-                    taskResource.setNextHearingDate(OffsetDateTime.parse((String) value, CAMUNDA_DATA_TIME_FORMATTER));
+                    if (value != null) {
+                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
+                    }
                     break;
                 default:
                     break;
