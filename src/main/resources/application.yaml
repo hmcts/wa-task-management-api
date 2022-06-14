@@ -59,10 +59,10 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler}
   api:
-    baseUrl: ${IDAM_URL:http://sidam-simulator}
+    baseUrl: ${IDAM_URL:http://sidam-api}
   system:
-    username: ${WA_SYSTEM_USERNAME:wa-caseofficer-public-a@fake.hmcts.net}
-    password: ${WA_SYSTEM_PASSWORD:London01}
+    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
+    password: ${WA_SYSTEM_PASSWORD:password}
 
 spring:
   config:
@@ -74,8 +74,8 @@ spring:
   datasource:
     driverClassName: org.postgresql.Driver
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
-    username: postgres
-    password: postgres
+    username: ${POSTGRES_USERNAME:postgres}
+    password: ${POSTGRES_PASSWORD:}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
