@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -23,6 +24,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
@@ -49,13 +51,15 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
 
-            TestVariables testVariables = createWaTask();
+            TestVariables testVariables = common.setupWATaskAndRetrieveIds();
+            initiateTask(caseworkerCredentials.getHeaders(), testVariables,
+                "processApplication", "process application", "process task");
 
             SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
                 testVariables.getCaseId(),
                 scenario.eventId,
-                "WA",
-                "WaCaseType"
+                WA_JURISDICTION,
+                WA_CASE_TYPE
             );
 
             Response result = restApiActions.post(
@@ -106,11 +110,65 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         });
     }
 
-    private TestVariables createWaTask() {
+    @Test
+    public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
+
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
-        return taskVariables;
+            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+            additionalProperties);
+
+        common.setupCaseManagerForSpecificAccess(caseworkerCredentials.getHeaders(),
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        CompletableTaskScenario scenario = new CompletableTaskScenario(
+            "reviewSpecificAccessRequestLegalOps",
+            "specificAccessRequest",
+            "access_requests",
+            "LEGAL_OPERATIONS",
+            true
+        );
+
+        SearchEventAndCase decideAnApplicationSearchRequest = new SearchEventAndCase(
+            taskVariables.getCaseId(),
+            scenario.eventId,
+            WA_JURISDICTION,
+            WA_CASE_TYPE
+        );
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            decideAnApplicationSearchRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        Map<String, String> expectedAdditionalProperties = Map.of("roleAssignmentId", roleAssignmentId);
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("task_required_for_event", is(scenario.taskRequiredForEvent))
+            .body("tasks.id", everyItem(is(equalTo(taskVariables.getTaskId()))))
+            .body("tasks.additional_properties", everyItem(equalToObject(
+                expectedAdditionalProperties
+            )));
+
+        common.cleanUpTask(taskVariables.getTaskId());
+
     }
 
     private static Stream<CompletableTaskScenario> tasksToCompleteScenarios() {
