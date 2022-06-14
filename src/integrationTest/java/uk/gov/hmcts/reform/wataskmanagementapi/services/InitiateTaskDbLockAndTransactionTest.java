@@ -162,6 +162,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);
         testTaskResource.setCreated(OffsetDateTime.now());
+        testTaskResource.setMajorPriority(5000);
+        testTaskResource.setMinorPriority(5000);
+        testTaskResource.setPriorityDateTime(OffsetDateTime.now().plusDays(2));
         assignedTask = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, ASSIGNED, SOME_CASE_ID, dueDate);
         assignedTask.setCreated(OffsetDateTime.now());
 

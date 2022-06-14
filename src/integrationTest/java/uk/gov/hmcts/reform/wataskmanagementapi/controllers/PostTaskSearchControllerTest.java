@@ -1028,7 +1028,7 @@ class PostTaskSearchControllerTest extends SpringBootIntegrationBaseTest {
             50,
             expectedReq,
             accessControlResponse.getRoleAssignments(),
-            List.of(READ, OWN)
+            List.of(READ)
         );
     }
 

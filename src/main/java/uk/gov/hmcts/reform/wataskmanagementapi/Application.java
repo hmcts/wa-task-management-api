@@ -14,7 +14,6 @@ import org.springframework.context.annotation.ComponentScan;
         "uk.gov.hmcts.reform.wataskmanagementapi"
     })
 @EnableCaching
-@ComponentScan({"uk.gov.hmcts.reform.wataskmanagementapi","net.hmcts.taskperf"})
 public class Application {
 
     public static void main(final String[] args) {
