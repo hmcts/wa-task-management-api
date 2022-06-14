@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -445,10 +446,12 @@ public class CFTTaskMapper {
                     taskResource.setAdditionalProperties(additionalProperties);
                     break;
                 case NEXT_HEARING_ID:
-                    taskResource.setNextHearingId((String) value);
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingId((String) value);
+                    }
                     break;
                 case NEXT_HEARING_DATE:
-                    if (value != null) {
+                    if (value != null && Strings.isNotBlank((String) value)) {
                         taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
                     }
                     break;

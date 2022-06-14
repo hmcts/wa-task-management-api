@@ -347,7 +347,7 @@ public class GivensBuilder {
         );
     }
 
-    public String iCreateWACcdCase() {
+    public String iCreateWACcdCase(String resourceFileName) {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
         return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
@@ -356,7 +356,7 @@ public class GivensBuilder {
             "CREATE",
             "START_PROGRESS",
             lawFirmCredentials,
-            "requests/ccd/wa_case_data.json"
+            resourceFileName
         );
     }
 

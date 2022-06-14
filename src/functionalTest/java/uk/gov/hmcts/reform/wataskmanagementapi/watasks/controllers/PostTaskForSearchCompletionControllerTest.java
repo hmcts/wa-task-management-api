@@ -51,7 +51,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
         Stream<CompletableTaskScenario> scenarios = tasksToCompleteScenarios();
         scenarios.forEach(scenario -> {
 
-            TestVariables testVariables = common.setupWATaskAndRetrieveIds();
+            TestVariables testVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
             initiateTask(caseworkerCredentials.getHeaders(), testVariables,
                 "processApplication", "process application", "process task");
 
@@ -128,7 +128,7 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             "key8", "value8"
         );
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds("requests/ccd/wa_case_data.json");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
             "reviewSpecificAccessRequestLegalOps", "task name", "task title",
             additionalProperties);
