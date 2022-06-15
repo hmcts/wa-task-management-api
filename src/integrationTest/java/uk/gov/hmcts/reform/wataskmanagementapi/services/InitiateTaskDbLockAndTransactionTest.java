@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -131,6 +132,9 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
 
     @BeforeEach
     void setUp() {
@@ -150,8 +154,10 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskReconfigurationService,
-            entityManager
+            entityManager,
+            allowedJurisdictionConfiguration
         );
+
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
             FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,

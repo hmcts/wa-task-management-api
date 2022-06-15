@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
@@ -63,6 +64,10 @@ class GetTaskCountTest extends CamundaHelpers {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+
     @Test
     void getTaskCount_should_succeed_and_return_count() {
         SearchTaskRequest searchTaskRequest = mock(SearchTaskRequest.class);
@@ -104,8 +109,10 @@ class GetTaskCountTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskReconfigurationService,
-            entityManager
+            entityManager,
+            allowedJurisdictionConfiguration
         );
+
 
         taskId = UUID.randomUUID().toString();
     }

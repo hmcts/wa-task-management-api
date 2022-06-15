@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -77,6 +78,10 @@ class CancelTaskTest extends CamundaHelpers {
     @Mock
     private EntityManager entityManager;
 
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
+
     @Test
     void cancelTask_should_succeed_and_feature_flag_is_on() {
 
@@ -88,15 +93,15 @@ class CancelTaskTest extends CamundaHelpers {
 
         when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
             .thenReturn(Optional.of(taskResource));
-        when(cftQueryService.getTask(taskId,accessControlResponse.getRoleAssignments(),singletonList(CANCEL)))
+        when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), singletonList(CANCEL)))
             .thenReturn(Optional.of(taskResource));
         when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(true);
 
 
@@ -124,10 +129,10 @@ class CancelTaskTest extends CamundaHelpers {
         )).thenReturn(true);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(false);
 
         taskManagementService.cancelTask(taskId, accessControlResponse);
@@ -186,10 +191,10 @@ class CancelTaskTest extends CamundaHelpers {
         TaskResource taskResource = spy(TaskResource.class);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                 RELEASE_2_ENDPOINTS_FEATURE,
+                 IDAM_USER_ID,
+                 IDAM_USER_EMAIL
+             )
         ).thenReturn(true);
 
 
@@ -218,8 +223,10 @@ class CancelTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskReconfigurationService,
-            entityManager
+            entityManager,
+            allowedJurisdictionConfiguration
         );
+
 
         taskId = UUID.randomUUID().toString();
     }
