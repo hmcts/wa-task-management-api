@@ -39,12 +39,17 @@ public class CFTTaskDatabaseService {
     }
 
     public TaskResource saveTask(TaskResource task) {
+        //TODO:Set majorPriority, minorPriority, priorityDateTime into TaskResource
+        task.setMajorPriority(5000);
+        task.setMinorPriority(5000);
+        task.setPriorityDateTime(task.getDueDateTime());
         return tasksRepository.save(task);
     }
 
     public void insertAndLock(String taskId, OffsetDateTime dueDate) throws SQLException {
         OffsetDateTime created = OffsetDateTime.now();
-        tasksRepository.insertAndLock(taskId, dueDate, created);
+        //TODO: majorPriority, minorPriority, priorityDateTime should be passed in as parameters
+        tasksRepository.insertAndLock(taskId, dueDate, created, 5000, 5000, dueDate);
     }
 
     public Optional<TaskResource> findTaskBySpecification(Specification<TaskResource> specification) {

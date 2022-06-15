@@ -16,9 +16,6 @@ import org.zalando.problem.violations.Violation;
 
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
-import net.hmcts.taskperf.model.SearchRequest;
-import net.hmcts.taskperf.model.User;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -33,19 +30,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 @Service
 public class TaskSearchAdaptor {
 
-	public static final boolean ENABLED = false;
-	public static final boolean EXPLAIN_QUERIES = false;
+	public static final boolean ENABLED = true;
+	public static final boolean EXPLAIN_QUERIES = true;
 	private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
     private final DataSource dataSource;
 
-    public TaskSearchAdaptor(CamundaService camundaService,
-                           CFTTaskMapper cftTaskMapper,
+    public TaskSearchAdaptor(CFTTaskMapper cftTaskMapper,
                            TaskResourceRepository taskResourceRepository,
                            DataSource dataSource) {
 		this.cftTaskMapper = cftTaskMapper;
