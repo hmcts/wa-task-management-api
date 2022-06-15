@@ -1,16 +1,16 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.AssignTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.CompleteTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
@@ -19,34 +19,40 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_HAS_WARNINGS;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
+@SuppressWarnings("checkstyle:LineLength")
 public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBaseTest {
 
-    private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}/complete";
     private static final String CLAIM_ENDPOINT = "task/{task-id}/claim";
+    private static final String ASSIGN_ENDPOINT = "task/{task-id}/assign";
 
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
+    private String assigneeId;
+    private String taskId;
+    private GrantType testGrantType = GrantType.SPECIFIC;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationProvider.getWACaseworkerAAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
+        assigneeId = getAssigneeId(caseworkerCredentials.getHeaders());
+    }
+
+    @After
+    public void cleanUp() {
+        if (testGrantType == GrantType.CHALLENGED) {
+            common.clearAllRoleAssignmentsForChallenged(caseworkerCredentials.getHeaders());
+        } else {
+            common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        }
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -54,19 +60,20 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("type",
+                equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
             .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("detail", equalTo("Task Not Found Error: The task could not be found."));
@@ -77,38 +84,17 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_204_when_completing_a_task_by_id() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
+        taskId = taskVariables.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "Process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_HAS_WARNINGS, true),
-            new TaskAttribute(TASK_TITLE, "Process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
         Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            taskId,
-            req,
-            authenticationHeaders
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value());
-
-        result = restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -117,14 +103,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -136,14 +122,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_403_if_task_was_not_previously_assigned() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -165,25 +152,26 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_204_when_completing_a_task_by_id_with_restricted_role_assignment() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
-        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), authenticationHeaders);
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -193,13 +181,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -223,13 +212,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             JURISDICTION, "WA"
         );
 
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
@@ -237,18 +227,17 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
             .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+                ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
@@ -256,10 +245,11 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_and_retrieve_a_task_by_id_jurisdiction_location_and_region_match() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "WA"
@@ -268,18 +258,18 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
     }
@@ -289,19 +279,20 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
         //Create temporary role-assignment to assign task
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //Delete role-assignment and re-create
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "WA",
@@ -313,18 +304,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
@@ -333,13 +322,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_succeed_and_return_204_when_a_task_that_was_already_claimed_and_privileged_auto_complete() {
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //S2S service name is wa_task_management_api
@@ -359,7 +349,7 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -368,13 +358,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_complete_when_a_task_was_already_claimed_and_privileged_auto_complete_is_false() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //S2S service name is wa_task_management_api
@@ -401,20 +392,21 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     public void should_return_a_404_if_task_does_not_exist_with_completion_options_assign_and_complete_true() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             nonExistentTaskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NOT_FOUND.value())
             .and()
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
+            .body("type",
+                equalTo("https://github.com/hmcts/wa-task-management-api/problem/task-not-found-error"))
             .body("title", equalTo("Task Not Found Error"))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("detail", equalTo("Task Not Found Error: The task could not be found."));
@@ -424,25 +416,26 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_when_completing_a_task_with_completion_options_assign_and_complete_true() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -451,22 +444,23 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_if_task_was_not_previously_assigned_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -475,25 +469,26 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_when_completing_a_task_with_restricted_role_assignment_assign_and_complete_true() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
-        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), authenticationHeaders);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+        common.setupRestrictedRoleAssignmentForWA(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -502,13 +497,14 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
@@ -531,14 +527,15 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
 
-        String taskId = taskVariables.getTaskId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
         restApiActions.post(
             CLAIM_ENDPOINT,
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         common.updateTaskWithCustomVariablesOverride(taskVariables, Map.of(JURISDICTION, "SSCS"));
@@ -547,18 +544,16 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
 
@@ -567,10 +562,11 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_204_and_retrieve_task_role_assignment_attributes_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "WA"
@@ -579,19 +575,19 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.NO_CONTENT.value());
-        assertions.taskStateWasUpdatedinDatabase(taskId, "completed", authenticationHeaders);
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
 
@@ -602,19 +598,20 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
     @Test
     public void should_return_a_403_when_permission_region_did_not_match_and_assign_and_complete_true() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
-        String taskId = taskVariables.getTaskId();
-        initiateTask(taskVariables);
+        taskId = taskVariables.getTaskId();
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
         //Create temporary role-assignment to assign task
-        common.setupCFTOrganisationalRoleAssignmentForWA(authenticationHeaders);
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         given.iClaimATaskWithIdAndAuthorization(
             taskId,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         //Delete role-assignment and re-create
         common.setupOrganisationalRoleAssignmentWithCustomAttributes(
-            authenticationHeaders,
+            caseworkerCredentials.getHeaders(),
             Map.of(
                 "primaryLocation", "765324",
                 "jurisdiction", "WA",
@@ -627,53 +624,132 @@ public class PostTaskCompleteByIdControllerTest extends SpringBootFunctionalBase
             ENDPOINT_BEING_TESTED,
             taskId,
             new CompleteTaskRequest(new CompletionOptions(true)),
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
 
     }
 
-    private void initiateTask(TestVariables testVariables) {
+    @Test
+    public void user_should_complete_task() {
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        taskId = taskVariables.getTaskId();
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "Process Application"),
-            new TaskAttribute(TASK_TITLE, "process task"),
-            new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+
+        assignTask(taskVariables);
 
         Response result = restApiActions.post(
-            TASK_INITIATION_ENDPOINT_BEING_TESTED,
-            testVariables.getTaskId(),
-            req,
-            authenticationHeaders
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("task_id", equalTo(testVariables.getTaskId()))
-            .body("case_id", equalTo(testVariables.getCaseId()));
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "completed");
+        assertions.taskStateWasUpdatedInDatabase(taskId, "completed", caseworkerCredentials.getHeaders());
+
+        common.cleanUpTask(taskId);
+
     }
+
+    @Test
+    public void user_should_not_complete_task_when_grant_type_specific_and_permission_read() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        taskId = taskVariables.getTaskId();
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+
+        assignTask(taskVariables);
+
+        common.setupLeadJudgeForSpecificAccess(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION);
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+
+    }
+
+    @Test
+    public void user_should_not_complete_task_when_grant_type_challenged_and_permission_read() {
+        testGrantType = GrantType.CHALLENGED;
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        taskId = taskVariables.getTaskId();
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
+
+        assignTask(taskVariables);
+
+        common.setupChallengedAccessJudiciary(caseworkerCredentials.getHeaders(), taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.FORBIDDEN.value())
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
+            .body("status", equalTo(403))
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+
+    }
+
+    private void assignTask(TestVariables taskVariables) {
+
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        Response result = restApiActions.post(
+            ASSIGN_ENDPOINT,
+            taskVariables.getTaskId(),
+            new AssignTaskRequest(assigneeId),
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
+        assertions.taskStateWasUpdatedInDatabase(
+            taskVariables.getTaskId(), "assigned", caseworkerCredentials.getHeaders()
+        );
+        assertions.taskFieldWasUpdatedInDatabase(
+            taskVariables.getTaskId(), "assignee", assigneeId, caseworkerCredentials.getHeaders()
+        );
+
+    }
+
 
 }
 

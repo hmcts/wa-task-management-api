@@ -59,9 +59,9 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "Process Application"),
+            new TaskAttribute(TASK_NAME, "process Application"),
             new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "Process Application"),
+            new TaskAttribute(TASK_TITLE, "process Application"),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
             new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
@@ -80,12 +80,12 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .statusCode(HttpStatus.CREATED.value())
             .and()
             .body("task_id", equalTo(taskId))
-            .body("task_name", equalTo("Process Application"))
+            .body("task_name", equalTo("process Application"))
             .body("task_type", equalTo("processApplication"))
             .body("state", equalTo("UNASSIGNED"))
             .body("task_system", equalTo("SELF"))
             .body("security_classification", equalTo("PUBLIC"))
-            .body("title", equalTo("Process Application"))
+            .body("title", equalTo("process Application"))
             .body("created", notNullValue())
             .body("due_date_time", notNullValue())
             .body("auto_assigned", equalTo(false))
@@ -108,7 +108,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body("role_category", equalTo("LEGAL_OPERATIONS"))
             .body("description", equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                          + "trigger/decideAnApplication)"))
-            .body("task_role_resources.size()", equalTo(3))
+            .body("task_role_resources.size()", equalTo(10))
             .body("additional_properties", equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
@@ -229,11 +229,11 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             .body(
                 "execution_type_code.description",
                 equalTo("The task requires a case management event to be executed by the user. "
-                            + "(Typically this will be in CCD.)")
+                        + "(Typically this will be in CCD.)")
             )
-            .body("task_role_resources.size()", equalTo(2))
+            .body("task_role_resources.size()", equalTo(9))
             .body("additional_properties", equalToObject(Map.of(
-                "roleAssignmentId", "assignmentId")));
+                "roleAssignmentId", "roleAssignmentId")));
 
         assertPermissions(
             getTaskResource(result, "judge"),

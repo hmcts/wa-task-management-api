@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCancelException
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskClaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskCompleteException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
+import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskUnclaimException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
@@ -191,7 +192,8 @@ public class ApplicationProblemControllerAdvice extends BaseControllerAdvice imp
         DatabaseConflictException.class,
         GenericServerErrorException.class,
         TaskNotFoundException.class,
-        InvalidRequestException.class
+        InvalidRequestException.class,
+        TaskReconfigurationException.class
     })
     protected ResponseEntity<Problem> handleApplicationProblemExceptions(
         AbstractThrowableProblem ex

@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,7 +32,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_AUTO_ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_CATEGORY;
@@ -106,6 +104,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own"))
                 .body("tasks[0].type", equalTo(scenario.taskId))
                 .body("tasks[0].work_type_id", equalTo(scenario.workTypeId))
+                .body("tasks[0].work_type_label", equalTo(scenario.workTypeLabel))
                 .body("tasks[0].role_category", equalTo(scenario.roleCategory));
 
             common.cleanUpTask(testVariables.getTaskId());
@@ -628,10 +627,6 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         common.cleanUpTask(taskId);
     }
 
-    private String getAssigneeId(Headers headers) {
-        return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
-    }
-
     private void sendMessage(String caseId) {
         Map<CamundaVariableDefinition, String> variablesOverride = Map.of(
             CamundaVariableDefinition.JURISDICTION, "IA",
@@ -728,6 +723,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "processApplication",
                 "decideAnApplication",
                 "applications",
+                "Applications",
                 "LEGAL_OPERATIONS",
                 false
             ),
@@ -735,6 +731,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "reviewAdditionalEvidence",
                 "markEvidenceAsReviewed",
                 "decision_making_work",
+                "Decision-making work",
                 "LEGAL_OPERATIONS",
                 true
             ),
@@ -742,6 +739,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
                 "reviewAdditionalHomeOfficeEvidence",
                 "markEvidenceAsReviewed",
                 "decision_making_work",
+                "Decision-making work",
                 "LEGAL_OPERATIONS",
                 true
             )
@@ -754,6 +752,7 @@ public class PostTaskForSearchCompletionControllerCFTTest extends SpringBootFunc
         private String taskId;
         private String eventId;
         private String workTypeId;
+        private String workTypeLabel;
         private String roleCategory;
         private boolean taskRequiredForEvent;
     }

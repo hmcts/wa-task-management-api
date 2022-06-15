@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceReposi
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import javax.persistence.EntityManager;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -66,6 +68,11 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
 
     @Autowired
     private TaskResourceRepository taskResourceRepository;
+    @Autowired
+    private EntityManager entityManager;
+
+    @Autowired
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     @MockBean
     private CamundaServiceApi camundaServiceApi;
     @Autowired
@@ -78,6 +85,8 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private CFTTaskDatabaseService cftTaskDatabaseService;
     @Autowired
     private CFTTaskMapper cftTaskMapper;
+    @Autowired
+    RoleAssignmentVerificationService roleAssignmentVerificationService;
     @MockBean
     private CftQueryService cftQueryService;
     @Autowired
@@ -97,7 +106,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
+    @MockBean
+    private TaskReconfigurationService taskReconfigurationService;
 
+    private RoleAssignmentVerificationService roleAssignmentVerification;
     private ServiceMocks mockServices;
 
     @BeforeEach
@@ -110,25 +122,34 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
             roleAssignmentServiceApi
         );
 
+        roleAssignmentVerification = new RoleAssignmentVerificationService(
+            permissionEvaluatorService,
+            cftTaskDatabaseService,
+            cftQueryService
+        );
         taskManagementService = new TaskManagementService(
             camundaService,
             camundaQueryBuilder,
-            permissionEvaluatorService,
             cftTaskDatabaseService,
             cftTaskMapper,
             launchDarklyFeatureFlagProvider,
             configureTaskService,
             taskAutoAssignmentService,
-            cftQueryService
+            roleAssignmentVerification,
+            taskReconfigurationService,
+            entityManager,
+            allowedJurisdictionConfiguration
         );
+
+
 
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
     }
@@ -298,7 +319,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 .isInstanceOf(TaskCompleteException.class)
                 .hasNoCause()
                 .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                            + "The Task state was updated to completed, but the Task could not be completed.");
+                                + "The Task state was updated to completed, but the Task could not be completed.");
 
             verifyTransactionWasRolledBack(taskId);
 
@@ -389,7 +410,7 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                     .isInstanceOf(TaskCompleteException.class)
                     .hasNoCause()
                     .hasMessage("Task Complete Error: Task complete partially succeeded. "
-                                + "The Task state was updated to completed, but the Task could not be completed.");
+                                    + "The Task state was updated to completed, but the Task could not be completed.");
 
                 verifyTransactionWasRolledBack(taskId);
             }

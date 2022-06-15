@@ -6,19 +6,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SearchOperator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterBoolean;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterList;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -31,13 +29,6 @@ import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.JURISDICTION;
@@ -47,7 +38,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     private static final String ENDPOINT_BEING_TESTED = "task";
-    private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}";
 
     private TestAuthenticationCredentials caseworkerCredentials;
 
@@ -68,11 +58,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables testVariables = createWaTask();
-        tasksCreated.add(testVariables);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
-        testVariables = createWaTask();
-        tasksCreated.add(testVariables);
+        taskVariables = common.setupWATaskAndRetrieveIds();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -98,12 +92,12 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
             .body("tasks.id", everyItem(notNullValue()))
             .body("tasks.id", hasItem(is(in(taskIds))))
-            .body("tasks.name", everyItem(equalTo("Process Application")))
+            .body("tasks.name", everyItem(equalTo("process application")))
             .body("tasks.type", everyItem(equalTo("processApplication")))
             .body("tasks.task_state", everyItem(equalTo("unassigned")))
             .body("tasks.task_system", everyItem(equalTo("SELF")))
             .body("tasks.security_classification", everyItem(equalTo("PUBLIC")))
-            .body("tasks.task_title", everyItem(equalTo("Process Application")))
+            .body("tasks.task_title", everyItem(equalTo("process application")))
             .body("tasks.created_date", everyItem(notNullValue()))
             .body("tasks.due_date", everyItem(notNullValue()))
             .body("tasks.location_name", everyItem(equalTo("Taylor House")))
@@ -135,34 +129,65 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    @Test
+    public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+        List<TestVariables> tasksCreated = new ArrayList<>();
 
-    private TestVariables createWaTask() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-        String taskId = taskVariables.getTaskId();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+            additionalProperties);
 
-        ZonedDateTime createdDate = ZonedDateTime.now();
-        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-        ZonedDateTime dueDate = createdDate.plusDays(1);
-        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        taskVariables = common.setupWATaskAndRetrieveIds();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+            additionalProperties);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, "processApplication"),
-            new TaskAttribute(TASK_NAME, "Process Application"),
-            new TaskAttribute(TASK_CASE_ID, taskVariables.getCaseId()),
-            new TaskAttribute(TASK_TITLE, "Process Application"),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
         ));
 
-        Response initiationResponse = restApiActions.post(
-            TASK_INITIATION_ENDPOINT,
-            taskId,
-            req,
+        tasksCreated.forEach(testVariable ->
+            common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
             caseworkerCredentials.getHeaders()
         );
 
-        initiationResponse.prettyPrint();
-        return taskVariables;
+        Map<String, String> expectedAdditionalProperties = Map.of("roleAssignmentId", roleAssignmentId);
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.id", hasItem(is(in(taskIds))))
+            .body("tasks.additional_properties", everyItem(equalToObject(expectedAdditionalProperties)))
+            .body("total_records", equalTo(2));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
 }
