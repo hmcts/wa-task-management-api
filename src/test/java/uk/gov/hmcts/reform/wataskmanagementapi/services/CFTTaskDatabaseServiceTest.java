@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -147,7 +148,7 @@ class CFTTaskDatabaseServiceTest {
         OffsetDateTime dueDate = OffsetDateTime.now();
         OffsetDateTime created = OffsetDateTime.now().plusMinutes(1);
 
-        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created, dueDate);
+        lenient().doNothing().when(taskResourceRepository).insertAndLock(taskId, dueDate, created, 5000, 5000, dueDate);
 
         cftTaskDatabaseService.insertAndLock(taskId, dueDate);
 
@@ -155,6 +156,8 @@ class CFTTaskDatabaseServiceTest {
             .insertAndLock(anyString(),
                 any(),
                 any(),
+                anyInt(),
+                anyInt(),
                 any()
             );
     }

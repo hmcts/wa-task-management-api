@@ -23,11 +23,6 @@ public class SortingParameter {
     @Schema(required = true, allowableValues = "asc, desc", example = "asc")
     private final SortOrder sortOrder;
 
-//    public SortingParameter(SortField sortBy, SortOrder sortOrder) {
-//        this.sortBy = sortBy;
-//        this.sortOrder = sortOrder;
-//    }
-
     public SortField getSortBy() {
         return sortBy;
     }

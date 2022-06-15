@@ -236,6 +236,10 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
                 "taskName",
                 "taskType",
                 cftTaskState,
+                OffsetDateTime.now(),
+                OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+                5000,
+                5000,
                 OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
             );
             taskResource.setCreated(OffsetDateTime.now());

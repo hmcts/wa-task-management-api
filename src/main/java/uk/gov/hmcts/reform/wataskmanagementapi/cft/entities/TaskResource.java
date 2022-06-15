@@ -149,6 +149,8 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime priorityDate;
 
+    private Boolean indexed = false;
+
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
@@ -216,6 +218,26 @@ public class TaskResource implements Serializable {
         this.created = created;
         this.dueDateTime = dueDateTime;
         this.priorityDate = priorityDate;
+    }
+
+    public TaskResource(String taskId,
+                        String taskName,
+                        String taskType,
+                        CFTTaskState state,
+                        OffsetDateTime created,
+                        OffsetDateTime dueDateTime,
+                        Integer majorPriority,
+                        Integer minorPriority,
+                        OffsetDateTime priorityDateTime) {
+        this.taskId = taskId;
+        this.taskName = taskName;
+        this.taskType = taskType;
+        this.state = state;
+        this.created = created;
+        this.dueDateTime = dueDateTime;
+        this.majorPriority = majorPriority;
+        this.minorPriority = minorPriority;
+        this.priorityDate = priorityDateTime;
     }
 
     public TaskResource(String taskId,
@@ -471,5 +493,9 @@ public class TaskResource implements Serializable {
 
     public void setPriorityDate(OffsetDateTime priorityDate) {
         this.priorityDate = priorityDate;
+    }
+
+    public void setIndexed(Boolean indexed) {
+        this.indexed = indexed;
     }
 }

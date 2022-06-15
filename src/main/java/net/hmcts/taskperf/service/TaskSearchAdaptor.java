@@ -16,9 +16,6 @@ import org.zalando.problem.violations.Violation;
 
 import net.hmcts.taskperf.model.ClientQuery;
 import net.hmcts.taskperf.model.Pagination;
-import net.hmcts.taskperf.model.SearchRequest;
-import net.hmcts.taskperf.model.User;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
@@ -33,19 +30,17 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
 @Service
 public class TaskSearchAdaptor {
 
-	public static final boolean ENABLED = false;
+	public static final boolean ENABLED = true;
 	public static final boolean EXPLAIN_QUERIES = false;
 	private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
     private final DataSource dataSource;
 
-    public TaskSearchAdaptor(CamundaService camundaService,
-                           CFTTaskMapper cftTaskMapper,
+    public TaskSearchAdaptor(CFTTaskMapper cftTaskMapper,
                            TaskResourceRepository taskResourceRepository,
                            DataSource dataSource) {
 		this.cftTaskMapper = cftTaskMapper;
@@ -86,7 +81,7 @@ public class TaskSearchAdaptor {
         SearchTaskRequest searchTaskRequest,
         List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
-    ) {
+    ) throws SQLException {
         validateRequest(searchTaskRequest);
 
 //        Previous implementation:
@@ -106,10 +101,11 @@ public class TaskSearchAdaptor {
         		getSearchParameterBooleans(searchTaskRequest),
         		new Pagination(firstResult, maxResults),
         		searchTaskRequest.getSortingParameters());
+        Connection conn = getConnection();
         try
         {
             // 1.2 Run the search and build an ordered list of the task IDs.
-        	TaskSearch.Results results = TaskSearch.searchTasks(clientQuery, roleAssignments, getConnection(), EXPLAIN_QUERIES);
+        	TaskSearch.Results results = TaskSearch.searchTasks(clientQuery, roleAssignments, conn, EXPLAIN_QUERIES);
 	        List<String> orderedTaskIds = results.getTasks().stream()
 	        		.map(t -> t.getAttributes().get("task_id").toString())
 	        		.collect(Collectors.toList());
@@ -130,6 +126,11 @@ public class TaskSearchAdaptor {
         {
         	// TODO: handle properly
         	throw new RuntimeException(e);
+        }
+        finally {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
         }
     }
 

@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
+import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
+import org.hibernate.query.criteria.internal.predicate.BooleanAssertionPredicate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -103,6 +106,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
     private TaskResourceDao taskResourceDao;
     @InjectMocks
     private CftQueryService cftQueryService;
+    @Mock
+    private TaskSearchAdaptor taskSearchAdaptor;
 
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
