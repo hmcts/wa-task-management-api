@@ -21,7 +21,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskDatabaseService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentHelper;
@@ -31,6 +30,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
@@ -45,6 +47,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CASE_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
@@ -98,8 +101,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired
     protected LaunchDarklyFeatureFlagProvider featureFlagProvider;
-    @Autowired
-    protected CFTTaskDatabaseService cftTaskDatabaseService;
+
     @Value("${targets.camunda}")
     private String camundaUrl;
     @Value("${targets.instance}")
@@ -202,6 +204,44 @@ public abstract class SpringBootFunctionalBaseTest {
             TASK_INITIATION_ENDPOINT,
             testVariables.getTaskId(),
             req,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("task_id", equalTo(testVariables.getTaskId()))
+            .body("case_id", equalTo(testVariables.getCaseId()));
+    }
+
+    protected void initiateTask(Headers authenticationHeaders, TestVariables testVariables,
+                                String taskType, String taskName, String taskTitle,
+                                Map<String, String> additionalProperties) {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        List<TaskAttribute> taskAttributes = new ArrayList<>();
+        taskAttributes.add(new TaskAttribute(TASK_TYPE, taskType));
+        taskAttributes.add(new TaskAttribute(TASK_NAME, taskName));
+        taskAttributes.add(new TaskAttribute(TASK_TITLE, taskTitle));
+        taskAttributes.add(new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()));
+        taskAttributes.add(new TaskAttribute(TASK_CREATED, formattedCreatedDate));
+        taskAttributes.add(new TaskAttribute(TASK_DUE_DATE, formattedDueDate));
+
+        if (additionalProperties != null) {
+            taskAttributes.add(new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties));
+        }
+
+        InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
+
+        Response result = restApiActions.post(
+            TASK_INITIATION_ENDPOINT,
+            testVariables.getTaskId(),
+            initiateTaskRequest,
             authenticationHeaders
         );
 

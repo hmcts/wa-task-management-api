@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
@@ -168,6 +169,48 @@ public class GetTaskByIdControllerTest extends SpringBootFunctionalBaseTest {
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
             .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
+
+        common.cleanUpTask(taskId);
+    }
+
+    @Test
+    public void should_replace_additional_properties_in_configuration_dmn_and_return_task_with_sent_properties() {
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        String taskId = taskVariables.getTaskId();
+        String roleAssignmentId = UUID.randomUUID().toString();
+        common.setupHearingPanelJudgeForSpecificAccess(caseworkerCredentials.getHeaders(),
+            taskVariables.getCaseId(), WA_JURISDICTION, WA_CASE_TYPE);
+
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "reviewSpecificAccessRequestJudiciary", "task name", "task title",
+            additionalProperties);
+
+        Response result = restApiActions.get(
+            ENDPOINT_BEING_TESTED,
+            taskId,
+            caseworkerCredentials.getHeaders()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(taskId))
+            .body("task.additional_properties", equalToObject(Map.of(
+                "roleAssignmentId", roleAssignmentId
+            )));
 
         common.cleanUpTask(taskId);
     }
