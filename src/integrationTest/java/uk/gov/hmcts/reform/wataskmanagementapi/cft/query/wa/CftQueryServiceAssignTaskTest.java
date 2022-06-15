@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -22,6 +23,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.IdamWebApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -46,6 +48,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.utils.ServiceMocks.SECONDA
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/assign_task_data.sql")
 public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
@@ -72,10 +75,15 @@ public class CftQueryServiceAssignTaskTest extends RoleAssignmentHelper {
     private final List<PermissionTypes> assignerPermissionsRequired = singletonList(MANAGE);
     private final List<PermissionTypes> assigneePermissionsRequired = List.of(OWN, EXECUTE);
 
+    @Autowired
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager,
+                                              allowedJurisdictionConfiguration
+        );
 
 
         when(assignerUserInfo.getUid())
