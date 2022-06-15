@@ -41,7 +41,3 @@ variable "database_sku_capacity" {
   default = "4"
 }
 
-variable "appinsights_location" {
-  default     = "West Europe"
-  description = "Location for Application Insights"
-}
