@@ -76,7 +76,8 @@ public class CallbackControllerAdvice extends ResponseEntityExceptionHandler {
         return getErrorMessageResponseEntity(ex, HttpStatus.FORBIDDEN);
     }
 
-    @ExceptionHandler({NullPointerException.class, ServerErrorException.class, RequireDbLockException.class})
+    @ExceptionHandler({NullPointerException.class, ServerErrorException.class,
+        RequireDbLockException.class})
     protected ResponseEntity<ErrorMessage> handleGenericException(Exception ex) {
         return getErrorMessageResponseEntity(ex, HttpStatus.INTERNAL_SERVER_ERROR);
     }

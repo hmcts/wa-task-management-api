@@ -29,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
@@ -70,6 +71,8 @@ public class TaskManagementProviderTestConfiguration {
     private ConfigureTaskService configureTaskService;
     @MockBean
     private TaskAutoAssignmentService taskAutoAssignmentService;
+    @MockBean
+    private TaskReconfigurationService taskReconfigurationService;
 
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
@@ -102,6 +105,7 @@ public class TaskManagementProviderTestConfiguration {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
+            taskReconfigurationService,
             entityManager
         );
     }

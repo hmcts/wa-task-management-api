@@ -287,11 +287,21 @@ public final class RoleAssignmentFilter {
                                                RoleAssignmentForSearch roleAssignment) {
         Predicate nullAuthorizations = getEmptyOrNullAuthorizationsPredicate(taskRoleResources, builder);
         if (roleAssignment.getAuthorisations() != null) {
-            Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
-                (Object) roleAssignment.getAuthorisations().toArray()
-            );
-            return builder.or(nullAuthorizations, authorizations);
+            if (roleAssignment.getAuthorisations().isEmpty()) {
+                Predicate authorizations = taskRoleResources.get(AUTHORIZATIONS_COLUMN).in(
+                    (Object) roleAssignment.getAuthorisations().toArray()
+                );
+                return builder.or(nullAuthorizations, authorizations);
 
+            }
+            return builder.or(nullAuthorizations, builder.isTrue(builder.function(
+                "contains_text",
+                Boolean.class,
+                taskRoleResources.get(AUTHORIZATIONS_COLUMN),
+                builder.literal(
+                    roleAssignment.getAuthorisations().toString().replace("[", "{").replace("]", "}")
+                )
+            )));
         }
         return nullAuthorizations;
     }

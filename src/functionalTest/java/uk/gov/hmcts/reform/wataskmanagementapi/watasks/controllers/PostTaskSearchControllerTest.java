@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -57,11 +58,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
         List<TestVariables> tasksCreated = new ArrayList<>();
 
-        TestVariables testVariables = createWaTask();
-        tasksCreated.add(testVariables);
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
-        testVariables = createWaTask();
-        tasksCreated.add(testVariables);
+        taskVariables = common.setupWATaskAndRetrieveIds();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "processApplication", "process application", "process task");
 
         List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
         List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
@@ -124,14 +129,65 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    @Test
+    public void should_return_200_with_task_with_additional_properties_which_includes_in_configuration_dmn() {
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        String roleAssignmentId = UUID.randomUUID().toString();
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", roleAssignmentId,
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+        List<TestVariables> tasksCreated = new ArrayList<>();
 
-    private TestVariables createWaTask() {
         TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
-
+        tasksCreated.add(taskVariables);
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "processApplication", "process application", "process task");
+            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+            additionalProperties);
 
-        return taskVariables;
+        taskVariables = common.setupWATaskAndRetrieveIds();
+        tasksCreated.add(taskVariables);
+        initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
+            "reviewSpecificAccessRequestLegalOps", "task name", "task title",
+            additionalProperties);
+
+        List<String> taskIds = tasksCreated.stream().map(TestVariables::getTaskId).collect(Collectors.toList());
+        List<String> caseIds = tasksCreated.stream().map(TestVariables::getCaseId).collect(Collectors.toList());
+
+        SearchTaskRequest searchTaskRequest = new SearchTaskRequest(asList(
+            new SearchParameterList(JURISDICTION, SearchOperator.IN, singletonList("WA")),
+            new SearchParameterList(LOCATION, SearchOperator.IN, singletonList("765324")),
+            new SearchParameterBoolean(AVAILABLE_TASKS_ONLY, SearchOperator.BOOLEAN, false),
+            new SearchParameterList(CASE_ID, SearchOperator.IN, caseIds)
+        ));
+
+        tasksCreated.forEach(testVariable ->
+            common.insertTaskInCftTaskDb(testVariable, "processApplication", caseworkerCredentials.getHeaders()));
+
+        Response result = restApiActions.post(
+            ENDPOINT_BEING_TESTED + "?first_result=0&max_results=10",
+            searchTaskRequest,
+            caseworkerCredentials.getHeaders()
+        );
+
+        Map<String, String> expectedAdditionalProperties = Map.of("roleAssignmentId", roleAssignmentId);
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .body("tasks.size()", lessThanOrEqualTo(10)) //Default max results
+            .body("tasks.id", everyItem(notNullValue()))
+            .body("tasks.id", hasItem(is(in(taskIds))))
+            .body("tasks.additional_properties", everyItem(equalToObject(expectedAdditionalProperties)))
+            .body("total_records", equalTo(2));
+
+        tasksCreated
+            .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
 }
