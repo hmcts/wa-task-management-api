@@ -81,7 +81,7 @@ public class TaskSearchAdaptor {
         SearchTaskRequest searchTaskRequest,
         List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
-    ) {
+    ) throws SQLException {
         validateRequest(searchTaskRequest);
 
 //        Previous implementation:
@@ -101,10 +101,11 @@ public class TaskSearchAdaptor {
         		getSearchParameterBooleans(searchTaskRequest),
         		new Pagination(firstResult, maxResults),
         		searchTaskRequest.getSortingParameters());
+        Connection conn = getConnection();
         try
         {
             // 1.2 Run the search and build an ordered list of the task IDs.
-        	TaskSearch.Results results = TaskSearch.searchTasks(clientQuery, roleAssignments, getConnection(), EXPLAIN_QUERIES);
+        	TaskSearch.Results results = TaskSearch.searchTasks(clientQuery, roleAssignments, conn, EXPLAIN_QUERIES);
 	        List<String> orderedTaskIds = results.getTasks().stream()
 	        		.map(t -> t.getAttributes().get("task_id").toString())
 	        		.collect(Collectors.toList());
@@ -125,6 +126,11 @@ public class TaskSearchAdaptor {
         {
         	// TODO: handle properly
         	throw new RuntimeException(e);
+        }
+        finally {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
         }
     }
 

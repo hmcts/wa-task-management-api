@@ -74,6 +74,7 @@ spring:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:cft_task_db}${POSTGRES_CONNECTION_OPTIONS:}
     username: ${POSTGRES_USERNAME:postgres}
     password: ${POSTGRES_PASSWORD:}
+    type: com.zaxxer.hikari.HikariDataSource
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

@@ -26,6 +26,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomCo
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -80,8 +81,13 @@ public class CftQueryService {
             List<PermissionTypes> permissionsRequired
         ) {
     	if (taskSearchAdaptor.isEnabled()) {
-    		return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
-    	} else {
+            try {
+                return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
+            } catch (SQLException e) {
+                log.error("POC Database connection error {}", e.getMessage());
+                return new GetTasksResponse<>(List.of(), 0);
+            }
+        } else {
     		return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
     	}
     }
