@@ -65,14 +65,15 @@ public class CftQueryServiceGetTaskTest extends RoleAssignmentHelper {
 
     @MockBean
     private TaskSearchAdaptor taskSearchAdaptor;
-  
+
     @Autowired
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager, allowedJurisdictionConfiguration, taskSearchAdaptor);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager,
+                                              allowedJurisdictionConfiguration, taskSearchAdaptor);
     }
 
     @ParameterizedTest(name = "{0}")

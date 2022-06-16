@@ -62,7 +62,8 @@ public class CftQueryServiceAuthoriseUserTaskTest {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager, allowedJurisdictionConfiguration, taskSearchAdaptor);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager,
+                                              allowedJurisdictionConfiguration, taskSearchAdaptor);
     }
 
     @Test
