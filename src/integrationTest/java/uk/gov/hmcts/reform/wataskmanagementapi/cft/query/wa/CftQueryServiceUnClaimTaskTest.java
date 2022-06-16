@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.enums.TestRolesWithGrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
@@ -31,6 +33,7 @@ import static java.util.Collections.singletonList;
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/wa/unclaim_task_data.sql")
 public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
@@ -41,6 +44,9 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
     private CamundaService camundaService;
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private CftQueryService cftQueryService;
     @MockBean
     private TaskSearchAdaptor taskSearchAdaptor;
@@ -48,7 +54,7 @@ public class CftQueryServiceUnClaimTaskTest extends RoleAssignmentHelper {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager, taskSearchAdaptor);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager, allowedJurisdictionConfiguration, taskSearchAdaptor);
     }
 
     @Test

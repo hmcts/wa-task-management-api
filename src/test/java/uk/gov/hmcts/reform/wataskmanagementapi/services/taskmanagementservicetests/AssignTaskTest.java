@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
@@ -73,6 +74,9 @@ class AssignTaskTest extends CamundaHelpers {
     String taskId;
     @Mock
     private EntityManager entityManager;
+
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     @Test
     void assignTask_should_succeed() {
@@ -233,8 +237,10 @@ class AssignTaskTest extends CamundaHelpers {
             taskAutoAssignmentService,
             roleAssignmentVerification,
             taskReconfigurationService,
-            entityManager
+            entityManager,
+            allowedJurisdictionConfiguration
         );
+
 
         taskId = UUID.randomUUID().toString();
     }
