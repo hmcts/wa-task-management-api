@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.RoleAssignmentService;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameter;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchRequestCustomDeserializer;
@@ -74,6 +75,8 @@ public class TaskManagementProviderTestConfiguration {
     @MockBean
     private TaskReconfigurationService taskReconfigurationService;
 
+    @MockBean
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
     private RoleAssignmentVerificationService roleAssignmentVerificationService;
 
     @Bean
@@ -106,7 +109,8 @@ public class TaskManagementProviderTestConfiguration {
             taskAutoAssignmentService,
             roleAssignmentVerificationService,
             taskReconfigurationService,
-            entityManager
+            entityManager,
+            allowedJurisdictionConfiguration
         );
     }
 

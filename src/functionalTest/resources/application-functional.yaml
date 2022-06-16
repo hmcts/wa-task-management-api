@@ -35,3 +35,6 @@ spring:
     hibernate:
       ddl-auto: none
       default_schema: cft_task_db
+config:
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
