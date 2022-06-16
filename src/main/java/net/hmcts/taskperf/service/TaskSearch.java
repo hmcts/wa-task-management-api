@@ -208,7 +208,7 @@ public class TaskSearch
 			//       don't want to have to index on all the permissions, just
 			//       the ones we need for the search scenarios we have to support.
 			permissions.add("o");
-			permissions.add("x");
+//			permissions.add("x");
 		}
 		else
 		{
