@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.watasks.controllers;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -235,7 +236,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("task_role_resources.size()", equalTo(9))
             .body("additional_properties", equalToObject(Map.of(
-                "roleAssignmentId", "assignmentId")))
+                "roleAssignmentId", "roleAssignmentId")))
             .body("minor_priority", equalTo(500))
             .body("major_priority", equalTo(1000))
             .body("priority_date", equalTo("2022-12-07T14:00:00+01:00"));
@@ -291,6 +292,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, "processApplication"),
             new TaskAttribute(TASK_NAME, "process Application"),
@@ -309,6 +311,10 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
 
         //Note: this is the TaskResource.class
         result.prettyPrint();
+
+        ZonedDateTime priorityDate = ZonedDateTime.parse(result.jsonPath().get("priority_date"));
+        String formattedPriorityDate = CAMUNDA_DATA_TIME_FORMATTER.format(priorityDate);
+        Assert.assertEquals(formattedDueDate, formattedPriorityDate);
 
         result.then().assertThat()
             .statusCode(HttpStatus.CREATED.value())
@@ -349,8 +355,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
                 "key3", "value3",
                 "key4", "value4"
             ))).body("minor_priority", equalTo(500))
-            .body("major_priority", equalTo(1000))
-            .body("priority_date", notNullValue());
+            .body("major_priority", equalTo(5000));
 
         common.cleanUpTask(taskId);
     }
