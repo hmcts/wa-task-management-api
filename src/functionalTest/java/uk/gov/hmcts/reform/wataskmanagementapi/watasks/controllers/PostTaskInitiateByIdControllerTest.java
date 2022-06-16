@@ -233,7 +233,7 @@ public class PostTaskInitiateByIdControllerTest extends SpringBootFunctionalBase
             )
             .body("task_role_resources.size()", equalTo(9))
             .body("additional_properties", equalToObject(Map.of(
-                "roleAssignmentId", "assignmentId")));
+                "roleAssignmentId", "roleAssignmentId")));
 
         assertPermissions(
             getTaskResource(result, "judge"),

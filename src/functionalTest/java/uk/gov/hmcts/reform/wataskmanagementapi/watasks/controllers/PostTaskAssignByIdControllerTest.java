@@ -568,7 +568,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         }
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedinDatabase(taskVariables.getTaskId(), "assigned", assignerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskVariables.getTaskId(), "assigned", assignerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskVariables.getTaskId(), "assignee", assigneeId, assignerCredentials.getHeaders());
     }
 

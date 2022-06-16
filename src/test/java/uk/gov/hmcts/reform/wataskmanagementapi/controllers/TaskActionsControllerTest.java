@@ -356,12 +356,6 @@ class TaskActionsControllerTest {
             .updateNotes(taskId, notesRequest);
     }
 
-    private NotesRequest addNotes() {
-        NoteResource noteResource = new NoteResource(
-            "code", "notetype", "userId", "content");
-        return new NotesRequest(List.of(noteResource));
-    }
-
     @Test
     void should_return_task_roles_with_permissions() {
         AccessControlResponse mockAccessControlResponse =
@@ -381,5 +375,11 @@ class TaskActionsControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals(response.getBody().getPermissionsList(), taskRolePermissions);
+    }
+
+    private NotesRequest addNotes() {
+        NoteResource noteResource = new NoteResource(
+            "code", "notetype", "userId", "content");
+        return new NotesRequest(List.of(noteResource));
     }
 }
