@@ -33,6 +33,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -55,6 +56,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -153,14 +155,19 @@ public class CftQueryServiceTest extends CamundaHelpers {
     @InjectMocks
     private CftQueryService cftQueryService;
 
+    @Mock
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
     private TaskResourceSummary createTaskResourceSummary() {
-        return new TaskResourceSummary("taskId",
-                                       OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
-                                       "1623278362430412",
-                                       "TestCase",
-                                       "Asylum",
-                                       "Taylor House",
-                                       "title");
+        return new TaskResourceSummary(
+            "taskId",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            "1623278362430412",
+            "TestCase",
+            "Asylum",
+            "Taylor House",
+            "title"
+        );
     }
 
     private TaskResource createTaskResource() {
@@ -420,7 +427,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(
-                    1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
+                1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             );
 
             assertNotNull(taskResourceList);
@@ -457,7 +464,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(
-                    1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
+                1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             );
 
             assertNotNull(taskResourceList);
@@ -561,7 +568,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(
-                    1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
+                1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             );
 
             assertNotNull(taskResourceList);
@@ -597,7 +604,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             GetTasksResponse<Task> taskResourceList
                 = cftQueryService.searchForTasks(
-                    1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
+                1, 10, searchTaskRequest, accessControlResponse.getRoleAssignments(), permissionsRequired
             );
 
             assertNotNull(taskResourceList);
@@ -786,7 +793,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 caseType
             );
 
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase)).thenReturn(emptyList());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -818,6 +824,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
                 .thenReturn(mockTaskCompletionDMNResponse());
             when(camundaService.getVariableValue(any(), any())).thenReturn("reviewTheAppeal");
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+
 
             when(em.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(createTaskResource()));
 
@@ -858,6 +869,12 @@ public class CftQueryServiceTest extends CamundaHelpers {
             when(camundaService.getVariableValue(any(), any()))
                 .thenReturn("reviewTheAppeal");
 
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+
             when(em.createQuery(criteriaQuery).getResultList()).thenReturn(List.of(createTaskResource()));
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
@@ -896,6 +913,11 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             when(em.createQuery(criteriaQuery).getResultList()).thenReturn(Collections.emptyList());
 
+            when(allowedJurisdictionConfiguration.getAllowedJurisdictions())
+                .thenReturn(Arrays.asList(jurisdiction.toLowerCase()));
+            when(allowedJurisdictionConfiguration.getAllowedCaseTypes())
+                .thenReturn(Arrays.asList(caseType.toLowerCase()));
+
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
                 accessControlResponse.getRoleAssignments(),
@@ -926,8 +948,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 caseType
             );
 
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
-                .thenReturn(emptyList());
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
@@ -960,9 +980,6 @@ public class CftQueryServiceTest extends CamundaHelpers {
                 caseType
             );
 
-            when(camundaService.evaluateTaskCompletionDmn(searchEventAndCase))
-                .thenReturn(mockTaskCompletionDMNResponse());
-            when(camundaService.getVariableValue(any(), any())).thenReturn("");
 
             GetTasksCompletableResponse<Task> response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
