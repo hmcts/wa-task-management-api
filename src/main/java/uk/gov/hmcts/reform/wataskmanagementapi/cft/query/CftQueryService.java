@@ -1,14 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
+import lombok.extern.slf4j.Slf4j;
+import net.hmcts.taskperf.service.TaskSearchAdaptor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
-
-import lombok.extern.slf4j.Slf4j;
-import net.hmcts.taskperf.service.TaskSearchAdaptor;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -78,18 +76,19 @@ public class CftQueryService {
             int maxResults,
             SearchTaskRequest searchTaskRequest,
             List<RoleAssignment> roleAssignments,
-            List<PermissionTypes> permissionsRequired
-        ) {
-    	if (taskSearchAdaptor.isEnabled()) {
+            List<PermissionTypes> permissionsRequired) {
+        if (taskSearchAdaptor.isEnabled()) {
             try {
-                return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
+                return taskSearchAdaptor.searchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments,
+                                                        permissionsRequired);
             } catch (SQLException e) {
                 log.error("POC Database connection error {}", e.getMessage());
                 return new GetTasksResponse<>(List.of(), 0);
             }
         } else {
-    		return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments, permissionsRequired);
-    	}
+            return originalSearchForTasks(firstResult, maxResults, searchTaskRequest, roleAssignments,
+                                          permissionsRequired);
+        }
     }
 
     private GetTasksResponse<Task> originalSearchForTasks(

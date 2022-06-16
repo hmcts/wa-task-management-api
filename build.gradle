@@ -152,6 +152,8 @@ pmd {
   ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
+pmdMain { exclude '**/net/hmcts/taskperf/**' }
+
 jacocoTestCoverageVerification {
   violationRules {
     rule {

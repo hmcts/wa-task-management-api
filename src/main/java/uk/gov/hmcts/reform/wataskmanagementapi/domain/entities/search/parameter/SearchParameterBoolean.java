@@ -40,7 +40,9 @@ public class SearchParameterBoolean implements SearchParameter<Boolean> {
     private final boolean values;
 
     @JsonCreator
-    public SearchParameterBoolean(@JsonProperty("key") SearchParameterKey key, @JsonProperty("operator") SearchOperator operator, @JsonProperty("value") boolean values) {
+    public SearchParameterBoolean(@JsonProperty("key") SearchParameterKey key,
+                                  @JsonProperty("operator") SearchOperator operator,
+                                  @JsonProperty("value") boolean values) {
         this.key = key;
         this.operator = operator;
         this.values = values;
