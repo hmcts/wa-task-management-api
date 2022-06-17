@@ -248,37 +248,35 @@ public class Task {
                 String description,
                 Map<String, String> additionalProperties,
                 ZonedDateTime reconfigureRequestTime) {
-        Objects.requireNonNull(id, "taskId cannot be null");
-        Objects.requireNonNull(name, "name cannot be null");
-        this.id = id;
-        this.executionType = executionType;
-        this.name = name;
-        this.assignee = assignee;
-        this.autoAssigned = autoAssigned;
-        this.caseCategory = caseCategory;
-        this.caseId = caseId;
-        this.type = type;
-        this.taskState = taskState;
-        this.taskSystem = taskSystem;
-        this.locationName = locationName;
-        this.securityClassification = securityClassification;
-        this.taskTitle = taskTitle;
-        this.createdDate = createdDate;
-        this.dueDate = dueDate;
-        this.caseTypeId = caseTypeId;
-        this.caseName = caseName;
-        this.jurisdiction = jurisdiction;
-        this.region = region;
-        this.location = location;
-        this.warnings = warnings;
-        this.warningList = warningList;
-        this.caseManagementCategory = caseManagementCategory;
-        this.workTypeId = workTypeId;
-        this.workTypeLabel = workTypeLabel;
-        this.permissions = taskPermissions;
-        this.roleCategory = roleCategory;
-        this.description = description;
-        this.additionalProperties = additionalProperties;
+        this(id,
+            name,
+            type,
+            taskState,
+            taskSystem,
+            securityClassification,
+            taskTitle,
+            createdDate,
+            dueDate,
+            assignee,
+            autoAssigned,
+            executionType,
+            jurisdiction,
+            region,
+            location,
+            locationName,
+            caseTypeId,
+            caseId,
+            caseCategory,
+            caseName,
+            warnings,
+            warningList,
+            caseManagementCategory,
+            workTypeId,
+            workTypeLabel,
+            taskPermissions,
+            roleCategory,
+            description,
+            additionalProperties);
         this.reconfigureRequestTime = reconfigureRequestTime;
     }
 
