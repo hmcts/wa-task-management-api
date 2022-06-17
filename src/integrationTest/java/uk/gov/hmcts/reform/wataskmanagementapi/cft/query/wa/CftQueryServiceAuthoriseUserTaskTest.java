@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 
@@ -35,6 +37,7 @@ import static java.util.Collections.emptyList;
 @ActiveProfiles("integration")
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(AllowedJurisdictionConfiguration.class)
 @Testcontainers
 @Sql("/scripts/authorise_user_data.sql")
 public class CftQueryServiceAuthoriseUserTaskTest {
@@ -47,12 +50,17 @@ public class CftQueryServiceAuthoriseUserTaskTest {
     @Autowired
     private EntityManager entityManager;
 
+    @Autowired
+    private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
     private CftQueryService cftQueryService;
 
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager);
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager,
+                                              allowedJurisdictionConfiguration
+        );
     }
 
     @Test
@@ -76,13 +84,17 @@ public class CftQueryServiceAuthoriseUserTaskTest {
             .build();
         roleAssignments.add(roleAssignment);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null,
-                                                                                roleAssignments);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-                                                                    accessControlResponse.getRoleAssignments(),
-                                                                    permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
@@ -109,13 +121,17 @@ public class CftQueryServiceAuthoriseUserTaskTest {
             .build();
         roleAssignments.add(roleAssignment);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null,
-                                                                                roleAssignments);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-                                                                    accessControlResponse.getRoleAssignments(),
-                                                                    permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isTrue();
         Assertions.assertThat(task.get().getTaskId()).isEqualTo(taskId);
         Assertions.assertThat(task.get().getCaseId()).isEqualTo(caseId);
@@ -142,13 +158,17 @@ public class CftQueryServiceAuthoriseUserTaskTest {
             .build();
         roleAssignments.add(roleAssignment);
 
-        AccessControlResponse accessControlResponse = new AccessControlResponse(null,
-                                                                                roleAssignments);
+        AccessControlResponse accessControlResponse = new AccessControlResponse(
+            null,
+            roleAssignments
+        );
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-                                                                    accessControlResponse.getRoleAssignments(),
-                                                                    permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isFalse();
     }
 
@@ -176,9 +196,11 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-                                                                    accessControlResponse.getRoleAssignments(),
-                                                                    permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isFalse();
     }
 
@@ -206,9 +228,11 @@ public class CftQueryServiceAuthoriseUserTaskTest {
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, roleAssignments);
         permissionsRequired.add(PermissionTypes.READ);
 
-        final Optional<TaskResource> task = cftQueryService.getTask(taskId,
-                                                                    accessControlResponse.getRoleAssignments(),
-                                                                    permissionsRequired);
+        final Optional<TaskResource> task = cftQueryService.getTask(
+            taskId,
+            accessControlResponse.getRoleAssignments(),
+            permissionsRequired
+        );
         Assertions.assertThat(task.isPresent()).isTrue();
     }
 }

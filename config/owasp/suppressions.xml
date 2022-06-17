@@ -66,4 +66,10 @@
       </notes>
       <cve>CVE-2022-22976</cve>
     </suppress>
+  <suppress>
+    <notes>CVE-2022-22978 suppression (false positive), because spring security already at (5.7.1) this is higher than the vulnerable versions
+      (5.5.x prior to 5.5.7, 5.6.x prior to 5.6.4)
+      https://tanzu.vmware.com/security/cve-2022-22978</notes>
+    <cve>CVE-2022-22978</cve>
+  </suppress>
 </suppressions>
