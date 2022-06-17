@@ -123,6 +123,9 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
                 "key3", "value3",
                 "key4", "value4"
             ))))
+            .body("tasks.priority_date", everyItem(notNullValue()))
+            .body("tasks.minor_priority", everyItem(equalTo(500)))
+            .body("tasks.major_priority", everyItem(equalTo(1000)))
             .body("total_records", equalTo(2));
 
         tasksCreated

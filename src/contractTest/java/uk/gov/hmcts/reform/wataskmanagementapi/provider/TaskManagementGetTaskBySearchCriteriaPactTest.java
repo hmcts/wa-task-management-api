@@ -113,7 +113,10 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties()
+            getAdditionalProperties(),
+            ZonedDateTime.now(),
+            500,
+            1000
         );
     }
 
@@ -162,7 +165,10 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties()
+            getAdditionalProperties(),
+            ZonedDateTime.now(),
+            500,
+            1000
         );
     }
 
@@ -204,7 +210,10 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "aDescription",
-            getAdditionalProperties()
+            getAdditionalProperties(),
+            ZonedDateTime.now(),
+            500,
+            1000
         );
     }
 

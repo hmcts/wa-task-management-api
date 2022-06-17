@@ -68,7 +68,10 @@ public class CamundaHelpers {
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             null,
             "a description",
-            ADDITIONAL_PROPERTIES);
+            ADDITIONAL_PROPERTIES,
+            ZonedDateTime.now(),
+            500,
+            1000);
     }
 
     protected CamundaTask createMockedUnmappedTask() {

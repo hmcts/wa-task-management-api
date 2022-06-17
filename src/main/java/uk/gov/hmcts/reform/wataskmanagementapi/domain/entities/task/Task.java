@@ -11,9 +11,10 @@ import java.util.Objects;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @SuppressWarnings({"PMD.LawOfDemeter", "PMD.TooManyFields",
-    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
+    "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming","PMD.ExcessiveImports"})
 @Schema(allowableValues = "Task")
 public class Task {
     @Schema(
@@ -148,6 +149,21 @@ public class Task {
         description = "A value describing the additional properties")
     private final Map<String, String> additionalProperties;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = "2020-09-05T14:47:01.250542+01:00",
+        description = "Optional date for the task that will be created indicating priority"
+    )
+    private final ZonedDateTime priorityDate;
+
+    @Schema(required = true,
+        description = "A value describing priority of task")
+    private final Integer minorPriority;
+
+    @Schema(required = true,
+        description = "A value describing priority of task")
+    private final Integer majorPriority;
 
     public Task(String id,
                 String name,
@@ -177,7 +193,10 @@ public class Task {
                 TaskPermissions taskPermissions,
                 String roleCategory,
                 String description,
-                Map<String, String> additionalProperties) {
+                Map<String, String> additionalProperties,
+                ZonedDateTime priorityDate,
+                Integer minorPriority,
+                Integer majorPriority) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -209,6 +228,9 @@ public class Task {
         this.roleCategory = roleCategory;
         this.description = description;
         this.additionalProperties = additionalProperties;
+        this.priorityDate = priorityDate;
+        this.minorPriority = minorPriority;
+        this.majorPriority = majorPriority;
     }
 
     public String getId() {
@@ -325,6 +347,18 @@ public class Task {
 
     public Map<String, String> getAdditionalProperties() {
         return additionalProperties;
+    }
+
+    public ZonedDateTime getPriorityDate() {
+        return priorityDate;
+    }
+
+    public Integer getMinorPriority() {
+        return minorPriority;
+    }
+
+    public Integer getMajorPriority() {
+        return majorPriority;
     }
 }
 

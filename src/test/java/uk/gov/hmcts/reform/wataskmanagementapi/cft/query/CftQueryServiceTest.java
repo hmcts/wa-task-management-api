@@ -253,7 +253,10 @@ public class CftQueryServiceTest extends CamundaHelpers {
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
             "Description",
-            ADDITIONAL_PROPERTIES
+            ADDITIONAL_PROPERTIES,
+            ZonedDateTime.now(),
+            500,
+            1000
         );
     }
 

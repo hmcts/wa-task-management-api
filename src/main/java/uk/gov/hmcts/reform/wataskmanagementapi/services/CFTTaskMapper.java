@@ -193,7 +193,10 @@ public class CFTTaskMapper {
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getPriorityDate().toZonedDateTime(),
+            taskResource.getMinorPriority(),
+            taskResource.getMajorPriority()
         );
     }
 

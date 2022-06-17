@@ -28,6 +28,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MAJOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.MINOR_PRIORITY;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.PRIORITY_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -37,8 +40,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WARNING_LIST;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
+
 @Service
-@SuppressWarnings("PMD.LinguisticNaming")
+@SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports"})
 public class TaskMapper {
 
     private final CamundaObjectMapper camundaObjectMapper;
@@ -78,6 +82,9 @@ public class TaskMapper {
         String description = getVariableValue(variables.get(DESCRIPTION.value()), String.class);
         ConcurrentHashMap<String, String> additionalProperties
             = getTypedVariableValue(variables.get(ADDITIONAL_PROPERTIES.value()), new TypeReference<>() {});
+        Integer minorPriority = getVariableValue(variables.get(MINOR_PRIORITY.value()), Integer.class);
+        Integer majorPriority = getVariableValue(variables.get(MAJOR_PRIORITY.value()), Integer.class);
+        ZonedDateTime priorityDate = getVariableValue(variables.get(PRIORITY_DATE.value()), ZonedDateTime.class);
         return new Task(
             id,
             name,
@@ -110,7 +117,10 @@ public class TaskMapper {
             // returning null as its only applicable for R2
             null,
             description,
-            additionalProperties
+            additionalProperties,
+            priorityDate,
+            minorPriority,
+            majorPriority
         );
     }
 

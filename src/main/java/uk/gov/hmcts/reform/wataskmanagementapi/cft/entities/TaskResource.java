@@ -135,7 +135,7 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reconfigureRequestTime;
 
-    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE, nullable = true)
     private OffsetDateTime priorityDate;
 
 
