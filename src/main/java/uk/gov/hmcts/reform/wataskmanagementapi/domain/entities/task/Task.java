@@ -148,6 +148,13 @@ public class Task {
         description = "A value describing the additional properties")
     private final Map<String, String> additionalProperties;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = "2020-09-05T14:47:01.250542+01:00",
+        description = "Optional reconfigure request time"
+    )
+    private ZonedDateTime reconfigureRequestTime;
 
     public Task(String id,
                 String name,
@@ -209,6 +216,70 @@ public class Task {
         this.roleCategory = roleCategory;
         this.description = description;
         this.additionalProperties = additionalProperties;
+    }
+
+    public Task(String id,
+                String name,
+                String type,
+                String taskState,
+                String taskSystem,
+                String securityClassification,
+                String taskTitle,
+                ZonedDateTime createdDate,
+                ZonedDateTime dueDate,
+                String assignee,
+                boolean autoAssigned,
+                String executionType,
+                String jurisdiction,
+                String region,
+                String location,
+                String locationName,
+                String caseTypeId,
+                String caseId,
+                String caseCategory,
+                String caseName,
+                Boolean warnings,
+                WarningValues warningList,
+                String caseManagementCategory,
+                String workTypeId,
+                String workTypeLabel,
+                TaskPermissions taskPermissions,
+                String roleCategory,
+                String description,
+                Map<String, String> additionalProperties,
+                ZonedDateTime reconfigureRequestTime) {
+        Objects.requireNonNull(id, "taskId cannot be null");
+        Objects.requireNonNull(name, "name cannot be null");
+        this.id = id;
+        this.executionType = executionType;
+        this.name = name;
+        this.assignee = assignee;
+        this.autoAssigned = autoAssigned;
+        this.caseCategory = caseCategory;
+        this.caseId = caseId;
+        this.type = type;
+        this.taskState = taskState;
+        this.taskSystem = taskSystem;
+        this.locationName = locationName;
+        this.securityClassification = securityClassification;
+        this.taskTitle = taskTitle;
+        this.createdDate = createdDate;
+        this.dueDate = dueDate;
+        this.caseTypeId = caseTypeId;
+        this.caseName = caseName;
+        this.jurisdiction = jurisdiction;
+        this.region = region;
+        this.location = location;
+        this.warnings = warnings;
+        this.warningList = warningList;
+        this.caseManagementCategory = caseManagementCategory;
+        this.workTypeId = workTypeId;
+        this.workTypeLabel = workTypeLabel;
+        this.permissions = taskPermissions;
+        this.roleCategory = roleCategory;
+        this.description = description;
+        this.additionalProperties = additionalProperties;
+        this.reconfigureRequestTime = reconfigureRequestTime;
     }
 
     public String getId() {
@@ -325,6 +396,10 @@ public class Task {
 
     public Map<String, String> getAdditionalProperties() {
         return additionalProperties;
+    }
+
+    public ZonedDateTime getReconfigureRequestTime() {
+        return reconfigureRequestTime;
     }
 }
 
