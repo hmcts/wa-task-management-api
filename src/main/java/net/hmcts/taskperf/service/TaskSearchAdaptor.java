@@ -35,7 +35,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CFTTaskMapper;
 public class TaskSearchAdaptor {
 
 	public static final boolean ENABLED = true;
-	public static final boolean EXPLAIN_QUERIES = true;
+	public static final boolean EXPLAIN_QUERIES = false;
 	private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceRepository taskResourceRepository;
     private final DataSource dataSource;
