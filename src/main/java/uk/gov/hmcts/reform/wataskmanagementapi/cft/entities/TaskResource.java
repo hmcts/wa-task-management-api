@@ -263,7 +263,8 @@ public class TaskResource implements Serializable {
                         OffsetDateTime created,
                         Set<TaskRoleResource> taskRoleResources,
                         String caseCategory,
-                        Map<String, String> additionalProperties) {
+                        Map<String, String> additionalProperties
+    ) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;

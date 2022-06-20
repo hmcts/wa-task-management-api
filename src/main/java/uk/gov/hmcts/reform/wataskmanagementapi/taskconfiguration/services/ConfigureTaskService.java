@@ -113,6 +113,12 @@ public class ConfigureTaskService {
         return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
     }
 
+    public TaskResource configureCFTTask2(TaskResource skeletonMappedTask, TaskToConfigure taskToConfigure) {
+        TaskToConfigure.TaskToConfigureBuilder taskToConfigureBuilder = taskToConfigure.toBuilder();
+        TaskConfigurationResults configurationVariables = getConfigurationResults(taskToConfigureBuilder.build());
+        return cftTaskMapper.mapConfigurationAttributes(skeletonMappedTask, configurationVariables);
+    }
+
     private Map<String, CamundaValue<String>> convertToCamundaFormat(Map<String, Object> configurationVariables) {
         return configurationVariables.entrySet().stream()
             .collect(toMap(

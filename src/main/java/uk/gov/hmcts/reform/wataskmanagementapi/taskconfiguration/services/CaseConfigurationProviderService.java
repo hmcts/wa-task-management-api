@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,21 @@ public class CaseConfigurationProviderService {
         String taskAttributesString = writeValueAsString(taskAttributes);
 
         // Evaluate Dmns
+        try {
+            List<Map<String, CamundaValue>> taskConfigurationDmnResults =
+                dmnEvaluationService.evaluateTaskConfigurationDmn2(
+                    jurisdiction,
+                    caseType,
+                    caseDataString,
+                    taskAttributesString
+                );
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+        }
+
+
         List<ConfigurationDmnEvaluationResponse> taskConfigurationDmnResults =
             dmnEvaluationService.evaluateTaskConfigurationDmn(
                 jurisdiction,
@@ -177,6 +193,16 @@ public class CaseConfigurationProviderService {
         try {
             return objectMapper.writeValueAsString(data);
         } catch (JsonProcessingException e) {
+            log.error("Case Configuration : Could not extract case data");
+        }
+        return null;
+    }
+
+    private CamundaValue readValue(Object data) {
+        try {
+            return objectMapper.convertValue(data, new TypeReference<CamundaValue>() {
+            });
+        } catch (Exception e) {
             log.error("Case Configuration : Could not extract case data");
         }
         return null;

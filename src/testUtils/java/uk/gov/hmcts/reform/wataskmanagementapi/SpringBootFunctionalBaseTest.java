@@ -13,13 +13,26 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.IdamService;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.GivensBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.RestApiActions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest2;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
@@ -30,9 +43,12 @@ import uk.gov.hmcts.reform.wataskmanagementapi.utils.Common;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
@@ -52,8 +68,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_CREATED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_DUE_DATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -191,13 +211,35 @@ public abstract class SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", "12345678",
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+
+        WarningValues warningValues = new WarningValues(
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
+
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
             new TaskAttribute(TASK_TYPE, taskType),
             new TaskAttribute(TASK_NAME, taskName),
             new TaskAttribute(TASK_TITLE, taskTitle),
             new TaskAttribute(TASK_CASE_ID, testVariables.getCaseId()),
             new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate),
+            new TaskAttribute(TASK_ADDITIONAL_PROPERTIES, additionalProperties),
+            new TaskAttribute(TASK_SECURITY_CLASSIFICATION, SecurityClassification.PUBLIC),
+            new TaskAttribute(TASK_WARNINGS, warningValues)
+
         ));
 
         Response result = restApiActions.post(
@@ -242,6 +284,98 @@ public abstract class SpringBootFunctionalBaseTest {
             TASK_INITIATION_ENDPOINT,
             testVariables.getTaskId(),
             initiateTaskRequest,
+            authenticationHeaders
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("task_id", equalTo(testVariables.getTaskId()))
+            .body("case_id", equalTo(testVariables.getCaseId()));
+    }
+
+    protected void initiateTask2(Headers authenticationHeaders, TestVariables testVariables,
+                                 String taskType, String taskName, String taskTitle) {
+
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        ZonedDateTime assignmentExpiry = createdDate.plusDays(1);
+        String assignmentExpiryDate = CAMUNDA_DATA_TIME_FORMATTER.format(assignmentExpiry);
+
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", "12345678",
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+
+        WarningValues warningValues = new WarningValues(
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
+
+
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, true, true, true, true,
+            true, new String[]{}, 1, false, "LegalOperations"
+        );
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource);
+
+        Map<String, Object> attributes = new HashMap<>();
+        //exceptional case
+        //attributes.put("notes", warningValues);
+
+        attributes.put("taskId", testVariables.getTaskId());
+        attributes.put("caseId", testVariables.getCaseId());
+        attributes.put("taskName", taskName);
+        attributes.put("taskType", taskType);
+        attributes.put("jurisdiction", WA_JURISDICTION);
+        attributes.put("caseTypeId", WA_CASE_TYPE);
+        attributes.put("state", CFTTaskState.UNCONFIGURED);
+        attributes.put("created", formattedCreatedDate);
+        attributes.put("dueDateTime", formattedDueDate);
+        attributes.put("additionalProperties", additionalProperties);
+        attributes.put("key8", "value8");
+        attributes.put("taskSystem", TaskSystem.SELF);
+        attributes.put("securityClassification", SecurityClassification.PRIVATE);
+        attributes.put("title", taskTitle);
+        attributes.put("description", "a task description");
+        attributes.put("majorPriority", 1);
+        attributes.put("minorPriority", 100);
+        attributes.put("assignee", "some assignee");
+        attributes.put("autoAssigned", true);
+        attributes.put("executionTypeCode", new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"));
+        attributes.put("workTypeResource", new WorkTypeResource("routine_work", "Routine work"));
+        attributes.put("roleCategory", RoleCategory.LEGAL_OPERATIONS.name());
+        attributes.put("hasWarnings", false);
+        attributes.put("assignmentExpiry", assignmentExpiryDate);
+        attributes.put("region", "a region");
+        attributes.put("regionName", "a region name");
+        attributes.put("location", "a location");
+        attributes.put("locationName", "a location name");
+        attributes.put("businessContext", BusinessContext.CFT_TASK);
+        attributes.put("terminationReason", "a termination reason");
+        attributes.put("taskRoleResources", taskRoleResourceSet);
+        attributes.put("caseCategory", "a case category");
+        attributes.put("canReConfigure", false);
+        attributes.put("dummyProperty", "given dummy property should be replace with dmn value");
+        attributes.put("oguzAkin", 39);
+
+        InitiateTaskRequest2 req = new InitiateTaskRequest2(INITIATION, attributes);
+
+        Response result = restApiActions.post(
+            "task/v2/{task-id}",
+            testVariables.getTaskId(),
+            req,
             authenticationHeaders
         );
 

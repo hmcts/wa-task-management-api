@@ -51,6 +51,17 @@ public interface CamundaServiceApi {
         DmnRequest<DecisionTableRequest> evaluateDmnRequest
     );
 
+    @PostMapping(
+        value = "/decision-definition/key/{dmn-table-key}/tenant-id/{jurisdiction}/evaluate",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    List<Map<String, CamundaValue>> evaluateConfigurationDmnTable2(
+        @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
+        @PathVariable("dmn-table-key") String dmnTableKey,
+        @PathVariable("jurisdiction") String jurisdiction,
+        DmnRequest<DecisionTableRequest> evaluateDmnRequest
+    );
+
     @PostMapping(value = "/task/{id}/localVariables", produces = MediaType.APPLICATION_JSON_VALUE)
     void addLocalVariablesToTask(@RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
                                  @PathVariable("id") String taskId,

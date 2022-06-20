@@ -30,12 +30,14 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValue
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
+import java.lang.reflect.Field;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -146,6 +148,74 @@ public class CFTTaskMapper {
         );
     }
 
+    public TaskResource mapToTaskResource2(String taskId, Map<String, Object> taskAttributes) {
+        log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
+
+        TaskResource taskResource = createTaskResource(taskAttributes);
+        return taskResource;
+    }
+
+    private TaskResource createTaskResource(Map<String, Object> taskAttributes) {
+        //todo: add field validation
+        String taskId = objectMapper.convertValue(taskAttributes.get("taskId"), new TypeReference<>() {
+        });
+        Objects.requireNonNull(taskId, "task id cannot be null");
+
+        String taskName = objectMapper.convertValue(taskAttributes.get("taskName"), new TypeReference<>() {
+        });
+        Objects.requireNonNull(taskId, "task name cannot be null");
+
+        String taskType = objectMapper.convertValue(taskAttributes.get("taskType"), new TypeReference<>() {
+        });
+        Objects.requireNonNull(taskId, "task type cannot be null");
+
+        CFTTaskState cftTaskState = objectMapper.convertValue(taskAttributes.get("state"), new TypeReference<>() {
+        });
+        Objects.requireNonNull(taskId, "task state cannot be null");
+
+
+        TaskResource taskResource = new TaskResource(taskId, taskName, taskType, cftTaskState);
+
+        Field[] fields = (TaskResource.class).getDeclaredFields();
+
+        Iterator<Field> iterator = Arrays.stream(fields).iterator();
+        String key;
+        Class type;
+        String className = null;
+        Object value;
+        while (iterator.hasNext()) {
+
+            Field field = iterator.next();
+            key = field.getName();
+            type = field.getType();
+
+            if (!taskAttributes.containsKey(key)) {
+                log.info("field not found in taskAttributes : {}", field);
+                continue;
+            }
+
+            try {
+                if (type.equals(OffsetDateTime.class)) {
+                    value = readDate2(taskAttributes.get(key));
+                } else {
+                    className = (taskAttributes.get(key)).getClass().getTypeName();
+                    log.info(className);
+                    Class<?> clazz = Class.forName(className);
+                    value = objectMapper.convertValue(taskAttributes.get(key), clazz);
+
+                }
+                field.setAccessible(true);
+                field.set(taskResource, value);
+            } catch (Exception e) {
+                log.info("when processing field: [{}] class name : [{}]an exception occurred: [{}]",
+                    field, className, e.getMessage());
+            }
+
+        }
+
+        return taskResource;
+    }
+
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
                                                    TaskConfigurationResults taskConfigurationResults) {
 
@@ -221,6 +291,16 @@ public class CFTTaskMapper {
         } else {
             return (T) defaultValue;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T readDate2(Object date) {
+        try {
+            return (T) OffsetDateTime.parse((String) date, CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
+        } catch (Exception e) {
+            return null;
+        }
+
     }
 
     public Map<String, Object> getTaskAttributes(TaskResource taskResource) {

@@ -12,6 +12,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCategory;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
@@ -28,6 +29,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskPermissions;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Warning;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.WarningValues;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.PermissionsDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskConfigurationResults;
 
@@ -1634,6 +1637,84 @@ class CFTTaskMapperTest {
         assertEquals("aDescription", taskResource.getDescription());
 
     }
+
+    @Test
+    void should_create_task_resource_when_initiation_request_is_a_map() {
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+        ZonedDateTime assignmentExpiry = createdDate.plusDays(1);
+        String assignmentExpiryDate = CAMUNDA_DATA_TIME_FORMATTER.format(assignmentExpiry);
+
+        Map<String, String> additionalProperties = Map.of(
+            "roleAssignmentId", "12345678",
+            "key1", "value1",
+            "key2", "value2",
+            "key3", "value3",
+            "key4", "value4",
+            "key5", "value5",
+            "key6", "value6",
+            "key7", "value7",
+            "key8", "value8"
+        );
+
+        WarningValues warningValues = new WarningValues(
+            asList(
+                new Warning("Code1", "Text1"),
+                new Warning("Code2", "Text2")
+            ));
+
+
+        TaskRoleResource tribunalResource = new TaskRoleResource(
+            "tribunal-caseworker", true, true, true, true, true,
+            true, new String[]{}, 1, false, "LegalOperations"
+        );
+        Set<TaskRoleResource> taskRoleResourceSet = Set.of(tribunalResource);
+
+        Map<String, Object> attributes = new HashMap<>();
+        //exceptional case
+        //attributes.put("notes", warningValues);
+
+        attributes.put("taskId", "task id");
+        attributes.put("taskName", "task name");
+        attributes.put("taskType", "task type");
+        attributes.put("state", CFTTaskState.UNCONFIGURED);
+        attributes.put("created", formattedCreatedDate);
+        attributes.put("dueDateTime", formattedDueDate);
+        attributes.put("additionalProperties", additionalProperties);
+        attributes.put("key8", "value8");
+        attributes.put("taskSystem", TaskSystem.SELF);
+        attributes.put("securityClassification", SecurityClassification.PRIVATE);
+        attributes.put("title", "a task title");
+        attributes.put("description", "a task description");
+        attributes.put("majorPriority", 1);
+        attributes.put("minorPriority", 100);
+        attributes.put("assignee", "some assignee");
+        attributes.put("autoAssigned", true);
+        attributes.put("executionTypeCode", new ExecutionTypeResource(ExecutionType.MANUAL, "Manual", "Manual Description"));
+        attributes.put("workTypeResource", new WorkTypeResource("routine_work", "Routine work"));
+        attributes.put("roleCategory", RoleCategory.LEGAL_OPERATIONS.name());
+        attributes.put("hasWarnings", false);
+        attributes.put("assignmentExpiry", assignmentExpiryDate);
+        attributes.put("caseId", "a case id");
+        attributes.put("caseTypeId", "a case type id");
+        attributes.put("jurisdiction", "a jurisdiction");
+        attributes.put("region", "a region");
+        attributes.put("regionName", "a region name");
+        attributes.put("location", "a location");
+        attributes.put("locationName", "a location name");
+        attributes.put("businessContext", BusinessContext.CFT_TASK);
+        attributes.put("terminationReason", "a termination reason");
+        attributes.put("taskRoleResources", taskRoleResourceSet);
+        attributes.put("caseCategory", "a case category");
+
+
+        TaskResource taskResource = cftTaskMapper.mapToTaskResource2(taskId, attributes);
+
+        assertNotNull(taskResource);
+    }
+
 
     private TaskResource createTaskResourceWithRoleResource(TaskRoleResource roleResource) {
         return new TaskResource(
