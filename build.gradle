@@ -259,7 +259,7 @@ dependencyManagement {
     dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.5'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
+    dependencySet(group: 'ch.qos.logback', version: '1.2.11') {
       entry 'logback-classic'
       entry 'logback-core'
     }
