@@ -264,7 +264,7 @@ dependencyManagement {
       entry 'logback-core'
     }
     dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.7.1'
-    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.2') {
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
       entry 'selenium-firefox-driver'
