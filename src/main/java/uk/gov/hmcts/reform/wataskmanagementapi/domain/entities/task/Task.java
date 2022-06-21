@@ -158,6 +158,18 @@ public class Task {
     )
     private final ZonedDateTime nextHearingDate;
 
+    @Schema(required = true,
+        description = "A value to be able to sort by priority")
+    private final Integer minorPriority;
+
+    @Schema(required = true,
+        description = "A value to be able to sort by priority")
+    private final Integer majorPriority;
+
+    @Schema(required = true,
+        description = "A value to be able to sort by priority")
+    private final ZonedDateTime priorityDate;
+
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
@@ -196,7 +208,11 @@ public class Task {
                 String description,
                 Map<String, String> additionalProperties,
                 String nextHearingId,
-                ZonedDateTime nextHearingDate) {
+                ZonedDateTime nextHearingDate,
+                Map<String, String> additionalProperties,
+                Integer minorPriority,
+                Integer majorPriority,
+                ZonedDateTime priorityDate) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -230,6 +246,9 @@ public class Task {
         this.additionalProperties = additionalProperties;
         this.nextHearingId = nextHearingId;
         this.nextHearingDate = nextHearingDate;
+        this.minorPriority = minorPriority;
+        this.majorPriority = majorPriority;
+        this.priorityDate = priorityDate;
     }
 
     public Task(String id,
@@ -421,6 +440,18 @@ public class Task {
 
     public ZonedDateTime getNextHearingDate() {
         return nextHearingDate;
+    }
+
+    public Integer getMinorPriority() {
+        return minorPriority;
+    }
+
+    public Integer getMajorPriority() {
+        return majorPriority;
+    }
+
+    public ZonedDateTime getPriorityDate() {
+        return priorityDate;
     }
 
     public ZonedDateTime getReconfigureRequestTime() {

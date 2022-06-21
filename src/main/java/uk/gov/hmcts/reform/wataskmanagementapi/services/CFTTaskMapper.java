@@ -110,9 +110,12 @@ public class CFTTaskMapper {
         ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
         OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
         OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
-        OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, ZonedDateTime.now().toOffsetDateTime());
+        OffsetDateTime priorityDate = readDate(attributes, TASK_PRIORITY_DATE, null);
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
+        if (priorityDate == null) {
+            priorityDate = dueDate;
+        }
 
         WorkTypeResource workTypeResource = extractWorkType(attributes);
         return new TaskResource(
@@ -126,8 +129,8 @@ public class CFTTaskMapper {
             read(attributes, TASK_TITLE, null),
             read(attributes, TASK_DESCRIPTION, null),
             notes,
-            read(attributes, TASK_MAJOR_PRIORITY, null),
-            read(attributes, TASK_MINOR_PRIORITY, null),
+            read(attributes, TASK_MAJOR_PRIORITY, 5000),
+            read(attributes, TASK_MINOR_PRIORITY, 500),
             read(attributes, TASK_ASSIGNEE, null),
             read(attributes, TASK_AUTO_ASSIGNED, false),
             executionTypeResource,
@@ -201,6 +204,9 @@ public class CFTTaskMapper {
             taskResource.getAdditionalProperties(),
             taskResource.getNextHearingId(),
             taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime(),
+            taskResource.getMinorPriority(),
+            taskResource.getMajorPriority(),
+            taskResource.getPriorityDate().toZonedDateTime()
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );

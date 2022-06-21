@@ -115,6 +115,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "a description",
             getAdditionalProperties(),
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now()
         );
     }
@@ -166,7 +169,11 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "a description",
             getAdditionalProperties(),
                 "nextHearingId",
-            ZonedDateTime.now());
+            ZonedDateTime.now(),
+            500,
+            5000,
+            ZonedDateTime.now()
+        );
     }
 
     public Task createWaTask() {
@@ -209,6 +216,9 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             "aDescription",
             getAdditionalProperties(),
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now()
         );
     }

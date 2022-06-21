@@ -203,6 +203,9 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "Description",
             ADDITIONAL_PROPERTIES,
             "nextHearingId",
+            ZonedDateTime.now(),
+            500,
+            5000,
             ZonedDateTime.now()
         );
     }
