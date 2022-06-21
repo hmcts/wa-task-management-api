@@ -94,57 +94,51 @@ public class CFTTaskMapper {
         this.objectMapper.registerModule(new JavaTimeModule());
     }
 
-    public TaskResource mapToTaskResource(String taskId, List<TaskAttribute> taskAttributes) {
+    public TaskResource mapToTaskResource(String taskId, Map<String, Object> taskAttributes) {
         log.debug("mapping task attributes to taskResource: taskAttributes({})", taskAttributes);
-        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> {
-                log.debug("filtering out null attributes: attribute({})", attribute);
-                return attribute != null && attribute.getValue() != null;
-            })
-            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
 
-        List<NoteResource> notes = extractWarningNotes(attributes);
-        ExecutionTypeResource executionTypeResource = extractExecutionType(attributes);
-        OffsetDateTime dueDate = readDate(attributes, TASK_DUE_DATE, null);
-        OffsetDateTime createdDate = readDate(attributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
+        List<NoteResource> notes = extractWarningNotes(taskAttributes);
+        ExecutionTypeResource executionTypeResource = extractExecutionType(taskAttributes);
+        OffsetDateTime dueDate = readDate(taskAttributes, TASK_DUE_DATE, null);
+        OffsetDateTime createdDate = readDate(taskAttributes, TASK_CREATED, ZonedDateTime.now().toOffsetDateTime());
 
         Objects.requireNonNull(dueDate, "TASK_DUE_DATE must not be null");
 
-        WorkTypeResource workTypeResource = extractWorkType(attributes);
+        WorkTypeResource workTypeResource = extractWorkType(taskAttributes);
         return new TaskResource(
             taskId,
-            read(attributes, TASK_NAME, null),
-            read(attributes, TASK_TYPE, null),
+            read(taskAttributes, "name", null),
+            read(taskAttributes, "taskType", null),
             dueDate,
             CFTTaskState.UNCONFIGURED,
-            read(attributes, TASK_SYSTEM, null),
-            read(attributes, TASK_SECURITY_CLASSIFICATION, null),
-            read(attributes, TASK_TITLE, null),
-            read(attributes, TASK_DESCRIPTION, null),
+            read(taskAttributes, "system", null),
+            read(taskAttributes, "securityClassification", null),
+            read(taskAttributes, "title", null),
+            read(taskAttributes, "description", null),
             notes,
-            read(attributes, TASK_MAJOR_PRIORITY, null),
-            read(attributes, TASK_MINOR_PRIORITY, null),
-            read(attributes, TASK_ASSIGNEE, null),
-            read(attributes, TASK_AUTO_ASSIGNED, false),
+            read(taskAttributes, "majorPriority", null),
+            read(taskAttributes, "minorPriority", null),
+            read(taskAttributes, "assignee", null),
+            read(taskAttributes, "autoAssigned", false),
             executionTypeResource,
             workTypeResource,
-            read(attributes, TASK_ROLE_CATEGORY, null),
-            read(attributes, TASK_HAS_WARNINGS, false),
-            read(attributes, TASK_ASSIGNMENT_EXPIRY, null),
-            read(attributes, TASK_CASE_ID, null),
-            read(attributes, TASK_CASE_TYPE_ID, null),
-            read(attributes, TASK_CASE_NAME, null),
-            read(attributes, TASK_JURISDICTION, null),
-            read(attributes, TASK_REGION, null),
-            read(attributes, TASK_REGION_NAME, null),
-            read(attributes, TASK_LOCATION, null),
-            read(attributes, TASK_LOCATION_NAME, null),
-            read(attributes, TASK_BUSINESS_CONTEXT, null),
-            read(attributes, TASK_TERMINATION_REASON, null),
+            read(taskAttributes, "roleCategory", null),
+            read(taskAttributes, "hasWarnings", false),
+            read(taskAttributes, "assignmentExpiry", null),
+            read(taskAttributes, "caseId", null),
+            read(taskAttributes, "caseTypeId", null),
+            read(taskAttributes, TASK_CASE_NAME, null),
+            read(taskAttributes, TASK_JURISDICTION, null),
+            read(taskAttributes, TASK_REGION, null),
+            read(taskAttributes, TASK_REGION_NAME, null),
+            read(taskAttributes, TASK_LOCATION, null),
+            read(taskAttributes, TASK_LOCATION_NAME, null),
+            read(taskAttributes, TASK_BUSINESS_CONTEXT, null),
+            read(taskAttributes, TASK_TERMINATION_REASON, null),
             createdDate,
-            read(attributes, TASK_ROLES, null),
-            read(attributes, TASK_CASE_CATEGORY, null),
-            read(attributes, TASK_ADDITIONAL_PROPERTIES, null)
+            read(taskAttributes, TASK_ROLES, null),
+            read(taskAttributes, TASK_CASE_CATEGORY, null),
+            read(taskAttributes, TASK_ADDITIONAL_PROPERTIES, null)
         );
     }
 
@@ -275,14 +269,14 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T read(Map<TaskAttributeDefinition, Object> attributesMap,
-                      TaskAttributeDefinition extractor,
+    public <T> T read(Map<String, Object> attributesMap,
+                      String extractor,
                       Object defaultValue) {
         return (T) map(attributesMap, extractor).orElse(defaultValue);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T readDate(Map<TaskAttributeDefinition, Object> attributesMap,
+    public <T> T readDate(Map<String, Object> attributesMap,
                           TaskAttributeDefinition extractor,
                           Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);
@@ -363,8 +357,8 @@ public class CFTTaskMapper {
         return accumulator;
     }
 
-    private WorkTypeResource extractWorkType(Map<TaskAttributeDefinition, Object> attributes) {
-        String workTypeId = read(attributes, TASK_WORK_TYPE, null);
+    private WorkTypeResource extractWorkType(Map<String, Object> attributes) {
+        String workTypeId = read(attributes, "workType", null);
         return workTypeId == null ? null : new WorkTypeResource(workTypeId);
     }
 
@@ -537,8 +531,8 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private ExecutionTypeResource extractExecutionType(Map<TaskAttributeDefinition, Object> attributes) {
-        String executionTypeName = read(attributes, TASK_EXECUTION_TYPE_NAME, null);
+    private ExecutionTypeResource extractExecutionType(Map<String, Object> attributes) {
+        String executionTypeName = read(attributes, "executionType", null);
 
         if (executionTypeName != null) {
             Optional<ExecutionType> value = ExecutionType.from(executionTypeName);
@@ -557,7 +551,7 @@ public class CFTTaskMapper {
         return null;
     }
 
-    private List<NoteResource> extractWarningNotes(Map<TaskAttributeDefinition, Object> attributes) {
+    private List<NoteResource> extractWarningNotes(Map<String, Object> attributes) {
         List<NoteResource> notes = null;
         WarningValues warningList = read(attributes, TASK_WARNINGS, null);
         if (warningList != null) {
@@ -588,13 +582,12 @@ public class CFTTaskMapper {
     }
 
     @SuppressWarnings("unchecked")
-    private <T> Optional<T> map(Map<TaskAttributeDefinition, Object> object, TaskAttributeDefinition extractor) {
+    private <T> Optional<T> map(Map<String, Object> object, String key) {
 
         if (object == null) {
             return Optional.empty();
         }
-        Object obj = object.get(extractor);
-        Object value = objectMapper.convertValue(obj, extractor.getTypeReference());
+        Object value = object.get(key);
 
         return value == null ? Optional.empty() : Optional.of((T) value);
     }

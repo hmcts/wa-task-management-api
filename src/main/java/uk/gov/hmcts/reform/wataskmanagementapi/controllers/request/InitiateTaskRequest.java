@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation;
 
-import java.util.List;
+import java.util.Map;
 
 @Schema(
     name = "InitiateTaskRequest",
@@ -18,11 +17,11 @@ import java.util.List;
 public class InitiateTaskRequest {
 
     private final InitiateTaskOperation operation;
-    private final List<TaskAttribute> taskAttributes;
+    private final Map<String, Object> taskAttributes;
 
     @JsonCreator
     public InitiateTaskRequest(InitiateTaskOperation operation,
-                               List<TaskAttribute> taskAttributes) {
+                               Map<String, Object> taskAttributes) {
         this.operation = operation;
         this.taskAttributes = taskAttributes;
     }
@@ -31,7 +30,7 @@ public class InitiateTaskRequest {
         return operation;
     }
 
-    public List<TaskAttribute> getTaskAttributes() {
+    public Map<String, Object> getTaskAttributes() {
         return taskAttributes;
     }
 }

@@ -22,14 +22,13 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskR
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
-import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -677,28 +676,12 @@ public class TaskManagementService {
     @Transactional(rollbackFor = Exception.class)
     public TaskResource initiateTask(String taskId, InitiateTaskRequest initiateTaskRequest) {
         //Get DueDatetime or throw exception
-        List<TaskAttribute> taskAttributes = initiateTaskRequest.getTaskAttributes();
+        Map<String, Object> taskAttributes = initiateTaskRequest.getTaskAttributes();
 
         OffsetDateTime dueDate = extractDueDate(taskAttributes);
 
         lockTaskId(taskId, dueDate);
         return initiateTaskProcess(taskId, initiateTaskRequest);
-    }
-
-    /**
-     * Exclusive client access only.
-     * This method initiates a task and orchestrates the logic between CFT Task db, camunda and role assignment.
-     *
-     * @param taskId              the task id.
-     * @param initiateTaskRequest Additional data to define how a task should be initiated.
-     * @return The updated entity {@link TaskResource}
-     */
-    @Transactional(rollbackFor = Exception.class)
-    public TaskResource initiateTask2(String taskId, InitiateTaskRequest2 initiateTaskRequest) {
-        OffsetDateTime dueDate = extractDueDate2(initiateTaskRequest.getTaskAttributes().get("dueDateTime"));
-
-        lockTaskId(taskId, dueDate);
-        return initiateTaskProcess2(taskId, initiateTaskRequest);
     }
 
     @Transactional
@@ -783,12 +766,9 @@ public class TaskManagementService {
      * @param taskAttributes the task attributes
      * @return the due date
      */
-    private OffsetDateTime extractDueDate(List<TaskAttribute> taskAttributes) {
-        Map<TaskAttributeDefinition, Object> attributes = taskAttributes.stream()
-            .filter(attribute -> attribute != null && attribute.getValue() != null)
-            .collect(Collectors.toMap(TaskAttribute::getName, TaskAttribute::getValue));
+    private OffsetDateTime extractDueDate(Map<String, Object> taskAttributes) {
 
-        OffsetDateTime dueDate = cftTaskMapper.readDate(attributes, TASK_DUE_DATE, null);
+        Object dueDate = taskAttributes.get("dueDateTime");
 
         if (dueDate == null) {
             Violation violation = new Violation(
@@ -797,28 +777,7 @@ public class TaskManagementService {
             );
             throw new CustomConstraintViolationException(singletonList(violation));
         }
-        return dueDate;
-    }
-
-    /**
-     * Helper method to extract the due date form the attributes this method.
-     * Also includes validation that may throw a CustomConstraintViolationException.
-     *
-     * @param taskAttributes the task attributes
-     * @return the due date
-     */
-    private OffsetDateTime extractDueDate2(Object dueDateString) {
-
-        OffsetDateTime dueDate = cftTaskMapper.readDate2(dueDateString);
-
-        if (dueDate == null) {
-            Violation violation = new Violation(
-                TASK_DUE_DATE.value(),
-                "Each task to initiate must contain task_due_date field present and populated."
-            );
-            throw new CustomConstraintViolationException(singletonList(violation));
-        }
-        return dueDate;
+        return OffsetDateTime.parse((String) dueDate, CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
     }
 
     @SuppressWarnings("PMD.PreserveStackTrace")
