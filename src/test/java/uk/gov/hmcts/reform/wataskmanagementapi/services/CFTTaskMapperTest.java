@@ -402,7 +402,8 @@ class CFTTaskMapperTest {
         mappedValues.put(TITLE.value(), "someTitle");
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
-
+        mappedValues.put(NEXT_HEARING_ID.value(), null);
+        mappedValues.put(NEXT_HEARING_DATE.value(), null);
         List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
             asList(
                 new PermissionsDmnEvaluationResponse(
@@ -484,6 +485,8 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
         assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
+        assertNull(taskResource.getNextHearingId());
+        assertNull(taskResource.getNextHearingDate());
     }
 
     @Test
@@ -502,7 +505,8 @@ class CFTTaskMapperTest {
         mappedValues.put(ASSIGNEE.value(), "someAssignee");
         mappedValues.put(JURISDICTION.value(), "IA");
         mappedValues.put(HAS_WARNINGS.value(), true);
-
+        mappedValues.put(NEXT_HEARING_ID.value(), "");
+        mappedValues.put(NEXT_HEARING_DATE.value(), "");
         List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
             asList(
                 new PermissionsDmnEvaluationResponse(
@@ -572,7 +576,8 @@ class CFTTaskMapperTest {
         assertEquals(2, actualRoleResources.get(2).getAssignmentPriority());
         assertTrue(actualRoleResources.get(2).getAutoAssignable());
         assertEquals("LEGAL_OPERATIONS", actualRoleResources.get(2).getRoleCategory());
-
+        assertNull(taskResource.getNextHearingId());
+        assertNull(taskResource.getNextHearingDate());
     }
 
     @Test
