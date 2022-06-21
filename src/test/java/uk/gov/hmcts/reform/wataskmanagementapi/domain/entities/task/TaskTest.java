@@ -63,7 +63,7 @@ class TaskTest {
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
             ADDITIONAL_PROPERTIES,
-                "nextHearingId",
+            "nextHearingId",
             ZonedDateTime.now(),
             500,
             5000,

@@ -198,7 +198,7 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
             getAdditionalProperties(),
-                "nextHearingId",
+            "nextHearingId",
             ZonedDateTime.now(),
             500,
             5000,
