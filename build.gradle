@@ -133,7 +133,7 @@ project.ext {
 
 checkstyle {
   maxWarnings = 0
-  toolVersion = '8.29'
+  toolVersion = '10.3'
   getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
 }
 
@@ -234,30 +234,8 @@ dependencyCheck {
 
 dependencyManagement {
   dependencies {
-    dependency group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.68'
-    // CVE-2018-10237 - Unbounded memory allocation
-    dependencySet(group: 'com.google.guava', version: '30.1-jre') {
-      entry 'guava'
-    }
-    //
-    dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     dependency group: 'commons-io', name: 'commons-io', version: '2.8.0'
 
-    //CVE-2021-27568
-    dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
-
-    //CVE-2021-28170
-    dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
-
-    //CVE-2020-23171
-    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.6'
-
-    //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
-      entry 'logback-classic'
-      entry 'logback-core'
-    }
-    dependency group: 'org.springframework.security', name: 'spring-security-core', version: '5.7.1'
     dependencySet(group: 'org.seleniumhq.selenium', version: '4.2.2') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
