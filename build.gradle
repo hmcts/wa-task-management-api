@@ -256,7 +256,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
 
     //CVE-2020-23171
-    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.5'
+    dependency group: 'com.nimbusds', name: 'lang-tag', version: '1.6'
 
     //CVE-2021-42550
     dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
