@@ -378,6 +378,34 @@ class TaskResourceDaoTest {
     }
 
     @Test
+    void should_return_task_summary_when_sorting_parameters_are_null() {
+        final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
+            List.of(
+                new SearchParameterList(JURISDICTION, SearchOperator.IN, List.of("IA")),
+                new SearchParameterList(LOCATION, SearchOperator.IN, List.of("765324")),
+                new SearchParameterList(STATE, SearchOperator.IN, List.of("ASSIGNED")),
+                new SearchParameterList(USER, SearchOperator.IN, List.of("TEST")),
+                new SearchParameterList(CASE_ID, SearchOperator.IN, List.of("1623278362431003")),
+                new SearchParameterList(WORK_TYPE, SearchOperator.IN, List.of("hearing_work"))
+            ),
+            List.of(new SortingParameter(SortField.CASE_ID_SNAKE_CASE, null))
+        );
+
+        List<RoleAssignment> roleAssignments = roleAssignmentWithAllGrantTypes();
+
+        List<PermissionTypes> permissionsRequired = new ArrayList<>();
+        permissionsRequired.add(PermissionTypes.READ);
+
+        when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
+
+        List<TaskResourceSummary> taskResourceSummary
+            = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
+
+        assertNotNull(taskResourceSummary);
+        assertEquals("taskId", taskResourceSummary.get(0).getTaskId());
+    }
+
+    @Test
     void shouldReturnTasks() {
         final SearchTaskRequest searchTaskRequest = new SearchTaskRequest(
             List.of(

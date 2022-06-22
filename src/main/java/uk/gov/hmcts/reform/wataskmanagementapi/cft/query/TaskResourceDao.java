@@ -24,6 +24,8 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.ASCENDANT;
+
 @Slf4j
 @Service
 @SuppressWarnings({"PMD.UnnecessaryFullyQualifiedName"})
@@ -184,15 +186,15 @@ public class TaskResourceDao {
     private List<Order> generateOrders(List<SortingParameter> sortingParameters,
                                        CriteriaBuilder criteriaBuilder,
                                        Root<TaskResource> root) {
-        return sortingParameters.stream().map(sortingParameter -> {
-            switch (sortingParameter.getSortOrder()) {
-                case ASCENDANT:
+        return sortingParameters.stream()
+            .filter(s -> s.getSortOrder() != null)
+            .map(sortingParameter -> {
+                if (sortingParameter.getSortOrder() == ASCENDANT) {
                     return criteriaBuilder.asc(root.get(sortingParameter.getSortBy().getCftVariableName()));
-                case DESCENDANT:
+                } else {
                     return criteriaBuilder.desc(root.get(sortingParameter.getSortBy().getCftVariableName()));
-                default:
-                    return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+                }
+            })
+            .filter(Objects::nonNull).collect(Collectors.toList());
     }
 }
