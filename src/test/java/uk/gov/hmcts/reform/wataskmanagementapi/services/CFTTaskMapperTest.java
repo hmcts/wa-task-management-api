@@ -144,8 +144,8 @@ class CFTTaskMapperTest {
         assertEquals("someTitle", taskResource.getTitle());
         assertEquals("someCamundaTaskDescription", taskResource.getDescription());
         assertNull(taskResource.getNotes());
-        assertNull(taskResource.getMajorPriority());
-        assertNull(taskResource.getMinorPriority());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
@@ -173,6 +173,10 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
     }
 
     @Test
@@ -206,8 +210,8 @@ class CFTTaskMapperTest {
         assertEquals("Code2", taskResource.getNotes().get(1).getCode());
         assertEquals("WARNING", taskResource.getNotes().get(1).getNoteType());
         assertEquals("Text2", taskResource.getNotes().get(1).getContent());
-        assertNull(taskResource.getMajorPriority());
-        assertNull(taskResource.getMinorPriority());
+        assertEquals(5000, taskResource.getMajorPriority());
+        assertEquals(500, taskResource.getMinorPriority());
         assertEquals("someAssignee", taskResource.getAssignee());
         assertEquals(false, taskResource.getAutoAssigned());
         assertNull(taskResource.getWorkTypeResource());
@@ -235,6 +239,10 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
     }
 
     @Test
@@ -1147,7 +1155,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(34);
+        assertThat(taskAttributes).size().isEqualTo(35);
     }
 
     @Test
@@ -1243,7 +1251,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             taskRoleResources,
             "caseCategory",
-            EXPECTED_ADDITIONAL_PROPERTIES
+            EXPECTED_ADDITIONAL_PROPERTIES,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
@@ -1669,7 +1678,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             singleton(roleResource),
             "caseCategory",
-            EXPECTED_ADDITIONAL_PROPERTIES
+            EXPECTED_ADDITIONAL_PROPERTIES,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 

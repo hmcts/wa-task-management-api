@@ -80,6 +80,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
         OffsetDateTime created = OffsetDateTime.parse("2022-05-08T20:15:45.345875+01:00");
         OffsetDateTime dueDate = OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00");
+        OffsetDateTime priorityDate = OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00");
 
         TaskResource taskResource = new TaskResource(
             UUID.randomUUID().toString(),
@@ -87,7 +88,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "some task type",
             CFTTaskState.ASSIGNED,
             created,
-            dueDate
+            dueDate,
+            priorityDate
         );
         taskResource.setCreated(created);
 
@@ -95,7 +97,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             taskResourceRepository.insertAndLock(
                 taskResource.getTaskId(),
                 taskResource.getCreated(),
-                taskResource.getDueDateTime()
+                taskResource.getDueDateTime(),
+                taskResource.getPriorityDate()
             );
             await().timeout(10, SECONDS);
             taskResourceRepository.save(taskResource);
@@ -107,13 +110,15 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             "other task type",
             CFTTaskState.ASSIGNED,
             created,
-            dueDate
+            dueDate,
+            priorityDate
         );
 
         assertDoesNotThrow(() -> taskResourceRepository.insertAndLock(
             otherTaskResource.getTaskId(),
             otherTaskResource.getCreated(),
-            otherTaskResource.getDueDateTime()
+            otherTaskResource.getDueDateTime(),
+            taskResource.getPriorityDate()
         ));
 
         await()
@@ -246,7 +251,8 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory",
-            ADDITIONAL_PROPERTIES
+            ADDITIONAL_PROPERTIES,
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 
