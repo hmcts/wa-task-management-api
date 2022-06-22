@@ -26,7 +26,9 @@ public final class SortQuery {
 
         Sort sort;
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            sort = Sort.by("dueDateTime").descending();
+            sort = Sort.by("majorPriority").ascending()
+                .and(Sort.by("priorityDate").descending())
+                .and(Sort.by("minorPriority").ascending());
         } else {
             final List<Sort> sortList = generateSortList(sortingParameters);
             sort = andSort(sortList).orElse(Sort.unsorted());
@@ -42,7 +44,9 @@ public final class SortQuery {
 
         List<Order> orders = new ArrayList<>();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            orders.add(builder.desc(root.get("dueDateTime")));
+            orders.addAll(List.of(builder.asc(root.get("majorPriority")),
+                                  builder.desc(root.get("priorityDate")),
+                                  builder.asc((root.get("minorPriority")))));
         } else {
             orders.addAll(generateOrders(sortingParameters, builder, root));
         }
