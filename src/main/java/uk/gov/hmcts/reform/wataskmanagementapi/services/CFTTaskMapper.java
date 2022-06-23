@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
@@ -19,7 +20,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -66,6 +66,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MAJOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_MINOR_PRIORITY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_DATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NEXT_HEARING_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_REGION_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_ROLES;
@@ -77,6 +79,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WARNINGS;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_WORK_TYPE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 
 @Service
 @SuppressWarnings(
@@ -142,8 +145,9 @@ public class CFTTaskMapper {
             createdDate,
             read(attributes, TASK_ROLES, null),
             read(attributes, TASK_CASE_CATEGORY, null),
-            read(attributes, TASK_ADDITIONAL_PROPERTIES, null)
-        );
+            read(attributes, TASK_ADDITIONAL_PROPERTIES, null),
+            read(attributes, TASK_NEXT_HEARING_ID, null),
+            readDate(attributes, TASK_NEXT_HEARING_DATE, null));
     }
 
     public TaskResource mapConfigurationAttributes(TaskResource taskResource,
@@ -189,7 +193,9 @@ public class CFTTaskMapper {
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getNextHearingId(),
+            taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime()
         );
     }
 
@@ -217,7 +223,7 @@ public class CFTTaskMapper {
                           Object defaultValue) {
         Optional<T> maybeValue = map(attributesMap, extractor);
         if (maybeValue.isPresent()) {
-            return (T) OffsetDateTime.parse((String) maybeValue.get(), CamundaTime.CAMUNDA_DATA_TIME_FORMATTER);
+            return (T) OffsetDateTime.parse((String) maybeValue.get(), CAMUNDA_DATA_TIME_FORMATTER);
         } else {
             return (T) defaultValue;
         }
@@ -439,6 +445,16 @@ public class CFTTaskMapper {
                 case ADDITIONAL_PROPERTIES:
                     Map<String, String> additionalProperties = extractAdditionalProperties(value);
                     taskResource.setAdditionalProperties(additionalProperties);
+                    break;
+                case NEXT_HEARING_ID:
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingId((String) value);
+                    }
+                    break;
+                case NEXT_HEARING_DATE:
+                    if (value != null && Strings.isNotBlank((String) value)) {
+                        taskResource.setNextHearingDate(ZonedDateTime.parse((String) value).toOffsetDateTime());
+                    }
                     break;
                 default:
                     break;

@@ -232,9 +232,9 @@ public class Common {
         return response;
     }
 
-    public TestVariables setupWATaskAndRetrieveIds() {
+    public TestVariables setupWATaskAndRetrieveIds(String resourceFileName) {
 
-        String caseId = given.iCreateWACcdCase();
+        String caseId = given.iCreateWACcdCase(resourceFileName);
 
         List<CamundaTask> response = given
             .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
