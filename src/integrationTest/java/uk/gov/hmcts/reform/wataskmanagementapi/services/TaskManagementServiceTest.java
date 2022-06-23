@@ -142,7 +142,6 @@ class TaskManagementServiceTest extends SpringBootIntegrationBaseTest {
         );
 
 
-
         mockServices.mockServiceAPIs();
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(

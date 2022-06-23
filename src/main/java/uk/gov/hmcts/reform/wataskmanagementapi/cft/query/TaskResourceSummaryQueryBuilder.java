@@ -2,11 +2,9 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 
-import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Selection;
 
 public class TaskResourceSummaryQueryBuilder extends TaskResourceQueryBuilder<TaskResourceSummary> {
 
@@ -21,15 +19,8 @@ public class TaskResourceSummaryQueryBuilder extends TaskResourceQueryBuilder<Ta
 
     @Override
     public TypedQuery<TaskResourceSummary> build() {
-        List<Selection<?>> selections = List.of(root.get("taskId"),
-                                                root.get("dueDateTime"),
-                                                root.get("caseId"),
-                                                root.get("caseName"),
-                                                root.get("caseCategory"),
-                                                root.get("locationName"),
-                                                root.get("title"));
 
-        CriteriaQuery<TaskResourceSummary> criteriaQuery =  query.multiselect(selections).distinct(true);
+        CriteriaQuery<TaskResourceSummary> criteriaQuery = query.multiselect(selections).distinct(true);
 
         if (predicate != null) {
             criteriaQuery.where(predicate);
