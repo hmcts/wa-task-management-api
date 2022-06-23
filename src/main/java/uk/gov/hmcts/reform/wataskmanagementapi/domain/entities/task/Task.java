@@ -409,6 +409,7 @@ public class Task {
     public ZonedDateTime getReconfigureRequestTime() {
         return reconfigureRequestTime;
     }
+
     public String getNextHearingId() {
         return nextHearingId;
     }
