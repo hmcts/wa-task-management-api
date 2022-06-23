@@ -169,7 +169,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             ADDITIONAL_PROPERTIES,
-            OffsetDateTime.now()
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 
