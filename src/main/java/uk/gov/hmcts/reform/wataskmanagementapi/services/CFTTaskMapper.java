@@ -206,7 +206,7 @@ public class CFTTaskMapper {
             taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime(),
             taskResource.getMinorPriority(),
             taskResource.getMajorPriority(),
-            taskResource.getPriorityDate() == null ? null : taskResource.getPriorityDate().toZonedDateTime()
+            taskResource.getPriorityDate() == null ? null : taskResource.getPriorityDate().toZonedDateTime(),
             taskResource.getReconfigureRequestTime() == null ? null
                 : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );

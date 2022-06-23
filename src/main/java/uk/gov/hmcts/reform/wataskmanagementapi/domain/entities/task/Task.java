@@ -282,6 +282,9 @@ public class Task {
                 Map<String, String> additionalProperties,
                 String nextHearingId,
                 ZonedDateTime nextHearingDate,
+                Integer minorPriority,
+                Integer majorPriority,
+                ZonedDateTime priorityDate,
                 ZonedDateTime reconfigureRequestTime) {
         this(id,
             name,
@@ -313,7 +316,10 @@ public class Task {
             description,
              additionalProperties,
              nextHearingId,
-             nextHearingDate
+             nextHearingDate,
+             minorPriority,
+             majorPriority,
+             priorityDate
         );
         this.reconfigureRequestTime = reconfigureRequestTime;
     }
