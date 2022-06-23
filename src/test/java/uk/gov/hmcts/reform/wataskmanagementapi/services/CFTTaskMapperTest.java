@@ -175,6 +175,10 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
     }
 
     @Test
@@ -237,6 +241,10 @@ class CFTTaskMapperTest {
             ExecutionType.MANUAL.getDescription()
         ), taskResource.getExecutionTypeCode());
         assertNull(taskResource.getTaskRoleResources());
+        assertEquals(
+            OffsetDateTime.parse(formattedDueDate, CAMUNDA_DATA_TIME_FORMATTER),
+            taskResource.getPriorityDate()
+        );
     }
 
     @Test
@@ -1261,8 +1269,8 @@ class CFTTaskMapperTest {
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
                 "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
-            OffsetDateTime.now()
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
@@ -1690,8 +1698,8 @@ class CFTTaskMapperTest {
             "caseCategory",
             EXPECTED_ADDITIONAL_PROPERTIES,
                 "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
-            OffsetDateTime.now()
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
+            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
     }
 

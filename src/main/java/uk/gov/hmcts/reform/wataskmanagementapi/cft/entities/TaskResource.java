@@ -203,13 +203,15 @@ public class TaskResource implements Serializable {
                         String taskType,
                         CFTTaskState state,
                         OffsetDateTime created,
-                        OffsetDateTime dueDateTime) {
+                        OffsetDateTime dueDateTime,
+                        OffsetDateTime priorityDate) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
         this.state = state;
         this.created = created;
         this.dueDateTime = dueDateTime;
+        this.priorityDate = priorityDate;
     }
 
     public TaskResource(String taskId,
