@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @Provider("wa_task_management_api_get_task_by_id")
 public class TaskManagementGetTaskProviderTest extends SpringBootContractProviderBaseTest {
-
+    
     @State({"get a task using taskId"})
     public void getTaskById() {
         setInitMockTask();
@@ -138,9 +138,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties(),
-            "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties());
     }
 
     private Task createTaskWithWarnings() {
@@ -188,9 +186,7 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties(),
-            "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties());
     }
 
     public Task createWaTask() {
@@ -231,9 +227,8 @@ public class TaskManagementGetTaskProviderTest extends SpringBootContractProvide
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "aDescription",
-            getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties()
+        );
     }
 
 }
