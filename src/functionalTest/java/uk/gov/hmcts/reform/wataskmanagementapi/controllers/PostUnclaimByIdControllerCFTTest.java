@@ -115,7 +115,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
 
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
@@ -175,7 +175,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -231,7 +231,7 @@ public class PostUnclaimByIdControllerCFTTest extends SpringBootFunctionalBaseTe
 
         assertions
             .taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "unassigned");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "unassigned", caseworkerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", null, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);

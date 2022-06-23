@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.Permissi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -35,7 +36,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
@@ -46,12 +47,16 @@ public class CftQueryService {
     private final CFTTaskMapper cftTaskMapper;
     private final TaskResourceDao taskResourceDao;
 
+    private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
+
     public CftQueryService(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
-                           TaskResourceDao taskResourceDao) {
+                           TaskResourceDao taskResourceDao,
+                           AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
         this.taskResourceDao = taskResourceDao;
+        this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
     }
 
     public GetTasksResponse<Task> searchForTasks(
@@ -98,11 +103,12 @@ public class CftQueryService {
         List<PermissionTypes> permissionsRequired
     ) {
 
-        //Safe-guard against unsupported Jurisdictions and case types.
-        if (!Arrays.asList("IA", "WA")
-            .contains(searchEventAndCase.getCaseJurisdiction().toUpperCase(Locale.ROOT))
-            || !Arrays.asList("asylum", "wacasetype")
-            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))) {
+        //Safe-guard against unsupported Jurisdictions.
+        if (!allowedJurisdictionConfiguration.getAllowedJurisdictions()
+            .contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
+            || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
+            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
+        ) {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 

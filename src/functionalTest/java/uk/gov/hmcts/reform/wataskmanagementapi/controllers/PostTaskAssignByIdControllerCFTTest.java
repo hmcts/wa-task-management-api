@@ -54,7 +54,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .and()
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.NOT_FOUND.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.NOT_FOUND.value()))
             .body("message", equalTo(String.format(
@@ -69,7 +69,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         String taskId = taskVariables.getTaskId();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -83,7 +84,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
 
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", assigneeId, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -96,7 +97,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         String taskId = taskVariables.getTaskId();
         common.setupRestrictedRoleAssignment(taskVariables.getCaseId(), caseworkerCredentials.getHeaders());
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -109,7 +111,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         assertions.taskVariableWasUpdated(taskVariables.getProcessInstanceId(), "taskState", "assigned");
-        assertions.taskStateWasUpdatedinDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
+        assertions.taskStateWasUpdatedInDatabase(taskId, "assigned", caseworkerCredentials.getHeaders());
         assertions.taskFieldWasUpdatedInDatabase(taskId, "assignee", assigneeId, caseworkerCredentials.getHeaders());
 
         common.cleanUpTask(taskId);
@@ -121,7 +123,8 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         String taskId = taskVariables.getTaskId();
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
             taskId,
@@ -133,7 +136,7 @@ public class PostTaskAssignByIdControllerCFTTest extends SpringBootFunctionalBas
             .statusCode(HttpStatus.UNAUTHORIZED.value())
             .contentType(APPLICATION_JSON_VALUE)
             .body("timestamp", lessThanOrEqualTo(ZonedDateTime.now().plusSeconds(60)
-                .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
+                                                     .format(DateTimeFormatter.ofPattern(DATE_TIME_FORMAT))))
             .body("error", equalTo(HttpStatus.UNAUTHORIZED.getReasonPhrase()))
             .body("status", equalTo(HttpStatus.UNAUTHORIZED.value()))
             .body("message", equalTo("User did not have sufficient permissions to perform this action"));
