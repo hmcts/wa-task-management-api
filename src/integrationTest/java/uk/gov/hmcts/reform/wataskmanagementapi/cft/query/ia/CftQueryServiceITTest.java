@@ -25,7 +25,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.Classifi
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantType;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -57,7 +57,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.USER;
 
-
 @ActiveProfiles("integration")
 @DataJpaTest
 @Import(AllowedJurisdictionConfiguration.class)
@@ -70,8 +69,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     @MockBean
     private CamundaService camundaService;
-    @Autowired
-    private TaskResourceRepository taskResourceRepository;
 
     private CftQueryService cftQueryService;
     @Autowired
@@ -83,11 +80,8 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(
-            camundaService,
-            cftTaskMapper,
-            entityManager,
-            allowedJurisdictionConfiguration
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
+                                              allowedJurisdictionConfiguration
         );
     }
 
