@@ -247,6 +247,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
     }
 
@@ -281,6 +283,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                         .object("additional_properties", value -> value
                             .stringType("name1", "value1")
                             .stringType("name2", "value2")
@@ -332,6 +336,8 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
+                        .stringType("next_hearing_id", "nextHearingId")
+                        .datetime("next_hearing_date", "yyyy-MM-dd'T'HH:mm:ssZ")
                 )).build();
     }
 
