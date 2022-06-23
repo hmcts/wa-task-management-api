@@ -98,6 +98,20 @@ class CFTTaskDatabaseServiceTest {
     }
 
     @Test
+    void should_find_by_state_and_reconfigure_request_time_is_not_null() {
+        TaskResource someTaskResource = mock(TaskResource.class);
+
+        when(taskResourceRepository.findByStateInAndReconfigureRequestTimeIsNotNull(
+            List.of(CFTTaskState.ASSIGNED))).thenReturn(List.of(someTaskResource));
+
+        final List<TaskResource> actualTaskResource = cftTaskDatabaseService
+            .getActiveTasksAndReconfigureRequestTimeIsNotNull(List.of(CFTTaskState.ASSIGNED));
+
+        assertNotNull(actualTaskResource);
+        assertEquals(someTaskResource, actualTaskResource.get(0));
+    }
+
+    @Test
     void should_save_task() {
         TaskResource someTaskResource = mock(TaskResource.class);
 

@@ -189,7 +189,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             cftTaskDatabaseService,
             cftQueryService
         );
-        taskReconfigurationService = new TaskReconfigurationService(cftTaskDatabaseService);
+        taskReconfigurationService = new TaskReconfigurationService(cftTaskDatabaseService,
+                                                                    configureTaskService,
+                                                                    taskAutoAssignmentService);
 
         taskManagementService = new TaskManagementService(
             camundaService,

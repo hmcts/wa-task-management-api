@@ -46,8 +46,8 @@ public class TaskManagerReconfigureTaskProviderTest extends SpringBootContractPr
         );
     }
 
-    @State({"reconfigure a task using caseId"})
-    public void reconfigureTasksByCaseId() {
+    @State({"reconfigure a task"})
+    public void reconfigureTasks() {
         setInitMock();
     }
 

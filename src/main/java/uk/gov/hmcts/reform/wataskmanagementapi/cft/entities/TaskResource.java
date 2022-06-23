@@ -135,6 +135,9 @@ public class TaskResource implements Serializable {
     @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime reconfigureRequestTime;
 
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime lastReconfigurationTime;
+
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
     }
@@ -433,5 +436,9 @@ public class TaskResource implements Serializable {
 
     public void setReconfigureRequestTime(OffsetDateTime reconfigureRequestTime) {
         this.reconfigureRequestTime = reconfigureRequestTime;
+    }
+
+    public void setLastReconfigurationTime(OffsetDateTime reconfigurationTime) {
+        this.lastReconfigurationTime = reconfigurationTime;
     }
 }
