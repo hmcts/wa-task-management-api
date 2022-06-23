@@ -26,6 +26,22 @@ public class TaskResourceSummary {
         this.title = title;
     }
 
+    public TaskResourceSummary(String taskId, OffsetDateTime dueDateTime) {
+        this.taskId = taskId;
+        this.dueDateTime = dueDateTime;
+    }
+
+    public TaskResourceSummary(String taskId, String caseId) {
+        this.taskId = taskId;
+        this.caseId = caseId;
+    }
+
+    public TaskResourceSummary(String taskId, String caseId, String caseName) {
+        this.taskId = taskId;
+        this.caseId = caseId;
+        this.caseName = caseName;
+    }
+
     public void setTaskId(String taskId) {
         this.taskId = taskId;
     }

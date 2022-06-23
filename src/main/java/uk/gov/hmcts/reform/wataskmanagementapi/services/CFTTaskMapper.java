@@ -259,7 +259,8 @@ public class CFTTaskMapper {
             taskRoleResource.getRoleCategory(),
             taskRoleResource.getRoleName(),
             List.copyOf(permissionTypes),
-            authorisations);
+            authorisations
+        );
     }
 
     private Set<PermissionTypes> evaluatePermissionsFoundAndCollectResults(TaskRoleResource taskRoleResource) {
