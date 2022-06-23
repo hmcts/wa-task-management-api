@@ -74,8 +74,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.ROLE_CATEGORY;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
@@ -299,10 +297,6 @@ class CFTTaskMapperTest {
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
         mappedValues.put(ROLE_CATEGORY.value(), "LEGAL_OPERATIONS");
         mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(EXPECTED_ADDITIONAL_PROPERTIES));
-        String nextHearingId = "nextHearingId";
-        mappedValues.put(NEXT_HEARING_ID.value(), nextHearingId);
-        String nextHearingDate = OffsetDateTime.now().toString();
-        mappedValues.put(NEXT_HEARING_DATE.value(), nextHearingDate);
 
         TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
             skeletonTask,
@@ -337,8 +331,6 @@ class CFTTaskMapperTest {
         assertEquals("someStaffLocationName", taskResource.getLocationName());
         assertEquals("someCaseCategory", taskResource.getCaseCategory());
         assertEquals(EXPECTED_ADDITIONAL_PROPERTIES, taskResource.getAdditionalProperties());
-        assertEquals(nextHearingId, taskResource.getNextHearingId());
-        assertEquals(OffsetDateTime.parse(nextHearingDate), taskResource.getNextHearingDate());
         assertNull(taskResource.getBusinessContext());
         assertNull(taskResource.getTerminationReason());
         assertEquals(new ExecutionTypeResource(
@@ -402,8 +394,7 @@ class CFTTaskMapperTest {
         mappedValues.put(TITLE.value(), "someTitle");
         mappedValues.put(HAS_WARNINGS.value(), false);
         mappedValues.put(CASE_MANAGEMENT_CATEGORY.value(), "someCaseCategory");
-        mappedValues.put(NEXT_HEARING_ID.value(), null);
-        mappedValues.put(NEXT_HEARING_DATE.value(), null);
+
         List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
             asList(
                 new PermissionsDmnEvaluationResponse(
@@ -485,8 +476,6 @@ class CFTTaskMapperTest {
         assertEquals(true, roleResourcesList.get(1).getCancel());
         assertEquals(true, roleResourcesList.get(1).getRefer());
         assertArrayEquals(new String[]{"IA", "WA"}, roleResourcesList.get(1).getAuthorizations());
-        assertNull(taskResource.getNextHearingId());
-        assertNull(taskResource.getNextHearingDate());
     }
 
     @Test
@@ -505,8 +494,7 @@ class CFTTaskMapperTest {
         mappedValues.put(ASSIGNEE.value(), "someAssignee");
         mappedValues.put(JURISDICTION.value(), "IA");
         mappedValues.put(HAS_WARNINGS.value(), true);
-        mappedValues.put(NEXT_HEARING_ID.value(), "");
-        mappedValues.put(NEXT_HEARING_DATE.value(), "");
+
         List<PermissionsDmnEvaluationResponse> permissionsDmnEvaluationResponses =
             asList(
                 new PermissionsDmnEvaluationResponse(
@@ -576,8 +564,7 @@ class CFTTaskMapperTest {
         assertEquals(2, actualRoleResources.get(2).getAssignmentPriority());
         assertTrue(actualRoleResources.get(2).getAutoAssignable());
         assertEquals("LEGAL_OPERATIONS", actualRoleResources.get(2).getRoleCategory());
-        assertNull(taskResource.getNextHearingId());
-        assertNull(taskResource.getNextHearingDate());
+
     }
 
     @Test
@@ -1163,7 +1150,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(36);
+        assertThat(taskAttributes).size().isEqualTo(34);
     }
 
     @Test
@@ -1259,9 +1246,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             taskRoleResources,
             "caseCategory",
-            EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+            EXPECTED_ADDITIONAL_PROPERTIES
+        );
 
         List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
@@ -1686,9 +1672,8 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"),
             singleton(roleResource),
             "caseCategory",
-            EXPECTED_ADDITIONAL_PROPERTIES,
-                "nextHearingId",
-            OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00"));
+            EXPECTED_ADDITIONAL_PROPERTIES
+        );
     }
 
     private List<TaskAttribute> getDefaultAttributes(String createdDate, String dueDate) {
@@ -1725,10 +1710,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
@@ -1766,10 +1748,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
@@ -1807,10 +1786,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, "someWorkType"),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
@@ -1847,10 +1823,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_REGION_NAME, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
     }
 
@@ -1891,10 +1864,7 @@ class CFTTaskMapperTest {
             new TaskAttribute(TaskAttributeDefinition.TASK_TERMINATION_REASON, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_WORK_TYPE, null),
             new TaskAttribute(TaskAttributeDefinition.TASK_NOTES, null),
-            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_ID, "nextHearingId"),
-            new TaskAttribute(TaskAttributeDefinition.TASK_NEXT_HEARING_DATE,
-                              CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now()))
+            new TaskAttribute(TaskAttributeDefinition.TASK_ADDITIONAL_PROPERTIES, EXPECTED_ADDITIONAL_PROPERTIES)
         );
 
     }

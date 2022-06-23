@@ -113,9 +113,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties(),
-            "nextHearingId",
-            ZonedDateTime.now()
+            getAdditionalProperties()
         );
     }
 
@@ -164,9 +162,8 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties()
+        );
     }
 
     public Task createWaTask() {
@@ -207,9 +204,7 @@ public class TaskManagementGetTaskBySearchCriteriaPactTest extends SpringBootCon
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "aDescription",
-            getAdditionalProperties(),
-            "nextHearingId",
-            ZonedDateTime.now()
+            getAdditionalProperties()
         );
     }
 
