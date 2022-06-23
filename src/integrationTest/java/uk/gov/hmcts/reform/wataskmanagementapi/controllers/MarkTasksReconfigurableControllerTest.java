@@ -75,10 +75,10 @@ class MarkTasksReconfigurableControllerTest extends SpringBootIntegrationBaseTes
             .thenReturn(true);
         lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
             any())).thenReturn(List.of(
-            new ConfigurationDmnEvaluationResponse(
-                CamundaValue.stringValue("caseName"),
-                CamundaValue.stringValue("Value"),
-                CamundaValue.booleanValue(true)
+                new ConfigurationDmnEvaluationResponse(
+                    CamundaValue.stringValue("caseName"),
+                    CamundaValue.stringValue("Value"),
+                    CamundaValue.booleanValue(true)
             )
         ));
     }
