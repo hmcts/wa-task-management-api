@@ -28,8 +28,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.LOCATION_NAME;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_DATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.NEXT_HEARING_ID;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.REGION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.SECURITY_CLASSIFICATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
@@ -40,7 +38,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.WORK_TYPE;
 
 @Service
-@SuppressWarnings({"PMD.LinguisticNaming", "PMD.ExcessiveImports"})
+@SuppressWarnings("PMD.LinguisticNaming")
 public class TaskMapper {
 
     private final CamundaObjectMapper camundaObjectMapper;
@@ -80,8 +78,6 @@ public class TaskMapper {
         String description = getVariableValue(variables.get(DESCRIPTION.value()), String.class);
         ConcurrentHashMap<String, String> additionalProperties
             = getTypedVariableValue(variables.get(ADDITIONAL_PROPERTIES.value()), new TypeReference<>() {});
-        String nextHearingId = getVariableValue(variables.get(NEXT_HEARING_ID.value()), String.class);
-        ZonedDateTime nextHearingDate = getVariableValue(variables.get(NEXT_HEARING_DATE.value()), ZonedDateTime.class);
         return new Task(
             id,
             name,
@@ -114,9 +110,7 @@ public class TaskMapper {
             // returning null as its only applicable for R2
             null,
             description,
-            additionalProperties,
-            nextHearingId,
-            nextHearingDate
+            additionalProperties
         );
     }
 

@@ -93,9 +93,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties()
+        );
         return singletonList(task);
     }
 
@@ -137,9 +136,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "aDescription",
-            getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties()
+        );
 
         return singletonList(task);
     }
@@ -189,9 +187,8 @@ public class TaskManagementGetTaskBySearchForCompletablePactTest extends SpringB
             permissions,
             RoleCategory.LEGAL_OPERATIONS.name(),
             "a description",
-            getAdditionalProperties(),
-                "nextHearingId",
-            ZonedDateTime.now());
+            getAdditionalProperties()
+        );
 
         return singletonList(taskWithWarnings);
     }

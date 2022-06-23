@@ -49,7 +49,7 @@ public class Task {
     @Schema(
         required = true,
         description = "The security classification of the main business entity this task relates to."
-            + " Can be PUBLIC, PRIVATE, RESTRICTED"
+                      + " Can be PUBLIC, PRIVATE, RESTRICTED"
     )
     private final String securityClassification;
     @Schema(
@@ -81,7 +81,7 @@ public class Task {
     private final String location;
     @Schema(required = true,
         description = "Indicator to the user interface of how this task is to be executed. "
-            + "For MVP, this will always be \"Case Management Task\""
+                      + "For MVP, this will always be \"Case Management Task\""
     )
     private final String executionType;
     @Schema(required = true,
@@ -122,7 +122,7 @@ public class Task {
     private final WarningValues warningList;
 
     @Schema(description = "A value describing the category of the case, for IA, "
-        + "it has the same value as the AppealType field")
+                          + "it has the same value as the AppealType field")
     private final String caseManagementCategory;
 
     @Schema(required = true,
@@ -147,8 +147,6 @@ public class Task {
     @Schema(required = true,
         description = "A value describing the additional properties")
     private final Map<String, String> additionalProperties;
-    private final String nextHearingId;
-    private final ZonedDateTime nextHearingDate;
 
 
     public Task(String id,
@@ -179,9 +177,7 @@ public class Task {
                 TaskPermissions taskPermissions,
                 String roleCategory,
                 String description,
-                Map<String, String> additionalProperties,
-                String nextHearingId,
-                ZonedDateTime nextHearingDate) {
+                Map<String, String> additionalProperties) {
         Objects.requireNonNull(id, "taskId cannot be null");
         Objects.requireNonNull(name, "name cannot be null");
         this.id = id;
@@ -213,8 +209,6 @@ public class Task {
         this.roleCategory = roleCategory;
         this.description = description;
         this.additionalProperties = additionalProperties;
-        this.nextHearingId = nextHearingId;
-        this.nextHearingDate = nextHearingDate;
     }
 
     public String getId() {
@@ -331,14 +325,6 @@ public class Task {
 
     public Map<String, String> getAdditionalProperties() {
         return additionalProperties;
-    }
-
-    public String getNextHearingId() {
-        return nextHearingId;
-    }
-
-    public ZonedDateTime getNextHearingDate() {
-        return nextHearingDate;
     }
 }
 

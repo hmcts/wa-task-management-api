@@ -24,7 +24,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.DocumentManagementFiles;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -303,7 +302,7 @@ public class GivensBuilder {
         String caseTypeId
     ) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
@@ -347,16 +346,15 @@ public class GivensBuilder {
         );
     }
 
-    public String iCreateWACcdCase(String resourceFileName) {
+    public String iCreateWACcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
-        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent(
-            "WA",
+        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent("WA",
             "WaCaseType",
             "CREATE",
             "START_PROGRESS",
             lawFirmCredentials,
-            resourceFileName
+            "requests/ccd/wa_case_data.json"
         );
     }
 
@@ -386,13 +384,7 @@ public class GivensBuilder {
         try {
             String caseDataString = FileUtils.readFileToString(
                 ResourceUtils.getFile("classpath:" + resourceFilename),
-                "UTF-8"
-            );
-
-            caseDataString = caseDataString.replace(
-                "{NEXT_HEARING_DATE}",
-                OffsetDateTime.now().toString()
-            );
+                "UTF-8");
 
             caseDataString = caseDataString.replace(
                 "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
@@ -415,10 +407,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                       .id(startCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(startCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 
@@ -448,10 +440,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                       .id(submitCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
+                .id(submitCase.getEventId())
+                .summary("summary")
+                .description("description")
+                .build())
             .data(data)
             .build();
 

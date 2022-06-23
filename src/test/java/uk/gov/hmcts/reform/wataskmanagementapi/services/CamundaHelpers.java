@@ -68,9 +68,7 @@ public class CamundaHelpers {
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             null,
             "a description",
-            ADDITIONAL_PROPERTIES,
-            "nextHearingId",
-            ZonedDateTime.now());
+            ADDITIONAL_PROPERTIES);
     }
 
     protected CamundaTask createMockedUnmappedTask() {
