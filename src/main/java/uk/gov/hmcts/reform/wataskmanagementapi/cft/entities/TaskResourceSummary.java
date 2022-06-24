@@ -14,9 +14,13 @@ public class TaskResourceSummary {
     private String caseCategory;
     private String locationName;
     private String title;
+    private OffsetDateTime priorityDate;
+    private Integer majorPriority;
+    private Integer minorPriority;
 
     public TaskResourceSummary(String taskId, OffsetDateTime dueDateTime, String caseId, String caseName,
-                               String caseCategory, String locationName, String title) {
+                               String caseCategory, String locationName, String title, OffsetDateTime priorityDate,
+                               Integer majorPriority, Integer minorPriority) {
         this.taskId = taskId;
         this.dueDateTime = dueDateTime;
         this.caseId = caseId;
@@ -24,6 +28,9 @@ public class TaskResourceSummary {
         this.caseCategory = caseCategory;
         this.locationName = locationName;
         this.title = title;
+        this.priorityDate = priorityDate;
+        this.majorPriority = majorPriority;
+        this.minorPriority = minorPriority;
     }
 
     public void setTaskId(String taskId) {

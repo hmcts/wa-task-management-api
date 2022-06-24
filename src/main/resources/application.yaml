@@ -87,6 +87,8 @@ spring:
           in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
+#        format_sql: true
+#    show-sql: true
   flyway:
     enabled: true
     baselineOnMigrate: true
@@ -124,6 +126,8 @@ logging:
     root: INFO
     uk.gov.hmcts.reform.wataskmanagementapi.clients.*: INFO
     org.zalando.logbook: INFO
+#    logging.level.org.hibernate.SQL: DEBUG
+#    logging.level.org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 logbook:
   include: /task/**

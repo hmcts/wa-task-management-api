@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.query.ia;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +65,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.par
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Testcontainers
 @Sql("/scripts/ia/data.sql")
+@Slf4j
 public class CftQueryServiceITTest extends RoleAssignmentHelper {
 
     private final List<PermissionTypes> permissionsRequired = new ArrayList<>();
@@ -106,6 +108,7 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         "paginatedResultsScenario"
     })
     void shouldRetrieveTasks(TaskQueryScenario scenario) {
+        log.info("Running : {}", scenario.scenarioName);
 
         //given
         AccessControlResponse accessControlResponse = new AccessControlResponse(null, scenario.roleAssignments);

@@ -62,7 +62,9 @@ public class SortQueryTest {
 
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         assertNotNull(sort);
-        assertEquals(Sort.by("dueDateTime").descending(), sort);
+        assertEquals(Sort.by("majorPriority").ascending()
+                         .and(Sort.by("priorityDate").descending())
+                         .and(Sort.by("minorPriority").ascending()), sort);
     }
 
     @ParameterizedTest

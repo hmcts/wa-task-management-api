@@ -27,7 +27,10 @@ public class TaskResourceSummaryQueryBuilder extends TaskResourceQueryBuilder<Ta
                                                 root.get("caseName"),
                                                 root.get("caseCategory"),
                                                 root.get("locationName"),
-                                                root.get("title"));
+                                                root.get("title"),
+                                                root.get("priorityDate"),
+                                                root.get("majorPriority"),
+                                                root.get("minorPriority"));
 
         CriteriaQuery<TaskResourceSummary> criteriaQuery =  query.multiselect(selections).distinct(true);
 

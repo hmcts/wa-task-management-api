@@ -166,7 +166,10 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "TestCase",
             "Asylum",
             "Taylor House",
-            "title"
+            "title",
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
+            5000,
+            500
         );
     }
 
