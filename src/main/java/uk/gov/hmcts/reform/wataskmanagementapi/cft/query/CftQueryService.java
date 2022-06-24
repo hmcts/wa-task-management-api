@@ -68,7 +68,7 @@ public class CftQueryService {
     ) {
         validateRequest(searchTaskRequest);
 
-        final List<TaskResourceSummary> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
+        final List<Object[]> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
             firstResult,
             maxResults,
             searchTaskRequest,
