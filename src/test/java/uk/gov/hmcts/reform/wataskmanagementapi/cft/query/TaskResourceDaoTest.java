@@ -345,7 +345,7 @@ class TaskResourceDaoTest {
             = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
 
         assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0));
+        assertEquals("taskId", taskResourceSummary.get(0)[0]);
     }
 
     @Test
@@ -373,7 +373,7 @@ class TaskResourceDaoTest {
             = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
 
         assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0));
+        assertEquals("taskId", taskResourceSummary.get(0)[0]);
     }
 
     @Test
@@ -401,7 +401,7 @@ class TaskResourceDaoTest {
             = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
 
         assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0));
+        assertEquals("taskId", taskResourceSummary.get(0)[0]);
     }
 
     @Test
