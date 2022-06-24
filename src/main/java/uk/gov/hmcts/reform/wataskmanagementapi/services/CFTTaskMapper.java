@@ -189,7 +189,9 @@ public class CFTTaskMapper {
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getReconfigureRequestTime() == null ? null
+                : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );
     }
 
