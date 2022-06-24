@@ -195,7 +195,9 @@ public class CFTTaskMapper {
             taskResource.getDescription(),
             taskResource.getAdditionalProperties(),
             taskResource.getNextHearingId(),
-            taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime()
+            taskResource.getNextHearingDate() == null ? null : taskResource.getNextHearingDate().toZonedDateTime(),
+            taskResource.getReconfigureRequestTime() == null ? null
+                : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );
     }
 

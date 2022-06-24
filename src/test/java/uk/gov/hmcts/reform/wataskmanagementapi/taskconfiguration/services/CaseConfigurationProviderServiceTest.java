@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.booleanValue;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue.stringValue;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,9 +61,9 @@ class CaseConfigurationProviderServiceTest {
             objectMapper
         );
 
-        when(caseDetails.getCaseType()).thenReturn("Asylum");
-        when(caseDetails.getJurisdiction()).thenReturn("IA");
-        when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
+        lenient().when(caseDetails.getCaseType()).thenReturn("Asylum");
+        lenient().when(caseDetails.getJurisdiction()).thenReturn("IA");
+        lenient().when(caseDetails.getSecurityClassification()).thenReturn(("PUBLIC"));
     }
 
     public static Stream<Arguments> scenarioProvider() {
@@ -617,6 +618,47 @@ class CaseConfigurationProviderServiceTest {
                     stringValue("additionalProperties"),
                     stringValue(writeValueAsString(additionalProperties))
                 ));
+    }
+
+    @Test
+    void should_evaluate_task_configuration_and_return_dmn_results() {
+        String someCaseId = "someCaseId";
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue("roleAssignmentId"),
+                    booleanValue(true)
+                )
+            ));
+
+        List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
+            .evaluateConfigurationDmn(someCaseId, null);
+
+        Assertions.assertThat(results)
+            .isNotEmpty()
+            .hasSize(1)
+            .contains(
+                new ConfigurationDmnEvaluationResponse(
+                    stringValue("additionalProperties_roleAssignmentId"),
+                    stringValue("roleAssignmentId"),
+                    booleanValue(true)
+                ));
+    }
+
+    @Test
+    void should_evaluate_task_configuration_dmn_and_return_empty_dmn_results() {
+        String someCaseId = "someCaseId";
+        when(ccdDataService.getCaseData(someCaseId)).thenReturn(caseDetails);
+        lenient().when(dmnEvaluationService.evaluateTaskConfigurationDmn(any(), any(), any(), any()))
+            .thenReturn(List.of());
+
+        List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
+            .evaluateConfigurationDmn(someCaseId, null);
+
+        Assertions.assertThat(results)
+            .isEmpty();
     }
 
 

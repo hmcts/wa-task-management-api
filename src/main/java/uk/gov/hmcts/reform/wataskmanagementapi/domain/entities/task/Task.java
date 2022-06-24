@@ -16,6 +16,7 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvide
     "PMD.ExcessiveParameterList", "PMD.ShortClassName", "PMD.LinguisticNaming"})
 @Schema(allowableValues = "Task")
 public class Task {
+    public static final String SAMPLE_ISO_DATE_TIME = "2020-09-05T14:47:01.250542+01:00";
     @Schema(
         required = true,
         description = "Unique identifier for the task"
@@ -49,7 +50,7 @@ public class Task {
     @Schema(
         required = true,
         description = "The security classification of the main business entity this task relates to."
-            + " Can be PUBLIC, PRIVATE, RESTRICTED"
+                      + " Can be PUBLIC, PRIVATE, RESTRICTED"
     )
     private final String securityClassification;
     @Schema(
@@ -60,14 +61,14 @@ public class Task {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
-        example = "2020-09-05T14:47:01.250542+01:00",
+        example = SAMPLE_ISO_DATE_TIME,
         description = "Optional due date for the task that will be created"
     )
     private final ZonedDateTime createdDate;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @JsonFormat(pattern = DATE_TIME_FORMAT)
     @Schema(
-        example = "2020-09-05T14:47:01.250542+01:00",
+        example = SAMPLE_ISO_DATE_TIME,
         description = "Optional due date for the task that will be created"
     )
     private final ZonedDateTime dueDate;
@@ -81,7 +82,7 @@ public class Task {
     private final String location;
     @Schema(required = true,
         description = "Indicator to the user interface of how this task is to be executed. "
-            + "For MVP, this will always be \"Case Management Task\""
+                      + "For MVP, this will always be \"Case Management Task\""
     )
     private final String executionType;
     @Schema(required = true,
@@ -122,7 +123,7 @@ public class Task {
     private final WarningValues warningList;
 
     @Schema(description = "A value describing the category of the case, for IA, "
-        + "it has the same value as the AppealType field")
+                          + "it has the same value as the AppealType field")
     private final String caseManagementCategory;
 
     @Schema(required = true,
@@ -147,9 +148,23 @@ public class Task {
     @Schema(required = true,
         description = "A value describing the additional properties")
     private final Map<String, String> additionalProperties;
+    @Schema(description = "Next hearing identifier")
     private final String nextHearingId;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = SAMPLE_ISO_DATE_TIME,
+        description = "Next hearing date time"
+    )
     private final ZonedDateTime nextHearingDate;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    @JsonFormat(pattern = DATE_TIME_FORMAT)
+    @Schema(
+        example = SAMPLE_ISO_DATE_TIME,
+        description = "Optional reconfigure request time"
+    )
+    private ZonedDateTime reconfigureRequestTime;
 
     public Task(String id,
                 String name,
@@ -215,6 +230,73 @@ public class Task {
         this.additionalProperties = additionalProperties;
         this.nextHearingId = nextHearingId;
         this.nextHearingDate = nextHearingDate;
+    }
+
+    public Task(String id,
+                String name,
+                String type,
+                String taskState,
+                String taskSystem,
+                String securityClassification,
+                String taskTitle,
+                ZonedDateTime createdDate,
+                ZonedDateTime dueDate,
+                String assignee,
+                boolean autoAssigned,
+                String executionType,
+                String jurisdiction,
+                String region,
+                String location,
+                String locationName,
+                String caseTypeId,
+                String caseId,
+                String caseCategory,
+                String caseName,
+                Boolean warnings,
+                WarningValues warningList,
+                String caseManagementCategory,
+                String workTypeId,
+                String workTypeLabel,
+                TaskPermissions taskPermissions,
+                String roleCategory,
+                String description,
+                Map<String, String> additionalProperties,
+                String nextHearingId,
+                ZonedDateTime nextHearingDate,
+                ZonedDateTime reconfigureRequestTime) {
+        this(id,
+            name,
+            type,
+            taskState,
+            taskSystem,
+            securityClassification,
+            taskTitle,
+            createdDate,
+            dueDate,
+            assignee,
+            autoAssigned,
+            executionType,
+            jurisdiction,
+            region,
+            location,
+            locationName,
+            caseTypeId,
+            caseId,
+            caseCategory,
+            caseName,
+            warnings,
+            warningList,
+            caseManagementCategory,
+            workTypeId,
+            workTypeLabel,
+            taskPermissions,
+            roleCategory,
+            description,
+             additionalProperties,
+             nextHearingId,
+             nextHearingDate
+        );
+        this.reconfigureRequestTime = reconfigureRequestTime;
     }
 
     public String getId() {
@@ -340,5 +422,10 @@ public class Task {
     public ZonedDateTime getNextHearingDate() {
         return nextHearingDate;
     }
+
+    public ZonedDateTime getReconfigureRequestTime() {
+        return reconfigureRequestTime;
+    }
+
 }
 
