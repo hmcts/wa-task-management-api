@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.GrantTyp
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -92,13 +91,13 @@ class TaskResourceDaoTest {
     @Mock
     private Subquery<TaskResource> subQuery;
     @Mock
-    private CriteriaQuery<TaskResourceSummary> summaryCriteriaQuery;
+    private CriteriaQuery<Object[]> summaryCriteriaQuery;
     @Mock
     private TypedQuery<TaskResource> query;
     @Mock
     private TypedQuery<Long> countQuery;
     @Mock
-    private TypedQuery<TaskResourceSummary> summaryQuery;
+    private TypedQuery<Object[]> summaryQuery;
     @Mock
     private Predicate predicate;
     @Mock
@@ -172,7 +171,7 @@ class TaskResourceDaoTest {
         lenient().when(countQuery.setFirstResult(1)).thenReturn(countQuery);
 
         //summary criteria
-        lenient().when(builder.createQuery(TaskResourceSummary.class)).thenReturn(summaryCriteriaQuery);
+        lenient().when(builder.createQuery(Object[].class)).thenReturn(summaryCriteriaQuery);
         lenient().when(summaryCriteriaQuery.from(TaskResource.class)).thenReturn(root);
         lenient().when(em.createQuery(summaryCriteriaQuery)).thenReturn(summaryQuery);
         lenient().when(summaryCriteriaQuery.multiselect(anyList())).thenReturn(summaryCriteriaQuery);
@@ -183,8 +182,8 @@ class TaskResourceDaoTest {
         lenient().when(summaryQuery.setMaxResults(10)).thenReturn(summaryQuery);
     }
 
-    private TaskResourceSummary createTaskResourceSummary() {
-        return new TaskResourceSummary(
+    private Object[] createTaskResourceSummary() {
+        return new Object[]{
             "taskId",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
             "1623278362430412",
@@ -192,7 +191,7 @@ class TaskResourceDaoTest {
             "Asylum",
             "Taylor House",
             "title"
-        );
+        };
     }
 
     private TaskResource createTaskResource() {
@@ -340,13 +339,13 @@ class TaskResourceDaoTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
+        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<TaskResourceSummary> taskResourceSummary
+        List<Object[]> taskResourceSummary
             = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
 
         assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0).getTaskId());
+        assertEquals("taskId", taskResourceSummary.get(0));
     }
 
     @Test
@@ -368,13 +367,13 @@ class TaskResourceDaoTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
+        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<TaskResourceSummary> taskResourceSummary
+        List<Object[]> taskResourceSummary
             = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
 
         assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0).getTaskId());
+        assertEquals("taskId", taskResourceSummary.get(0));
     }
 
     @Test
@@ -396,13 +395,13 @@ class TaskResourceDaoTest {
         List<PermissionTypes> permissionsRequired = new ArrayList<>();
         permissionsRequired.add(PermissionTypes.READ);
 
-        when(summaryQuery.getResultList()).thenReturn(List.of(createTaskResourceSummary()));
+        when(summaryQuery.getResultList()).thenReturn(List.<Object[]>of(createTaskResourceSummary()));
 
-        List<TaskResourceSummary> taskResourceSummary
+        List<Object[]> taskResourceSummary
             = taskResourceDao.getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired);
 
         assertNotNull(taskResourceSummary);
-        assertEquals("taskId", taskResourceSummary.get(0).getTaskId());
+        assertEquals("taskId", taskResourceSummary.get(0));
     }
 
     @Test
@@ -423,7 +422,7 @@ class TaskResourceDaoTest {
 
         List<TaskResource> taskResources = taskResourceDao.getTaskResources(
             searchTaskRequest,
-            List.of(createTaskResourceSummary())
+            List.<Object[]>of(createTaskResourceSummary())
         );
 
         assertNotNull(taskResources);
