@@ -242,7 +242,8 @@ class TaskResourceDaoTest {
                 OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
             )),
             "caseCategory",
-            ADDITIONAL_PROPERTIES
+            ADDITIONAL_PROPERTIES,
+            OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00")
         );
     }
 
