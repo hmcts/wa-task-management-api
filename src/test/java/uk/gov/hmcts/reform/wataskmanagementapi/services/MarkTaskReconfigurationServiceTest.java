@@ -32,7 +32,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class TaskReconfigurationServiceTest {
+class MarkTaskReconfigurationServiceTest {
 
     @Mock
     private CFTTaskDatabaseService cftTaskDatabaseService;
@@ -41,7 +41,7 @@ class TaskReconfigurationServiceTest {
     CaseConfigurationProviderService caseConfigurationProviderService;
 
     @InjectMocks
-    private MarkTaskReconfigurationService taskReconfigurationService;
+    private MarkTaskReconfigurationService markTaskReconfigurationService;
 
     @BeforeEach
     void setup() {
@@ -71,7 +71,7 @@ class TaskReconfigurationServiceTest {
             .thenReturn(taskResources.get(1));
 
         OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
+        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
 
         taskResourcesMarked.forEach(taskResource -> {
             assertNotNull(taskResource.getReconfigureRequestTime());
@@ -88,7 +88,7 @@ class TaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(taskResources);
 
-        List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
+        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
 
         taskResourcesMarked.forEach(taskResource -> {
             assertNull(taskResource.getReconfigureRequestTime());
@@ -103,7 +103,7 @@ class TaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
 
-        List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
+        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
 
         assertEquals(0, taskResourcesMarked.size());
     }
@@ -122,7 +122,7 @@ class TaskReconfigurationServiceTest {
         when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
             anyList(), anyList())).thenReturn(List.of());
 
-        List<TaskResource> taskResourcesMarked = taskReconfigurationService.markTasksToReconfigure(taskFilters);
+        List<TaskResource> taskResourcesMarked = markTaskReconfigurationService.markTasksToReconfigure(taskFilters);
 
         assertEquals(0, taskResourcesMarked.size());
     }
