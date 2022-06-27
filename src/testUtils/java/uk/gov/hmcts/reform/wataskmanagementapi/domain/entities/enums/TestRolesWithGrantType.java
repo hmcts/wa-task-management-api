@@ -36,10 +36,31 @@ public enum TestRolesWithGrantType {
         RoleType.ORGANISATION,
         RoleCategory.LEGAL_OPERATIONS
     ),
-    STANDARD_SENIOR_TRIBUNAL_CASE_WORKER(
+    STANDARD_CASE_WORKER_RESTRICTED(
+        "standard-caseworker",
+        GrantType.STANDARD,
+        Classification.RESTRICTED,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
+    ),
+    STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PUBLIC(
         "senior-tribunal-caseworker",
         GrantType.STANDARD,
         Classification.PUBLIC,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
+    ),
+    STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_PRIVATE(
+        "senior-tribunal-caseworker",
+        GrantType.STANDARD,
+        Classification.PRIVATE,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
+    ),
+    STANDARD_SENIOR_TRIBUNAL_CASE_WORKER_RESTRICTED(
+        "senior-tribunal-caseworker",
+        GrantType.STANDARD,
+        Classification.RESTRICTED,
         RoleType.ORGANISATION,
         RoleCategory.LEGAL_OPERATIONS
     ),
@@ -96,14 +117,21 @@ public enum TestRolesWithGrantType {
         "lead-judge",
         GrantType.SPECIFIC,
         Classification.PUBLIC,
-        RoleType.ORGANISATION,
+        RoleType.CASE,
         RoleCategory.JUDICIAL
     ),
     SPECIFIC_LEAD_JUDGE_PRIVATE(
         "lead-judge",
         GrantType.SPECIFIC,
         Classification.PRIVATE,
-        RoleType.ORGANISATION,
+        RoleType.CASE,
+        RoleCategory.JUDICIAL
+    ),
+    SPECIFIC_LEAD_JUDGE_RESTRICTED(
+        "lead-judge",
+        GrantType.SPECIFIC,
+        Classification.RESTRICTED,
+        RoleType.CASE,
         RoleCategory.JUDICIAL
     ),
     SPECIFIC_CASE_MANAGER(
@@ -127,10 +155,17 @@ public enum TestRolesWithGrantType {
         RoleType.CASE,
         RoleCategory.JUDICIAL
     ),
-    CHALLENGED_ACCESS_JUDICIARY(
+    CHALLENGED_ACCESS_JUDICIARY_PUBLIC(
         "challenged-access-judiciary",
         GrantType.CHALLENGED,
         Classification.PUBLIC,
+        RoleType.CASE,
+        RoleCategory.JUDICIAL
+    ),
+    CHALLENGED_ACCESS_JUDICIARY_PRIVATE(
+        "challenged-access-judiciary",
+        GrantType.CHALLENGED,
+        Classification.PRIVATE,
         RoleType.CASE,
         RoleCategory.JUDICIAL
     ),
@@ -175,6 +210,34 @@ public enum TestRolesWithGrantType {
         Classification.RESTRICTED,
         RoleType.CASE,
         RoleCategory.ADMIN
+    ),
+    INACTIVE_ROLE(
+        "inactive-role",
+        GrantType.STANDARD,
+        Classification.PUBLIC,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
+    ),
+    PAGINATION_ROLE_PUBLIC(
+        "pagination-role",
+        GrantType.STANDARD,
+        Classification.PUBLIC,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
+    ),
+    PAGINATION_ROLE_PRIVATE(
+        "pagination-role",
+        GrantType.STANDARD,
+        Classification.PRIVATE,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
+    ),
+    PAGINATION_ROLE_RESTRICTED(
+        "pagination-role",
+        GrantType.STANDARD,
+        Classification.RESTRICTED,
+        RoleType.ORGANISATION,
+        RoleCategory.LEGAL_OPERATIONS
     );
 
     private final String roleName;
