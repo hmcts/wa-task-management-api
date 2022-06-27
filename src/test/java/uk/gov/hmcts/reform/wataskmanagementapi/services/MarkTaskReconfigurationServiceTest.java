@@ -185,4 +185,5 @@ class MarkTaskReconfigurationServiceTest {
         );
         return List.of(taskResource1, taskResource2);
     }
+
 }
