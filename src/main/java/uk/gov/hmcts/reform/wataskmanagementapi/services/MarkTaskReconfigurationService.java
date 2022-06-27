@@ -43,7 +43,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
             .collect(Collectors.toList());
 
         List<String> reconfigurableCaseIds = caseIds.stream()
-            .filter(caseId -> canReconfigure(caseId))
+            .filter(this::canReconfigure)
             .collect(Collectors.toList());
 
         List<TaskResource> taskResources = cftTaskDatabaseService
