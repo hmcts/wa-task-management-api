@@ -43,7 +43,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
             .collect(Collectors.toList());
 
         List<String> reconfigurableCaseIds = caseIds.stream()
-            .filter(this::canReconfigure)
+            .filter(this::isReconfigurable)
             .collect(Collectors.toList());
 
         List<TaskResource> taskResources = cftTaskDatabaseService
@@ -77,7 +77,7 @@ public class MarkTaskReconfigurationService implements TaskOperationService {
         return List.of();
     }
 
-    private boolean canReconfigure(String caseId) {
+    private boolean isReconfigurable(String caseId) {
         List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
             .evaluateConfigurationDmn(caseId, null);
         return results.stream().filter(result -> result.getCanReconfigure() != null)
