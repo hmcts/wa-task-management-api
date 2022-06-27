@@ -77,7 +77,7 @@ public class TaskResourceDao {
 
         List<SortingParameter> sortingParameters = searchTaskRequest.getSortingParameters();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            selections.add(root.get("dueDateTime"));
+            selections.addAll(List.of(root.get("priorityDate"), root.get("majorPriority"), root.get("minorPriority")));
         } else {
             sortingParameters.forEach(p -> selections.add(root.get(p.getSortBy().getCftVariableName())));
         }
@@ -178,7 +178,10 @@ public class TaskResourceDao {
 
         List<Order> orders = new ArrayList<>();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            orders.add(builder.desc(root.get("dueDateTime")));
+            orders.addAll(List.of(builder.asc(root.get("majorPriority")),
+                                  builder.desc(root.get("priorityDate")),
+                                  builder.asc(root.get("minorPriority"))
+            ));
         } else {
             orders.addAll(generateOrders(sortingParameters, builder, root));
         }
