@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskRoleResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.WorkTypeResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.BusinessContext;
@@ -105,8 +104,8 @@ public class CftQueryServiceTest extends CamundaHelpers {
     @Mock
     private AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
-    private TaskResourceSummary createTaskResourceSummary() {
-        return new TaskResourceSummary(
+    private Object[] createTaskResourceSummary() {
+        return new Object[]{
             "taskId",
             OffsetDateTime.parse("2022-05-09T20:15:45.345875+01:00"),
             "1623278362430412",
@@ -114,7 +113,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             "Asylum",
             "Taylor House",
             "title"
-        );
+        };
     }
 
     private TaskResource createTaskResource() {
@@ -302,7 +301,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
 
-            List<TaskResourceSummary> taskResourceSummary = List.of(createTaskResourceSummary());
+            List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired))
                 .thenReturn(taskResourceSummary);
@@ -340,7 +339,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
-            List<TaskResourceSummary> taskResourceSummary = List.of(createTaskResourceSummary());
+            List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired))
                 .thenReturn(taskResourceSummary);
@@ -377,7 +376,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
-            List<TaskResourceSummary> taskResourceSummary = List.of(createTaskResourceSummary());
+            List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired))
                 .thenReturn(taskResourceSummary);
@@ -441,7 +440,7 @@ public class CftQueryServiceTest extends CamundaHelpers {
             permissionsRequired.add(PermissionTypes.READ);
 
             when(cftTaskMapper.mapToTaskAndExtractPermissionsUnion(any(), any())).thenReturn(getTask());
-            List<TaskResourceSummary> taskResourceSummary = List.of(createTaskResourceSummary());
+            List<Object[]> taskResourceSummary = List.<Object[]>of(createTaskResourceSummary());
             when(taskResourceDao
                      .getTaskResourceSummary(1, 10, searchTaskRequest, roleAssignments, permissionsRequired))
                 .thenReturn(taskResourceSummary);

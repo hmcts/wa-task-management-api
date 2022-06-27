@@ -1,26 +1,24 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
-
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 
-public class TaskResourceSummaryQueryBuilder extends TaskResourceQueryBuilder<TaskResourceSummary> {
+public class TaskResourceSummaryQueryBuilder extends TaskResourceQueryBuilder<Object[]> {
 
     public TaskResourceSummaryQueryBuilder(EntityManager entityManager) {
         super(entityManager);
     }
 
     @Override
-    public CriteriaQuery<TaskResourceSummary> createQuery() {
-        return builder.createQuery(TaskResourceSummary.class);
+    public CriteriaQuery<Object[]> createQuery() {
+        return builder.createQuery(Object[].class);
     }
 
     @Override
-    public TypedQuery<TaskResourceSummary> build() {
+    public TypedQuery<Object[]> build() {
 
-        CriteriaQuery<TaskResourceSummary> criteriaQuery = query.multiselect(selections).distinct(true);
+        CriteriaQuery<Object[]> criteriaQuery = query.multiselect(selections).distinct(true);
 
         if (predicate != null) {
             criteriaQuery.where(predicate);

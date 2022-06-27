@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -68,7 +67,7 @@ public class CftQueryService {
     ) {
         validateRequest(searchTaskRequest);
 
-        final List<TaskResourceSummary> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
+        final List<Object[]> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
             firstResult,
             maxResults,
             searchTaskRequest,
