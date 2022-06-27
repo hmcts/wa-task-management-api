@@ -118,7 +118,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             otherTaskResource.getTaskId(),
             otherTaskResource.getCreated(),
             otherTaskResource.getDueDateTime(),
-            taskResource.getPriorityDate()
+            otherTaskResource.getPriorityDate()
         ));
 
         await()
