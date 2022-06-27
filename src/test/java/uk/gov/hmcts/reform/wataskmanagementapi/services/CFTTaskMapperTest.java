@@ -993,6 +993,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
+        taskResource.setReconfigureRequestTime(OffsetDateTime.now());
 
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, new HashSet<>());
 
@@ -1023,6 +1024,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getCreatedDate());
         assertNotNull(task.getPermissions());
         assertTrue(task.getPermissions().getValues().isEmpty());
+        assertNotNull(task.getReconfigureRequestTime());
     }
 
     @Test
@@ -1088,6 +1090,7 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.EXECUTE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
+        assertNull(task.getReconfigureRequestTime());
     }
 
     @Test
