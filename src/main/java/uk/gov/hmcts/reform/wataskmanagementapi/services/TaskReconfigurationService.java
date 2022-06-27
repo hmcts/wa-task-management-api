@@ -8,6 +8,8 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.MarkTaskToReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -23,9 +25,12 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorM
 public class TaskReconfigurationService {
 
     private final CFTTaskDatabaseService cftTaskDatabaseService;
+    private final CaseConfigurationProviderService caseConfigurationProviderService;
 
-    public TaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService) {
+    public TaskReconfigurationService(CFTTaskDatabaseService cftTaskDatabaseService,
+                                      CaseConfigurationProviderService caseConfigurationProviderService) {
         this.cftTaskDatabaseService = cftTaskDatabaseService;
+        this.caseConfigurationProviderService = caseConfigurationProviderService;
     }
 
     @Transactional(noRollbackFor = TaskReconfigurationException.class)
@@ -36,9 +41,13 @@ public class TaskReconfigurationService {
             .map(Object::toString)
             .collect(Collectors.toList());
 
+        List<String> reconfigurableCaseIds = caseIds.stream()
+            .filter(caseId -> canReconfigure(caseId))
+            .collect(Collectors.toList());
+
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-                caseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
+                reconfigurableCaseIds, List.of(CFTTaskState.ASSIGNED, CFTTaskState.UNASSIGNED));
 
         List<TaskResource> successfulTaskResources = new ArrayList<>();
         List<String> taskIds = taskResources.stream()
@@ -56,6 +65,15 @@ public class TaskReconfigurationService {
         }
 
         return successfulTaskResources;
+    }
+
+    private boolean canReconfigure(String caseId) {
+        List<ConfigurationDmnEvaluationResponse> results = caseConfigurationProviderService
+            .evaluateConfigurationDmn(caseId, null);
+        return results.stream().filter(result -> result.getCanReconfigure() != null)
+            .findAny()
+            .map(result -> result.getCanReconfigure().getValue())
+            .orElseGet(() -> false);
     }
 
 
