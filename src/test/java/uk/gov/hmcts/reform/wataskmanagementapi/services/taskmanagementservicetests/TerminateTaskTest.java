@@ -22,10 +22,11 @@ import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.RoleAssignmentVerificationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskManagementService;
-import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskReconfigurationService;
+import uk.gov.hmcts.reform.wataskmanagementapi.services.TaskOperationService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import javax.persistence.EntityManager;
@@ -61,7 +62,7 @@ class TerminateTaskTest extends CamundaHelpers {
     @Mock
     TaskAutoAssignmentService taskAutoAssignmentService;
     @Mock
-    private TaskReconfigurationService taskReconfigurationService;
+    private List<TaskOperationService> taskOperationServices;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
     TaskManagementService taskManagementService;
@@ -89,7 +90,7 @@ class TerminateTaskTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            taskOperationServices,
             entityManager,
             allowedJurisdictionConfiguration
         );

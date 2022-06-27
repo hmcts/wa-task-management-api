@@ -41,7 +41,7 @@ class TaskReconfigurationServiceTest {
     CaseConfigurationProviderService caseConfigurationProviderService;
 
     @InjectMocks
-    private TaskReconfigurationService taskReconfigurationService;
+    private MarkTaskReconfigurationService taskReconfigurationService;
 
     @BeforeEach
     void setup() {

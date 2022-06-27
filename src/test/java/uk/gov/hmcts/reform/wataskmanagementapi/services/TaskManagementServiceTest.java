@@ -158,7 +158,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     AccessControlResponse accessControlResponse;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
-    TaskReconfigurationService taskReconfigurationService;
+    MarkTaskReconfigurationService taskReconfigurationService;
     TaskManagementService taskManagementService;
     String taskId;
     @Mock
@@ -187,6 +187,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
     private Join<Object, Object> taskRoleResources;
     @Mock
     private TypedQuery<TaskResource> query;
+
 
     @Test
     void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
@@ -247,7 +248,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             cftTaskDatabaseService,
             cftQueryService
         );
-        taskReconfigurationService = new TaskReconfigurationService(cftTaskDatabaseService,
+        taskReconfigurationService = new MarkTaskReconfigurationService(cftTaskDatabaseService,
             caseConfigurationProviderService
         );
 
@@ -260,7 +261,7 @@ class TaskManagementServiceTest extends CamundaHelpers {
             configureTaskService,
             taskAutoAssignmentService,
             roleAssignmentVerification,
-            taskReconfigurationService,
+            List.of(taskReconfigurationService),
             entityManager,
             allowedJurisdictionConfiguration
         );
