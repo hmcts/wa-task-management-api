@@ -108,8 +108,8 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
                     "key3", "value3",
                     "key4", "value4"
                 ))))
-                .body("tasks.next_hearing_id", everyItem(equalTo("next-hearing-id")))
-                .body("tasks.next_hearing_date", everyItem(notNullValue()));
+                .body("tasks.next_hearing_id", everyItem(equalTo("next_hearing_id")))
+                .body("tasks.next_hearing_date", everyItem(equalTo("2022-12-07T14:00:00+01:00")));
 
             common.cleanUpTask(testVariables.getTaskId());
         });

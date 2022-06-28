@@ -117,6 +117,8 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
+            .body("tasks.next_hearing_id", everyItem(equalTo("next_hearing_id")))
+            .body("tasks.next_hearing_date", everyItem(equalTo("2022-12-07T14:00:00+01:00")))
             .body("tasks.additional_properties", everyItem(equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
