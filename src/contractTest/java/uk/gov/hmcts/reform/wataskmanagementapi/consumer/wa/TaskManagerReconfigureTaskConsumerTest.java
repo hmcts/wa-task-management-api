@@ -36,11 +36,27 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .given()
             .headers(getTaskManagementServiceResponseHeaders())
             .contentType(ContentType.JSON)
-            .body(createTaskOperationRequest())
+            .body(createMarkTaskToReconfigureOperationRequest())
             .post(mockServer.getUrl() + WA_RECONFIGURE_TASK_BY_ID)
             .then()
             .statusCode(204);
 
+    }
+
+    @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
+    public RequestResponsePact markTaskToReconfigureById204(PactDslWithProvider builder) {
+
+        return builder
+            .given("reconfigure a task using caseId")
+            .uponReceiving("caseId to reconfigure tasks")
+            .path(WA_RECONFIGURE_TASK_BY_ID)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .body(createMarkTaskToReconfigureOperationRequest(), String.valueOf(ContentType.JSON))
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .willRespondWith()
+            .status(HttpStatus.NO_CONTENT.value())
+            .toPact();
     }
 
     @Test
@@ -56,22 +72,6 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .then()
             .statusCode(204);
 
-    }
-
-    @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
-    public RequestResponsePact markTaskToReconfigureById204(PactDslWithProvider builder) {
-
-        return builder
-            .given("reconfigure a task")
-            .uponReceiving("caseId to reconfigure tasks")
-            .path(WA_RECONFIGURE_TASK_BY_ID)
-            .method(HttpMethod.POST.toString())
-            .headers(getTaskManagementServiceResponseHeaders())
-            .body(createTaskOperationRequest(), String.valueOf(ContentType.JSON))
-            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
-            .willRespondWith()
-            .status(HttpStatus.NO_CONTENT.value())
-            .toPact();
     }
 
     @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
@@ -98,7 +98,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     }
 
 
-    private String createTaskOperationRequest() {
+    private String createMarkTaskToReconfigureOperationRequest() {
 
         return "{\n"
                + "    \"operation\": \n"
