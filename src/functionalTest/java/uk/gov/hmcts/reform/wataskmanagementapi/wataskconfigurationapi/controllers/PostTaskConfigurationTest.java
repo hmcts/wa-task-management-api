@@ -3,9 +3,11 @@ package uk.gov.hmcts.reform.wataskmanagementapi.wataskconfigurationapi.controlle
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.controllers.request.ConfigureTaskRequest;
 
@@ -29,10 +31,18 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
     private String taskId;
     private String caseId;
     private CreateTaskMessage createTaskMessage;
+    private TestAuthenticationCredentials caseworkerCredentials;
+
+    @Before
+    public void setUp() {
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+    }
 
     @After
     public void cleanUp() {
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -50,7 +60,7 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
         );
 
         log.info("Creating roles...");
-        roleAssignmentHelper.setRoleAssignments(caseId);
+        common.setupRestrictedRoleAssignment(caseId, caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

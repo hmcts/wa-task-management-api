@@ -4,9 +4,11 @@ import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.CreateTaskMessage;
 
 import java.io.IOException;
@@ -25,9 +27,18 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
     private CreateTaskMessage createTaskMessage;
     private String caseId;
 
+    private TestAuthenticationCredentials caseworkerCredentials;
+
+    @Before
+    public void setUp() {
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-");
+    }
+
     @After
     public void cleanUp() {
         common.cleanUpTask(taskId);
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -40,7 +51,7 @@ public class PostConfigureTaskTest extends SpringBootFunctionalBaseTest {
         log.info("task found [{}]", taskId);
 
         log.info("Creating roles...");
-        roleAssignmentHelper.setRoleAssignments(caseId);
+        common.setupRestrictedRoleAssignment(caseId, caseworkerCredentials.getHeaders());
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
