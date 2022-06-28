@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.ExecuteReconfigureTaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskFilter;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskReconfigurationException;
@@ -45,6 +46,7 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
     private List<TaskResource> executeTasksToReconfigure(TaskOperationRequest request) {
         OffsetDateTime reconfigureDateTime = getReconfigureRequestTime(request.getTaskFilter());
+        Objects.requireNonNull(reconfigureDateTime);
 
         List<TaskResource> taskResources = cftTaskDatabaseService
             .getActiveTasksAndReconfigureRequestTimeIsNotNull(
@@ -68,9 +70,11 @@ public class ExecuteTaskReconfigurationService implements TaskOperationService {
 
     private OffsetDateTime getReconfigureRequestTime(List<TaskFilter<?>> taskFilters) {
 
-        return (OffsetDateTime) taskFilters.stream()
+        return taskFilters.stream()
             .filter(filter -> filter.getKey().equalsIgnoreCase("reconfigure_request_time"))
-            .findFirst().get().getValues();
+            .findFirst()
+            .map(filter -> ((ExecuteReconfigureTaskFilter) filter).getValues())
+            .orElseGet(() -> null);
     }
 
     private TaskResource configureTask(TaskResource taskResource) {
