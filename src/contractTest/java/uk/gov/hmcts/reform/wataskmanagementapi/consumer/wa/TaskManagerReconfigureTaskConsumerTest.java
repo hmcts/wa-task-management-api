@@ -29,8 +29,8 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     private static final String WA_RECONFIGURE_TASK_BY_ID = WA_URL + "/operation";
 
     @Test
-    @PactTestFor(pactMethod = "executeReconfigureTaskById204", pactVersion = PactSpecVersion.V3)
-    void testReconfigureTaskByTaskId204Test(MockServer mockServer) {
+    @PactTestFor(pactMethod = "markTaskToReconfigureById204", pactVersion = PactSpecVersion.V3)
+    void testMarkTaskToReconfigureById204Test(MockServer mockServer) {
 
         SerenityRest
             .given()
@@ -59,7 +59,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
     }
 
     @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
-    public RequestResponsePact executeReconfigureTaskById204(PactDslWithProvider builder) {
+    public RequestResponsePact markTaskToReconfigureById204(PactDslWithProvider builder) {
 
         return builder
             .given("reconfigure a task")
@@ -74,7 +74,7 @@ public class TaskManagerReconfigureTaskConsumerTest extends SpringBootContractBa
             .toPact();
     }
 
-    @Pact(provider = "wa_task_management_api_reconfigure_task", consumer = "wa_task_management_api")
+    @Pact(provider = "wa_task_management_api_reconfigure_task_by_case_id", consumer = "wa_task_management_api")
     public RequestResponsePact executeReconfigurationTaskById204(PactDslWithProvider builder) {
 
         return builder
