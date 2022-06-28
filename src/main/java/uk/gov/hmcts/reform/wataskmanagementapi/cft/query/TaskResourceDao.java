@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResourceSummary;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortingParameter;
 
@@ -24,6 +23,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
+import static java.util.Arrays.stream;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.SortOrder.ASCENDANT;
 
 @Slf4j
@@ -38,7 +38,7 @@ public class TaskResourceDao {
         this.entityManager = entityManager;
     }
 
-    public List<TaskResourceSummary> getTaskResourceSummary(int firstResult,
+    public List<Object[]> getTaskResourceSummary(int firstResult,
                                                             int maxResults,
                                                             SearchTaskRequest searchTaskRequest,
                                                             List<RoleAssignment> roleAssignments,
@@ -85,13 +85,16 @@ public class TaskResourceDao {
     }
 
     public List<TaskResource> getTaskResources(SearchTaskRequest searchTaskRequest,
-                                               List<TaskResourceSummary> taskResourcesSummary) {
+                                               List<Object[]> taskResourcesSummary) {
         SelectTaskResourceQueryBuilder selectQueryBuilder = new SelectTaskResourceQueryBuilder(entityManager, true);
         CriteriaBuilder builder = selectQueryBuilder.builder;
         Root<TaskResource> root = selectQueryBuilder.root;
 
         List<String> taskIds = taskResourcesSummary.stream()
-            .map(TaskResourceSummary::getTaskId)
+            .map(o -> stream(o).findFirst())
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .map(Object::toString)
             .collect(Collectors.toList());
         List<Order> orders = getSortOrders(searchTaskRequest, builder, root);
         Predicate selectPredicate = TaskSearchQueryBuilder.buildTaskQuery(taskIds, builder, root);
