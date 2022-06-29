@@ -58,7 +58,8 @@ public class SortQueryTest {
             new SearchParameterList(JURISDICTION, SearchOperator.IN, asList("IA")),
             new SearchParameterList(CASE_ID, SearchOperator.IN, asList(
                 "1623278362431003"
-            ))));
+            ))
+        ));
 
         Sort sort = SortQuery.sortByFields(searchTaskRequest);
         assertNotNull(sort);
