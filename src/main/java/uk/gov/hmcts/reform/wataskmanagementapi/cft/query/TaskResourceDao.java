@@ -179,7 +179,7 @@ public class TaskResourceDao {
         List<Order> orders = new ArrayList<>();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
             orders.addAll(List.of(builder.asc(root.get("majorPriority")),
-                                  builder.desc(root.get("priorityDate")),
+                                  builder.asc(root.get("priorityDate")),
                                   builder.asc(root.get("minorPriority"))
             ));
         } else {
