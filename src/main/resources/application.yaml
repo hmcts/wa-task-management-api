@@ -13,7 +13,9 @@ management:
 
 config:
   privilegedAccessClients: ${TASK_MANAGEMENT_PRIVILEGED_CLIENTS:wa_task_management_api,xui_webapp}
-  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor}
+  exclusiveAccessClients: ${TASK_MANAGEMENT_EXCLUSIVE_CLIENTS:wa_task_management_api,wa_task_monitor,wa_case_event_handler}
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:ia,wa,sscs,civil}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
   search:
     defaultMaxResults: 50
 
@@ -37,7 +39,7 @@ security:
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
-    - "/v3/api-docs"
+    - "/v3/**"
     - "/favicon.ico"
 
 auth:
@@ -55,7 +57,7 @@ idam:
     secret: ${S2S_SECRET_TASK_MANAGEMENT_API:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_TASK_MANAGEMENT_API:wa_task_management_api}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps,iac,wa_task_management_api,xui_webapp,wa_task_monitor,camunda_bpm,wa_workflow_api,wa_case_event_handler}
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
   system:
@@ -81,6 +83,8 @@ spring:
         physical-strategy: com.vladmihalcea.hibernate.type.util.CamelCaseToSnakeCaseNamingStrategy
     properties:
       hibernate:
+        query:
+          in_clause_parameter_padding: true
         default_schema: ${POSTGRES_NAME:cft_task_db}
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
   flyway:

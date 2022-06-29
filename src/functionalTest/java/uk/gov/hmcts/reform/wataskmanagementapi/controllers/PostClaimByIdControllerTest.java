@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -36,9 +37,11 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -65,6 +68,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
             )));
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -162,6 +166,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_409_when_claiming_a_task_that_was_already_claimed() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -201,6 +206,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
@@ -219,13 +225,10 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
@@ -256,6 +259,7 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_permission_region_did_not_match() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(REGION, "1");
@@ -279,17 +283,15 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_role_base_location_does_not_match_to_the_task_location() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIdsWithCustomVariable(LOCATION, "765324");
@@ -313,13 +315,10 @@ public class PostClaimByIdControllerTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }

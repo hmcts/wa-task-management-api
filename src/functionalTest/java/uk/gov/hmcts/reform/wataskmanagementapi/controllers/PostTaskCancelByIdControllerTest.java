@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -32,9 +33,11 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -61,6 +64,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
             )));
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
 
@@ -85,6 +89,7 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
         TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
@@ -103,12 +108,10 @@ public class PostTaskCancelByIdControllerTest extends SpringBootFunctionalBaseTe
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }

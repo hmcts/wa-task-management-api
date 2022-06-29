@@ -8,10 +8,20 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.enums.RoleCate
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 import static java.util.Collections.singleton;
 
 class TaskTest {
+
+    public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
 
     ZonedDateTime created = ZonedDateTime.now();
     ZonedDateTime dueDate = ZonedDateTime.now().plusDays(1);
@@ -43,13 +53,16 @@ class TaskTest {
             false,
             new WarningValues(Arrays.asList(
                 new Warning("123", "some warning"),
-                new Warning("456", "some more warning"))
+                new Warning("456", "some more warning")
+            )
             ),
             "some-case-management-category",
             "hearing_work",
+            "Hearing work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.READ))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            ADDITIONAL_PROPERTIES
         );
 
         Assertions.assertThat(task.getId()).isEqualTo("some-id");
@@ -82,6 +95,7 @@ class TaskTest {
         Assertions.assertThat(task.getPermissions().getValues()).contains(PermissionTypes.READ);
         Assertions.assertThat(task.getRoleCategory()).isEqualTo("LEGAL_OPERATIONS");
         Assertions.assertThat(task.getDescription()).isEqualTo("a description");
+        Assertions.assertThat(task.getAdditionalProperties()).isEqualTo(ADDITIONAL_PROPERTIES);
     }
 
 
@@ -112,13 +126,16 @@ class TaskTest {
             false,
             new WarningValues(Arrays.asList(
                 new Warning("123", "some warning"),
-                new Warning("456", "some more warning"))
+                new Warning("456", "some more warning")
+            )
             ),
             "some-case-management-category",
             "hearing_work",
+            "Hearing work",
             new TaskPermissions(new HashSet<>(singleton(PermissionTypes.OWN))),
             RoleCategory.LEGAL_OPERATIONS.name(),
-            "a description"
+            "a description",
+            ADDITIONAL_PROPERTIES
         );
 
         Assertions.assertThat(task.isAutoAssigned()).isFalse();

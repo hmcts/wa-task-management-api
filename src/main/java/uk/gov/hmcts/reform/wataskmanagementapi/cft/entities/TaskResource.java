@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityC
 import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -39,17 +40,19 @@ import javax.persistence.OneToMany;
             typeClass = PostgreSQLEnumType.class
         ),
         @TypeDef(
-            name = "jsonb",
+            name = TaskResource.JSONB,
             typeClass = JsonType.class
         )
     }
 )
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields"})
+@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.TooManyFields", "PMD.UnnecessaryFullyQualifiedName"})
 public class TaskResource implements Serializable {
 
     private static final long serialVersionUID = -4550112481797873963L;
 
     private static final String PGSQL_ENUM = "pgsql_enum";
+    public static final String JSONB = "jsonb";
+    public static final String TIMESTAMP_WITH_TIME_ZONE = "TIMESTAMP WITH TIME ZONE";
 
     @Id
     @EqualsAndHashCode.Include()
@@ -57,7 +60,7 @@ public class TaskResource implements Serializable {
     private String taskName;
     private String taskType;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime dueDateTime;
 
     @Enumerated(EnumType.STRING)
@@ -79,7 +82,7 @@ public class TaskResource implements Serializable {
     private String description;
 
     @Type(type = "jsonb")
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = JSONB)
     private List<NoteResource> notes;
 
     private Integer majorPriority;
@@ -94,7 +97,7 @@ public class TaskResource implements Serializable {
     private String roleCategory;
     private Boolean hasWarnings = false;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime assignmentExpiry;
     @EqualsAndHashCode.Include()
     private String caseId;
@@ -114,7 +117,7 @@ public class TaskResource implements Serializable {
 
     private String terminationReason;
 
-    @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
     private OffsetDateTime created;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -122,8 +125,15 @@ public class TaskResource implements Serializable {
     private ExecutionTypeResource executionTypeCode;
 
     @ToString.Exclude
-    @OneToMany(mappedBy = "taskResource", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskResource", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<TaskRoleResource> taskRoleResources;
+
+    @Type(type = "jsonb")
+    @Column(columnDefinition = JSONB)
+    private Map<String, String> additionalProperties;
+
+    @Column(columnDefinition = TIMESTAMP_WITH_TIME_ZONE)
+    private OffsetDateTime reconfigureRequestTime;
 
     protected TaskResource() {
         // required for runtime proxy generation in Hibernate
@@ -252,7 +262,8 @@ public class TaskResource implements Serializable {
                         String terminationReason,
                         OffsetDateTime created,
                         Set<TaskRoleResource> taskRoleResources,
-                        String caseCategory) {
+                        String caseCategory,
+                        Map<String, String> additionalProperties) {
         this.taskId = taskId;
         this.taskName = taskName;
         this.taskType = taskType;
@@ -285,6 +296,7 @@ public class TaskResource implements Serializable {
         this.created = created;
         this.taskRoleResources = taskRoleResources;
         this.caseCategory = caseCategory;
+        this.additionalProperties = additionalProperties;
     }
 
     public void setTaskId(String taskId) {
@@ -413,5 +425,13 @@ public class TaskResource implements Serializable {
 
     public void setCaseCategory(String caseCategory) {
         this.caseCategory = caseCategory;
+    }
+
+    public void setAdditionalProperties(Map<String, String> additionalProperties) {
+        this.additionalProperties = additionalProperties;
+    }
+
+    public void setReconfigureRequestTime(OffsetDateTime reconfigureRequestTime) {
+        this.reconfigureRequestTime = reconfigureRequestTime;
     }
 }

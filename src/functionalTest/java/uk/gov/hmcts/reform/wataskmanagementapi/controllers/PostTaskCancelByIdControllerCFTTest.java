@@ -3,9 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
@@ -29,7 +27,6 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.SystemDateProvider.DATE_TIME_FORMAT;
 
 public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
@@ -46,6 +43,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
     @After
     public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
@@ -54,7 +52,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
@@ -98,38 +96,6 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
 
     }
 
-    @Ignore
-    @Disabled("Disabled temporarily see RWA-858")
-    @Test
-    public void should_return_a_403_when_the_user_did_not_have_sufficient_jurisdiction_did_not_match() {
-
-        TestVariables taskVariables = common.setupTaskWithoutCcdCaseAndRetrieveIdsWithCustomVariable(
-            JURISDICTION, "SSCS"
-        );
-        String taskId = taskVariables.getTaskId();
-
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
-
-        Response result = restApiActions.post(
-            ENDPOINT_BEING_TESTED,
-            taskId,
-            caseworkerCredentials.getHeaders()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.FORBIDDEN.value())
-            .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
-            .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
-        common.cleanUpTask(taskId);
-
-    }
-
     @Test
     public void should_return_a_204_when_cancelling_a_task_by_id() {
 
@@ -137,7 +103,7 @@ public class PostTaskCancelByIdControllerCFTTest extends SpringBootFunctionalBas
         String taskId = taskVariables.getTaskId();
         initiateTask(taskVariables);
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,

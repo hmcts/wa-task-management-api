@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.TestVariables;
 
 import java.time.ZonedDateTime;
@@ -30,11 +32,17 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTest {
     private static final String TASK_INITIATION_ENDPOINT_BEING_TESTED = "task/{task-id}";
     private static final String ENDPOINT_BEING_TESTED = "task/{task-id}";
-    private Headers authenticationHeaders;
+    private TestAuthenticationCredentials caseworkerCredentials;
 
     @Before
     public void setUp() {
-        authenticationHeaders = authorizationProvider.getJudgeAuthorization("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getJudgeAuthorization("wa-ft-test-r2-");
+    }
+
+    @After
+    public void cleanUp() {
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders());
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
     @Test
@@ -42,13 +50,14 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
 
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("reviewHearingBundle");
         String taskId = taskVariables.getTaskId();
-        common.setupCFTJudicialOrganisationalRoleAssignment(authenticationHeaders, taskVariables.getCaseId());
+        Headers headers = caseworkerCredentials.getHeaders();
+        common.setupCFTJudicialOrganisationalRoleAssignment(headers, taskVariables.getCaseId(), "IA", "Asylum");
         initiateTaskForJudicial(taskVariables, "reviewHearingBundle", "Review Hearing Bundle");
 
         Response result = restApiActions.get(
             ENDPOINT_BEING_TESTED,
             taskId,
-            authenticationHeaders
+            headers
         );
 
         result.then().assertThat()
@@ -74,8 +83,8 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", equalTo(true))
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
-            .body("task.permissions.values", hasSize(3))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasSize(5))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("JUDICIAL"));
 
@@ -103,7 +112,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             TASK_INITIATION_ENDPOINT_BEING_TESTED,
             taskVariables.getTaskId(),
             req,
-            authenticationHeaders
+            caseworkerCredentials.getHeaders()
         );
 
         result.then().assertThat()

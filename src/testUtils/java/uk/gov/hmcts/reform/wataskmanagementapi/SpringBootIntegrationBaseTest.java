@@ -14,6 +14,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.services.TransactionHelper;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 
 @SpringBootTest
@@ -25,7 +27,16 @@ import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
     "CCD_URL=http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 })
 @TestInstance(PER_CLASS)
-public abstract class SpringBootIntegrationBaseTest {
+public abstract class SpringBootIntegrationBaseTest extends RoleAssignmentHelper {
+    protected static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
+        "name1",
+        "value1",
+        "name2",
+        "value2",
+        "name3",
+        "value3"
+    );
+
     @Autowired
     protected AuthorizationProvider authorizationProvider;
     @Autowired

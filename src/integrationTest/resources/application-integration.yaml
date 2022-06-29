@@ -3,7 +3,8 @@ spring:
     driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11.4://localhost/cft_task_db
     hikari:
-      minimum-idle: 5
+      minimum-idle: 1
+
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -13,8 +14,8 @@ spring:
       hibernate:
         default_schema: cft_task_db
         dialect: "uk.gov.hmcts.reform.wataskmanagementapi.config.CustomPostgreSQL94Dialect"
-#        show_sql: true
-#        format_sql: true
+  #        show_sql: true
+  #        format_sql: true
   flyway:
     enabled: true
     baselineOnMigrate: true
@@ -41,8 +42,11 @@ logging:
       dao: debug
       transaction: debug
       jdbc.core.JdbcTemplate: info
-#    org.hibernate:
-#      SQL: debug
-#      type.descriptor.sql.BasicBinder: debug
-#      engine: debug
+    #    org.hibernate:
+    #      SQL: debug
+    #      type.descriptor.sql.BasicBinder: debug
+    #      engine: debug
     uk.gov.hmcts.reform: debug
+config:
+  allowedJurisdictions: ${ALLOWED_JURISDICTIONS:wa,ia,sscs,civil}
+  allowedCaseTypes: ${ALLOWED_CASE_TYPES:asylum,wacasetype,sscs,civil}
