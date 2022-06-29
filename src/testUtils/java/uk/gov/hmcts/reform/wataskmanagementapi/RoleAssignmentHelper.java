@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 
@@ -36,8 +37,16 @@ public abstract class RoleAssignmentHelper {
             .roleCategory(roleAssignmentRequest.getTestRolesWithGrantType().getRoleCategory())
             .authorisations(roleAssignmentRequest.getAuthorisations())
             .attributes(attributes)
-            .beginTime(LocalDateTime.now().minusYears(1))
-            .endTime(LocalDateTime.now().plusYears(1))
+            .beginTime(
+                roleAssignmentRequest.getBeginTime() == null
+                    ? LocalDateTime.now().minusYears(1)
+                    : roleAssignmentRequest.getBeginTime()
+            )
+            .endTime(
+                roleAssignmentRequest.getEndTime() == null
+                    ? LocalDateTime.now().plusYears(1)
+                    : roleAssignmentRequest.getEndTime()
+            )
             .roleType(RoleType.CASE)
             .build();
 
@@ -49,6 +58,10 @@ public abstract class RoleAssignmentHelper {
 
     private static Map<String, String> createAttributes(RoleAssignmentAttribute attribute) {
         Map<String, String> attributes = new HashMap<>();
+
+        if (isNull(attribute)) {
+            return attributes;
+        }
 
         if (nonNull(attribute.getJurisdiction())) {
             attributes.put(RoleAttributeDefinition.JURISDICTION.value(), attribute.getJurisdiction());
@@ -79,22 +92,23 @@ public abstract class RoleAssignmentHelper {
     @Getter
     protected static class RoleAssignmentRequest {
 
-        TestRolesWithGrantType testRolesWithGrantType;
-        RoleAssignmentAttribute roleAssignmentAttribute;
-        List<String> authorisations;
-
+        private TestRolesWithGrantType testRolesWithGrantType;
+        private RoleAssignmentAttribute roleAssignmentAttribute;
+        private List<String> authorisations;
+        private LocalDateTime beginTime;
+        private LocalDateTime endTime;
     }
 
     @Builder
     @Getter
     protected static class RoleAssignmentAttribute {
 
-        String jurisdiction;
-        String caseType;
-        String caseId;
-        String primaryLocation;
-        String baseLocation;
-        String region;
+        private String jurisdiction;
+        private String caseType;
+        private String caseId;
+        private String primaryLocation;
+        private String baseLocation;
+        private String region;
 
     }
 

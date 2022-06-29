@@ -105,6 +105,8 @@ public class PostTaskConfigurationTest extends SpringBootFunctionalBaseTest {
             authorizationProvider.getServiceAuthorizationHeader()
         );
 
+        result.prettyPeek();
+
         result.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .contentType(APPLICATION_JSON_VALUE)
