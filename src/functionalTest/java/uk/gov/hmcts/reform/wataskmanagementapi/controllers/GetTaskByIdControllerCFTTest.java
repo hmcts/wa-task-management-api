@@ -74,7 +74,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
 
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
 
@@ -148,8 +148,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.warnings", is(false))
             .body("task.case_management_category", equalTo("Protection"))
             .body("task.work_type_id", equalTo("decision_making_work"))
-            .body("task.permissions.values.size()", equalTo(3))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
         common.cleanUpTask(taskId);
@@ -218,8 +218,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and().body("task.id", equalTo(taskId))
             .body("task.warnings", is(true))
-            .body("task.permissions.values.size()", equalTo(3))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"));
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"));
 
         final List<Map<String, String>> actualWarnings = result.jsonPath().getList(
             "task.warning_list.values");
@@ -275,13 +275,14 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .body("task.region", notNullValue())
             .body("task.case_type_id", notNullValue())
             .body("task.case_id", notNullValue())
-            .body("task.case_type_id", notNullValue())
+            .body("task.work_type_id", notNullValue())
+            .body("task.work_type_label", notNullValue())
             .body("task.case_category", notNullValue())
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", notNullValue())
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values.size()", equalTo(3))
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
+            .body("task.permissions.values.size()", equalTo(5))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("LEGAL_OPERATIONS"));
 
@@ -314,13 +315,10 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         result.then().assertThat()
             .statusCode(HttpStatus.FORBIDDEN.value())
             .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-            .body("type", equalTo(
-                "https://github.com/hmcts/wa-task-management-api/problem/role-assignment-verification-failure"))
-            .body("title", equalTo("Role Assignment Verification"))
+            .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
+            .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(
-                "Role Assignment Verification: The request failed the Role Assignment checks performed."));
-
+            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL_REQUEST_FAILED));
 
         common.cleanUpTask(taskId);
     }
@@ -384,7 +382,8 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .and()
             .body("task.id", equalTo(taskId))
-            .body("task.work_type_id", equalTo("decision_making_work"));
+            .body("task.work_type_id", equalTo("decision_making_work"))
+            .body("task.work_type_label", equalTo("Decision-making work"));
 
         common.cleanUpTask(taskId);
     }
@@ -394,7 +393,7 @@ public class GetTaskByIdControllerCFTTest extends SpringBootFunctionalBaseTest {
         TestVariables taskVariables1 = common.setupTaskAndRetrieveIds("reviewTheAppeal");
         String taskId = taskVariables1.getTaskId();
 
-        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders());
+        common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
 
         initiateTaskWithWarnings(taskVariables1, "reviewTheAppeal");
 
