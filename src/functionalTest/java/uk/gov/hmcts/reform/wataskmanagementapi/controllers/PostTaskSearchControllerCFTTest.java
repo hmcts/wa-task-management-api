@@ -504,8 +504,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
             .body("tasks.id", hasItem(taskId))
             .body("tasks.location", everyItem(equalTo("765324")))
             .body("tasks.case_id", hasItem(taskVariables.getCaseId()))
-            .body("tasks[0].permissions.values.size()", equalTo(5))
-            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("tasks[0].permissions.values.size()", equalTo(6))
+            .body("tasks[0].permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Execute", "Cancel"))
             .body("total_records", greaterThanOrEqualTo(1));
 
         common.cleanUpTask(taskId);
@@ -1218,8 +1218,8 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     @Test
     public void should_return_a_200_with_single_task_in_search_results_when_available_tasks_only_is_set_true() {
 
-        String taskType1 = "reviewHearingBundle";
-        String taskType2 = "reviewAdditionalAppellantEvidence";
+        String taskType1 = "requestRespondentEvidence";
+        String taskType2 = "reviewTheAppeal";
 
         String caseId = given.iCreateACcdCase();
         List<CamundaTask> camundaTasks = common.setupTaskAndRetrieveIdsForGivenCaseId(caseId, taskType1);
@@ -1267,7 +1267,7 @@ public class PostTaskSearchControllerCFTTest extends SpringBootFunctionalBaseTes
     public void should_return_a_200_with_multiple_tasks_in_search_results_when_available_tasks_only_is_set_true() {
 
         String taskType1 = "reviewAdditionalHomeOfficeEvidence";
-        String taskType2 = "reviewAdditionalAppellantEvidence";
+        String taskType2 = "reviewAdditionalEvidence";
         String taskType3 = "reviewTheAppeal";
 
         String caseId = given.iCreateACcdCase();
