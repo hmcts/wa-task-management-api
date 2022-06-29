@@ -628,17 +628,17 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         //assignee permissions : own, execute
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleName(),
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleCategory().name()
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY)
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)
@@ -730,17 +730,17 @@ class PostTaskAssignByIdControllerTest extends SpringBootIntegrationBaseTest {
         //assignee permissions : own, execute
         //standard role
         TaskRoleResource assigneeTaskRoleResource = new TaskRoleResource(
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleName(),
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleName(),
             false, true, true, false, false, false,
             new String[]{}, 1, false,
-            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY.getRoleCategory().name()
+            TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC.getRoleCategory().name()
         );
         insertDummyTaskInDb(jurisdiction, caseType, taskId, assigneeTaskRoleResource);
 
         List<RoleAssignment> assigneeRoles = new ArrayList<>();
 
         roleAssignmentRequest = RoleAssignmentRequest.builder()
-            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY)
+            .testRolesWithGrantType(TestRolesWithGrantType.CHALLENGED_ACCESS_JUDICIARY_PUBLIC)
             .roleAssignmentAttribute(
                 RoleAssignmentAttribute.builder()
                     .jurisdiction(jurisdiction)

@@ -189,7 +189,9 @@ public class CFTTaskMapper {
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getReconfigureRequestTime() == null ? null
+                : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );
     }
 
@@ -257,7 +259,8 @@ public class CFTTaskMapper {
             taskRoleResource.getRoleCategory(),
             taskRoleResource.getRoleName(),
             List.copyOf(permissionTypes),
-            authorisations);
+            authorisations
+        );
     }
 
     private Set<PermissionTypes> evaluatePermissionsFoundAndCollectResults(TaskRoleResource taskRoleResource) {
