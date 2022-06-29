@@ -21,7 +21,6 @@ import static java.util.Arrays.asList;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.InitiateTaskOperation.INITIATION;
@@ -117,7 +116,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -132,9 +131,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("own", true),
                 entry("manage", false),
                 entry("execute", false),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
-                entry("authorizations", List.of("373")),
+                entry("authorizations", List.of()),
                 entry("role_category", "JUDICIAL"),
                 entry("auto_assignable", true),
                 entry("assignment_priority", 1)
@@ -146,9 +145,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", true),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", false),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of("373")),
                 entry("role_category", "JUDICIAL"),
@@ -163,9 +162,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", false),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", true),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "LEGAL_OPERATIONS"),
@@ -179,9 +178,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", false),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", true),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "LEGAL_OPERATIONS"),
@@ -256,9 +255,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 equalTo("The task requires a case management event to be executed by the user. "
                         + "(Typically this will be in CCD.)")
             )
-            .body("work_type_resource.id", nullValue())
-            .body("work_type_resource.label", nullValue())
-            .body("task_role_resources.size()", equalTo(5));
+            .body("work_type_resource.id", equalTo("hearing_work"))
+            .body("work_type_resource.label", equalTo("Hearing work"))
+            .body("task_role_resources.size()", equalTo(2));
 
         assertPermissions(
             getTaskResource(result, "hearing-centre-admin"),
@@ -266,9 +265,9 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("read", true),
                 entry("refer", true),
                 entry("own", true),
-                entry("manage", false),
+                entry("manage", true),
                 entry("execute", false),
-                entry("cancel", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
                 entry("role_category", "ADMIN"),
@@ -284,7 +283,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -292,51 +291,19 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             )
         );
         assertPermissions(
-            getTaskResource(result, "judge"),
+            getTaskResource(result, "hearing-centre-admin"),
             Map.ofEntries(
                 entry("read", true),
                 entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of("373")),
-                entry("role_category", "JUDICIAL"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "senior-tribunal-caseworker"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
+                entry("own", true),
+                entry("manage", true),
+                entry("execute", false),
+                entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
+                entry("role_category", "ADMIN"),
                 entry("auto_assignable", false),
-                entry("assignment_priority", 2)
-            )
-        );
-        assertPermissions(
-            getTaskResource(result, "tribunal-caseworker"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", false),
-                entry("manage", false),
-                entry("execute", true),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("role_category", "LEGAL_OPERATIONS"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 2)
+                entry("assignment_priority", 1)
             )
         );
 
@@ -408,24 +375,8 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
             )
             .body("work_type_resource.id", equalTo("routine_work"))
             .body("work_type_resource.label", equalTo("Routine work"))
-            .body("task_role_resources.size()", equalTo(2));
+            .body("task_role_resources.size()", equalTo(1));
 
-        assertPermissions(
-            getTaskResource(result, "national-business-centre"),
-            Map.ofEntries(
-                entry("read", true),
-                entry("refer", true),
-                entry("own", true),
-                entry("manage", false),
-                entry("execute", false),
-                entry("cancel", false),
-                entry("task_id", taskId),
-                entry("authorizations", List.of()),
-                entry("role_category", "ADMIN"),
-                entry("auto_assignable", false),
-                entry("assignment_priority", 1)
-            )
-        );
         assertPermissions(
             getTaskResource(result, "task-supervisor"),
             Map.ofEntries(
@@ -433,7 +384,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 entry("refer", true),
                 entry("own", false),
                 entry("manage", true),
-                entry("execute", false),
+                entry("execute", true),
                 entry("cancel", true),
                 entry("task_id", taskId),
                 entry("authorizations", List.of()),
@@ -516,7 +467,7 @@ public class PostTaskInitiateByIdControllerCFTTest extends SpringBootFunctionalB
                 "refer", true,
                 "own", false,
                 "manage", true,
-                "execute", false,
+                "execute", true,
                 "cancel", true,
                 "task_id", taskId,
                 "authorizations", List.of(),

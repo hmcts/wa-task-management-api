@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -68,6 +69,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_400_if_search_request_is_empty() {
 
@@ -289,6 +291,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .forEach(task -> common.cleanUpTask(task.getTaskId()));
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_400_with_empty_search_results_with_negative_firstResult_pagination() {
 
@@ -315,6 +318,7 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
 
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_400_with_empty_search_results_with_negative_maxResults_pagination() {
         SearchTaskRequest searchTaskRequest = new SearchTaskRequest(singletonList(
