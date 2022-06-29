@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.ZonedDateTime;
+import javax.validation.constraints.NotNull;
 
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMAT;
 
@@ -18,8 +19,10 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ca
 @ToString
 public class CamundaTask {
 
+    @NotNull(message = "Camunda task id cannot be null")
     private String id;
     private String name;
+    @NotNull(message = "Camunda processInstanceId cannot be null")
     @JsonProperty("processInstanceId")
     private String processInstanceId;
     private String assignee;

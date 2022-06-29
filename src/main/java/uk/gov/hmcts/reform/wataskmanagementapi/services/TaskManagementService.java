@@ -14,13 +14,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.SelectTaskResourceQueryBuilder;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskSearchQueryBuilder;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.NotesRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.TaskOperationRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
+import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskOperationName;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.CompletionOptions;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.options.TerminateInfo;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
@@ -47,6 +50,7 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -91,10 +95,13 @@ public class TaskManagementService {
     private final LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
     private final ConfigureTaskService configureTaskService;
     private final TaskAutoAssignmentService taskAutoAssignmentService;
+    private final TaskReconfigurationService taskReconfigurationService;
     private final RoleAssignmentVerificationService roleAssignmentVerification;
 
     @PersistenceContext
     private final EntityManager entityManager;
+
+    private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     @Autowired
     public TaskManagementService(CamundaService camundaService,
@@ -105,7 +112,9 @@ public class TaskManagementService {
                                  ConfigureTaskService configureTaskService,
                                  TaskAutoAssignmentService taskAutoAssignmentService,
                                  RoleAssignmentVerificationService roleAssignmentVerification,
-                                 EntityManager entityManager) {
+                                 TaskReconfigurationService taskReconfigurationService,
+                                 EntityManager entityManager,
+                                 AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
         this.camundaService = camundaService;
         this.camundaQueryBuilder = camundaQueryBuilder;
         this.cftTaskDatabaseService = cftTaskDatabaseService;
@@ -113,8 +122,10 @@ public class TaskManagementService {
         this.launchDarklyFeatureFlagProvider = launchDarklyFeatureFlagProvider;
         this.configureTaskService = configureTaskService;
         this.taskAutoAssignmentService = taskAutoAssignmentService;
+        this.taskReconfigurationService = taskReconfigurationService;
         this.roleAssignmentVerification = roleAssignmentVerification;
         this.entityManager = entityManager;
+        this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
     }
 
     /**
@@ -561,10 +572,12 @@ public class TaskManagementService {
     @SuppressWarnings({"PMD.CyclomaticComplexity"})
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(SearchEventAndCase searchEventAndCase,
                                                                        AccessControlResponse accessControlResponse) {
-
-        //Safe-guard against unsupported Jurisdictions and case types.
-        if (!"IA".equalsIgnoreCase(searchEventAndCase.getCaseJurisdiction())
-            || !"Asylum".equalsIgnoreCase(searchEventAndCase.getCaseType())) {
+        //Safe-guard against unsupported Jurisdictions
+        if (!allowedJurisdictionConfiguration.getAllowedJurisdictions()
+            .contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
+            || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
+            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
+        ) {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -736,6 +749,14 @@ public class TaskManagementService {
             .sorted(Comparator.comparing(TaskRolePermissions::getRoleName))
             .collect(Collectors.toList()
             );
+    }
+
+    public List<TaskResource> performOperation(TaskOperationRequest taskOperationRequest) {
+
+        if (taskOperationRequest.getOperation().getName().equals(TaskOperationName.MARK_TO_RECONFIGURE)) {
+            return taskReconfigurationService.markTasksToReconfigure(taskOperationRequest.getTaskFilter());
+        }
+        return List.of();
     }
 
     /**
