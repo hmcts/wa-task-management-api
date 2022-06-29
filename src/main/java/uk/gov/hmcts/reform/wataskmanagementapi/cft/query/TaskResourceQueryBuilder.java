@@ -10,6 +10,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
 public abstract class TaskResourceQueryBuilder<T> {
     public final EntityManager entityManager;
@@ -18,6 +19,7 @@ public abstract class TaskResourceQueryBuilder<T> {
     public final Root<TaskResource> root;
     public Predicate predicate;
     public List<Order> orders;
+    List<Selection<?>> selections;
 
     public TaskResourceQueryBuilder(EntityManager entityManager) {
         this.entityManager = entityManager;
@@ -37,6 +39,11 @@ public abstract class TaskResourceQueryBuilder<T> {
 
     public TaskResourceQueryBuilder<T> withOrders(List<Order> orders) {
         this.orders = orders;
+        return this;
+    }
+
+    public TaskResourceQueryBuilder<T> withSelections(List<Selection<?>> selections) {
+        this.selections = selections;
         return this;
     }
 }

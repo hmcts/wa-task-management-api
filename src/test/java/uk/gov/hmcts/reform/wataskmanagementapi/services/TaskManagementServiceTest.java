@@ -43,6 +43,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksComp
 import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -55,7 +56,9 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.InvalidRequestExcep
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.RoleAssignmentVerificationException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.TaskNotFoundException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.validation.CustomConstraintViolationException;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.camunda.response.ConfigurationDmnEvaluationResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.domain.entities.configuration.TaskToConfigure;
+import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.CaseConfigurationProviderService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.ConfigureTaskService;
 import uk.gov.hmcts.reform.wataskmanagementapi.taskconfiguration.services.TaskAutoAssignmentService;
 
@@ -95,6 +98,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -149,6 +153,8 @@ class TaskManagementServiceTest extends CamundaHelpers {
     CftQueryService cftQueryService;
 
     @Mock
+    CaseConfigurationProviderService caseConfigurationProviderService;
+    @Mock
     AccessControlResponse accessControlResponse;
 
     RoleAssignmentVerificationService roleAssignmentVerification;
@@ -182,6 +188,58 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Mock
     private TypedQuery<TaskResource> query;
 
+    @Test
+    void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
+
+        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
+        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+
+        List<TaskResource> taskResources = taskResources(null);
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
+            .thenReturn(Optional.of(taskResources.get(0)))
+            .thenReturn(Optional.of(taskResources.get(1)));
+        when(cftTaskDatabaseService.saveTask(any()))
+            .thenReturn(taskResources.get(0))
+            .thenReturn(taskResources.get(1));
+
+        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+
+        taskResourcesMarked.stream().forEach(taskResource -> {
+            assertNotNull(taskResource.getReconfigureRequestTime());
+            assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
+        });
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+
+        List<TaskResource> taskResources = cancelledTaskResources();
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(taskResources);
+
+        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+
+        taskResourcesMarked.stream().forEach(taskResource -> {
+            assertNull(taskResource.getReconfigureRequestTime());
+        });
+
+    }
+
+    @Test
+    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
+        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
+
+        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
+            anyList(), anyList())).thenReturn(List.of());
+
+        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
+
+        assertEquals(0, taskResourcesMarked.size());
+    }
+
     @BeforeEach
     public void setUp() {
         roleAssignmentVerification = new RoleAssignmentVerificationService(
@@ -189,7 +247,9 @@ class TaskManagementServiceTest extends CamundaHelpers {
             cftTaskDatabaseService,
             cftQueryService
         );
-        taskReconfigurationService = new TaskReconfigurationService(cftTaskDatabaseService);
+        taskReconfigurationService = new TaskReconfigurationService(cftTaskDatabaseService,
+            caseConfigurationProviderService
+        );
 
         taskManagementService = new TaskManagementService(
             camundaService,
@@ -236,6 +296,14 @@ class TaskManagementServiceTest extends CamundaHelpers {
         lenient().when(root.get(anyString())).thenReturn(path);
         lenient().when(root.get(anyString()).get(anyString())).thenReturn(path);
 
+        lenient().when(caseConfigurationProviderService.evaluateConfigurationDmn(anyString(),
+            anyMap())).thenReturn(List.of(
+            new ConfigurationDmnEvaluationResponse(
+                CamundaValue.stringValue("caseName"),
+                CamundaValue.stringValue("Value"),
+                CamundaValue.booleanValue(true)
+            )
+        ));
     }
 
     private List<TaskResource> taskResources(OffsetDateTime reconfigureTime) {
@@ -276,6 +344,17 @@ class TaskManagementServiceTest extends CamundaHelpers {
             "someCaseId"
         );
         return List.of(taskResource1, taskResource2);
+    }
+
+    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
+        TaskOperation operation = new TaskOperation(operationName, "run_id1");
+        return new TaskOperationRequest(operation, taskFilters());
+    }
+
+    private List<TaskFilter<?>> taskFilters() {
+        TaskFilter<List<String>> filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
+        return List.of(filter);
     }
 
     @Nested
@@ -3167,69 +3246,6 @@ class TaskManagementServiceTest extends CamundaHelpers {
             verify(cftTaskDatabaseService, times(1)).findByIdOnly(taskId);
             verify(cftTaskMapper, never()).mapToTaskRolePermissions(any());
         }
-    }
-
-    @Test
-    void should_mark_tasks_to_reconfigure_if_task_resource_is_not_already_marked() {
-
-        OffsetDateTime todayTestDatetime = OffsetDateTime.now();
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
-
-        List<TaskResource> taskResources = taskResources(null);
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(taskResources);
-        when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(anyString()))
-            .thenReturn(Optional.of(taskResources.get(0)))
-            .thenReturn(Optional.of(taskResources.get(1)));
-        when(cftTaskDatabaseService.saveTask(any()))
-            .thenReturn(taskResources.get(0))
-            .thenReturn(taskResources.get(1));
-
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
-
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNotNull(taskResource.getReconfigureRequestTime());
-            assertTrue(taskResource.getReconfigureRequestTime().isAfter(todayTestDatetime));
-        });
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_not_active() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
-
-        List<TaskResource> taskResources = cancelledTaskResources();
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(taskResources);
-
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
-
-        taskResourcesMarked.stream().forEach(taskResource -> {
-            assertNull(taskResource.getReconfigureRequestTime());
-        });
-
-    }
-
-    @Test
-    void should_not_mark_tasks_to_reconfigure_if_task_resource_is_already_marked_to_configure() {
-        TaskOperationRequest taskOperationRequest = taskOperationRequest(TaskOperationName.MARK_TO_RECONFIGURE);
-
-        when(cftTaskDatabaseService.getActiveTasksByCaseIdsAndReconfigureRequestTimeIsNull(
-            anyList(), anyList())).thenReturn(List.of());
-
-        List<TaskResource> taskResourcesMarked = taskManagementService.performOperation(taskOperationRequest);
-
-        assertEquals(0, taskResourcesMarked.size());
-    }
-
-    private TaskOperationRequest taskOperationRequest(TaskOperationName operationName) {
-        TaskOperation operation = new TaskOperation(operationName, "run_id1");
-        return new TaskOperationRequest(operation, taskFilters());
-    }
-
-    private List<TaskFilter<?>> taskFilters() {
-        TaskFilter<List<String>> filter = new MarkTaskToReconfigureTaskFilter(
-            "case_id", List.of("1234", "4567"), TaskFilterOperator.IN);
-        return List.of(filter);
     }
 
 }

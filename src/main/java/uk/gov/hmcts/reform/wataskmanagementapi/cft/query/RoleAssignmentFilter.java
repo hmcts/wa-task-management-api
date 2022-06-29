@@ -251,35 +251,30 @@ public final class RoleAssignmentFilter {
         Root<TaskResource> root,
         CriteriaBuilder builder,
         RoleAssignmentForSearch roleAssignment) {
-        if (roleAssignment.getClassification() != null) {
-            final Classification classification = Classification.valueOf(roleAssignment.getClassification());
-            switch (classification) {
-                case PUBLIC:
-                    return builder.equal(root.get(SECURITY_CLASSIFICATION_COLUMN), SecurityClassification.PUBLIC);
-                case PRIVATE:
-                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                        of(
-                            SecurityClassification.PRIVATE,
-                            SecurityClassification.PUBLIC
-                        )
-                    );
-                case RESTRICTED:
-                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                        of(
-                            SecurityClassification.RESTRICTED,
-                            SecurityClassification.PRIVATE,
-                            SecurityClassification.PUBLIC
-                        )
-                    );
-                default:
-                    return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-                        emptyList()
-                    );
-            }
+        final Classification classification = Classification.valueOf(roleAssignment.getClassification());
+        switch (classification) {
+            case PUBLIC:
+                return builder.equal(root.get(SECURITY_CLASSIFICATION_COLUMN), SecurityClassification.PUBLIC);
+            case PRIVATE:
+                return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                    of(
+                        SecurityClassification.PRIVATE,
+                        SecurityClassification.PUBLIC
+                    )
+                );
+            case RESTRICTED:
+                return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                    of(
+                        SecurityClassification.RESTRICTED,
+                        SecurityClassification.PRIVATE,
+                        SecurityClassification.PUBLIC
+                    )
+                );
+            default:
+                return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
+                    emptyList()
+                );
         }
-        return builder.in(root.get(SECURITY_CLASSIFICATION_COLUMN)).value(
-            emptyList()
-        );
     }
 
     private static Predicate mapAuthorizations(Join<TaskResource, TaskRoleResource> taskRoleResources,
