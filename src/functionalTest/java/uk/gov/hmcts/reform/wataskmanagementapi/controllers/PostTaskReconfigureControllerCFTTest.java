@@ -42,7 +42,8 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         String assignEndpoint = "task/{task-id}/assign";
         String taskId = taskVariables.getTaskId();
@@ -80,7 +81,8 @@ public class PostTaskReconfigureControllerCFTTest extends SpringBootFunctionalBa
 
         common.setupCFTOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), "IA", "Asylum");
         initiateTask(caseworkerCredentials.getHeaders(), taskVariables,
-            "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task");
+                     "followUpOverdueReasonsForAppeal", "follow Up Overdue Reasons For Appeal", "A test task"
+        );
 
         Response result = restApiActions.post(
             ENDPOINT_BEING_TESTED,
