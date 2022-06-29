@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
-import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.CFTTaskState;
 
 import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -21,85 +23,118 @@ public final class TaskQuerySpecification {
     private static final String WORK_TYPE = "workTypeResource";
     private static final String WORK_TYPE_ID = "id";
     private static final String ROLE_CATEGORY = "roleCategory";
+    public static final int SINGLE_ELEMENT = 1;
 
     private TaskQuerySpecification() {
         // avoid creating object
     }
 
-    public static Specification<TaskResource> searchByState(List<CFTTaskState> cftTaskStates) {
+    public static Predicate searchByState(List<CFTTaskState> cftTaskStates,
+                                          CriteriaBuilder builder,
+                                          Root<TaskResource> root) {
         if (isEmpty(cftTaskStates)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (cftTaskStates.size() == SINGLE_ELEMENT) {
+            return builder.equal(root.get(STATE), cftTaskStates.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(STATE))
-            .value(cftTaskStates);
+        return builder.in(root.get(STATE)).value(cftTaskStates);
     }
 
-    public static Specification<TaskResource> searchByJurisdiction(List<String> jurisdictions) {
+    public static Predicate searchByJurisdiction(List<String> jurisdictions,
+                                                 CriteriaBuilder builder,
+                                                 Root<TaskResource> root) {
         if (isEmpty(jurisdictions)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(jurisdictions)) {
+            return builder.equal(root.get(JURISDICTION), jurisdictions.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(JURISDICTION))
-            .value(jurisdictions);
+        return builder.in(root.get(JURISDICTION)).value(jurisdictions);
     }
 
-    public static Specification<TaskResource> searchByLocation(List<String> locations) {
+    public static Predicate searchByLocation(List<String> locations,
+                                             CriteriaBuilder builder,
+                                             Root<TaskResource> root) {
         if (isEmpty(locations)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(locations)) {
+            return builder.equal(root.get(LOCATION), locations.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(LOCATION))
-            .value(locations);
+        return builder.in(root.get(LOCATION)).value(locations);
     }
 
-    public static Specification<TaskResource> searchByCaseId(String caseId) {
-        return (root, query, builder) -> builder.equal(root.get(CASE_ID), caseId);
+    public static Predicate searchByCaseId(String caseId,
+                                           CriteriaBuilder builder,
+                                           Root<TaskResource> root) {
+        return builder.equal(root.get(CASE_ID), caseId);
     }
 
-    public static Specification<TaskResource> searchByCaseIds(List<String> caseIds) {
+    public static Predicate searchByCaseIds(List<String> caseIds,
+                                            CriteriaBuilder builder,
+                                            Root<TaskResource> root) {
         if (isEmpty(caseIds)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(caseIds)) {
+            return builder.equal(root.get(CASE_ID), caseIds.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(CASE_ID))
-            .value(caseIds);
+        return builder.in(root.get(CASE_ID)).value(caseIds);
     }
 
-    public static Specification<TaskResource> searchByUser(List<String> users) {
+    public static Predicate searchByUser(List<String> users,
+                                         CriteriaBuilder builder,
+                                         Root<TaskResource> root) {
         if (isEmpty(users)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(users)) {
+            return builder.equal(root.get(ASSIGNEE), users.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(ASSIGNEE))
-            .value(users);
+        return builder.in(root.get(ASSIGNEE)).value(users);
     }
 
-    public static Specification<TaskResource> searchByTaskIds(List<String> taskIds) {
+    public static Predicate searchByTaskIds(List<String> taskIds,
+                                            CriteriaBuilder builder,
+                                            Root<TaskResource> root) {
         if (isEmpty(taskIds)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(taskIds)) {
+            return builder.equal(root.get(TASK_ID), taskIds.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(TASK_ID))
-            .value(taskIds);
+        return builder.in(root.get(TASK_ID)).value(taskIds);
     }
 
-    public static Specification<TaskResource> searchByTaskTypes(List<String> taskTypes) {
+    public static Predicate searchByTaskTypes(List<String> taskTypes,
+                                              CriteriaBuilder builder,
+                                              Root<TaskResource> root) {
         if (isEmpty(taskTypes)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(taskTypes)) {
+            return builder.equal(root.get(TASK_TYPE), taskTypes.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(TASK_TYPE))
-            .value(taskTypes);
+        return builder.in(root.get(TASK_TYPE)).value(taskTypes);
     }
 
-    public static Specification<TaskResource> searchByWorkType(List<String> workTypes) {
+    public static Predicate searchByWorkType(List<String> workTypes,
+                                             CriteriaBuilder builder,
+                                             Root<TaskResource> root) {
         if (isEmpty(workTypes)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(workTypes)) {
+            return builder.equal(root.get(WORK_TYPE).get(WORK_TYPE_ID), workTypes.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID))
-            .value(workTypes);
+        return builder.in(root.get(WORK_TYPE).get(WORK_TYPE_ID)).value(workTypes);
     }
 
-    public static Specification<TaskResource> searchByRoleCategory(List<String> roleCategories) {
+    public static Predicate searchByRoleCategory(List<String> roleCategories,
+                                                 CriteriaBuilder builder,
+                                                 Root<TaskResource> root) {
         if (isEmpty(roleCategories)) {
-            return (root, query, builder) -> builder.conjunction();
+            return builder.conjunction();
+        } else if (hasSingleElement(roleCategories)) {
+            return builder.equal(root.get(ROLE_CATEGORY), roleCategories.get(0));
         }
-        return (root, query, builder) -> builder.in(root.get(ROLE_CATEGORY))
-            .value(roleCategories);
+        return builder.in(root.get(ROLE_CATEGORY)).value(roleCategories);
     }
 
+    private static boolean hasSingleElement(List<String> list) {
+        return list.size() == SINGLE_ELEMENT;
+    }
 }

@@ -59,6 +59,6 @@ public class TaskManagerAssignTaskConsumerTest extends SpringBootContractBaseTes
         return "{\n"
                + "  \"user_id\":\"fda422de-b381-43ff-94ea-eea5790188a3\"\n"
                + "}";
-        
+
     }
 }

@@ -3,6 +3,12 @@ java:
   image: 'hmctspublic.azurecr.io/wa/task-management-api:latest'
   ingressHost: wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
+  autoscaling:
+    enabled: true
+    maxReplicas: 4
+    minReplicas: 2
+    targetCPUUtilizationPercentage: 80 # Default is 80% target CPU utilization
+    targetMemoryUtilizationPercentage: 80 # Default is 80% target Memory utilization
   keyVaults:
     wa:
       secrets:
@@ -33,3 +39,5 @@ java:
     POSTGRES_HOST: cft-task-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_NAME: cft_task_db
     POSTGRES_CONNECTION_OPTIONS: "?sslmode=require"
+    ALLOWED_JURISDICTIONS: wa,ia,sscs,civil
+    ALLOWED_CASE_TYPES: asylum,wacasetype,sscs,civil

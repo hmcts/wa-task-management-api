@@ -70,7 +70,10 @@ public enum ErrorMessages {
     DOWNSTREAM_DEPENDENCY_ERROR(
         "Downstream dependency did not respond as expected and the request could not be completed."),
     TASK_NOT_FOUND_ERROR(
-        "The task could not be found.");
+        "The task could not be found."),
+
+    TASK_RECONFIGURATION_MARK_TASKS_TO_RECONFIGURE_FAILED(
+        "Task Reconfiguration process failed to mark some or all tasks for a caseId.");
 
     private final String detail;
 

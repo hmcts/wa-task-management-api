@@ -1,4 +1,6 @@
-variable "product" {}
+variable "product" {
+  default = "wa"
+}
 
 variable "component" {}
 
@@ -32,9 +34,9 @@ variable "postgresql_user" {
 }
 
 variable "database_sku_name" {
-  default = "GP_Gen5_4"
+  default = "GP_Gen5_8"
 }
 
 variable "database_sku_capacity" {
-  default = "4"
+  default = "8"
 }
