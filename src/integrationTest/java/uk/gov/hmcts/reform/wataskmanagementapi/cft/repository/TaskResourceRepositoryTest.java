@@ -3,8 +3,10 @@ package uk.gov.hmcts.reform.wataskmanagementapi.cft.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.ExecutionTypeResource;
@@ -27,10 +29,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -44,12 +46,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
 
     public static final Map<String, String> ADDITIONAL_PROPERTIES = Map.of(
-        "name1",
-        "value1",
-        "name2",
-        "value2",
-        "name3",
-        "value3"
+        "name1", "value1",
+        "name2", "value2",
+        "name3", "value3"
     );
 
     private String taskId;
@@ -69,10 +68,11 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
         transactionHelper.doInNewTransaction(() -> taskResourceRepository.save(task));
     }
 
-    @Disabled("RWA-1053: Needs updating see ticket")
     @Test
-    void given_insertAndLock_call_when_concurrent_calls_for_different_task_id_then_succeed()
-        throws InterruptedException {
+    @Timeout(value = 15, unit = SECONDS)
+    @Execution(ExecutionMode.CONCURRENT)
+    void should_insert_and_lock_when_concurrent_calls_for_different_task_id_then_succeed()
+        throws Exception {
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
 
@@ -95,7 +95,7 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
                 taskResource.getCreated(),
                 taskResource.getDueDateTime()
             );
-            await().timeout(10, TimeUnit.SECONDS);
+            await().timeout(10, SECONDS);
             taskResourceRepository.save(taskResource);
         });
 
@@ -114,16 +114,25 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             otherTaskResource.getDueDateTime()
         ));
 
-        checkTaskWasSaved(taskResource.getTaskId());
-        checkTaskWasSaved(otherTaskResource.getTaskId());
+        await()
+            .atMost(10, SECONDS)
+            .untilAsserted(() -> {
+                checkTaskWasSaved(taskResource.getTaskId());
+                checkTaskWasSaved(otherTaskResource.getTaskId());
+            });
 
         executorService.shutdown();
         //noinspection ResultOfMethodCallIgnored
-        executorService.awaitTermination(13, TimeUnit.SECONDS);
+        executorService.awaitTermination(13, SECONDS);
+
+        assertAll(
+            () -> assertTrue(executorService.isShutdown()),
+            () -> assertTrue(executorService.isTerminated())
+        );
     }
 
     @Test
-    void given_task_is_created_when_findById_then_task_roles_and_worktypes_have_expected_values() {
+    void given_task_is_created_when_find_by_id_then_task_roles_and_work_types_have_expected_values() {
 
         TaskResource createdTask = createTask(taskId);
         assertThat(createdTask.getTaskId()).isEqualTo(taskId);
@@ -237,4 +246,5 @@ class TaskResourceRepositoryTest extends SpringBootIntegrationBaseTest {
             ADDITIONAL_PROPERTIES
         );
     }
+
 }

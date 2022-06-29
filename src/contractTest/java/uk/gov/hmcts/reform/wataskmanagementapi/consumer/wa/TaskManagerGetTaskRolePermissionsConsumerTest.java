@@ -21,13 +21,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_task_role_permissions_by_task_id", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagerGetTaskRolePermissionsConsumerTest extends SpringBootContractBaseTest {
 
@@ -63,7 +65,7 @@ public class TaskManagerGetTaskRolePermissionsConsumerTest extends SpringBootCon
             .get(mockServer.getUrl() + WA_GET_TASK_ROLE_PERMISSIONS_BY_ID)
             .then()
             .statusCode(200);
-        
+
     }
 
     private DslPart createResponseForGetTask() {

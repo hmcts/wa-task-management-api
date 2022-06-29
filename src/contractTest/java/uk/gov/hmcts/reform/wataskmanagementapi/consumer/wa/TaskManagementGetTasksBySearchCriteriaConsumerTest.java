@@ -20,13 +20,15 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_search", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class})
+@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
 @Import(TaskManagementProviderTestConfiguration.class)
 public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBootContractBaseTest {
 
@@ -47,6 +49,23 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
             .willRespondWith()
             .status(HttpStatus.OK.value())
             .body(createResponseForGetTask())
+            .toPact();
+    }
+
+    @Pact(provider = "wa_task_management_api_search", consumer = "wa_task_management_api")
+    public RequestResponsePact executeSearchQueryWa200(PactDslWithProvider builder) {
+        return builder
+            .given("appropriate tasks are returned by criteria for jurisdiction type wa")
+            .uponReceiving("Provider receives a POST /task request from a WA API for jurisdiction type wa")
+            .path(WA_SEARCH_QUERY)
+            .method(HttpMethod.POST.toString())
+            .headers(getTaskManagementServiceResponseHeaders())
+            .matchHeader(AUTHORIZATION, AUTH_TOKEN)
+            .matchHeader(SERVICE_AUTHORIZATION, SERVICE_AUTH_TOKEN)
+            .body(createSearchEventCaseRequestForWa(), String.valueOf(ContentType.JSON))
+            .willRespondWith()
+            .status(HttpStatus.OK.value())
+            .body(createResponseForGetTaskForWa())
             .toPact();
     }
 
@@ -132,6 +151,19 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
     }
 
     @Test
+    @PactTestFor(pactMethod = "executeSearchQueryWa200", pactVersion = PactSpecVersion.V3)
+    void testSearchQueryWa200Test(MockServer mockServer) {
+        SerenityRest
+            .given()
+            .headers(getHttpHeaders())
+            .contentType(ContentType.JSON)
+            .body(createSearchEventCaseRequestForWa())
+            .post(mockServer.getUrl() + WA_SEARCH_QUERY)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+    }
+
+    @Test
     @PactTestFor(pactMethod = "testSearchQueryWithAvailableTasksOnly200", pactVersion = PactSpecVersion.V3)
     void testSearchQueryWithAvailableTasksOnly200Test(MockServer mockServer) {
         SerenityRest
@@ -211,10 +243,51 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         .booleanType("warnings", false)
                         .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                 )).build();
+    }
+
+    private DslPart createResponseForGetTaskForWa() {
+        return newJsonBody(
+            o -> o
+                .minArrayLike("tasks", 1, 1,
+                    task -> task
+                        .stringType("id", "4d4b6fgh-c91f-433f-92ac-e456ae34f72a")
+                        .stringType("name", "Process Application")
+                        .stringType("type", "processApplication")
+                        .stringType("task_state", "unassigned")
+                        .stringType("task_system", "SELF")
+                        .stringType("security_classification", "PUBLIC")
+                        .stringType("task_title", "Process Application")
+                        .datetime("due_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .datetime("created_date", "yyyy-MM-dd'T'HH:mm:ssZ")
+                        .booleanType("auto_assigned", false)
+                        .stringType("execution_type", "Case Management Task")
+                        .stringType("jurisdiction", "WA")
+                        .stringType("region", "1")
+                        .stringType("location", "765324")
+                        .stringType("location_name", "Taylor House")
+                        .stringType("case_type_id", "WaCaseType")
+                        .stringType("case_id", "1617708245335311")
+                        .stringType("case_category", "Protection")
+                        .stringType("case_name", "Bob Smith")
+                        .booleanType("warnings", false)
+                        .stringType("case_management_category", "Protection")
+                        .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
+                        .stringType("role_category", "LEGAL_OPERATIONS")
+                        .stringType("description", "aDescription")
+                        .stringType("role_category", "LEGAL_OPERATIONS")
+                        .object("additional_properties", value -> value
+                            .stringType("name1", "value1")
+                            .stringType("name2", "value2")
+                            .stringType("name3", "value3")
+                        )
+                )).build();
+
     }
 
     private DslPart createResponseForGetTaskWithWarnings() {
@@ -255,6 +328,7 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                         )
                         .stringType("case_management_category", "Some Case Management Category")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "aDescription")
                         .stringType("role_category", "LEGAL_OPERATIONS")
@@ -280,6 +354,23 @@ public class TaskManagementGetTasksBySearchCriteriaConsumerTest extends SpringBo
                + "             \"values\":"
                + "                 [\n"
                + "                     \"IA\"\n"
+               + "                 ]\n"
+               + "          }\n"
+               + "      ]\n"
+               + "  }\n";
+
+    }
+
+    private String createSearchEventCaseRequestForWa() {
+
+        return "{\n"
+               + "    \"search_parameters\": [\n"
+               + "         {\n"
+               + "             \"key\": \"jurisdiction\",\n"
+               + "             \"operator\": \"IN\",\n"
+               + "             \"values\":"
+               + "                 [\n"
+               + "                     \"WA\"\n"
                + "                 ]\n"
                + "          }\n"
                + "      ]\n"

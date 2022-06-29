@@ -185,10 +185,13 @@ public class CFTTaskMapper {
             mapNoteResourceToWarnings(taskResource.getNotes()),
             taskResource.getCaseCategory(),
             taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getId(),
+            taskResource.getWorkTypeResource() == null ? null : taskResource.getWorkTypeResource().getLabel(),
             new TaskPermissions(permissionsUnionForUser),
             taskResource.getRoleCategory(),
             taskResource.getDescription(),
-            taskResource.getAdditionalProperties()
+            taskResource.getAdditionalProperties(),
+            taskResource.getReconfigureRequestTime() == null ? null
+                : taskResource.getReconfigureRequestTime().toZonedDateTime()
         );
     }
 
@@ -256,7 +259,8 @@ public class CFTTaskMapper {
             taskRoleResource.getRoleCategory(),
             taskRoleResource.getRoleName(),
             List.copyOf(permissionTypes),
-            authorisations);
+            authorisations
+        );
     }
 
     private Set<PermissionTypes> evaluatePermissionsFoundAndCollectResults(TaskRoleResource taskRoleResource) {
@@ -447,7 +451,8 @@ public class CFTTaskMapper {
     private Map<String, String> extractAdditionalProperties(Object value) {
         if (value != null) {
             try {
-                return objectMapper.readValue((String) value, new TypeReference<>() {});
+                return objectMapper.readValue((String) value, new TypeReference<>() {
+                });
             } catch (JsonProcessingException e) {
                 throw new IllegalArgumentException("Additional Properties mapping issue.", e);
             }
