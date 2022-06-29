@@ -96,7 +96,7 @@ public class RoleAssignmentTestUtils {
         );
         RoleAssignment roleAssignment = RoleAssignment.builder().roleName("hmcts-judiciary")
             .roleType(RoleType.CASE)
-            .classification(Classification.PRIVATE)
+            .classification(classification)
             .attributes(specificAttributes)
             .authorisations(List.of("DIVORCE", "PROBATE"))
             .grantType(GrantType.CHALLENGED)
@@ -111,7 +111,7 @@ public class RoleAssignmentTestUtils {
 
         roleAssignment = RoleAssignment.builder().roleName("tribunal-caseworker")
             .roleType(RoleType.CASE)
-            .classification(Classification.PRIVATE)
+            .classification(classification)
             .attributes(specificAttributes)
             .grantType(GrantType.EXCLUDED)
             .beginTime(LocalDateTime.now().minusYears(1))

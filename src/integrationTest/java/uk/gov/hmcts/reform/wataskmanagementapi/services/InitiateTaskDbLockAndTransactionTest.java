@@ -160,10 +160,10 @@ public class InitiateTaskDbLockAndTransactionTest extends SpringBootIntegrationB
 
 
         lenient().when(launchDarklyFeatureFlagProvider.getBooleanValue(
-            FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
-            IDAM_USER_ID,
-            IDAM_USER_EMAIL
-            )
+                           FeatureFlag.RELEASE_2_ENDPOINTS_FEATURE,
+                           IDAM_USER_ID,
+                           IDAM_USER_EMAIL
+                       )
         ).thenReturn(true);
 
         testTaskResource = new TaskResource(taskId, A_TASK_NAME, A_TASK_TYPE, UNCONFIGURED, SOME_CASE_ID, dueDate);

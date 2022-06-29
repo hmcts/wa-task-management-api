@@ -25,6 +25,7 @@
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/assign_POST": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/cancel_POST": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/task_POST": "ignore",
+  "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/operation_POST": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_GET": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/cancel_POST": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",

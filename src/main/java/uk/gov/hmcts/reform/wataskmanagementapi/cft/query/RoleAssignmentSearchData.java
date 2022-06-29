@@ -60,7 +60,6 @@ public class RoleAssignmentSearchData {
             .collect(Collectors.groupingBy(RoleAssignmentForSearch::hashCode));
 
         return groupedCaseRoles.values().stream()
-            .filter(caseRoles -> !CollectionUtils.isEmpty(caseRoles))
             .map(roleAssignmentForSearches -> {
                 RoleAssignmentForSearch representative = roleAssignmentForSearches.get(0);
                 updateGroupRepresentative(representative, roleAssignmentForSearches);

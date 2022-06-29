@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.CftQueryService;
+import uk.gov.hmcts.reform.wataskmanagementapi.cft.query.TaskResourceDao;
 import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
@@ -58,7 +59,7 @@ public class CftQueryServiceSearchForCompletableTasksTest extends RoleAssignment
     @BeforeEach
     void setUp() {
         CFTTaskMapper cftTaskMapper = new CFTTaskMapper(new ObjectMapper());
-        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, entityManager,
+        cftQueryService = new CftQueryService(camundaService, cftTaskMapper, new TaskResourceDao(entityManager),
                                               allowedJurisdictionConfiguration
         );
     }
