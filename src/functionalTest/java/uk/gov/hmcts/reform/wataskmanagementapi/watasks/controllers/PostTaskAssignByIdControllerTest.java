@@ -73,7 +73,8 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+            .body("detail", equalTo("Role Assignment Verification: "
+                                    + "The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -427,7 +428,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+            .body("detail", equalTo("Role Assignment Verification: The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
@@ -462,7 +463,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
             .body("type", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TYPE))
             .body("title", equalTo(ROLE_ASSIGNMENT_VERIFICATION_TITLE))
             .body("status", equalTo(403))
-            .body("detail", equalTo(ROLE_ASSIGNMENT_VERIFICATION_DETAIL));
+            .body("detail", equalTo("Role Assignment Verification: The user being assigned the Task has failed the Role Assignment checks performed."));
 
         common.cleanUpTask(taskId);
     }
