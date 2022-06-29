@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 import io.restassured.response.Response;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wataskmanagementapi.SpringBootFunctionalBaseTest;
@@ -37,6 +38,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_404_if_task_does_not_exist() {
         String nonExistentTaskId = "00000000-0000-0000-0000-000000000000";
@@ -107,6 +109,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_401_when_the_user_did_not_have_any_roles() {
         TestVariables taskVariables = common.setupTaskAndRetrieveIds();
@@ -131,6 +134,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_assigner_does_not_have_manage_permission() {
         String noManagePermission = "Read,Refer,Own,Cancel";
@@ -159,6 +163,7 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
         common.cleanUpTask(taskId);
     }
 
+    @Ignore("Release 1 tests")
     @Test
     public void should_return_a_403_when_the_assignee_does_not_have_execute_or_own_permissions() {
         String noOwnPermission = "Read,Refer,Manage,Cancel";
@@ -189,6 +194,5 @@ public class PostTaskAssignByIdControllerTest extends SpringBootFunctionalBaseTe
 
         common.cleanUpTask(taskId);
     }
-
 }
 
