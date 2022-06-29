@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -178,10 +179,9 @@ public class TaskResourceDao {
 
         List<Order> orders = new ArrayList<>();
         if (sortingParameters == null || sortingParameters.isEmpty()) {
-            orders.addAll(List.of(builder.asc(root.get("majorPriority")),
-                                  builder.asc(root.get("priorityDate")),
-                                  builder.asc(root.get("minorPriority"))
-            ));
+            Stream.of("majorPriority", "priorityDate", "minorPriority")
+                .map(s -> builder.asc(root.get(s)))
+                .collect(Collectors.toCollection(() -> orders));
         } else {
             orders.addAll(generateOrders(sortingParameters, builder, root));
         }

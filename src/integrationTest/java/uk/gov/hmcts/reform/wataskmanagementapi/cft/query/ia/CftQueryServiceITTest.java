@@ -1089,7 +1089,6 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
             .maxResults(20)
             .roleAssignments(defaultSort(Classification.RESTRICTED))
             .searchTaskRequest(searchTaskRequest)
-            .expectedAmounfOfTasksInResponse(8)
             .expectedTotalRecords(8)
             .expectedTaskDetails(newArrayList(
                                      "8d6cc5cf-c973-11eb-bdba-0242ac222000", "1623278362222000",
