@@ -1506,6 +1506,20 @@ public class CftQueryServiceITTest extends RoleAssignmentHelper {
         return roleAssignments;
     }
 
+    private static List<RoleAssignment> defaultSort(Classification classification) {
+        List<RoleAssignment> roleAssignments = new ArrayList<>();
+        RoleAssignment roleAssignment = RoleAssignment.builder().roleName("sorting-role")
+            .classification(classification)
+            .roleType(RoleType.ORGANISATION)
+            .grantType(GrantType.BASIC)
+            .beginTime(LocalDateTime.now().minusYears(1))
+            .endTime(LocalDateTime.now().plusYears(1))
+            .build();
+        roleAssignments.add(roleAssignment);
+
+        return roleAssignments;
+    }
+
     private static List<RoleAssignment> mapRoleAssignments(Classification classification) {
         List<RoleAssignment> roleAssignments = new ArrayList<>();
         final Map<String, String> attributes = Map.of(RoleAttributeDefinition.CASE_TYPE.value(), IA_CASE_TYPE);
