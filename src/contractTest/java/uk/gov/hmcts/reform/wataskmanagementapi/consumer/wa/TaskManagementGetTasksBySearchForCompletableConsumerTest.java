@@ -22,14 +22,16 @@ import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.CamundaConsumerA
 import uk.gov.hmcts.reform.wataskmanagementapi.provider.service.TaskManagementProviderTestConfiguration;
 
 import java.util.Map;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import static au.com.dius.pact.consumer.dsl.LambdaDsl.newJsonBody;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @PactTestFor(providerName = "wa_task_management_api_search_completable", port = "8991")
-@ContextConfiguration(classes = {CamundaConsumerApplication.class})
-@Import(TaskManagementProviderTestConfiguration.class)
+@ContextConfiguration(classes = {CamundaConsumerApplication.class, EntityManager.class, EntityManagerFactory.class})
+@Import({TaskManagementProviderTestConfiguration.class})
 public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends SpringBootContractBaseTest {
 
     public static final String CONTENT_TYPE = "Content-Type";
@@ -154,6 +156,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", false)
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .object("permissions", (value) -> {
                             value
                                 .unorderedArray("values", (p) -> p
@@ -198,6 +201,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("warnings", false)
                         .stringType("case_management_category", "Protection")
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .stringType("role_category", "LEGAL_OPERATIONS")
                         .stringType("description", "a description")
                         .stringType("role_category", RoleCategory.LEGAL_OPERATIONS.name())
@@ -244,6 +248,7 @@ public class TaskManagementGetTasksBySearchForCompletableConsumerTest extends Sp
                         .booleanType("auto_assigned", true)
                         .booleanType("warnings", true)
                         .stringType("work_type_id", "hearing_work")
+                        .stringType("work_type_label", "Hearing work")
                         .object("warning_list", values -> values
                             .minArrayLike("values", 1, value -> value
                                 .stringType("warningCode", "Code1")

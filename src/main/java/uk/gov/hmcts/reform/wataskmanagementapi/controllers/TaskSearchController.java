@@ -129,7 +129,7 @@ public class TaskSearchController extends BaseController {
                 Optional.ofNullable(firstResult).orElse(0),
                 Optional.ofNullable(maxResults).orElse(defaultMaxResults),
                 searchTaskRequest,
-                accessControlResponse,
+                accessControlResponse.getRoleAssignments(),
                 permissionsRequired
             );
 
@@ -163,7 +163,7 @@ public class TaskSearchController extends BaseController {
 
 
     @Operation(description = "Retrieve a list of Task resources identified by set of search"
-                             + " criteria that are eligible for automatic completion")
+        + " criteria that are eligible for automatic completion")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = OK, content = {@Content(mediaType = "application/json",
             schema = @Schema(implementation = GetTasksCompletableResponse.class))}),
@@ -202,7 +202,7 @@ public class TaskSearchController extends BaseController {
             List<PermissionTypes> permissionsRequired = asList(OWN, EXECUTE);
             response = cftQueryService.searchForCompletableTasks(
                 searchEventAndCase,
-                accessControlResponse,
+                accessControlResponse.getRoleAssignments(),
                 permissionsRequired
             );
         } else {

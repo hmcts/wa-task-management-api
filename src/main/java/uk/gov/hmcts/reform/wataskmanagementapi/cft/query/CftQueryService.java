@@ -1,18 +1,14 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.cft.query;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.zalando.problem.violations.Violation;
-import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
+import uk.gov.hmcts.reform.wataskmanagementapi.auth.role.entities.RoleAssignment;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.entities.TaskResource;
-import uk.gov.hmcts.reform.wataskmanagementapi.cft.repository.TaskResourceRepository;
+import uk.gov.hmcts.reform.wataskmanagementapi.config.AllowedJurisdictionConfiguration;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.SearchTaskRequest;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksCompletableResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.response.GetTasksResponse;
@@ -33,70 +29,85 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.nimbusds.oauth2.sdk.util.CollectionUtils.isEmpty;
 import static java.util.Collections.emptyList;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_TYPE;
 
 @Slf4j
 @Service
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UnnecessaryFullyQualifiedName", "PMD.ExcessiveImports"})
 public class CftQueryService {
     public static final List<String> ALLOWED_WORK_TYPES = List.of(
         "hearing_work", "upper_tribunal", "routine_work", "decision_making_work",
-        "applications", "priority", "access_requests", "error_management");
+        "applications", "priority", "access_requests", "error_management"
+    );
 
     private final CamundaService camundaService;
     private final CFTTaskMapper cftTaskMapper;
-    private final TaskResourceRepository taskResourceRepository;
+    private final TaskResourceDao taskResourceDao;
+
+    private final AllowedJurisdictionConfiguration allowedJurisdictionConfiguration;
 
     public CftQueryService(CamundaService camundaService,
                            CFTTaskMapper cftTaskMapper,
-                           TaskResourceRepository taskResourceRepository) {
+                           TaskResourceDao taskResourceDao,
+                           AllowedJurisdictionConfiguration allowedJurisdictionConfiguration) {
         this.camundaService = camundaService;
         this.cftTaskMapper = cftTaskMapper;
-        this.taskResourceRepository = taskResourceRepository;
+        this.taskResourceDao = taskResourceDao;
+        this.allowedJurisdictionConfiguration = allowedJurisdictionConfiguration;
     }
 
     public GetTasksResponse<Task> searchForTasks(
         int firstResult,
         int maxResults,
         SearchTaskRequest searchTaskRequest,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
     ) {
         validateRequest(searchTaskRequest);
 
-        Sort sort = SortQuery.sortByFields(searchTaskRequest);
-        Pageable page = OffsetPageableRequest.of(firstResult, maxResults, sort);
+        final List<Object[]> taskResourcesSummary = taskResourceDao.getTaskResourceSummary(
+            firstResult,
+            maxResults,
+            searchTaskRequest,
+            roleAssignments,
+            permissionsRequired
+        );
 
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildTaskQuery(searchTaskRequest, accessControlResponse, permissionsRequired);
+        if (isEmpty(taskResourcesSummary)) {
+            return new GetTasksResponse<>(List.of(), 0);
+        }
 
-        final Page<TaskResource> pages = taskResourceRepository.findAll(taskResourceSpecification, page);
+        final List<TaskResource> taskResources
+            = taskResourceDao.getTaskResources(searchTaskRequest, taskResourcesSummary);
 
-        final List<TaskResource> taskResources = pages.toList();
+        Long count = taskResourceDao.getTotalCount(searchTaskRequest, roleAssignments, permissionsRequired);
 
         final List<Task> tasks = taskResources.stream()
             .map(taskResource ->
-                cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    accessControlResponse.getRoleAssignments())
+                     cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
+                         taskResource,
+                         roleAssignments
+                     )
             )
             .collect(Collectors.toList());
 
-        return new GetTasksResponse<>(tasks, pages.getTotalElements());
+        return new GetTasksResponse<>(tasks, count);
     }
 
     public GetTasksCompletableResponse<Task> searchForCompletableTasks(
         SearchEventAndCase searchEventAndCase,
-        AccessControlResponse accessControlResponse,
+        List<RoleAssignment> roleAssignments,
         List<PermissionTypes> permissionsRequired
     ) {
 
-        //Safe-guard against unsupported Jurisdictions and case types.
-        if (!Arrays.asList("IA", "WA")
-            .contains(searchEventAndCase.getCaseJurisdiction().toUpperCase(Locale.ROOT))
-            || !Arrays.asList("asylum", "wacasetype")
-            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))) {
+        //Safe-guard against unsupported Jurisdictions.
+        if (!allowedJurisdictionConfiguration.getAllowedJurisdictions()
+            .contains(searchEventAndCase.getCaseJurisdiction().toLowerCase(Locale.ROOT))
+            || !allowedJurisdictionConfiguration.getAllowedCaseTypes()
+            .contains(searchEventAndCase.getCaseType().toLowerCase(Locale.ROOT))
+        ) {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
@@ -111,20 +122,21 @@ public class CftQueryService {
             return new GetTasksCompletableResponse<>(false, emptyList());
         }
 
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildQueryForCompletable(searchEventAndCase, accessControlResponse, permissionsRequired, taskTypes);
+        final List<TaskResource> taskResources = taskResourceDao.getCompletableTaskResources(
+            searchEventAndCase,
+            roleAssignments,
+            permissionsRequired,
+            taskTypes
+        );
 
-        final List<TaskResource> taskResources = taskResourceRepository.findAll(taskResourceSpecification);
-
+        final List<Task> tasks = mapTasksWithPermissionsUnion(roleAssignments, taskResources);
         boolean taskRequiredForEvent = isTaskRequired(evaluateDmnResult, taskTypes);
-
-        final List<Task> tasks = getTasks(accessControlResponse, taskResources);
 
         return new GetTasksCompletableResponse<>(taskRequiredForEvent, tasks);
     }
 
     public Optional<TaskResource> getTask(String taskId,
-                                          AccessControlResponse accessControlResponse,
+                                          List<RoleAssignment> roleAssignments,
                                           List<PermissionTypes> permissionsRequired
     ) {
 
@@ -133,23 +145,21 @@ public class CftQueryService {
             || taskId.isBlank()) {
             return Optional.empty();
         }
-        final Specification<TaskResource> taskResourceSpecification = TaskResourceSpecification
-            .buildSingleTaskQuery(taskId, accessControlResponse, permissionsRequired);
 
-        return taskResourceRepository.findOne(taskResourceSpecification);
-
+        return taskResourceDao.getTask(taskId, roleAssignments, permissionsRequired);
     }
 
-    private List<Task> getTasks(AccessControlResponse accessControlResponse, List<TaskResource> taskResources) {
+    private List<Task> mapTasksWithPermissionsUnion(List<RoleAssignment> roleAssignments,
+                                                    List<TaskResource> taskResources) {
         if (taskResources.isEmpty()) {
             return emptyList();
         }
 
         return taskResources.stream()
             .map(taskResource -> cftTaskMapper.mapToTaskAndExtractPermissionsUnion(
-                    taskResource,
-                    accessControlResponse.getRoleAssignments()
-                )
+                     taskResource,
+                     roleAssignments
+                 )
             )
             .collect(Collectors.toList());
     }
@@ -203,5 +213,4 @@ public class CftQueryService {
             throw new CustomConstraintViolationException(violations);
         }
     }
-
 }

@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.ExecutionType;
 import uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.entities.TaskAttribute;
 import uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentMother;
+import uk.gov.hmcts.reform.wataskmanagementapi.data.RoleAssignmentCreator;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
@@ -88,10 +88,8 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.Ta
 class CFTTaskMapperTest {
 
     public static final Map<String, String> EXPECTED_ADDITIONAL_PROPERTIES = Map.of(
-        "name1",
-        "value1",
-        "name2",
-        "value2"
+        "name1", "value1",
+        "name2", "value2"
     );
     private final String taskId = "SOME_TASK_ID";
 
@@ -614,7 +612,7 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type `uk.gov.hmcts.reform.wataskmanagementapi.cft.enums.TaskSystem` "
-                    + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
+                + "from String \"someTaskSystem\": not one of the values accepted for Enum class: [CTSC, SELF]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -636,9 +634,9 @@ class CFTTaskMapperTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining(
                 "Cannot deserialize value of type "
-                    + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
-                    + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
-                    + "[PUBLIC, RESTRICTED, PRIVATE]")
+                + "`uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.SecurityClassification` "
+                + "from String \"someInvalidEnumValue\": not one of the values accepted for Enum class: "
+                + "[PUBLIC, RESTRICTED, PRIVATE]")
             .hasCauseInstanceOf(InvalidFormatException.class);
 
     }
@@ -682,6 +680,28 @@ class CFTTaskMapperTest {
         );
 
         assertNull(taskResource.getAdditionalProperties());
+    }
+
+    @Test
+    void should_return_role_assignment_id_when_additional_properties_have_role_assignment_id() {
+        TaskResource skeletonTask = new TaskResource(
+            taskId,
+            "someCamundaTaskName",
+            "someTaskType",
+            UNCONFIGURED,
+            "someCaseId"
+        );
+
+        HashMap<String, Object> mappedValues = new HashMap<>();
+        mappedValues.put(ADDITIONAL_PROPERTIES.value(), writeValueAsString(Map.of("roleAssignmentId", "1234567890")));
+
+        TaskResource taskResource = cftTaskMapper.mapConfigurationAttributes(
+            skeletonTask,
+            new TaskConfigurationResults(mappedValues)
+        );
+
+        assertNotNull(taskResource.getAdditionalProperties());
+        assertEquals(taskResource.getAdditionalProperties().get("roleAssignmentId"), "1234567890");
     }
 
     @Test
@@ -965,6 +985,7 @@ class CFTTaskMapperTest {
             OffsetDateTime.parse("2021-05-09T20:15:45.345875+01:00")
         );
         TaskResource taskResource = createTaskResourceWithRoleResource(roleResource);
+        taskResource.setReconfigureRequestTime(OffsetDateTime.now());
 
         Task task = cftTaskMapper.mapToTaskWithPermissions(taskResource, new HashSet<>());
 
@@ -995,6 +1016,7 @@ class CFTTaskMapperTest {
         assertNotNull(task.getCreatedDate());
         assertNotNull(task.getPermissions());
         assertTrue(task.getPermissions().getValues().isEmpty());
+        assertNotNull(task.getReconfigureRequestTime());
     }
 
     @Test
@@ -1060,6 +1082,7 @@ class CFTTaskMapperTest {
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.EXECUTE));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.CANCEL));
         assertTrue(task.getPermissions().getValues().contains(PermissionTypes.REFER));
+        assertNull(task.getReconfigureRequestTime());
     }
 
     @Test
@@ -1127,7 +1150,7 @@ class CFTTaskMapperTest {
         TaskResource taskResource = cftTaskMapper.mapToTaskResource(taskId, attributes);
         Map<String, Object> taskAttributes = cftTaskMapper.getTaskAttributes(taskResource);
 
-        assertThat(taskAttributes).size().isEqualTo(33);
+        assertThat(taskAttributes).size().isEqualTo(34);
     }
 
     @Test
@@ -1146,7 +1169,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1226,7 +1249,7 @@ class CFTTaskMapperTest {
             EXPECTED_ADDITIONAL_PROPERTIES
         );
 
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Task mappedTask = cftTaskMapper.mapToTaskAndExtractPermissionsUnion(taskResource, roleAssignments);
 
@@ -1260,7 +1283,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1290,7 +1313,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1320,7 +1343,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1350,7 +1373,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1380,7 +1403,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1410,7 +1433,7 @@ class CFTTaskMapperTest {
             true
         );
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(singletonList(taskRoleResource));
-        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentMother.complete().build());
+        List<RoleAssignment> roleAssignments = singletonList(RoleAssignmentCreator.aRoleAssignment().build());
 
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1454,7 +1477,7 @@ class CFTTaskMapperTest {
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = singletonList(
-            RoleAssignmentMother.complete().roleName("tribunal-caseworker").build()
+            RoleAssignmentCreator.aRoleAssignment().roleName("tribunal-caseworker").build()
         );
 
         Set<PermissionTypes> permissionsUnion =
@@ -1500,8 +1523,8 @@ class CFTTaskMapperTest {
 
         Set<TaskRoleResource> taskRoleResources = new HashSet<>(asList(taskRoleResource1, taskRoleResource2));
         List<RoleAssignment> roleAssignments = asList(
-            RoleAssignmentMother.complete().roleName("tribunal-caseworker").build(),
-            RoleAssignmentMother.complete().roleName("senior-tribunal-caseworker").build()
+            RoleAssignmentCreator.aRoleAssignment().roleName("tribunal-caseworker").build(),
+            RoleAssignmentCreator.aRoleAssignment().roleName("senior-tribunal-caseworker").build()
         );
         Set<PermissionTypes> permissionsUnion =
             cftTaskMapper.extractUnionOfPermissionsForUser(taskRoleResources, roleAssignments);
@@ -1806,7 +1829,7 @@ class CFTTaskMapperTest {
 
     private List<TaskAttribute> getDefaultAttributesWithWarnings(String createdDate, String dueDate) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
         return asList(
             new TaskAttribute(TaskAttributeDefinition.TASK_ASSIGNEE, "someAssignee"),
             new TaskAttribute(TaskAttributeDefinition.TASK_AUTO_ASSIGNED, false),

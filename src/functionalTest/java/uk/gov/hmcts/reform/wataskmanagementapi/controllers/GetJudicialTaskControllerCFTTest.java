@@ -51,7 +51,7 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
         TestVariables taskVariables = common.setupTaskAndRetrieveIds("reviewHearingBundle");
         String taskId = taskVariables.getTaskId();
         Headers headers = caseworkerCredentials.getHeaders();
-        common.setupCFTJudicialOrganisationalRoleAssignment(headers, taskVariables.getCaseId());
+        common.setupCFTJudicialOrganisationalRoleAssignment(headers, taskVariables.getCaseId(), "IA", "Asylum");
         initiateTaskForJudicial(taskVariables, "reviewHearingBundle", "Review Hearing Bundle");
 
         Response result = restApiActions.get(
@@ -83,8 +83,8 @@ public class GetJudicialTaskControllerCFTTest extends SpringBootFunctionalBaseTe
             .body("task.case_name", notNullValue())
             .body("task.auto_assigned", equalTo(true))
             .body("task.warnings", notNullValue())
-            .body("task.permissions.values", hasItems("Read", "Refer", "Own"))
-            .body("task.permissions.values", hasSize(3))
+            .body("task.permissions.values", hasItems("Read", "Refer", "Own", "Manage", "Cancel"))
+            .body("task.permissions.values", hasSize(5))
             .body("task.description", notNullValue())
             .body("task.role_category", equalTo("JUDICIAL"));
 

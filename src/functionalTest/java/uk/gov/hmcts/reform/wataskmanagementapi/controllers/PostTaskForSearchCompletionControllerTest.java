@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wataskmanagementapi.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -32,9 +31,7 @@ import static org.hamcrest.Matchers.everyItem;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.config.SecurityConfiguration.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.JURISDICTION;
-
 
 public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -597,10 +594,6 @@ public class PostTaskForSearchCompletionControllerTest extends SpringBootFunctio
             .body("tasks.size()", equalTo(0));
 
         common.cleanUpTask(taskId);
-    }
-
-    private String getAssigneeId(Headers headers) {
-        return authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION)).getUid();
     }
 
     private void sendMessage(String caseId) {
