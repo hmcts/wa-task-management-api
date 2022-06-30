@@ -18,8 +18,8 @@ ccd_gateway:
 idam:
   test:
     userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
-    username: ${WA_SYSTEM_USERNAME:wa-caseofficer-public-a@fake.hmcts.net}
-    password: ${WA_SYSTEM_PASSWORD:London01}
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
 
 #Point to in memory database which enables spring context to start and run ft tests against TEST_URL
 spring.flyway.enabled: false
