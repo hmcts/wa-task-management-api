@@ -27,6 +27,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToObject;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.Matchers.in;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.search.parameter.SearchParameterKey.AVAILABLE_TASKS_ONLY;
@@ -117,14 +118,15 @@ public class PostTaskSearchControllerTest extends SpringBootFunctionalBaseTest {
             .body("tasks.description", everyItem(equalTo("[Decide an application](/case/WA/WaCaseType/${[CASE_REFERENCE]}/"
                                                          + "trigger/decideAnApplication)")))
             .body("tasks.role_category", everyItem(equalTo("LEGAL_OPERATIONS")))
-            .body("tasks.next_hearing_id", everyItem(equalTo("next_hearing_id")))
-            .body("tasks.next_hearing_date", everyItem(equalTo("2022-12-07T14:00:00+01:00")))
+            .body("tasks.next_hearing_id", everyItem(equalTo("next-hearing-id")))
+            .body("tasks.next_hearing_date", everyItem(notNullValue()))
             .body("tasks.additional_properties", everyItem(equalToObject(Map.of(
                 "key1", "value1",
                 "key2", "value2",
                 "key3", "value3",
                 "key4", "value4"
             ))))
+
             .body("total_records", equalTo(2));
 
         tasksCreated
