@@ -10,18 +10,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAnd
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.PermissionEvaluatorService;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.permission.entities.PermissionTypes;
 import uk.gov.hmcts.reform.wataskmanagementapi.clients.CamundaServiceApi;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.AddLocalVariableRequest;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaExceptionMessage;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaObjectMapper;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSearchQuery;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CompleteTaskVariables;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.HistoryVariableInstance;
-import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.*;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ConflictException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.ResourceNotFoundException;
@@ -40,6 +29,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTask
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskStateUpdateException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskUnclaimException;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -54,20 +44,11 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.INITIATION_TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_UPDATE_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_UNABLE_TO_ASSIGN;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_UNABLE_TO_UPDATE_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CANCEL_UNABLE_TO_CANCEL;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CLAIM_UNABLE_TO_CLAIM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_CLAIM_UNABLE_TO_UPDATE_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_COMPLETE_UNABLE_TO_COMPLETE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_COMPLETE_UNABLE_TO_UPDATE_STATE;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_UNCLAIM_UNABLE_TO_UNCLAIM;
-import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_UNCLAIM_UNABLE_TO_UPDATE_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.*;
 import static uk.gov.hmcts.reform.wataskmanagementapi.services.CamundaQueryBuilder.WA_TASK_INITIATION_BPMN_PROCESS_DEFINITION_KEY;
 
 @Slf4j
@@ -499,7 +480,7 @@ public class CamundaService {
 
     private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
         if (("hasWarnings".equals(camundaVariableInstance.getName())
-             || "warningList".equals(camundaVariableInstance.getName()))
+            || "warningList".equals(camundaVariableInstance.getName()))
             && camundaVariableInstance.getTaskId() == null) {
             return true;
         }
@@ -564,8 +545,13 @@ public class CamundaService {
      * @throws CamundaTaskStateUpdateException if call fails when updating the cft task state.
      */
     private void updateCftTaskStateTo(String taskId, TaskState newState) {
+
+        ZonedDateTime migrationDate = ZonedDateTime.now();
+        String formattedMigrationDate = CAMUNDA_DATA_TIME_FORMATTER.format(migrationDate);
+
         Map<String, CamundaValue<String>> variable = Map.of(
-            CFT_TASK_STATE.value(), CamundaValue.stringValue(newState.value())
+            CFT_TASK_STATE.value(), CamundaValue.stringValue(newState.value()),
+            INITIATION_TIMESTAMP.value(), CamundaValue.stringValue(formattedMigrationDate)
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
