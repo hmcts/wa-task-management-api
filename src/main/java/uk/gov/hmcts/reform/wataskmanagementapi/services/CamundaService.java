@@ -567,13 +567,11 @@ public class CamundaService {
      * @throws CamundaTaskStateUpdateException if call fails when updating the cft task state.
      */
     private void updateCftTaskStateTo(String taskId, TaskState newState) {
-
-        ZonedDateTime migrationDate = ZonedDateTime.now();
-        String formattedMigrationDate = CAMUNDA_DATA_TIME_FORMATTER.format(migrationDate);
+        String formattedInitiationTime = CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now());
 
         Map<String, CamundaValue<String>> variable = Map.of(
             CFT_TASK_STATE.value(), CamundaValue.stringValue(newState.value()),
-            INITIATION_TIMESTAMP.value(), CamundaValue.stringValue(formattedMigrationDate)
+            INITIATION_TIMESTAMP.value(), CamundaValue.stringValue(formattedInitiationTime)
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
