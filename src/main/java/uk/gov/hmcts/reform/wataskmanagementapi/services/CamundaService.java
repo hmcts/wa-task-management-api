@@ -40,6 +40,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTask
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskStateUpdateException;
 import uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.actions.CamundaTaskUnclaimException;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -54,7 +55,9 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.DecisionTable.WA_TASK_COMPLETION;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.CFT_TASK_STATE;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.INITIATION_TIMESTAMP;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition.TASK_STATE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_ASSIGN;
 import static uk.gov.hmcts.reform.wataskmanagementapi.exceptions.v2.enums.ErrorMessages.TASK_ASSIGN_AND_COMPLETE_UNABLE_TO_COMPLETE;
@@ -499,7 +502,7 @@ public class CamundaService {
 
     private boolean filterOnlyHasWarningVarAndLocalTaskVars(CamundaVariableInstance camundaVariableInstance) {
         if (("hasWarnings".equals(camundaVariableInstance.getName())
-             || "warningList".equals(camundaVariableInstance.getName()))
+            || "warningList".equals(camundaVariableInstance.getName()))
             && camundaVariableInstance.getTaskId() == null) {
             return true;
         }
@@ -564,8 +567,11 @@ public class CamundaService {
      * @throws CamundaTaskStateUpdateException if call fails when updating the cft task state.
      */
     private void updateCftTaskStateTo(String taskId, TaskState newState) {
+        String formattedInitiationTime = CAMUNDA_DATA_TIME_FORMATTER.format(ZonedDateTime.now());
+
         Map<String, CamundaValue<String>> variable = Map.of(
-            CFT_TASK_STATE.value(), CamundaValue.stringValue(newState.value())
+            CFT_TASK_STATE.value(), CamundaValue.stringValue(newState.value()),
+            INITIATION_TIMESTAMP.value(), CamundaValue.stringValue(formattedInitiationTime)
         );
         AddLocalVariableRequest camundaLocalVariables = new AddLocalVariableRequest(variable);
 
