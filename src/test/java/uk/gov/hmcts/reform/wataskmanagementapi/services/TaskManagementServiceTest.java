@@ -10,11 +10,13 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.access.entities.AccessControlResponse;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.SearchEventAndCase;
 import uk.gov.hmcts.reform.wataskmanagementapi.auth.idam.entities.UserInfo;
@@ -45,6 +47,7 @@ import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaSe
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariable;
+import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaVariableDefinition;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.Task;
 import uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.task.TaskRolePermissions;
@@ -104,6 +107,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -124,7 +128,9 @@ import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_NAME;
 import static uk.gov.hmcts.reform.wataskmanagementapi.controllers.request.enums.TaskAttributeDefinition.TASK_TYPE;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.CamundaTime.CAMUNDA_DATA_TIME_FORMATTER;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.ASSIGNED;
 import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.COMPLETED;
+import static uk.gov.hmcts.reform.wataskmanagementapi.domain.entities.camunda.TaskState.UNASSIGNED;
 
 @ExtendWith(MockitoExtension.class)
 @Slf4j
@@ -607,13 +613,22 @@ class TaskManagementServiceTest extends CamundaHelpers {
     @Nested
     @DisplayName("claimTask()")
     class Release2EndpointsClaimTask {
+
         @Test
         void claimTask_should_succeed() {
+
+            CamundaVariable camundaStateVariable = new CamundaVariable(UNASSIGNED, "String");
+            Map<String, CamundaVariable> camundaTaskVariables =
+                ImmutableMap.of(
+                    CamundaVariableDefinition.TASK_STATE.value(),
+                    camundaStateVariable
+                );
 
             AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
             final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
             when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
             TaskResource taskResource = spy(TaskResource.class);
+
             when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
                 .thenReturn(Optional.of(taskResource));
             when(launchDarklyFeatureFlagProvider.getBooleanValue(
@@ -622,12 +637,57 @@ class TaskManagementServiceTest extends CamundaHelpers {
                     IDAM_USER_EMAIL
                 )
             ).thenReturn(true);
+            when(camundaService.getTaskVariables(anyString())).thenReturn(camundaTaskVariables);
             when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
                 .thenReturn(Optional.of(taskResource));
+            when(camundaService.getVariableValue(eq(camundaStateVariable), any()))
+                .thenReturn(camundaStateVariable.getValue().toString());
             when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
             taskManagementService.claimTask(taskId, accessControlResponse);
 
+            verify(camundaService, never()).unclaimTask(taskId, false);
             verify(camundaService, times(1)).claimTask(taskId, IDAM_USER_ID);
+
+        }
+
+        @Test
+        void claimTask_should_succeed_when_camunda_state_is_assigned_and_cft_state_is_unassigned() {
+
+            CamundaVariable camundaStateVariable = new CamundaVariable(ASSIGNED, "String");
+            Map<String, CamundaVariable> camundaTaskVariables =
+                ImmutableMap.of(
+                    CamundaVariableDefinition.TASK_STATE.value(),
+                    camundaStateVariable
+                );
+
+            AccessControlResponse accessControlResponse = mock(AccessControlResponse.class);
+            final UserInfo userInfo = UserInfo.builder().uid(IDAM_USER_ID).email(IDAM_USER_EMAIL).build();
+            when(accessControlResponse.getUserInfo()).thenReturn(userInfo);
+            TaskResource taskResource = spy(TaskResource.class);
+
+            when(cftQueryService.getTask(taskId, accessControlResponse.getRoleAssignments(), asList(OWN, EXECUTE)))
+                .thenReturn(Optional.of(taskResource));
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(
+                    RELEASE_2_ENDPOINTS_FEATURE,
+                    IDAM_USER_ID,
+                    IDAM_USER_EMAIL
+                )
+            ).thenReturn(true);
+            when(camundaService.getTaskVariables(anyString())).thenReturn(camundaTaskVariables);
+            when(cftTaskDatabaseService.findByIdAndObtainPessimisticWriteLock(taskId))
+                .thenReturn(Optional.of(taskResource));
+            when(camundaService.getVariableValue(eq(camundaStateVariable), any()))
+                .thenReturn(camundaStateVariable.getValue().toString());
+            when(cftTaskDatabaseService.saveTask(taskResource)).thenReturn(taskResource);
+
+            taskManagementService.claimTask(taskId, accessControlResponse);
+
+            //Unclaim must be first
+            InOrder inOrder = inOrder(camundaService);
+            inOrder.verify(camundaService, times(1)).unclaimTask(taskId, false);
+            inOrder.verify(camundaService, times(1)).claimTask(taskId, IDAM_USER_ID);
+
         }
 
         @Test

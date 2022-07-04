@@ -193,10 +193,28 @@ public class TaskManagementService {
             TaskResource task = findByIdAndObtainLock(taskId);
             task.setState(CFTTaskState.ASSIGNED);
             task.setAssignee(accessControlResponse.getUserInfo().getUid());
+
+            //Get Camunda Task State
+            final Map<String, CamundaVariable> camundaVariableMap = camundaService.getTaskVariables(taskId);
+            String camundaTaskState =
+                camundaService.getVariableValue(
+                    camundaVariableMap.get(TASK_STATE.value()),
+                    String.class
+                );
+
+            log.info("Performing claim on taskId: {},  Current Camunda taskState: {}.", taskId, camundaTaskState);
+
             //Perform Camunda updates
+            if (camundaTaskState != null && camundaTaskState.equals(TaskState.ASSIGNED.value())) {
+                log.info("Unclaim taskId: {} in Camunda before attempting to claim.", taskId);
+                camundaService.unclaimTask(taskId, false);
+            }
+
             camundaService.claimTask(taskId, accessControlResponse.getUserInfo().getUid());
+
             //Commit transaction
             cftTaskDatabaseService.saveTask(task);
+
         } else {
             Map<String, CamundaVariable> variables = camundaService.getTaskVariables(taskId);
             roleAssignmentVerification.verifyRoleAssignments(
