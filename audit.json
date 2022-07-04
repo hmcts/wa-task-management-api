@@ -94,7 +94,7 @@
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/unclaim_POST": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/notes_POST": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-task-management-api-aat.service.core-compute-aat.internal/work-types?filter-by-user=false_GET": "ignore",
-  "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id_POST",: "ignore",
+  "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id_POST": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/task-configuration/task-id/configuration_POST": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id_POST": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-task-management-api-aat.service.core-compute-aat.internal/task/task-id/claim_POST": "ignore",
